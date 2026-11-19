@@ -371,7 +371,6 @@ body { height: 100vh; height: 100dvh; display: flex; flex-direction: column; ove
 .session-menu button::before { --icon-size: 17px; color: var(--muted); }
 .session-menu button:hover:not(:disabled) { background: var(--surface-2); color: var(--ink); }
 .session-menu button.danger-text::before { color: var(--danger); }
-.session-menu p { margin: 0; padding: 2px 12px 5px 40px; color: var(--muted); font-size:var(--text-xs); line-height: 1.4; }
 .session-menu hr { margin: 4px 8px; border: 0; border-top: 1px solid var(--line); }
 .session-menu #export-session { color: var(--ink); font-weight: 650; }
 .session-menu #export-session::before { color: var(--accent-strong); }
@@ -1283,7 +1282,8 @@ dialog.topic-peek:not([open]) { pointer-events: none; }
   .report-index h2 { margin: 0 0 8px; color: var(--ink); font: 650 15px/1.4 var(--font); }
   .report-index ul { list-style: none; margin: 0; padding: 0; }
   .report-index a { display: block; padding: 6px 9px; border-left: 2px solid var(--line); color: var(--muted); font-size:var(--text-md); line-height: 1.4; text-decoration: none; overflow-wrap: anywhere; }
-  .report-index a:is(:hover, :focus-visible) { border-left-color: var(--copper); background: var(--surface); color: var(--ink); }
+  .report-index a:is(:hover, :focus-visible) { background: var(--surface); color: var(--ink); }
+  .report-index a[aria-current="location"] { border-left-color: var(--copper); background: var(--accent-soft); color: var(--ink); }
   #report-content { width: 100%; max-width: none; padding: clamp(32px, 4vw, 65px); border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--shadow-sm); }
   .report-section { scroll-margin-top: 20px; }
 }

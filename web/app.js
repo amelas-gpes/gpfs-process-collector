@@ -47,7 +47,7 @@
     volume:"Normal counts, peaks, exceptions and attributed effort by step."
   };
   let foundationTopic = null, foundationReturnFocus = null;
-  const readingUI = {transcript:{query:"",matches:[],index:-1,matchEnds:[]},report:{query:"",matches:[],index:-1}};
+  const readingUI = {transcript:{query:"",matches:[],index:-1,matchEnds:[]},report:{query:"",matches:[],index:-1,jumpScrollTop:null}};
   const transcriptRows = [];
   let sourceOrigin=null;
   let memoRestoreFocus=true, settingsRestoreFocus=true, noticeTimer=null, noticeKind="general";
@@ -5504,10 +5504,53 @@
     }
     return {shown,missing};
   }
+  function setCurrentReportSection(id) {
+    const contents=$("report-contents"),links=$("report-section-links");
+    const current=links?.querySelector(`a[href="#${id}"]`);
+    if(contents)contents.value=current?id:"";
+    const previous=links?.querySelector('a[aria-current="location"]');
+    if(current===previous)return;
+    previous?.removeAttribute("aria-current");
+    current?.setAttribute("aria-current","location");
+    const tools=current?.closest(".report-reading-tools");
+    if(tools&&current.offsetHeight){
+      const rail=tools.getBoundingClientRect(),item=current.getBoundingClientRect();
+      tools.scrollTop+=Math.min(0,item.top-rail.top)+Math.max(0,item.bottom-rail.bottom);
+    }
+  }
+  function syncReportContents() {
+    const scroller=$("review-view");
+    if(!scroller?.clientHeight||reviewUI.section!=="review-report"||!state.draft)return;
+    const top=scroller.scrollTop;
+    // A short section near the end can share its landing position with later sections.
+    if(top===readingUI.report.jumpScrollTop)return;
+    readingUI.report.jumpScrollTop=null;
+    const sections=$("report-content").querySelectorAll(".report-section");
+    if(!sections.length)return;
+    if(top>0&&scroller.scrollHeight-scroller.clientHeight-top<=1){
+      setCurrentReportSection(sections[sections.length-1].id);
+      return;
+    }
+    const margin=parseFloat(getComputedStyle(sections[0]).scrollMarginTop)||0;
+    const readingLine=scroller.getBoundingClientRect().top+margin+1;
+    let id="";
+    for(const section of sections){
+      if(section.getBoundingClientRect().top>readingLine)break;
+      id=section.id;
+    }
+    setCurrentReportSection(id);
+  }
   function renderReport() {
     const root=$("report-content"),d=state.draft;
     if(!root)return;
-    root.replaceChildren();if(!d)return;
+    const contents=$("report-contents"),sectionLinks=$("report-section-links");
+    const selected=contents?.value||"";
+    const placeholder=el("option","","Contents");
+    placeholder.value="";
+    contents?.replaceChildren(placeholder);
+    sectionLinks?.replaceChildren();
+    root.replaceChildren();
+    if(!d){readingUI.report.jumpScrollTop=null;return;}
     root.append(el("h2","report-title",d.title||processDisplayName()||"Business process"));
     root.append(el("span","report-status","Draft of current practice · Needs owner review"));
     if(state.example)root.append(el("p","report-warning","Example — everything here is fictional."));
@@ -5528,11 +5571,6 @@
     };
     const list=(parent,values,empty="Not established in this interview.")=>{const ul=el("ul");(values?.length?values:[empty]).forEach(value=>ul.append(el("li","",value)));parent.append(ul);};
     const fields=(parent,pairs)=>{const rows=reportFieldRows(pairs);if(rows.shown.length){const dl=el("dl","report-fields");rows.shown.forEach(([label,value])=>dl.append(el("dt","",label),el("dd","",value)));parent.append(dl);}if(rows.missing.length)parent.append(el("p","report-unstated","Not captured: "+rows.missing.join(", ")));};
-    const contents=$("report-contents"),sectionLinks=$("report-section-links");
-    const placeholder=el("option","","Contents");
-    placeholder.value="";
-    contents?.replaceChildren(placeholder);
-    sectionLinks?.replaceChildren();
     let sectionCount=0;
     const section=title=>{
       const part=el("section","report-section");
@@ -5614,7 +5652,9 @@
       record.append(evidenceRow(tag.evidence_turns));part.append(record);
     }
     for(const link of d.connections_out||[]){part.append(el("p","",`${readableTerm(link.relationship_type)}: ${link.counterpart}${link.condition?" · "+link.condition:""}`),evidenceRow(link.evidence_turns));}
+    setCurrentReportSection(selected);
     refreshReadingSearch("report",false);
+    requestAnimationFrame(syncReportContents);
   }
   const draftFacets={"entity_type": ["fund", "gp_carry", "manco", "feeder", "blocker", "holding", "spv", "co_invest", "enterprise", "other"], "applicability": ["single_entity", "multi_same", "multi_variant", "enterprise", "unknown"], "functional_area": ["capital_activity", "fund_accounting", "investor_reporting", "financial_reporting", "fees_and_carry", "allocations", "treasury_payments", "tax", "compliance_regulatory", "investor_services", "onboarding", "data_management", "hr", "it", "internal_operations", "other"], "process_level": ["process", "subprocess", "activity", "unknown"], "client_applicability": ["gpfs_standard", "client_specific", "multi_client_variant", "enterprise", "unknown"], "rule_source": ["lpa_governing_doc", "side_letter", "subscription_docs", "client_methodology", "gpfs_methodology", "accounting_policy", "regulatory", "tax", "system_configuration", "prior_period_practice", "spreadsheet", "institutional_knowledge", "other", "unknown"], "system": ["entrilia", "allvue", "excel_workbook", "email", "sharepoint_folder", "client_portal", "bank_platform", "other", "none"], "control_type": ["gpfs_operational", "gpfs_supervisory", "client_review", "client_approval", "system_enforced", "exception_escalation", "none_reported"], "variant_class": ["gold_standard", "structural", "client_specific", "presentation", "unclassified"]};
   const draftRelations=["provides_input_to", "consumes", "hands_off_to", "requires_approval_from", "happens_after", "variant_of", "subprocess_of", "parallel_with", "shares_calculation_with"];
@@ -5747,10 +5787,16 @@
   function jumpToReview(id) {
     const target = $(id);
     if (!target) return;
-    if (REVIEW_SECTIONS.includes(id)) selectReviewSection(id);
+    const isPanel=REVIEW_SECTIONS.includes(id);
+    if (isPanel) selectReviewSection(id);
     else if (!$("report-content")?.contains(target)) return;
     revealAncestors(target);
-    scrollToElement(target,"start");
+    if(isPanel)scrollToElement(target,"start");
+    else{
+      target.scrollIntoView({block:"start",behavior:"instant"});
+      readingUI.report.jumpScrollTop=$("review-view").scrollTop;
+      setCurrentReportSection(id);
+    }
     if(target.getAttribute("tabindex")===null)target.tabIndex = -1;
     target.focus({preventScroll:true});
   }
@@ -7348,6 +7394,11 @@
     }
     $("report-contents").addEventListener("change",()=>{
       jumpToReview($("report-contents").value);
+    });
+    $("review-view").addEventListener("scroll",syncReportContents,{passive:true});
+    window.addEventListener("resize",()=>{
+      readingUI.report.jumpScrollTop=null;
+      syncReportContents();
     });
     $("back-to-source").addEventListener("click",returnToSource);
     $("conversation-scroll").addEventListener("keydown",event=>{

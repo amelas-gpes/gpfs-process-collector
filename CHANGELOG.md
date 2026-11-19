@@ -10,6 +10,8 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 ## Unreleased
 
 - A topic opened from **Notes** now appears inside the Workspace panel instead of a dialog over the page, so the voice and transcript stay in view and usable. It shows the current understanding, what is still open and compact sources, and steps through the 16 topics with the arrows, the arrow keys or a strip that shows each topic's coverage. Esc returns to the list.
+- The report's Contents keeps the current section highlighted when you select it or scroll through the report.
+- Save copy in the Workspace menu uses its tooltip for help.
 
 ## 0.34.1 · November 19, 2026
 

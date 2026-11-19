@@ -16,7 +16,8 @@ async function run() {
     })]);
     const url = output.toString().trim();
     assert.match(url, /^http:\/\/127\.0\.0\.1:\d+\/$/);
-    browser = await chromium.launch({executablePath:process.env.COLLECTOR_BROWSER, headless:true});
+    browser = await chromium.launch({executablePath:process.env.COLLECTOR_BROWSER, headless:true,
+      args:["--disable-background-networking","--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1"]});
     const page = await browser.newPage({viewport:{width:1280, height:850}});
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
@@ -30,9 +31,21 @@ async function run() {
       assert(box.x >= 0 && box.y >= 0 && box.x + box.width <= view.width && box.y + box.height <= view.height);
     }
 
+    async function scrollReportTo(number) {
+      const id = `report-section-${number}`;
+      await page.locator(`#${id}`).evaluate(section => {
+        const scroller = document.getElementById("review-view");
+        const margin = parseFloat(getComputedStyle(section).scrollMarginTop);
+        scroller.scrollTop += section.getBoundingClientRect().top - scroller.getBoundingClientRect().top - margin + 8;
+      });
+      await page.locator(`#report-section-links a[href="#${id}"][aria-current="location"]`).waitFor({state:"attached"});
+    }
+
     await page.keyboard.press("Tab");
     await expectTip("jump to the workspace");
     await page.keyboard.press("Escape");
+    await page.locator("#welcome-example").click();
+    await page.locator('[data-tab="interview"]').click();
     await page.locator("#conversation-tab-workflow").hover();
     await expectTip("handoffs captured");
     await tip.hover();
@@ -70,8 +83,6 @@ async function run() {
     await expectTip("event to inspect its recorded details");
     await page.locator("#close-interview-settings").click();
 
-    await page.locator("#welcome-example").click();
-    await page.locator('[data-tab="interview"]').click();
     await page.locator("#conversation-tab-transcript").click();
     await page.locator("#export-transcript").click();
     for (const [format, fragment] of [["markdown", "as a Markdown document"], ["json", "as structured JSON data"]]) {
@@ -82,6 +93,19 @@ async function run() {
     await page.locator("#review-tab-report").click();
     await page.locator("#report-section-links a").first().hover();
     await expectTip("this section of the process report");
+    const reportLinks = page.locator("#report-section-links a");
+    const variations = reportLinks.filter({hasText:"7. Variations and boundaries"});
+    await variations.click();
+    await page.mouse.move(800, 135);
+    assert.equal(await variations.getAttribute("aria-current"), "location");
+    assert.equal(await variations.evaluate(link => link.matches(":hover, :focus")), false);
+    const railAccent = link => link.evaluate(node => getComputedStyle(node).borderLeftColor);
+    assert.notEqual(await railAccent(variations), await railAccent(reportLinks.first()));
+    await scrollReportTo(8);
+    assert.equal(await variations.getAttribute("aria-current"), null);
+    await scrollReportTo(7);
+    await page.locator("#review-view").evaluate(scroller => {scroller.scrollTop = scroller.scrollHeight;});
+    await page.locator('#report-section-links a[aria-current="location"]').filter({hasText:"Classification and connected work"}).waitFor();
     await page.locator("#review-tab-memo").click();
     const finding = page.locator(".memo-finding-summary").first();
     await finding.hover();
@@ -103,7 +127,17 @@ async function run() {
 
     await page.locator("#map-tools-toggle").click();
     await page.setViewportSize({width:390, height:844});
+    await page.locator("#review-tab-report").click();
+    const contents = page.locator("#report-contents");
+    await contents.selectOption("report-section-7");
+    assert.equal(await contents.inputValue(), "report-section-7");
+    await scrollReportTo(8);
+    assert.equal(await contents.inputValue(), "report-section-8");
     await page.locator("#session-menu-toggle").click();
+    assert.equal(await page.locator("#save-copy-description").count(), 0);
+    await page.locator("#open-interview-settings").focus();
+    await page.keyboard.press("Tab");
+    await expectTip("Save a copy of this interview");
     await page.locator("#open-component-library").click();
     const tile = page.locator(".cl-tile").first();
     await tile.hover();
@@ -112,7 +146,7 @@ async function run() {
     await tip.waitFor({state:"detached"});
     assert(await page.locator(".cl-dialog").isVisible());
     assert.deepEqual(errors, []);
-    console.log("Context help passed across interview, review, map tools, settings and the mobile component library.");
+    console.log("Context help and report navigation passed on desktop and mobile.");
   } finally {
     try { await browser?.close(); } finally { server.kill(); }
   }

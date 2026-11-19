@@ -175,7 +175,7 @@
         sound:{input:0,output:0,inputActive:false,outputActive:false,playbackActive:false,
           playing:false,buffering:false,lastSample:null,lastInput:-Infinity,lastOutput:-Infinity},
         timers:new Set(), finalized:false, stopResolve:null, commentary:new Map(), said:null, lines:[], held:null,
-        recalled:new Set(),lookupRequests:new Map(),
+        recalled:new Set(),lookupRequests:new Map(),lookupResponses:new Map(),
         gate:null, speech:[], metered:[], inputClockLead:0, withheld:[], withheldFragments:0,
         greeting:Array.isArray(turns) && turns.length === 0 ? {status:"queued",event_id:null,name:spokenProcessName(context)} : null,
         context:{records:new Map(),history:new Map(),pending:new Map(),bytes:0,events:0}};
@@ -334,12 +334,20 @@
       }
       if(event.type==="response.event"&&!op.closing&&this.options.lookupInterview){
         const nested=event.event;
-        const responseId=channelEventId(nested?.response_id||nested?.response?.id||event.delegation_id);
+        const delegation=channelEventId(event.delegation_id);
+        const explicit=channelEventId(nested?.response_id||nested?.response?.id);
+        if(nested?.type==="response.created"&&delegation&&explicit)op.lookupResponses.set(delegation,explicit);
+        // Forwarded output items carry the delegation ID. Their response ID
+        // is on the preceding response.created, and the final output is empty.
+        const responseId=explicit||op.lookupResponses.get(delegation)||delegation;
         if(nested?.type==="response.output_item.done"&&nested.item?.type==="function_call"&&responseId){
           const calls=op.lookupRequests.get(responseId)||[];
           if(calls.length<16&&op.lookupRequests.size<16){
             calls.push(nested.item);op.lookupRequests.set(responseId,calls);
           }
+        }
+        if(["response.completed","response.failed","response.incomplete"].includes(nested?.type)){
+          if(op.lookupResponses.get(delegation)===responseId)op.lookupResponses.delete(delegation);
         }
         if(nested?.type==="response.failed"||nested?.type==="response.incomplete")op.lookupRequests.delete(responseId);
         if(nested?.type==="response.completed"){

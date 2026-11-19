@@ -9,6 +9,10 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
 ## Unreleased
 
+## 0.34.1 · November 19, 2026
+
+- Exact recall in a resumed voice interview now matches the provider's lookup request with its completion event and returns the cited passage to the interviewer.
+
 ## 0.34.0 · November 19, 2026
 
 - During live voice, Topics can show **Discussing** from the participant's captions. Corrections update that indication immediately. Checked notes and completion still require a source-backed capture.

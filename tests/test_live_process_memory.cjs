@@ -83,8 +83,9 @@ function session(){
     await h.api.start();
     const item={type:"function_call",name:"lookup_interview",call_id:"call_1",arguments:JSON.stringify({query:"release"})};
     const event=nested=>h.event({type:"response.event",delegation_id:"delegation_1",event:nested});
-    event({type:"response.output_item.done",response_id:"resp_1",item});
-    const complete={type:"response.completed",response:{id:"resp_1",output:[item]}};
+    event({type:"response.created",response:{id:"resp_1",output:[]}});
+    event({type:"response.output_item.done",output_index:0,item});
+    const complete={type:"response.completed",response:{id:"resp_1",output:[]}};
     event(complete);event(complete);
     await new Promise(resolve=>setImmediate(resolve));
     assert.equal(queries,1);

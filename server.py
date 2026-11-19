@@ -154,7 +154,7 @@ urlopen = build_opener(NoProviderRedirect(), WatchedHTTPSHandler()).open
 # The clock of the provider watchdog thread. It is read here once, so that a test which
 # replaces time.monotonic to walk a deadline does not hand its prepared values to that thread.
 _steady_clock = time.monotonic
-VERSION = "0.34.0"
+VERSION = "0.34.1"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024

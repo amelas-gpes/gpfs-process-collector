@@ -12,6 +12,7 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 
 APP = Path(__file__).resolve().parents[1]
 
@@ -59,7 +60,7 @@ class ReviewedContentTests(unittest.TestCase):
         """Record every review call; optionally hold the first background call of one file."""
         def analyze(context, record, chunks, phase):
             self.calls.append((record['name'], phase, [chunk['id'] for chunk in chunks]))
-            if phase == 'deep' and record['name'] == hold and not entered.is_set():
+            if phase == 'deep' and record['name'] == hold:
                 entered.set()
                 release.wait(10)
             return response(chunks, relevance)
@@ -98,7 +99,11 @@ class ReviewedContentTests(unittest.TestCase):
         self.assertTrue(final['analysis']['review_stopped'])
         self.assertEqual(service.supporting_context(self.scope,'returns customer')['documents'], [])
 
+    @patch.object(service_module, "MAX_DEEP_WAVE", 2)
+    @patch.object(service_module, "MAX_BATCH_CHUNKS", 1)
     def test_saving_for_later_and_removing_both_stop_background_review(self):
+        # Leave another parallel batch queued when the file is withdrawn.
+        # A small file already dispatched in full cannot exercise that boundary.
         entered, release = threading.Event(), threading.Event()
         service = self.start(hold='parked.csv', entered=entered, release=release)
         parked = service.upload(self.scope, 'parked.csv', ROWS)
@@ -119,8 +124,8 @@ class ReviewedContentTests(unittest.TestCase):
         service = self.start(hold='removed.csv', entered=entered, release=release)
         removed = service.upload(self.scope, 'removed.csv', ROWS + b'RET-extra,Customer 0,extra\n')
         self.assertTrue(entered.wait(10))
-        before = len(self.reviewed('removed.csv'))
         service.action(self.scope, removed['id'], 'remove')
+        before = len(self.reviewed('removed.csv'))
         release.set()
         self.assertTrue(self.settled(removed['id'])['archived'])
         self.assertEqual(len(self.reviewed('removed.csv')), before, 'Remove stops the background review')

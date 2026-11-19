@@ -146,7 +146,7 @@ async function exercise(browser, url, width) {
     assert.equal(focusAfterReopen, "name", "A later keyboard move can select the original opener again");
     await topic(page, "name").focus();
     await page.keyboard.press("Enter");
-    await checkDialog(page, "Name and other names", nameAnswer);
+    await checkDialog(page, "Name and scope", nameAnswer);
     await page.keyboard.press("Tab");
     assert.equal(await topic(page, "purpose").evaluate(button => button === document.activeElement), true);
     await page.keyboard.press("Space");

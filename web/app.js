@@ -1795,10 +1795,40 @@
   function showFoundationTopic(key, trigger) {
     if (!TOPICS.some(([topic]) => topic === key)) return;
     const dialog = $("foundation-dialog");
-    if (!dialog || typeof dialog.showModal !== "function") {notice("This browser can’t show topic details. Try a current version of Chrome or Edge.",true);return;}
+    if (!dialog || typeof dialog.show !== "function") {notice("This browser can’t show topic details. Try a current version of Chrome or Edge.",true);return;}
     const finding = state.memo_findings.find(item => item.key === key);
+    const switching=dialog.open&&foundationTopic!==key;
     foundationTopic = key; foundationReturnFocus = trigger?.closest?.("dialog")&&!trigger.closest("dialog").open ? $("open-memo") : trigger;
-    $("foundation-topic-title").textContent = MEMO_HEADINGS[key];
+    // The sheet is titled by the label the participant clicked; the report's heading for the
+    // section sits under it when it says something different.
+    const index=TOPICS.findIndex(([topic])=>topic===key),label=TOPICS[index][1],heading=MEMO_HEADINGS[key]||label;
+    $("foundation-topic-title").textContent = label;
+    const scope=$("foundation-topic-scope");
+    if(scope){scope.textContent=heading.toLowerCase()===label.toLowerCase()?"":heading;scope.hidden=!scope.textContent;}
+    const position=$("foundation-topic-position");
+    if(position){position.textContent=`${index+1} of ${TOPICS.length}`;position.title=`Topic ${index+1} of ${TOPICS.length}`;}
+    // Every topic as a hairline segment, shaded as in the list, with this one marked.
+    const track=$("foundation-topic-track");
+    if(track){
+      if(track.children.length!==TOPICS.length)track.replaceChildren(...TOPICS.map(([topic,name])=>{
+        const segment=el("span","topic-peek-segment");segment.dataset.topic=topic;segment.title=name;
+        segment.addEventListener("click",()=>{if(foundationTopic!==topic)showFoundationTopic(topic,document.querySelector(`[data-foundation-topic="${topic}"]`)||foundationReturnFocus);});
+        return segment;
+      }));
+      for(const segment of track.children){
+        const row=coverageNodes.get(segment.dataset.topic)?.node?.classList;
+        const shade=!row?"missing":row.contains("needs-detail")?"attention":row.contains("covered")||row.contains("captured")?"covered":row.contains("partial")?"partial":"missing";
+        if(segment.dataset.shade!==shade)segment.dataset.shade=shade;
+        segment.classList.toggle("current",segment.dataset.topic===key);
+      }
+    }
+    for(const [id,offset] of [["foundation-topic-prev",-1],["foundation-topic-next",1]]){
+      const button=$(id);if(!button)continue;
+      const target=TOPICS[index+offset];
+      button.disabled=!target;button.dataset.topic=target?.[0]||"";
+      const label=target?`${offset<0?"Previous":"Next"} topic: ${target[1]}`:`No ${offset<0?"previous":"next"} topic`;
+      button.setAttribute("aria-label",label);button.title=label;
+    }
     const review=currentTopicReview(key),advisory=provisionalFinding(finding)?advisoryFor(finding):null;
     const statusBadge=$("foundation-topic-status");
     statusBadge.dataset.status=provisionalFinding(finding)||documentOnlyFinding(finding)?"pending":finding?.status||"unknown";
@@ -1806,7 +1836,8 @@
     renderTopicGaps(key,finding,review,advisory);
     $("foundation-topic-answer").textContent = finding?.answer?.trim() ? finding.answer : "Not covered yet.";
     const hint=$("foundation-topic-hint");
-    hint.textContent=documentOnlyFinding(finding)?"From the attached file.":finding?.answer?.trim()?"From the interview — not independently verified.":"";
+    // A documented topic already says where it came from in its status and sources.
+    hint.textContent=!documentOnlyFinding(finding)&&finding?.answer?.trim()?"From the interview — not independently verified":"";
     hint.hidden=!hint.textContent;
     const sources=$("foundation-topic-sources");
     const focusedTurn=sources.contains(document.activeElement)?document.activeElement?.dataset?.sourceTurn:null;
@@ -1819,13 +1850,17 @@
     const evidence=finding?.evidence_turns||[],listed=JSON.stringify([key,evidence.map(id=>[id,sourceCaption(id)]),facts]);
     if(!dialog.open||sources.dataset.listed!==listed){
       sources.dataset.listed=listed;
-      sources.replaceChildren(evidenceRow(evidence, () => closeFoundationTopic(false)));
+      sources.replaceChildren(topicSources(evidence, () => closeFoundationTopic(false)));
       if(facts.length){
-        const details=el("details","fact-support");details.append(el("summary","","Evidence by fact"));
+        const details=el("details","fact-support"),summary=el("summary","","Evidence by fact");
+        summary.append(el("span","fact-support-count",String(facts.length)));details.append(summary);
         for(const fact of facts){
-          details.append(el("p","",fact.text),evidenceRow(fact.evidence_turns,()=>closeFoundationTopic(false)));
-          for(const entry of fact.support)details.append(el("blockquote","",entry.quote));
-          for(const flag of fact.unverified)details.append(el("p","", "Needs verification: "+flag));
+          const item=el("article","fact-support-item");
+          item.append(el("p","fact-support-text",fact.text));
+          for(const entry of fact.support)item.append(el("blockquote","",entry.quote));
+          for(const flag of fact.unverified)item.append(el("p","fact-support-flag", "Needs verification: "+flag));
+          item.append(topicSources(fact.evidence_turns,()=>closeFoundationTopic(false)));
+          details.append(item);
         }
         sources.hidden=false;sources.append(details);
       }
@@ -1838,8 +1873,8 @@
       rewritten.hidden=!rewrite;rewritten.dataset.topic=key;rewritten.dataset.noted=noted;rewritten.replaceChildren(...(rewrite?[rewrite]:[]));
       if(rewrite&&reading)rewrite.querySelector("details").open=true;
     }
-    if (!dialog.open) {
-      dialog.showModal();
+    if (!dialog.open||switching) {
+      if(!dialog.open){dialog.show();$("close-foundation-topic")?.focus({preventScroll:true});}
       const body=dialog.querySelector(".detail-body");
       if(body)body.scrollTop=0;
     } else if(focusedTurn)matchingCitations(sources,focusedTurn)[0]?.focus({preventScroll:true});
@@ -1860,6 +1895,23 @@
   }
   function initFoundationDialog() {
     $("close-foundation-topic").addEventListener("click",() => closeFoundationTopic());
+    // Step through the topics without going back to the list. Closing returns focus to the
+    // row of the topic last shown.
+    const step=button=>{
+      const key=button?.dataset.topic;if(!key)return;
+      showFoundationTopic(key,document.querySelector(`[data-foundation-topic="${key}"]`)||foundationReturnFocus);
+      (button.disabled?$("close-foundation-topic"):button).focus({preventScroll:true});
+    };
+    for(const id of ["foundation-topic-prev","foundation-topic-next"])$(id)?.addEventListener("click",event=>step(event.currentTarget));
+    // The panel is not modal, so the page's own Esc handling never reaches it: Esc here
+    // goes back to the topics (and leaves a Workspace sheet around it open).
+    $("foundation-dialog").addEventListener("keydown",event=>{
+      if(event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+      if(event.key==="Escape"){event.preventDefault();event.stopPropagation();closeFoundationTopic();return;}
+      if(!["ArrowLeft","ArrowRight"].includes(event.key)||event.target.closest?.("input,textarea,select,[contenteditable]"))return;
+      const button=$(event.key==="ArrowLeft"?"foundation-topic-prev":"foundation-topic-next");
+      if(button&&!button.disabled){event.preventDefault();step(button);}
+    });
     $("foundation-dialog").addEventListener("cancel",event => {
       event.preventDefault();
       closeFoundationTopic();
@@ -5978,20 +6030,54 @@
     const evidence = el("div","evidence-row");
     evidence.append(el("span","","Sources:"));
     if (!ids.length) evidence.append(el("span","needs-evidence","UNKNOWN / TBD · needs validation"));
-    ids.forEach(id => {
-      const source = el("button","evidence-link",sourceCaption(id));
-      source.title = `Source: ${id}`;
-      source.dataset.sourceTurn=id;
-      source.setAttribute("aria-label",`Read ${sourceCaption(id)}`);
-      source.addEventListener("click",() => {
-        const excerpt=state.documentEvidence.find(item=>item.id===id);
-        if(excerpt){showDocumentEvidence(excerpt,source);return;}
-        if(id!=="context"&&!document.getElementById("turn-"+id)){jumpToTurn(id,false);return;}
-        rememberSourceOrigin(source);beforeJump?.();jumpToTurn(id,false);
-      });
-      evidence.append(source);
-    });
+    ids.forEach(id => evidence.append(sourceLink(id,sourceCaption(id),beforeJump)));
     return evidence;
+  }
+  function sourceLink(id, text, beforeJump=null, className="evidence-link") {
+    const source = el("button",className,text);
+    source.type="button";
+    source.title = `Source: ${id}`;
+    source.dataset.sourceTurn=id;
+    source.setAttribute("aria-label",`Read ${sourceCaption(id)}`);
+    source.addEventListener("click",() => {
+      const excerpt=state.documentEvidence.find(item=>item.id===id);
+      if(excerpt){showDocumentEvidence(excerpt,source);return;}
+      if(id!=="context"&&!document.getElementById("turn-"+id)){jumpToTurn(id,false);return;}
+      rememberSourceOrigin(source);beforeJump?.();jumpToTurn(id,false);
+    });
+    return source;
+  }
+  // The topic panel's sources, compact enough for the Workspace rail: the interview's
+  // answers on one line as numbers, then one line per cited file with its page.
+  function topicSources(ids = [], beforeJump = null) {
+    const list=el("div","topic-sources");
+    if(!ids.length){list.append(el("p","needs-evidence","No source yet · needs validation"));return list;}
+    const answers=[],others=[];
+    for(const id of ids){
+      const document_=state.documentEvidence.find(item=>item.id===id);
+      if(document_){others.push([id,document_]);continue;}
+      const number=/^Answer (\d+)$/.exec(sourceCaption(id))?.[1];
+      if(number)answers.push([id,number]);else others.push([id,null]);
+    }
+    if(answers.length){
+      const row=el("div","topic-source-row interview");
+      row.append(el("span","topic-source-kind","Interview"));
+      const numbers=el("span","topic-source-numbers");
+      for(const [id,number] of answers){const link=sourceLink(id,number,beforeJump,"evidence-link topic-source-number");link.title=sourceCaption(id);numbers.append(link);}
+      row.append(numbers);list.append(row);
+    }
+    for(const [id,source] of others){
+      const caption=sourceCaption(id);
+      const link=sourceLink(id,"",beforeJump,"evidence-link topic-source-file"+(source?"":" plain"));
+      link.title=caption;
+      if(source){
+        const page=caption.startsWith(source.name)?caption.slice(source.name.length).replace(/^\s*·\s*/,""):"";
+        link.append(el("span","topic-source-name",page?source.name:caption));
+        if(page)link.append(el("span","topic-source-page",page));
+      }else link.append(el("span","topic-source-name",caption));
+      list.append(link);
+    }
+    return list;
   }
   // Sections a coverage review rewrote. The server returns each repair with the text it
   // replaced (coverage_assessment.capture_repairs). The rewrite is announced, marked on the
@@ -7289,7 +7375,8 @@
     placeMemo(narrowMemo.matches);narrowMemo.addEventListener("change",()=>placeMemo(narrowMemo.matches));
     $("open-memo").addEventListener("click",()=>setMemoSheet(true));
     $("close-memo").addEventListener("click",()=>setMemoSheet(false));
-    $("memo-sheet").addEventListener("close",()=>{if(memoRestoreFocus)$("open-memo").focus({preventScroll:true});});
+    // The topic panel lives inside the Workspace: it closes with the sheet that holds it.
+    $("memo-sheet").addEventListener("close",()=>{if($("memo-sheet-body")?.contains($("foundation-dialog"))&&$("foundation-dialog").open)closeFoundationTopic(false);if(memoRestoreFocus)$("open-memo").focus({preventScroll:true});});
     $("jump-latest").addEventListener("click",()=>{scrollConversation();$("jump-latest").hidden=true;});
     $("conversation-scroll").addEventListener("scroll",updateConversationScroll);
     $("start-live").addEventListener("click",startLiveConversation);

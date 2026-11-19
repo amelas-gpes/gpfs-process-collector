@@ -26,6 +26,7 @@ class Element{
  focus(){const dialog=document.modalStack.at(-1);if(dialog?.open&&!dialog.contains(this))throw Error("Focus attempted outside an open modal");document.activeElement=this;}
  scrollIntoView(options){this.scrollOptions=options;for(let node=this;node;node=node.parentElement)if(node.tagName==="DETAILS"&&!node.open)throw Error("Scrolled to hidden disclosure content");this.scrolled=true;}
  showModal(){if(!this.open)document.modalStack.push(this);this.open=true;document.activeElement=this;}
+ show(){this.open=true;}
  close(){this.open=false;document.modalStack=document.modalStack.filter(dialog=>dialog!==this);this.dispatch("close");}
 }
 function walk(root){return[root,...root.children.flatMap(walk)];}
@@ -347,7 +348,7 @@ if(process.argv.includes("--usability-only")){
   assert.equal(document.activeElement.id,"review-tab-procedure","Returning to review restores visible keyboard focus");passes++;
   mount("settings-source-return","button");const sourceBack=mount("back-to-source","button");
   const noBack=()=>{for(const id of ["source-return","settings-source-return"])assert.equal(document.getElementById(id).hidden,true,id);};
-  t.tab("interview");t.selectConversationView("voice");memoBody.append(document.getElementById("memo-rail"));t.setMemoSheet(true);
+  t.tab("interview");t.selectConversationView("voice");memoBody.append(document.getElementById("memo-rail"));document.getElementById("memo-rail").append(dialog);t.setMemoSheet(true);
   t.state.memo_findings=[{key:"trigger",status:"captured",answer:"An email starts it.",evidence_turns:["t002"]}];
   t.showFoundationTopic("trigger",document.querySelector('[data-foundation-topic="trigger"]'));
   dialog.querySelector(".evidence-link").dispatch("click");assert.equal(sourceBack.textContent,"Back to note");t.returnToSource();
@@ -647,12 +648,13 @@ if(process.argv.includes("--usability-only")){
   assert.equal(memoSheet.open,false,"Review navigation must close the mobile memo sheet before focusing background content");assert.equal(document.activeElement,review);passes++;
  }
  {
-  checkpoint();t.tab("interview");const coverageList=document.getElementById("coverage-list"),originalParent=coverageList.parentElement;memoBody.append(coverageList);
+  checkpoint();t.tab("interview");const coverageList=document.getElementById("coverage-list"),originalParent=coverageList.parentElement,dialogParent=dialog.parentElement;memoBody.append(coverageList,dialog);
   t.state.memo_findings=[{key:"trigger",status:"captured",answer:"A paper invoice arrives.",evidence_turns:["t002"]}];t.renderTranscript();
   t.setMemoSheet(true);t.showFoundationTopic("trigger",document.querySelector('[data-foundation-topic="trigger"]'));
-  assert.equal(document.modalStack.length,2);document.getElementById("foundation-topic-sources").querySelector(".evidence-link").dispatch("click");
+  // The topic opens inside the Workspace sheet, not as a second modal over it.
+  assert.equal(dialog.open,true);assert.equal(document.modalStack.length,1);document.getElementById("foundation-topic-sources").querySelector(".evidence-link").dispatch("click");
   assert.equal(dialog.open,false);assert.equal(memoSheet.open,false,"Following a memo source must release the underlying mobile modal too");assert.equal(document.activeElement.id,"turn-t002");assert.equal(t.conversationUI.view,"transcript");
-  originalParent.append(coverageList);passes++;
+  originalParent.append(coverageList);dialogParent.append(dialog);passes++;
  }
  {
   checkpoint();t.renderTranscript();const oldTopic=document.querySelector('[data-foundation-topic="trigger"]');oldTopic.focus();

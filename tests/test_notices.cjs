@@ -49,16 +49,17 @@ async function check(name,fn){
   page.t.setInterviewSettings(false);assert.equal(toast.parentNode,home,"The hidden notice goes home with the dialog closed");
   page.t.notice("Saved.");assert.equal(toast.parentNode,home);assert.equal(page.shown("global-notice"),true);
  });
- await check("the top-most dialog hosts the notice; it moves down the stack as dialogs close",async()=>{
+ await check("the open modal hosts the notice over the topic panel; it moves back to the page as the sheet closes",async()=>{
   const page=await open({narrow:true,expose:EXPOSE});
   const sheet=page.$("memo-sheet"),topic=page.$("foundation-dialog"),toast=page.$("global-notice"),home=toast.parentNode;
   page.$("open-memo").click();
   const button=sheet.querySelector('[data-foundation-topic="purpose"]');assert.ok(button,"The topics are in the sheet");
   assert.equal(button.click(),true);assert.equal(topic.open,true);
   page.t.notice("The notes could not be updated.",true);
-  assert.ok(topic.contains(toast),"The dialog on top shows it");assert.equal(page.shown("global-notice"),true);assert.equal(dismissal(page).length,0);
+  // The topic is a panel inside the Workspace sheet, not a modal of its own: the sheet shows the notice, after (and so above) the panel.
+  assert.ok(sheet.contains(toast)&&!topic.contains(toast),"The modal on top shows it");assert.equal(page.shown("global-notice"),true);assert.equal(dismissal(page).length,0);
   page.t.closeFoundationTopic();
-  assert.ok(sheet.contains(toast),"Still covered by the sheet: the notice moves into it");assert.equal(page.shown("global-notice"),true);assert.equal(dismissal(page).length,0);
+  assert.ok(sheet.contains(toast),"Still covered by the sheet: the notice stays in it");assert.equal(page.shown("global-notice"),true);assert.equal(dismissal(page).length,0);
   page.t.setMemoSheet(false);
   assert.equal(toast.parentNode,home);assert.equal(page.shown("global-notice"),true);assert.equal(dismissal(page).length,1);
  });

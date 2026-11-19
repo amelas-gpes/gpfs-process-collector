@@ -284,6 +284,34 @@
         </section>
         <section id="memo-panel-assets" class="memo-panel" role="tabpanel" aria-labelledby="memo-tab-assets" tabindex="0" hidden><div id="document-assets" class="document-assets"></div></section>
         <div id="memo-footer" class="memo-footer" hidden><div class="memo-actions"><button id="final-check" class="button secondary small" data-icon="flag" disabled>Wrap up</button><button class="button primary small" id="generate-draft" aria-description="Produce a procedure and report from the interview for owner review." data-icon-end="arrow-right" disabled>Create draft</button></div><div class="closure-row"><span id="closure-status" hidden></span><span id="memo-next" role="status" hidden></span><button class="text-button small" id="confirm-nothing" type="button" title="Confirm that nothing is missing from your account" hidden>Nothing to add</button></div></div>
+        <dialog id="foundation-dialog" class="foundation-dialog topic-peek" aria-labelledby="foundation-topic-title">
+          <div class="topic-peek-bar">
+            <button type="button" id="close-foundation-topic" class="topic-peek-back" aria-label="Close topic" title="Back to all topics (Esc)" autofocus>Topics</button>
+            <div class="topic-peek-stepper">
+              <button type="button" id="foundation-topic-prev" class="topic-peek-step prev"></button>
+              <span id="foundation-topic-position" class="topic-peek-position"></span>
+              <button type="button" id="foundation-topic-next" class="topic-peek-step next"></button>
+            </div>
+          </div>
+          <div id="foundation-topic-track" class="topic-peek-track" aria-hidden="true"></div>
+          <div class="detail-body topic-peek-body">
+            <header class="topic-peek-header">
+              <h2 id="foundation-topic-title">Topic</h2>
+              <p id="foundation-topic-scope" class="topic-peek-scope" hidden></p>
+              <div class="topic-peek-meta"><span id="foundation-topic-status" class="topic-dialog-status"></span><span id="foundation-topic-hint" class="topic-dialog-hint"></span></div>
+            </header>
+            <section class="topic-peek-section">
+              <h3 class="topic-peek-label">Current understanding</h3>
+              <p id="foundation-topic-answer" class="topic-dialog-answer"></p>
+              <div id="foundation-topic-repair" class="topic-dialog-repair" hidden></div>
+            </section>
+            <div id="foundation-topic-gaps" class="topic-dialog-gaps" hidden></div>
+            <section class="topic-peek-section topic-peek-sources">
+              <h3 class="topic-peek-label">Sources</h3>
+              <div id="foundation-topic-sources" class="topic-dialog-sources"></div>
+            </section>
+          </div>
+        </dialog>
       </aside></div>
     </section>
 
@@ -554,19 +582,6 @@
       <button type="button" id="close-workflow-step" class="dialog-close" aria-label="Close step details" autofocus></button>
     </header>
     <div id="workflow-step-content" class="detail-body"></div>
-  </dialog>
-  <dialog id="foundation-dialog" class="detail-panel foundation-dialog" aria-labelledby="foundation-topic-title">
-    <header class="detail-header">
-      <div class="detail-heading"><h2 id="foundation-topic-title">Topic</h2><span id="foundation-topic-status" class="topic-dialog-status"></span></div>
-      <button type="button" id="close-foundation-topic" class="dialog-close" aria-label="Close topic" autofocus></button>
-    </header>
-    <div class="detail-body">
-      <div id="foundation-topic-gaps" class="topic-dialog-gaps" hidden></div>
-      <p id="foundation-topic-answer" class="topic-dialog-answer"></p>
-      <div id="foundation-topic-sources" class="topic-dialog-sources"></div>
-      <div id="foundation-topic-repair" class="topic-dialog-repair" hidden></div>
-      <p id="foundation-topic-hint" class="topic-dialog-hint"></p>
-    </div>
   </dialog>
 
   <div class="sr-only" id="live-status" role="status" aria-live="polite"></div>

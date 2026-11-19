@@ -62,6 +62,7 @@ function dom() {
     getBoundingClientRect() {return {top:0, bottom:0, left:0, right:0, width:0, height:0};}
     setSelectionRange() {}
     showModal() {this.open = true;}
+    show() {this.open = true;}
     close() {this.open = false; this.dispatch("close");}
   }
   document.body = new Element("body");

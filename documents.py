@@ -45,9 +45,11 @@ MAX_PDF_CONTENT_BYTES = 128 * 1024 * 1024
 MAX_IMAGE_PIXELS = 40_000_000
 MAX_INVENTORY_BYTES = 50 * 1024
 MAX_CONTEXT_BYTES = 32 * 1024
-# 4: a PDF page whose only drawings are page furniture (rules, boxes, bullets) is no longer
-# given a visual placeholder; 3: PDF annotations, delimited text, narrower spreadsheet ranges.
-EXTRACTION_VERSION = 4
+# 5: a worksheet whose only VML drawing holds its cell comments' note boxes is no longer counted as
+# containing a drawing (the comments themselves are indexed); 4: a PDF page whose only drawings are
+# page furniture (rules, boxes, bullets) is no longer given a visual placeholder; 3: PDF annotations,
+# delimited text, narrower spreadsheet ranges.
+EXTRACTION_VERSION = 5
 # The layouts of documents.sqlite3 this build opens: the oldest it upgrades in place, and the
 # one it writes. SQLite keeps the number in the file (PRAGMA user_version; 0 in a store from
 # before it was recorded). Raise the second number with any change an older build would
@@ -1683,6 +1685,29 @@ def _row_chunks(record, chunks, sheet_index, sheet_name, rows):
             'formula_cells': formulas, 'formulas_without_cached_values': uncached}
 
 
+def _vml_only_notes(archive, source_path, relations):
+    """True when every VML drawing of this worksheet holds only comment note boxes (ObjectType Note)."""
+    import posixpath
+    found = False
+    for relation in relations:
+        if relation.get('Type', '').rsplit('/', 1)[-1] != 'vmlDrawing' or relation.get('TargetMode') == 'External':
+            continue
+        target = relation.get('Target', '')
+        name = posixpath.normpath(target.lstrip('/') if target.startswith('/') else posixpath.join(str(source_path.parent), target))
+        if name.startswith('../') or name not in archive.namelist() or archive.getinfo(name).file_size > MAX_ZIP_MEMBER_BYTES:
+            return False
+        with archive.open(name) as stream:
+            text = stream.read().decode('utf-8', 'replace')
+        # Any namespace prefix: Excel writes v: and x:, other writers ns0: and the like.
+        kinds = re.findall(r'<(?:[\w.-]+:)?ClientData\b[^>]*\bObjectType\s*=\s*"([^"]*)"', text)
+        shapes = len(re.findall(r'<(?:[\w.-]+:)?shape\b', text))
+        if (not kinds or any(kind != 'Note' for kind in kinds) or shapes != len(kinds)
+                or re.search(r'<(?:[\w.-]+:)?imagedata\b', text)):
+            return False
+        found = True
+    return found
+
+
 def _workbook(path, record, chunks):
     from openpyxl import load_workbook
     from openpyxl.worksheet._reader import WorkSheetParser, FORMULA_TAG
@@ -1791,6 +1816,10 @@ def _workbook(path, record, chunks):
                                            {'sheet':sheet.title,'sheet_index':index,'cell':address,'visibility':sheet.sheet_state,'origin':'cell_comment'})
                             note.clear()
                 if comments: item['comment_count']=comments
+                if 'vmlDrawing' in graphics and _vml_only_notes(archive, source_path, relations):
+                    # Excel draws every cell comment's note box in a VML drawing. Those comments are
+                    # indexed above; the drawing holds nothing else to read, so the tab is not unread.
+                    graphics.remove('vmlDrawing')
                 if graphics:
                     item.update(requires_vision=True, unread_visual_parts=graphics)
             inventory.append(item)

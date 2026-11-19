@@ -91,10 +91,10 @@ class OpeningFileTests(unittest.TestCase):
             self.assertNotIn("opening_file", seen["payload"])
             self.assertEqual(seen["instructions"], server.DOCUMENT_INSTRUCTIONS)
 
-    def test_the_first_review_is_fast_and_the_in_depth_batches_are_not(self):
+    def test_the_first_review_and_the_in_depth_batches_are_fast(self):
         blank = {"context": {}, "turns": []}
         self.assertIs(self._reviewed(blank)["options"]["fast"], True)
-        self.assertIs(self._reviewed(blank, phase="deep")["options"]["fast"], False)
+        self.assertIs(self._reviewed(blank, phase="deep")["options"]["fast"], True)
 
 
 class HeaderWatchTests(unittest.TestCase):

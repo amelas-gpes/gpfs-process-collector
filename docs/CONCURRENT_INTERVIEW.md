@@ -268,7 +268,7 @@ A cancelled request to the AI service is ended at once (its connection is shut,
 wherever it waits), which frees its worker and its provider slot; whether the
 provider stops generating and billing for it is the provider's matter. Only a
 conversation that is discarded cancels its work; a new answer does not.
-`COLLECTOR_PROVIDER_SLOTS` (default 6, 2 to 32) requests are in flight at once.
+`COLLECTOR_PROVIDER_SLOTS` (default 24, 2 to 32) requests are in flight at once; a file's in-depth review sends up to 16 of its batches together.
 Background work leaves two of them free, so that a question, a transcription or
 a voice session does not queue behind notes and maps. Background processing adds provider work and cost, and long
 transcripts remain in the fast model input for conversational accuracy. No constant

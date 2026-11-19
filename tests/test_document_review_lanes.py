@@ -66,7 +66,9 @@ class QuestionAfterTheFirstPass(ReviewCase):
         self.assertIs(ready(record, {'disposition': 'use'}), True)
         self.assertIs(ready(record, {'disposition': 'parked'}), False)
         self.assertIs(ready(record, {'disposition': 'use', 'review_stopped': True}), False)
-        self.assertIs(ready({**record, 'inventory': {'requires_vision': True}}, {'disposition': 'use'}), False)
+        # A file with pages or images to read is askable once every one has been read.
+        self.assertIs(ready({**record, 'inventory': {'requires_vision': True}}, {'disposition': 'use'}), True)
+        self.assertIs(ready(record, {'disposition': 'use', 'unreadable_sources': [{'source_id': 'doc_x_p1'}]}), False)
         self.assertIs(ready({**record, 'coverage': {'visual_pending_units': 2}}, {'disposition': 'use'}), False)
         self.assertIs(ready({**record, 'visual_reread_pending': {'doc_x_p1': 'kept'}}, {'disposition': 'use'}), False)
         self.assertIs(ready({**record, 'status': 'error'}, {'disposition': 'use'}), False)
@@ -97,7 +99,8 @@ class FilesSideBySide(ReviewCase):
             with lock:
                 active[record['id']] = active.get(record['id'], 0) + 1
                 most['files'] = max(most['files'], len([name for name, count in active.items() if count]))
-                most['per_file'] = max(most['per_file'], active[record['id']])
+                if phase == 'quick':
+                    most['per_file'] = max(most['per_file'], active[record['id']])
                 order.append((record['name'], phase, chunks[0]['id']))
             if phase == 'quick':
                 both.wait()   # Each first pass waits for the other: with one worker this would never pass.
@@ -113,14 +116,14 @@ class FilesSideBySide(ReviewCase):
         self.wait(first)
         self.wait(second)
         self.assertEqual(most['files'], 2, 'The two files were not reviewed side by side')
-        self.assertEqual(most['per_file'], 1, 'Two requests of one file ran at once')
+        self.assertEqual(most['per_file'], 1, 'A first pass ran beside another request of its file')
         for name in ('first.csv', 'second.csv'):
             phases = [phase for file, phase, _ in order if file == name]
             self.assertEqual(phases[0], 'quick')
             self.assertTrue(all(phase == 'deep' for phase in phases[1:]))
             starts = [start for file, phase, start in order if file == name and phase == 'deep']
-            self.assertEqual(starts, sorted(starts, key=lambda identity: int(identity.rsplit('r', 1)[-1].split('_')[0])),
-                             'The in-depth requests of a file follow the order of its sections')
+            # The in-depth batches of a file go out together; each section is sent once.
+            self.assertEqual(len(starts), len(set(starts)), 'An in-depth batch was sent twice')
         for identity in (first, second):
             self.assertIs(self.store.get(self.scope, identity)['analysis']['review_complete'], True)
 
@@ -131,7 +134,7 @@ class FilesSideBySide(ReviewCase):
         self.wait(identity)
         self.assertEqual(len(service._workers), 1)
         self.assertIs(service._worker, service._workers[0])
-        self.assertEqual(set(seen), {'document-review'})
+        self.assertTrue(all(name.startswith('document-review') for name in seen), seen)
 
     def test_closing_stops_every_worker(self):
         service = self.workers(lambda context, record, chunks, phase: answer(chunks), 3)

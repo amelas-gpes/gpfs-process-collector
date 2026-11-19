@@ -232,6 +232,7 @@ route_key = draft_audit.route_key
 provider_schema = local_module("provider_schema", "provider_schema.py")
 interview_coverage = local_module("interview_coverage", "interview_coverage.py")
 capture_facts = local_module("capture_facts", "capture_facts.py")
+file_parts = local_module("file_parts", "file_parts.py")
 agent_team = local_module("agent_team", "agent_team.py")
 interview_orchestrator = local_module("interview_orchestrator", "interview_orchestrator.py")
 concurrent_interview = local_module("concurrent_interview", "concurrent_interview.py")
@@ -538,6 +539,67 @@ to document.
 
 
 DOCUMENT_HEADER_FIELDS = ("summary", "acknowledgement", "relevance", "relevance_reason", "question", "queries")
+
+
+# Every structured reply is asked for in a lean form that leaves its content as it is. Request time
+# is the time the model takes to write its reply (measured over 110 requests: about 2 s plus output
+# tokens at 191 a second on the fast tier, 80 on the ordinary one; input size made no visible
+# difference), and about four fifths of a long reply was packaging: indentation and line breaks
+# (16 to 23% of the tokens) and 36-character source names repeated on every citation (17 to 24%).
+# Written on one line and citing short source names, the same notes request took 42 s instead of
+# 52 s and the same map 49 s instead of 72 s, with the same topics and steps.
+LEAN_REPLY_NOTE = ("OUTPUT FORMAT: write the JSON reply on a single line, with no line breaks, no indentation and no "
+                   "spaces after colons or commas. The content of every field is unchanged by this.")
+_FILE_SOURCE_PREFIX = re.compile(r"doc_[0-9a-f]{24}_")
+
+
+class ShortSourceNames:
+    """Short stand-ins for the file part of source names in one request, and the way back.
+
+    A file's sections are named doc_<24 hex digits>_p43_c1. In the request (instructions, input and
+    the reply schema's lists of allowed names) each file's doc_<hex>_ is written as a short stand-in
+    such as d1_, so the model cites d1_p43_c1; everything the reply says is given back with the full
+    names before anything reads it. A stand-in is chosen that occurs nowhere in the request, so a
+    name in the reply can only be one this request handed out.
+    """
+
+    def __init__(self, body):
+        self.forward, self.back, self.pattern = {}, {}, None
+        text = json.dumps(body, ensure_ascii=False)
+        prefixes = sorted(set(_FILE_SOURCE_PREFIX.findall(text)))
+        if not prefixes:
+            return
+        letter = next((letter for letter in "dfghkmnqrstuvwxyz"
+                       if not re.search(r"(?<![A-Za-z0-9])" + letter + r"\d+_", text)), None)
+        if letter is None:
+            return
+        for number, prefix in enumerate(prefixes, 1):
+            self.forward[prefix] = f"{letter}{number}_"
+            self.back[f"{letter}{number}_"] = prefix
+        self.pattern = re.compile(r"(?<![A-Za-z0-9])" + letter + r"\d+_")
+
+    def shorten(self, body):
+        if not self.forward:
+            return body
+        text = json.dumps(body, ensure_ascii=False)
+        text = _FILE_SOURCE_PREFIX.sub(lambda match: self.forward.get(match.group(0), match.group(0)), text)
+        return json.loads(text)
+
+    def restore_text(self, text):
+        if not self.pattern or not isinstance(text, str):
+            return text
+        return self.pattern.sub(lambda match: self.back.get(match.group(0), match.group(0)), text)
+
+    def restore(self, value):
+        if not self.pattern:
+            return value
+        if isinstance(value, str):
+            return self.restore_text(value)
+        if isinstance(value, list):
+            return [self.restore(item) for item in value]
+        if isinstance(value, dict):
+            return {self.restore_text(key): self.restore(item) for key, item in value.items()}
+        return value
 
 
 def document_header_watch(callback):
@@ -5098,8 +5160,10 @@ def keep_unread_as_drawn(update, previous, documents=None, carried=()):
 
 
 PROVIDER_FOREGROUND_RESERVE = 2
-# Files reviewed side by side. The requests of one file stay in order: each builds on the last.
-DOCUMENT_REVIEW_WORKERS = 2
+# Files reviewed side by side; a file's in-depth batches go out together in waves (see
+# document_service.MAX_DEEP_WAVE). With two, the third of three files added at once was not
+# even read from disk until a worker was free (its question came 7 s later).
+DOCUMENT_REVIEW_WORKERS = 4
 
 
 def whole_setting(settings, name, default, lowest, highest):
@@ -5140,7 +5204,7 @@ class OpenAIClient:
         # PROVIDER_FOREGROUND_RESERVE slots free, so that a question, a transcription or a
         # voice session does not queue behind it: with one shared pool of four, the
         # background could hold every slot.
-        self.provider_slots = whole_setting(settings, "COLLECTOR_PROVIDER_SLOTS", 6, 2, 32)
+        self.provider_slots = whole_setting(settings, "COLLECTOR_PROVIDER_SLOTS", 24, 2, 32)
         self.map_workers = whole_setting(settings, "COLLECTOR_MAP_WORKERS", 2, 1, 8)
         self._provider_slots = threading.BoundedSemaphore(self.provider_slots)
         self._background_slots = threading.BoundedSemaphore(max(1, self.provider_slots - PROVIDER_FOREGROUND_RESERVE))
@@ -5445,6 +5509,18 @@ class OpenAIClient:
         streaming = on_text is not None and path == "responses" and isinstance(body, dict)
         if streaming:
             body = {**body, "stream": True}
+        names = None
+        if (path == "responses" and isinstance(body, dict) and isinstance(body.get("input"), list)
+                and ((body.get("text") or {}).get("format") or {}).get("type") == "json_schema"):
+            # The lean reply (see LEAN_REPLY_NOTE): one line and short source names, on the wire only.
+            # The instructions stay as written, so a prompt keeps its identity; the format note follows
+            # them as its own message, and the reply is given back with the full source names.
+            body = {**body, "input": [*body["input"], {"role": "developer", "content": LEAN_REPLY_NOTE}]}
+            names = ShortSourceNames(body)
+            body = names.shorten(body)
+            if streaming and names.pattern:
+                watcher = on_text
+                on_text = lambda text: watcher(names.restore_text(text))
         data = json.dumps(body).encode("utf-8") if isinstance(body, dict) else body
         # Derive only a known operation label, never document or provider text.
         stage = {"responses": "responses", "live/sessions": "live_session",
@@ -5672,6 +5748,8 @@ class OpenAIClient:
             except (ValueError, UnicodeError):
                 metrics.update(error_category="invalid_response")
                 raise APIError("The AI service returned an unreadable response. Please try again.") from None
+            if names is not None and isinstance(result, dict):
+                result = names.restore(result)
             if not isinstance(result, dict):
                 metrics.update(error_category="invalid_response")
                 raise APIError("The AI service returned an unreadable response. Please try again.")
@@ -5896,12 +5974,15 @@ class OpenAIClient:
             payload["opening_file"] = True
             instructions += OPENING_FILE_INSTRUCTIONS
         # A first review without a page image writes its verdict and summary first: they are handed
-        # over as they complete. It is also what the participant is waiting for (see fast_tier).
+        # over as they complete. Every review request is sent on the fast tier (see fast_tier): the
+        # first is what the participant waits for, and the in-depth batches hold the file card at
+        # "Reading in depth" and feed the review report (measured 191 s on the ordinary tier
+        # against 9 s on the fast tier for an 84-page file, sent together, the same reply).
         watch = document_header_watch(on_header) if on_header is not None and phase == "quick" and not inputs else None
         result = self.structured(instructions, payload, schema, "document_context_review", 12000 if inputs else 6000,
                                  input_content=inputs, model_override=self.agent_models["document_analyst"],
                                  **({"request_timeout": 180} if inputs else {}),
-                                 **({"on_text": watch} if watch else {}), fast=phase == "quick")
+                                 **({"on_text": watch} if watch else {}), fast=True)
         check_schema(result, DOCUMENT_ANALYSIS_SCHEMA)
         return result
 
@@ -6950,6 +7031,13 @@ class InterviewServer(ThreadingHTTPServer):
                                                         **({"on_header": on_header} if on_header and hands_over_header else {}))
                 self.documents = service.DocumentService(self.documents_store, review_document, trace=raw_trace,
                                                          workers=DOCUMENT_REVIEW_WORKERS)
+                if getattr(self.client, "coordinator", None) is not None:
+                    # The first notes from a file read the whole file in parallel parts (file_parts.py).
+                    # The sections come from the store under the interview's own document scope.
+                    def document_sections(scope, document_id, limit, reader=self.documents):
+                        with document_storage():
+                            return reader.whole_sections(scope, document_id, limit)
+                    self.client.document_sections = document_sections
             self.knowledge_auth = KnowledgeAuthorization(settings, knowledge_authorizer)
             graph = local_module("knowledge_graph", "knowledge_graph.py")
             if knowledge_analyzer is None and getattr(self.client, "key", None) and callable(getattr(self.client, "structured", None)):

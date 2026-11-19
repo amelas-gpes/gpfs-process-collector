@@ -1165,6 +1165,13 @@ def supporting_identity(supporting):
             elif key == "review":
                 value = dict(value)
                 value.pop("reviewed_chunks", None)
+                if isinstance(value.get("limitations"), list):
+                    # "Retained questions/observations/review notes reached ... limit" is about the
+                    # reviewer's own notes, which are not part of the evidence either. It is written
+                    # while the in-depth batches arrive, which now happens in seconds, while the
+                    # notes and the map of the same files are still being written.
+                    value["limitations"] = [item for item in value["limitations"]
+                                            if not (isinstance(item, str) and item.startswith("Retained "))]
                 if value.get("phase") in ("deep", "complete"):
                     # Finishing a normal review does not change the source. A stopped or
                     # failed review, changed extraction coverage or limitations still matter.

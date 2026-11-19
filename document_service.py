@@ -6,7 +6,9 @@ content and derived claims remain unconfirmed evidence, never participant facts.
 from __future__ import annotations
 
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import nullcontext
+import contextvars
 import copy
 import hashlib
 import importlib.util
@@ -45,6 +47,12 @@ MAX_CONTEXT_CHARS = 64 * 1024
 CLIPPED = '[…]'
 MAX_BATCH_CHARS = 24000
 MAX_BATCH_CHUNKS = 8
+# In-depth batches of one file sent at once. Each batch is answered from the review as it stood
+# when the wave began, so they do not wait on one another (see _deep_wave).
+MAX_DEEP_WAVE = 16
+# A file whose in-depth pass would take more requests than this is stopped after its first pass
+# until the participant chooses Continue review. Sent in waves, 48 requests take three waves.
+MAX_UNASKED_REQUESTS = 48
 MAX_QUESTIONS = 40
 MAX_OBSERVATIONS = 200
 MAX_QUERIES = 12
@@ -669,6 +677,11 @@ class DocumentService:
             analysis.update(summary_basis='initial_review', summary_basis_note=INITIAL_SUMMARY_NOTE,
                             summary_at_review_version=analysis.get('version', 0) + 1)
         queries = result['queries'] if phase == 'quick' else [*analysis.get('queries', []), *result['queries']]
+        if phase == 'quick' and not completes_header:
+            # What a file is searched for when the conversation matches nothing in it (see
+            # _supporting_context). Kept apart from the queries the in-depth batches add, so that
+            # the excerpts chosen for one turn do not change while that pass is still running.
+            analysis['opening_queries'] = list(dict.fromkeys(result['queries']))[:3]
         analysis.update(queries=list(dict.fromkeys(queries))[:MAX_QUERIES],
                         error=None, version=analysis.get('version', 0) + 1)
         # The quick assessment sets the disposition and the question the user sees.
@@ -780,6 +793,10 @@ class DocumentService:
                 if offset is None:
                     self._close_pass(scope, document_id, generation, notes_full=not only)
                     return
+            if not full:
+                plans = self._deep_wave(scope, document_id, record, analysis, offset)
+                if any(batch for batch, _, _ in plans):
+                    return self._run_wave(scope, document_id, generation, context, record, plans, offset, reviewed)
             rows = self.store.chunks(scope, document_id, offset=offset, limit=1 if full else MAX_BATCH_CHUNKS)['chunks']
             batch, settled = self._deep_batch(record, analysis, rows)
             if settled and not batch:
@@ -853,6 +870,127 @@ class DocumentService:
         return self._settle(scope, document_id, generation, phase, batch, visual, kept, result, offset, reviewed, settled, only, full,
                             completes_header=bool(published))
 
+    def _deep_wave(self, scope, document_id, record, analysis, offset):
+        """The in-depth batches from offset on that are sent together: (batch, rows settled, last row id) each.
+
+        Every batch is the one the pass would send next if those before it had been answered: each
+        request is given the file's review as it stood when the wave began, and none of them reads
+        what another writes (measured on an 84-page file: the same observations, pages and questions
+        as eleven requests in a row, 191 s against 9 s). A kept transcription that awaits its new
+        reading ends the wave: the rows after it are the parts that reading replaces.
+        """
+        pending = record.get('visual_reread_pending') or {}
+        plans, position, most = [], offset, self._wave_room(analysis)
+        while len(plans) < most:
+            rows = self.store.chunks(scope, document_id, offset=position, limit=MAX_BATCH_CHUNKS)['chunks']
+            if not rows:
+                break
+            batch, settled = self._deep_batch(record, analysis, rows)
+            if not settled:
+                break
+            plans.append((batch, settled, rows[settled - 1]['id']))
+            position += settled
+            if any(chunk['id'] in pending for chunk in batch):
+                break
+        return plans
+
+    @staticmethod
+    def _wave_room(analysis):
+        """How many in-depth requests may go out together without sending ones whose notes could not be kept.
+
+        Once its questions, observations and queries are all full, nothing of a further text reply can
+        be kept (see _notes_full). A wave is no larger than the number of replies the notes have room
+        for at the rate the replies so far have filled them, so that a file whose replies are long does
+        not pay for requests that are then thrown away. An ordinary file is far from that limit.
+        """
+        replies = 1 + -(-analysis.get('reviewed_chunks', 0) // MAX_BATCH_CHUNKS)
+        needed = 0
+        for name, limit in (('questions', MAX_QUESTIONS), ('observations', MAX_OBSERVATIONS), ('queries', MAX_QUERIES)):
+            held = len(analysis.get(name, []))
+            if not held:
+                return MAX_DEEP_WAVE  # This list has not filled at all yet: no reply count can be estimated.
+            needed = max(needed, -(-max(0, limit - held) * replies // held))
+        return max(1, min(MAX_DEEP_WAVE, needed))
+
+    def _position(self, scope, document_id, source_id):
+        """Where a section stands in the file's index now, or None. A new reading adds rows after its page."""
+        offset = 0
+        while offset is not None:
+            page = self.store.chunks(scope, document_id, offset=offset, limit=500)
+            for index, chunk in enumerate(page['chunks']):
+                if chunk['id'] == source_id:
+                    return offset + index
+            offset = page['next_offset']
+        return None
+
+    def _run_wave(self, scope, document_id, generation, context, record, plans, offset, reviewed):
+        """Send a wave of in-depth batches at once and record their replies in file order.
+
+        The replies are recorded one after another in the order of the file, as if they had been
+        asked for one by one, so the cursor and the counts mean what they always have. A failed
+        request stops the recording there: what came before it is kept, and Retry review continues
+        from the first batch that has no recorded reply.
+        """
+        def prepare(batch):
+            callback_record = copy.deepcopy(record)
+            callback_record['_scope'] = scope  # In-memory capability, never persisted/public/model input.
+            visual = next((chunk for chunk in batch if chunk.get('requires_vision')), None)
+            kept = bool(visual) and visual['id'] in (record.get('visual_reread_pending') or {})
+            if kept:
+                callback_record['inventory'], callback_record['coverage'] = unread_view(
+                    record, visual['location'].get('page', 'image'))
+            return callback_record, visual, kept
+
+        prepared = [prepare(batch) if batch else None for batch, _, _ in plans]
+        with self._condition:
+            if not self._current(scope, document_id, generation):
+                return
+
+        def ask(index):
+            batch = plans[index][0]
+            answer = self._request(scope, document_id, generation, copy.deepcopy(context), prepared[index][0], batch, 'deep')
+            return None if answer is None else self._validated(answer, batch)
+
+        futures = {}
+        with ThreadPoolExecutor(max_workers=max(1, sum(1 for item in prepared if item)),
+                                thread_name_prefix='document-review-wave') as pool:
+            for index, item in enumerate(prepared):
+                if item:
+                    # Each request runs with this thread's context: its interview, trace binding and
+                    # background marking, as a request from this thread would.
+                    futures[index] = pool.submit(contextvars.copy_context().run, ask, index)
+            outcome = None
+            for index, (batch, settled, last_id) in enumerate(plans):
+                if index in futures:
+                    result = futures[index].result()  # A failure is raised here, after the batches before it.
+                    if result is None:
+                        return None  # The file's intent changed while waiting.
+                with self._condition:
+                    if not self._current(scope, document_id, generation):
+                        return None
+                    position = self._position(scope, document_id, last_id)
+                    if position is None:
+                        return 'deep'  # The index changed under the wave; the next task starts from the cursor.
+                    start = position + 1 - settled
+                if index not in futures:
+                    with self._condition:
+                        current = self._current(scope, document_id, generation)
+                        if not current:
+                            return None
+                        analysis = current.get('analysis') or {}
+                        analysis.update(cursor=start + settled, reviewed_chunks=reviewed + settled,
+                                        version=analysis.get('version', 0) + 1)
+                        self.store.update(scope, document_id, {'analysis': analysis})
+                    outcome = 'deep'
+                else:
+                    _, visual, kept = prepared[index]
+                    outcome = self._settle(scope, document_id, generation, 'deep', batch, visual, kept, result,
+                                           start, reviewed, settled, False, False)
+                reviewed += settled
+                if outcome is None:
+                    break
+        return outcome
+
     def _settle(self, scope, document_id, generation, phase, batch, visual, kept, result, offset, reviewed, settled, only, full,
                 header_only=False, completes_header=False):
         """Record what one review reply established and say what follows ('deep' or nothing).
@@ -891,7 +1029,7 @@ class DocumentService:
             if phase == 'quick':
                 estimated = self._estimated_requests(scope, document_id, record, total)
                 merged['estimated_requests'] = estimated
-                if estimated > 12 or merged.get('disposition') in ('needs_reason','parked'):
+                if estimated > MAX_UNASKED_REQUESTS or merged.get('disposition') in ('needs_reason','parked'):
                     merged.update(phase='complete', review_stopped=True, review_complete=False,
                                   acknowledgement=('Thank you. This file is saved for later and its review is paused.' if merged.get('disposition')=='parked' else
                                                    f'The quick sample is ready. Continue review to read the remaining sections (about {estimated} requests).'))
@@ -909,6 +1047,9 @@ class DocumentService:
                     # in-depth pass adds changes what a question is bound to. A file with a
                     # page or image still to be read waits for that reading, which does.
                     merged['question_ready'] = self._question_ready(record, merged)
+            elif merged.get('question_ready') is False and not complete and self._question_ready(record, merged):
+                # The last page or image that held the question back has been read in this pass.
+                merged['question_ready'] = True
             if header_only:
                 merged['observations_pending'] = True
             else:
@@ -943,11 +1084,17 @@ class DocumentService:
 
     @staticmethod
     def _question_ready(record, analysis):
-        """Whether the question this file raises can be asked while its in-depth pass still runs."""
-        inventory, coverage = record.get('inventory') or {}, record.get('coverage') or {}
+        """Whether the question this file raises can be asked while its in-depth pass still runs.
+
+        A page or image that waits for its reading holds the question back; once every one has been
+        read, the file can be asked about like any other. (The inventory's requires_vision says
+        that a file has such content and stays set after it is read: on it a 12-page scan waited
+        for its whole review, 167 seconds, and an image read in its first request for a second.)
+        """
+        coverage = record.get('coverage') or {}
         return bool(record.get('status') in ('ready', 'partial')
                     and analysis.get('disposition') not in ('needs_reason', 'parked')
-                    and not analysis.get('review_stopped') and not inventory.get('requires_vision')
+                    and not analysis.get('review_stopped') and not analysis.get('unreadable_sources')
                     and not coverage.get('visual_pending_units') and not record.get('visual_reread_pending'))
 
     @staticmethod
@@ -1221,6 +1368,27 @@ class DocumentService:
             del basis['intent_version'], basis['purpose']
         return hashlib.sha256(json.dumps(basis, sort_keys=True, separators=(',', ':'), ensure_ascii=True).encode('utf-8')).hexdigest()
 
+    def whole_sections(self, scope, document_id, max_chars):
+        """Every indexed section of one file of this scope, in file order, or None when they hold more than max_chars.
+
+        For the first notes from a file, which read it whole in parallel parts (file_parts.py).
+        A page or image that still waits for its reading is left out: it has no text yet.
+        """
+        sections, offset, size = [], 0, 0
+        while offset is not None:
+            page = self.store.chunks(scope, document_id, offset=offset, limit=500)
+            for chunk in page['chunks']:
+                location = chunk.get('location') or {}
+                if chunk.get('requires_vision') or location.get('requires_vision'):
+                    continue
+                sections.append({'id': chunk['id'], 'label': chunk.get('label', ''), 'text': chunk.get('text') or '',
+                                 'location': {key: value for key, value in location.items() if key != 'verified'}})
+                size += len(chunk.get('text') or '')
+                if size > max_chars:
+                    return None
+            offset = page['next_offset']
+        return sections
+
     def supporting_context(self, scope, query, source_ids=(), required_documents=(), frozen=False,
                            selected_documents=None, pinned_first=0):
         """Return bounded, source-authorized evidence without waiting for AI review.
@@ -1338,7 +1506,8 @@ class DocumentService:
         matching = list(candidates)
         for identity, record in records.items():
             if identity not in candidates:
-                fallback = ' '.join((record.get('analysis') or {}).get('queries', [])[:3])
+                analysis = record.get('analysis') or {}
+                fallback = ' '.join(analysis.get('opening_queries', analysis.get('queries', []))[:3])
                 if fallback.strip():
                     hits = reader.search(normalized(fallback), ids=[identity], limit=3)
                     if hits:

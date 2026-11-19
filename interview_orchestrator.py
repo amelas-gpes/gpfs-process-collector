@@ -11,6 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import agent_team
 import capture_facts
+import file_parts
 import provider_usage
 import raw_trace
 from interview_coverage import finding_reports_unavailable_knowledge, refused_repair
@@ -1324,7 +1325,7 @@ class Coordinator:
             return True
 
         def initial_capture():
-            nonlocal fact_state
+            nonlocal fact_state, evidence
             notes_only = (action not in ("close", "document_followup") and
                           (payload.get("_notes_only") is True or run.live_notes))
             request_schema = capture_facts.schema_for(fact_state, capture_facts.sources(context, turns, evidence), focus,
@@ -1346,20 +1347,37 @@ class Coordinator:
                 return True
 
             fast = bool(new_document_baseline and getattr(self.client, "fast_tier", False))
+            transaction = None
+            # The first notes from a file, before anything is noted or said, read the whole file in
+            # parallel parts (file_parts.py): every page instead of the first 60,000 characters, in
+            # seconds instead of a minute. The joined reply passes the same ledger checks.
+            if (notes_only and new_document_baseline and not extra["fact_state"]["facts"]
+                    and not any(turn["role"] == "user" and not turn.get("document_event") for turn in turns)):
+                reading = self._file_reading(payload, supporting)
+                if reading:
+                    whole_evidence = api.document_evidence_catalog(reading["supporting"])
+                    whole_schema = capture_facts.schema_for(fact_state, capture_facts.sources(context, turns, whole_evidence),
+                                                            focus, with_question=False)
+                    transaction = self._read_in_parts(
+                        run, reading, {"context": context, "turns": turns, "action": action, **extra},
+                        capture_instructions(api, True, False), whole_schema, lead_model, fast)
+                    if transaction is not None:
+                        evidence, request_schema = whole_evidence, whole_schema
             large_capture = baseline_seed or (not extra["fact_state"]["facts"]
                 and (evidence or len(turns) > 12 or sum(len(turn["text"]) for turn in turns) >= 6000))
             # At the observed 74 tokens per second a 12,000-token seed needs about 162 seconds.
             # Allow time for setup as well as generation in both the seed and incremental cases.
             output_tokens, timeout = (12000, 180) if large_capture else (6500, 120)
-            transaction = self.client.structured(
-                capture_instructions(api, notes_only, action == "document_followup"),
-                {"context": context, "turns": turns, "action": action,
-                 "supporting_documents": supporting, **extra}, request_schema,
-                "team_interview_capture", output_tokens, reasoning_effort="low", request_timeout=timeout,
-                model_override=lead_model,
-                on_text=observe if not notes_only else watch_states if new_document_baseline else None,
-                # The first notes from a file are what the participant is waiting for.
-                **({"fast": True} if fast else {}))
+            if transaction is None:
+                transaction = self.client.structured(
+                    capture_instructions(api, notes_only, action == "document_followup"),
+                    {"context": context, "turns": turns, "action": action,
+                     "supporting_documents": supporting, **extra}, request_schema,
+                    "team_interview_capture", output_tokens, reasoning_effort="low", request_timeout=timeout,
+                    model_override=lead_model,
+                    on_text=observe if not notes_only else watch_states if new_document_baseline else None,
+                    # The first notes from a file are what the participant is waiting for.
+                    **({"fast": True} if fast else {}))
             if notes_only:
                 transaction.pop("question", None)
             deferred = capture_facts.normalize_operations(transaction, fact_state, capture_facts.sources(context, turns, evidence))
@@ -1451,6 +1469,96 @@ class Coordinator:
         if changed_review:
             capture["review_invalidated"] = "The interview details or reference files changed. The updated account needs a new review."
         return self._remember(capture, context, turns, supporting, token, run, ticket_id, fact_state)
+
+    def _file_reading(self, payload, supporting):
+        """The plan for reading this request's files whole in parallel parts, or None to read them as before."""
+        reader, scope = getattr(self.client, "document_sections", None), payload.get("document_scope")
+        if not callable(reader) or not isinstance(scope, str) or not scope:
+            return None
+        sections = {}
+        for document in file_parts.eligible(supporting):
+            try:
+                rows = reader(scope, document["id"], file_parts.MAX_FILE_CHARS)
+            except Exception:
+                return None  # The store could not give the file whole: read it the usual way.
+            if rows is None:
+                return None
+            sections[document["id"]] = rows
+        return file_parts.plan(supporting, sections)
+
+    def _read_in_parts(self, run, reading, base_payload, instructions, request_schema, lead_model, fast):
+        """Send the parts and the account-wide request at once and join their replies, or None.
+
+        None means the reading did not complete (a part failed twice, or a reply could not be
+        used): the caller then sends the single request it has always sent. A cancelled or
+        replaced run is not read on.
+        """
+        api = self.api
+        options = {"reasoning_effort": "low", "model_override": lead_model, **({"fast": True} if fast else {})}
+        final = {"cancelled", "budget_reached", "quota", "authentication", "permissions", "configuration", "model_access"}
+
+        def watch_whole(text):
+            # Topic states are written first: they are shown, display-only, while the rest is written.
+            match = re.search(r',\s*"summary"\s*:', text)
+            if not match:
+                return False
+            try:
+                opening = json.loads(text[:match.start()] + "}")
+            except ValueError:
+                return False
+            rows = opening.get("topic_states") if isinstance(opening, dict) else None
+            if isinstance(rows, list):
+                run.set_provisional_topics([row for row in rows if isinstance(row, dict) and row.get("key") in api.COVERAGE])
+            return True
+
+        def ask(payload, suffix, schema, tokens, on_text=None):
+            for attempt in (1, 2):
+                try:
+                    return self.client.structured(instructions + suffix, payload, schema, "team_interview_capture", tokens,
+                                                  request_timeout=file_parts.PART_TIMEOUT_SECONDS,
+                                                  **({"on_text": on_text} if on_text else {}), **options)
+                except agent_team.TeamBlockedError:
+                    raise
+                except Exception as error:
+                    # A reply that ran on, timed out or came back unusable is asked for once more.
+                    if attempt == 2 or getattr(error, "category", None) in final:
+                        raise
+
+        parts = file_parts.part_requests(reading, base_payload)
+        wholes = file_parts.whole_requests(reading, base_payload, request_schema)
+        sweep = file_parts.sweep_request(reading, base_payload)
+        raw_trace.emit("coordinator.interview.file_parts", file_parts.describe(reading))
+        pool = ThreadPoolExecutor(max_workers=len(parts) + len(wholes) + 1, thread_name_prefix="file-parts")
+        try:
+            swept = pool.submit(contextvars.copy_context().run, ask, *sweep, 3000) if sweep else None
+            account = [pool.submit(contextvars.copy_context().run, ask, payload, suffix, schema, 4000,
+                                   watch_whole if "topic_states" in schema["properties"] else None)
+                       for payload, suffix, schema in wholes]
+            futures = [pool.submit(contextvars.copy_context().run, ask, payload, suffix, schema,
+                                   file_parts.part_output_tokens(budget))
+                       for payload, suffix, schema, budget in parts]
+            replies = [future.result() for future in futures]
+            account = [future.result() for future in account]
+            # The sweep is waited for only when a topic the account covers has no fact from any part.
+            topics = None
+            if swept and file_parts.uncovered(replies, account):
+                try:
+                    topics = swept.result()
+                except agent_team.TeamBlockedError:
+                    raise
+                except Exception:
+                    topics = None  # The parts' facts stand on their own; the topic stays as they leave it.
+        except agent_team.TeamBlockedError:
+            raise
+        except Exception as error:
+            if getattr(error, "category", None) == "cancelled":
+                raise
+            raw_trace.emit("coordinator.interview.file_parts_failed", {"error_type": type(error).__name__,
+                                                                     "category": getattr(error, "category", None)})
+            return None
+        finally:
+            pool.shutdown(wait=False, cancel_futures=True)
+        return file_parts.join(reading, request_schema["properties"]["base_revision"]["enum"][0], replies, account, topics)
 
     def _ticket_matches(self, entry, context, turns, supporting):
         if entry["binding"] != self._source_binding(context, supporting):
@@ -1891,6 +1999,10 @@ class _MapJob:
         api, previous = self.api, self.previous
         reviewer = self.client.agent_models["document_analyst"] if self.evidence else self.client.team_map_audit_model
 
+        # The source check of the map from a file just added is on the fast tier like its drawing:
+        # it is the longest wait after a file (measured 158 s against 62 s for the same request).
+        fast = {"fast": True} if self.fast else {}
+
         def audited_workflow():
             proposals = api.proposed_routes_to_verify(update, previous)
             audit = self.client.structured(api.WORKFLOW_AUDIT_INSTRUCTIONS,
@@ -1898,14 +2010,14 @@ class _MapJob:
                  "supporting_documents": self.supporting, "candidate_update": update,
                  "proposed_routes_to_verify": proposals},
                 api.route_audit_schema(self.schema(api.WORKFLOW_AUDIT_SCHEMA), proposals), "team_working_map_source_audit", MAP_AUDIT_OUTPUT_TOKENS,
-                reasoning_effort="medium", request_timeout=self.audit_seconds, model_override=reviewer)
+                reasoning_effort="medium", request_timeout=self.audit_seconds, model_override=reviewer, **fast)
             if self.map_only:
                 audit.update(copy.deepcopy(self.memo))
             # A quotation the application could not verify gets one second request inside this
             # same audit step, within the time the requests above left unused. A cancelled
             # or replaced run cannot publish, so it does not pay for that request.
             recheck = api.RouteRecheck(self.client, self.context, self.turns, self.supporting, "team_working_map_source_audit",
-                                       self.deadline, model_override=reviewer) if self.live() else None
+                                       self.deadline, model_override=reviewer, **fast) if self.live() else None
             audited = api.apply_workflow_audit(update, audit, previous, context=self.context, turns=self.turns,
                                                documents=self.evidence, recheck=recheck, carried=self.carried)
             reviewed = api.apply_workflow_update(audited, previous, self.turns, self.evidence, self.carried, context=self.context)
@@ -1914,7 +2026,7 @@ class _MapJob:
             # once how those parts join, inside the time the requests above left unused;
             # a cancelled or replaced run cannot publish, so it does not pay for that request.
             repair = api.RouteRepair(self.client, self.context, self.turns, self.supporting, "team_working_map_source_audit",
-                                     self.deadline, model_override=reviewer) if self.live() else None
+                                     self.deadline, model_override=reviewer, **fast) if self.live() else None
             return api.connect_detached_routes(
                 reviewed, repair, context=self.context, turns=self.turns, documents=self.evidence, baseline=previous["workflow"],
                 judged=api.judged_route_steps([*proposals, *audit["upsert_connections"]], reviewed["workflow"]["connections"]))

@@ -14,7 +14,7 @@ def build_id(root):
     files = [root / name for name in (
         'server.py', 'draft_audit.py', 'provider_schema.py', 'provider_usage.py', 'raw_trace.py', 'launcher.py', 'runtime_build.py', 'documents.py',
         'document_service.py', 'knowledge_graph.py', 'knowledge_ai.py',
-        'gpfs_interview.py', 'interview_coverage.py', 'agent_team.py', 'interview_orchestrator.py', 'capture_facts.py', 'concurrent_interview.py', 'prompt_catalog.py', 'FOUNDATION.md')]
+        'gpfs_interview.py', 'interview_coverage.py', 'agent_team.py', 'interview_orchestrator.py', 'capture_facts.py', 'file_parts.py', 'concurrent_interview.py', 'prompt_catalog.py', 'FOUNDATION.md')]
     web = root / 'web'
     # Never include settings, saved interviews, private stores, logs, or Git data.
     files.extend(path for path in web.rglob('*')

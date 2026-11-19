@@ -397,11 +397,13 @@ class RetryAfterErrorTests(ReviewCase):
     """live-documents-7: retry continues, a passing failure is tried again, a re-read replaces its notes."""
 
     def test_retry_review_continues_the_in_depth_pass_where_it_failed(self):
-        calls, state = [], {'fail_at': 6}
+        calls, state = [], {'fail_at': 20}
 
         def analyze(context, record, chunks, phase):
-            deep = sum(1 for kind, _ in calls if kind == 'deep')
-            if phase == 'deep' and deep + 1 == state['fail_at']:
+            # The batches of one wave arrive in any order: the failure is the batch at section 20.
+            failing = state['fail_at'] is not None and self.store.chunks(
+                self.scope, record['id'], offset=state['fail_at'], limit=1)['chunks'][0]['id']
+            if phase == 'deep' and chunks[0]['id'] == failing:
                 state['fail_at'] = None
                 calls.append(('failed', [chunk['id'] for chunk in chunks]))
                 raise RuntimeError('Synthetic provider interruption')
@@ -414,20 +416,28 @@ class RetryAfterErrorTests(ReviewCase):
         failed = next(ids for kind, ids in calls if kind == 'failed')
         notes_before = len(paused['analysis']['observations'])
         self.quiet(service, calls)
+        retry_from = len(calls)
         resumed = service.action(self.scope, record['id'], 'revisit')
         self.assertEqual((resumed['analysis']['phase'], resumed['analysis']['cursor']), ('deep', 20), 'Retry must not start the review again')
         done = self.wait(record['id'], intent=1)
-        after = calls[calls.index(('failed', failed)) + 1:]
+        after = calls[retry_from:]
         self.assertEqual([kind for kind, _ in after].count('quick'), 0, 'The first assessment was not paid for again')
-        self.assertEqual(after[0][1], failed, 'The pass continues with the batch that failed')
+        self.assertIn(failed, [ids for _, ids in after], 'The pass continues with the batch that failed')
         sent = [identity for kind, ids in calls if kind == 'deep' for identity in ids]
-        self.assertEqual(len(sent), len(set(sent)), 'No section was sent twice')
-        self.assertEqual(len(sent), 46)
+        before = {chunk['id'] for chunk in self.store.chunks(self.scope, record['id'], offset=0, limit=20)['chunks']}
+        retried = {identity for _, ids in after for identity in ids}
+        # Sections before the failed batch were recorded and are not sent again. A batch of the failed
+        # wave answered after it was not recorded, so it is asked for again: that is the only repeat.
+        self.assertFalse(before & retried, 'A recorded section was sent again')
+        self.assertEqual(len(set(sent)), 46)
         analysis = done['analysis']
         self.assertTrue(analysis['review_complete'])
         self.assertEqual((analysis['cursor'], analysis['reviewed_chunks'], analysis['total_chunks']), (46, 46, 46))
-        self.assertEqual(len(analysis['observations']), len([kind for kind, _ in calls if kind != 'failed']),
-                         'One observation per answered request: nothing repeated, nothing lost')
+        # One observation per recorded reply. The replies of the failed wave that came after the failed
+        # batch were not recorded; their batches were asked for again and recorded once.
+        batches = {ids[0] for kind, ids in calls if kind == 'deep'}
+        self.assertEqual(len(analysis['observations']), 1 + len(batches),
+                         'One observation per recorded batch: nothing repeated, nothing lost')
         self.assertGreater(len(analysis['observations']), notes_before)
         self.assertFalse(analysis['retry_required'])
         self.assertNotIn(service_module.REVIEW_PAUSED, analysis['limitations'])
@@ -457,7 +467,10 @@ class RetryAfterErrorTests(ReviewCase):
         restarted = service.action(self.scope, record['id'], 'revisit')
         self.assertEqual((restarted['analysis']['phase'], restarted['analysis']['cursor']), ('quick', 0))
         self.wait(record['id'], intent=4)
-        self.assertEqual(calls, ['quick', 'quick', 'deep', 'deep'])
+        # The failed wave's other batch may have been answered before the file was saved for later.
+        self.assertEqual(calls[0], 'quick')
+        self.assertEqual(calls[-3:], ['quick', 'deep', 'deep'])
+        self.assertEqual(calls.count('quick'), 2)
 
     def test_a_passing_provider_failure_is_tried_again_before_the_review_pauses(self):
         attempts = []
@@ -673,12 +686,17 @@ class StopReviewTests(ReviewCase):
     """gap-cost-model-4: the size of a review is stated, and it can be stopped without losing the file."""
 
     def gated(self, calls, hold_at=2):
-        """A reviewer that waits inside its hold_at-th in-depth request until released."""
+        """A reviewer that waits inside the in-depth request of its hold_at-th batch (four sections each) until released.
+
+        The batches of one file go out together, so the batch is named by its place in the file,
+        not by the order in which the requests happen to arrive.
+        """
         entered, release = threading.Event(), threading.Event()
 
         def analyze(context, record, chunks, phase):
             calls.append((phase, [chunk['id'] for chunk in chunks]))
-            if [kind for kind, _ in calls].count('deep') == hold_at and not release.is_set():
+            held = self.store.chunks(self.scope, record['id'], offset=4 * (hold_at - 1), limit=1)['chunks'][0]['id']
+            if phase == 'deep' and chunks[0]['id'] == held and not release.is_set():
                 entered.set()
                 release.wait(60)
             return answer(chunks, notes=[f'Observation of request {len(calls)}.'])
@@ -695,6 +713,31 @@ class StopReviewTests(ReviewCase):
         self.assertTrue(sent - 2 <= estimated <= sent, f'{estimated} requests announced, {sent} sent')
         small = service.upload(self.scope, 'small.csv', b'important,field\na,1\n')
         self.assertEqual(self.wait(small['id'])['analysis']['estimated_requests'], 1)
+
+    @unittest.skipUnless(HAS_PDF, 'Existing PDF runtime required')
+    def test_the_pages_of_a_scan_are_read_together_and_all_of_them_are_read(self):
+        record = self.store.add(self.scope, 'scan.pdf', pdf_bytes(['blank'] * 8))
+        lock, state = threading.Lock(), {'active': 0, 'most': 0, 'pages': 0}
+
+        def analyze(context, current, chunks, phase):
+            visual = any(chunk.get('requires_vision') for chunk in chunks)
+            with lock:
+                state['active'] += 1
+                state['most'] = max(state['most'], state['active'])
+                state['pages'] += visual
+            threading.Event().wait(.05)
+            with lock:
+                state['active'] -= 1
+            reply = answer(chunks)
+            if visual:
+                reply['extracted_text'] = 'A scanned page.'
+            return reply
+        self.service(analyze)
+        done = self.wait(record['id'])
+        self.assertEqual(state['pages'], 8, 'Each page is read once')
+        self.assertGreater(state['most'], 1, 'The pages after the first pass were read one after another')
+        self.assertEqual(done['coverage']['visual_pending_units'], 0)
+        self.assertTrue(done['analysis']['review_complete'])
 
     @unittest.skipUnless(HAS_PDF, 'Existing PDF runtime required')
     def test_a_scan_counts_one_request_for_each_page_to_read(self):
@@ -714,6 +757,11 @@ class StopReviewTests(ReviewCase):
         service = self.service(analyze)
         record = service.upload(self.scope, 'ledger.csv', ledger(40))
         self.assertTrue(entered.wait(60))
+        # The first batch's reply is recorded while the second batch's request is still open.
+        for _ in range(600):
+            if (self.store.get(self.scope, record['id'])['analysis'] or {}).get('cursor') == 4:
+                break
+            threading.Event().wait(.01)
         stopped = service.action(self.scope, record['id'], 'stop')
         release.set()
         analysis = stopped['analysis']
@@ -723,7 +771,12 @@ class StopReviewTests(ReviewCase):
                       'The indexed text stays searchable; Continue review resumes it.', analysis['limitations'])
         threading.Event().wait(.2)
         self.quiet(service, calls)
-        self.assertEqual([kind for kind, _ in calls], ['quick', 'deep', 'deep'], 'Nothing was sent after Stop review')
+        # The ten in-depth batches went out together before Stop; none is sent again or after it.
+        first_wave = calls[1:]
+        self.assertEqual(calls[0][0], 'quick')
+        self.assertTrue(1 <= len(first_wave) <= 10 and all(kind == 'deep' for kind, _ in first_wave))
+        self.assertEqual(len({ids[0] for _, ids in first_wave}), len(first_wave), 'Nothing was sent after Stop review')
+        held_before = len(calls)
         current = self.store.get(self.scope, record['id'])
         self.assertFalse(current['archived'], 'Stop review is not Remove')
         self.assertEqual(current['analysis']['reviewed_chunks'], 4, 'The reply that arrived after Stop was not merged')
@@ -738,9 +791,11 @@ class StopReviewTests(ReviewCase):
         self.assertEqual((resumed['analysis']['phase'], resumed['analysis']['cursor']), ('deep', 4))
         self.assertNotIn('review_stopped', resumed['analysis'])
         done = self.wait(record['id'], intent=3)
-        after = [kind for kind, _ in calls[3:]]
+        after = [kind for kind, _ in calls[held_before:]]
         self.assertEqual(after, ['deep'] * 9, 'Continue review goes on from the section where the review stopped')
-        sent = [identity for kind, ids in calls[1:2] + calls[3:] for identity in ids]
+        opening = self.store.chunks(self.scope, record['id'], offset=0, limit=1)['chunks'][0]['id']
+        first = next(ids for _, ids in first_wave if ids[0] == opening)
+        sent = [identity for ids in [first, *(ids for _, ids in calls[held_before:])] for identity in ids]
         self.assertEqual((len(sent), len(set(sent))), (40, 40))
         self.assertEqual(done['analysis']['reviewed_chunks'], 40)
         self.assertEqual([item for item in done['analysis']['limitations'] if item.startswith('Background review was stopped')], [])
@@ -786,7 +841,8 @@ class StopReviewTests(ReviewCase):
         self.assertNotIn('review_stopped', restarted['analysis'])
         done = self.wait(record['id'], intent=3)
         self.assertTrue(done['analysis']['review_complete'])
-        self.assertEqual([kind for kind, _ in calls[2:]], ['quick', 'deep', 'deep'])
+        self.assertEqual([kind for kind, _ in calls].count('quick'), 2)
+        self.assertEqual([kind for kind, _ in calls[-3:]], ['quick', 'deep', 'deep'])
 
 
 if __name__ == '__main__':

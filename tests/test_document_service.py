@@ -477,7 +477,6 @@ class DocumentServiceTests(unittest.TestCase):
             nonlocal active
             with lock:
                 active += 1
-                self.assertEqual(active, 1)
                 calls.append((record['name'], phase))
             if record['name'] == 'long.csv' and phase == 'deep' and not deep_entered.is_set():
                 deep_entered.set()
@@ -496,7 +495,10 @@ class DocumentServiceTests(unittest.TestCase):
         self.wait(old['id'])
         old_first = calls.index(('long.csv', 'deep'))
         new_quick = calls.index(('new.csv', 'quick'))
-        self.assertEqual(new_quick, old_first + 1)
+        # The new file's first pass comes right after the in-depth wave that was in flight,
+        # before any later wave of the old file.
+        between = calls[old_first:new_quick]
+        self.assertTrue(set(between) == {('long.csv', 'deep')} and len(between) <= service_module.MAX_DEEP_WAVE, between)
 
     def test_status_resumes_ordered_deep_cursor_after_service_restart(self):
         record = self.store.add(self.scope, 'resume.csv', ('important,value\n' + ''.join(f'r{i},' + 'x' * 100 + '\n' for i in range(200))).encode())

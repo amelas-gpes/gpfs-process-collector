@@ -203,7 +203,7 @@ class ProviderSlotTests(unittest.TestCase):
 
     def test_settings_size_the_pools_and_refuse_values_outside_their_range(self):
         client = server.OpenAIClient({})
-        self.assertEqual((client.provider_slots, client.map_workers), (6, 2))
+        self.assertEqual((client.provider_slots, client.map_workers), (24, 2))
         sized = server.OpenAIClient({"COLLECTOR_PROVIDER_SLOTS": "10", "COLLECTOR_MAP_WORKERS": "4"})
         self.assertEqual((sized.provider_slots, sized.map_workers), (10, 4))
         for name, value in (("COLLECTOR_PROVIDER_SLOTS", "1"), ("COLLECTOR_PROVIDER_SLOTS", "33"),

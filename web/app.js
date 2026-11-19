@@ -65,7 +65,7 @@
     evidenceVersion: 0, draftEvidence: null,
     draftEdited: false, example: false, dirty: false,
     config: null, utterance: null, voice: null, speechVersion: 0, captureToken:null, coverageVerified:false,
-    provisionalQuestion:null, advisory:{}, liveSuggestedQuestion:"",
+    provisionalQuestion:null, advisory:{}, liveSuggestedQuestion:"", fileTopicReviews:{},
     captureRepairs:{memo:{},draft:{}}, draftCoverage:null, savedOwnerFollowups:[],
     localVoices: [], voiceChoice: null, voiceChoiceUser: false, speechOperation: null,
     recording: null, requestingMic: false, transcribing: false,
@@ -210,7 +210,7 @@
     // the last participant answer or file event, and their context, still have to match.
     const lastEvidence=state.turns.findLastIndex(turn=>turn.role==="user"||turn.document_event);
     const turns=live?state.turns.slice(0,lastEvidence+1):state.turns;
-    return JSON.stringify([state.context||{},turns,activeDocumentSignature()]);
+    return JSON.stringify([state.context||{},turns,activeDocumentSignature(),fileTopicReviewContext()]);
   }
   function invalidateCompletionReview(){pendingCompletionReview?.controller?.abort();pendingCompletionReview=null;}
   // A confirmed completion stands until the server says the account changed. What
@@ -268,6 +268,7 @@
     return captured&&captured.generation===state.generation&&captured.liveSession===liveSession&&captured.live===conversationUI.live&&
       captured.document_revision===activeDocumentSignature()&&
       JSON.stringify(captured.context)===JSON.stringify(state.context)&&
+      JSON.stringify(captured.file_topic_reviews||[])===JSON.stringify(fileTopicReviewContext())&&
       JSON.stringify(participantCoverageBasis(captured.turns))===JSON.stringify(participantCoverageBasis())&&!liveAnswerPending();
   }
   // A notes capture that returns while the conversation has moved on is still
@@ -885,6 +886,15 @@
     }
   }
   function revealContext() {
+    const confirmed=$("context-topic-reviews");
+    if(confirmed){
+      const notes=TOPICS.flatMap(([key,label])=>{
+        const review=state.fileTopicReviews[key];
+        return review?.decision==="confirmed" ? [el("dt","",label),el("dd","",review.answer)] : [];
+      });
+      confirmed.hidden=!notes.length;
+      $("context-confirmed-notes").replaceChildren(...notes);
+    }
     setInterviewSettings(true);
     showSettingsPanel("context-details");
     revealAncestors($("context-form"));
@@ -1141,6 +1151,7 @@
   }
   function updateControls() {
     notifyIntakeWaiters();
+    if (foundationTopic && $("foundation-dialog")?.open) syncFileTopicReviewControls();
     // Add files follows state.example, state.importing and a draft in flight, none of which redraws the file list.
     documentController?.syncAttach?.();
     const ready = Boolean(state.config?.api_configured);
@@ -1329,14 +1340,14 @@
   function coverageButton(key,label) {
     let entry=coverageNodes.get(key);
     if(!entry){
-      const node=el("button","coverage-item"),dot=el("span","coverage-dot"),detail=el("span","coverage-state");
+      const node=el("button","coverage-item"),detail=el("span","coverage-state");
       node.type = "button";
       node.dataset.foundationTopic = key;
       node.setAttribute("aria-haspopup", "dialog");
       node.setAttribute("aria-controls", "foundation-dialog");
-      node.append(dot,el("span","coverage-label",label),detail);
+      node.append(el("span","coverage-label",label),detail);
       node.addEventListener("click", () => showFoundationTopic(key,node));
-      entry={node,dot,detail};coverageNodes.set(key,entry);
+      entry={node,detail};coverageNodes.set(key,entry);
     }
     return entry;
   }
@@ -1352,54 +1363,110 @@
       const button=$(id);if(button){button.hidden=!state.coverageNeedsReview||state.example;button.disabled=state.busy||Boolean(conversationUI.live?.active);}
     }
   }
+  const TOPIC_STATES = {
+    open: ["Not covered", "quiet"], discussing: ["Discussing", "neutral"], writing: ["Capturing", "neutral"],
+    detail: ["Needs detail", "attention"], captured: ["Captured", "neutral"], covered: ["Covered", "done"],
+    notApplicable: ["Not applicable", "done"], owner: ["Owner follow-up", "attention"],
+    confirm: ["Needs confirmation", "review"], confirmed: ["Confirmed by you", "done"], changes: ["Needs changes", "review"]
+  };
+  const topicFinding = key => state.memo_findings.find(item => item.key === key);
+  function fileTopicSourceIds(finding) {
+    return [...new Set((finding?.evidence_turns || []).filter(id => id.startsWith("doc_")))].sort();
+  }
+  function matchingFileTopicReview(finding) {
+    const review = state.fileTopicReviews[finding?.key];
+    if (!review || review.answer !== finding.answer) return null;
+    const ids = fileTopicSourceIds(finding);
+    if (JSON.stringify(ids) === JSON.stringify(review.source_ids)) return review;
+    // A later capture may cite the participant's confirmation as context.
+    return review.decision === "confirmed" && !ids.length && finding.evidence_turns.includes("context") ? review : null;
+  }
+  function fileTopicReviewContext() {
+    return TOPICS.flatMap(([key]) => {
+      const record = state.fileTopicReviews[key];
+      if (!record) return [];
+      return [{topic:key, decision:record.decision, ...(record.decision==="confirmed" ? {answer:record.answer} : {})}];
+    });
+  }
+  function savedFileTopicReviews(rows = []) {
+    const invalid = () => { throw new Error("The saved topic reviews are invalid. The current interview has not been replaced."); };
+    if (!Array.isArray(rows) || rows.length > TOPICS.length) invalid();
+    const reviews = {};
+    for (const row of rows) {
+      if (!row || !TOPICS.some(([key])=>key===row.topic) || reviews[row.topic] || !["confirmed","needs_changes"].includes(row.decision) ||
+        typeof row.answer !== "string" || !row.answer.trim() || exceeds(row.answer,12000) ||
+        !Array.isArray(row.source_ids) || !row.source_ids.length || row.source_ids.length > 400 ||
+        row.source_ids.some(id=>typeof id !== "string" || !/^doc_[A-Za-z0-9_-]{1,196}$/.test(id))) invalid();
+      reviews[row.topic] = {decision:row.decision, answer:row.answer, source_ids:[...new Set(row.source_ids)].sort()};
+    }
+    return reviews;
+  }
+  function fileTopicNeedsConfirmation(finding) {
+    return finding?.status !== "unknown" && Boolean(finding?.answer?.trim()) && documentOnlyFinding(finding) && !matchingFileTopicReview(finding);
+  }
+  function nextFileTopic(after) {
+    const start = TOPICS.findIndex(([key]) => key === after) + 1;
+    return [...TOPICS.slice(start), ...TOPICS.slice(0, start)].find(([key]) => fileTopicNeedsConfirmation(topicFinding(key)))?.[0];
+  }
+  function topicPresentation(key, finding, review) {
+    const item = state.coverage.find(row => row.key === key);
+    const progress = finding ? ({captured:"covered", not_applicable:"covered", partial:"partial"})[finding.status] || "missing" : item?.status || "missing";
+    const awaitingReview = !coverageVerified() && progress === "covered";
+    const advisory = awaitingReview ? advisoryFor(finding) : null;
+    const decision = matchingFileTopicReview(finding)?.decision;
+    const fromFile = documentOnlyFinding(finding);
+    const answered = topicDiscussion.some(row => row.key === key && row.discussed);
+    let badge;
+    if (decision === "needs_changes" && fromFile) badge = "changes";
+    else if (fileTopicNeedsConfirmation(finding)) badge = "confirm";
+    else if (readyWithFollowups(review)) badge = "owner";
+    else if (finding?.status === "not_applicable") badge = "notApplicable";
+    else if (decision === "confirmed" && progress !== "covered") badge = "confirmed";
+    else if (advisory && !advisory.complete) badge = "detail";
+    else if (progress === "covered") badge = awaitingReview ? "captured" : "covered";
+    else if (progress === "partial" || answered) badge = "detail";
+    else if ([voiceStreamTopics, provisionalTopics].some(update => update?.generation === state.generation && update.keys.has(key))) badge = "writing";
+    else if (voiceTopicPreview?.generation === state.generation && voiceTopicPreview.keys.has(key)) badge = "discussing";
+    else badge = "open";
+    const [label, tone] = TOPIC_STATES[badge];
+    let hint = "";
+    if (badge === "writing") hint = "Notes are being updated.";
+    else if (badge === "discussing") hint = "This topic came up in your current answer.";
+    else if (badge === "owner") hint = "The interview recorded a follow-up for the process owner.";
+    else if (advisory?.complete) hint = "The preliminary check found no gaps. Final coverage check pending.";
+    else if (advisory) hint = advisory.gaps[0] || "The preliminary check found a gap.";
+    else if (awaitingReview) hint = advisoryCheck ? "Preliminary check in progress." : "Final coverage check pending.";
+    else if (badge === "confirm") hint = "From an uploaded file.";
+    else if (badge === "changes") hint = "Flagged for follow-up in the interview.";
+    else if (decision === "confirmed") hint = badge === "confirmed" ? "The interview can still ask for missing detail." : "Includes notes you confirmed.";
+    return {badge, label, tone, hint, advisory, progress, awaitingReview};
+  }
   function renderCoverage() {
     renderRecheck();
     const root = $("coverage-list"), focusedTopic=document.activeElement?.dataset?.foundationTopic;
-    let completed = 0;
     let captured = 0;
-    let documented = 0;
-    let provisional = 0;
-    let prechecked = 0;
+    let toReview = 0;
     let rewritten = 0;
-    const participantIds=new Set(participantCoverageBasis().map(([id])=>id));
     const reviewedTopics=currentCoverageAssessment()?.topics||[];
     TOPICS.forEach(([key, label]) => {
-      const item = state.coverage.find(c => c.key === key);
-      const finding = state.memo_findings.find(c => c.key === key);
-      const discussion=topicDiscussion.find(row=>row.key===key);
-      const discussed=discussion?discussion.discussed===true:Boolean(finding&&finding.status!=='unknown'&&finding.evidence_turns?.some(id=>participantIds.has(id)));
-      const awaitingReview=provisionalFinding(finding)||(!coverageVerified()&&!finding&&item?.status==="covered");
-      // Notes are being written and already say this topic has something: shown as in progress until they arrive.
-      const arriving=!awaitingReview&&provisionalTopics?.generation===state.generation&&provisionalTopics.keys.has(key)&&(!finding||finding.status==="unknown");
-      const status = awaitingReview?"captured":arriving?"partial":finding ? (["not_applicable","captured"].includes(finding.status) ? "covered" : finding.status==="partial" ? "partial" : "missing") : ["partial","covered"].includes(item?.status) ? item.status : "missing";
-      const advisory=awaitingReview?advisoryFor(finding):null,checking=awaitingReview&&!advisory&&Boolean(advisoryCheck);
-      const ownerFollowup=readyWithFollowups(reviewedTopics.find(topic=>topic.key===key));
-      if(awaitingReview)provisional++;
-      if(advisory?.complete)prechecked++;
-      if (status === "covered") completed++;
-      // The headline counts the same solid circles shown in the list.
-      if(status==="captured"||status==="covered")captured++;
-      if(documentOnlyFinding(finding))documented++;
+      const finding = topicFinding(key);
+      const topic = topicPresentation(key, finding, reviewedTopics.find(row => row.key === key));
+      if (topic.progress === "covered") captured++;
+      if (topic.badge === "confirm") toReview++;
       const entry = coverageButton(key,label), node = entry.node, repaired = Boolean(repairFor("memo",finding));
-      for(const name of ["captured","covered","partial","missing"])node.classList.toggle(name, status === name);
       node.classList.toggle("selected", foundationTopic === key && Boolean($("foundation-dialog")?.open));
-      node.classList.toggle("advisory-ok", Boolean(advisory?.complete));
-      node.classList.toggle("advisory-gap", Boolean(advisory&&!advisory.complete));
       node.classList.toggle("rewritten", repaired);
-      // The one thing a row asks for: more detail. Everything else it says quietly.
-      const needsDetail=awaitingReview?Boolean(advisory&&!advisory.complete):status!=="covered"&&finding?.status!=="not_applicable"&&!documentOnlyFinding(finding)&&discussed;
-      node.classList.toggle("needs-detail", needsDetail);
-      let title = `${label}: ${awaitingReview?(advisory?(advisory.complete?"captured; the advisory check found no gaps; completion review pending":"captured; the advisory check noted a gap: "+(advisory.gaps[0]||"see details")):checking?"captured; advisory check running":"captured; awaiting review"):documentOnlyFinding(finding)?"documented; confirmation pending":finding?.status === "not_applicable" ? "not applicable (participant confirmed)" : status === "missing" ? (discussed?"discussed; needs detail":"no detail captured yet") : status==="partial"?"In progress":"Covered"}`;
-      if(ownerFollowup)title=label+": owner follow-up recorded";
-      if(repaired){rewritten++;title+="; rewritten by the completion review, earlier notes kept";}
-      const preview=voiceTopicPreview?.generation===state.generation&&voiceTopicPreview.keys.has(key);
-      const streaming=voiceStreamTopics?.generation===state.generation&&voiceStreamTopics.keys.has(key);
-      if(preview||streaming)title+=" · "+(streaming?"Checking details from the answer":"Discussing in the current answer");
-      if(node.title!==title){node.title=title;node.setAttribute("aria-label",title);}
-      setText(entry.dot, status === "covered" ? "✓" : advisory?.complete ? "·" : "");
-      // The tick already says "covered"; the tooltip keeps the full state of each row.
-      setText(entry.detail, ownerFollowup?"Owner follow-up":awaitingReview?(needsDetail?"Captured · needs detail":"Captured"):needsDetail?"Needs detail":finding?.status === "not_applicable" ? "Not applicable" : status === "covered" ? "" : status === "partial" ? (documentOnlyFinding(finding)?"Documented":topicStatusLabel("partial")) : "");
-      if(streaming||preview)setText(entry.detail,streaming?"Checking details":"Discussing");
+      if (repaired) rewritten++;
+      if (node.dataset.topicState !== topic.badge) node.dataset.topicState = topic.badge;
+      if (entry.detail.dataset.tone !== topic.tone) entry.detail.dataset.tone = topic.tone;
+      setText(entry.detail,topic.label);
+      const description = [topic.hint, repaired ? "Rewritten by the coverage check. Earlier notes are kept." : ""].filter(Boolean).join(" ");
+      if (node.title !== description) node.title = description;
+      const accessibleLabel = `${label}: ${topic.label}`;
+      if (entry.label !== accessibleLabel) {
+        entry.label = accessibleLabel;
+        node.setAttribute("aria-label",accessibleLabel);
+      }
     });
     // In place: the list is filled once (and again only if something emptied it).
     const buttons=TOPICS.map(([key])=>coverageNodes.get(key).node),listed=root.children||[];
@@ -1420,16 +1487,18 @@
       meter?.setAttribute("aria-valuenow", String(rounded));
       meter?.setAttribute("aria-valuetext", `${fraction} (${rounded}%)`);
     }
-    // The completion review adds a tick to a captured topic's solid circle.
-    if($("coverage-check")) setText($("coverage-check"), captured&&state.config?.agent_team?.enabled&&coverageVerified() ? "Checked" : "");
+    const reviewButton = $("review-file-topics");
+    if (reviewButton) {
+      reviewButton.hidden = !toReview || state.example;
+      setText(reviewButton, `Review ${toReview}`);
+      reviewButton.setAttribute("aria-label", `Review ${toReview} ${toReview === 1 ? "topic" : "topics"} from files`);
+    }
+    if($("coverage-check")) setText($("coverage-check"), (!toReview||state.example)&&captured&&state.config?.agent_team?.enabled&&coverageVerified() ? "Checked" : "");
     const consolidation=$("coverage-consolidation");
     if(consolidation){const labels=(state.consolidation||[]).map(key=>MEMO_HEADINGS[key]||key);consolidation.hidden=!labels.length;setText(consolidation,labels.length?"Consolidate these sections before adding more detail: "+labels.join(", ")+".":"");}
     if($("coverage-summary")) {
-      const detail=provisional?(prechecked?`${prechecked} pre-checked`:advisoryCheck?"Pre-check: checking…":""):documented?`${documented} documented · ${completed} confirmed`:completed === TOPICS.length ? "All topics covered" : "";
-      // A section the completion review rewrote stays announced under the count.
-      const parts=[provisional||documented||rewritten?detail:"",rewritten?`${rewritten} rewritten by the review`:""].filter(Boolean);
-      $("coverage-summary").hidden = !parts.length;
-      setText($("coverage-summary"), parts.join(" · "));
+      $("coverage-summary").hidden = !rewritten;
+      setText($("coverage-summary"), rewritten ? `${rewritten} rewritten by the coverage check` : "");
     }
     renderAnalysisThrough();
     renderMemoContext();
@@ -1461,7 +1530,7 @@
     const node=$("memo-next");if(!node)return;
     const remaining=TOPICS.some(([key])=>{
       const finding=state.memo_findings.find(f=>f.key===key),coverage=state.coverage.find(c=>c.key===key);
-      return finding ? !["captured","not_applicable"].includes(finding.status) : coverage?.status!=="covered";
+      return finding ? !["captured","not_applicable"].includes(finding.status) || documentOnlyFinding(finding) && matchingFileTopicReview(finding)?.decision !== "confirmed" : coverage?.status!=="covered";
     });
     const answered=state.turns.some(turn=>turn.role==="user"&&!turn.document_event);
     const closure=$("closure-status"),closing=Boolean(closure&&!closure.hidden);
@@ -1751,14 +1820,9 @@
         (analysisCheckpoint.context&&analysisCheckpoint.context!==JSON.stringify(state.context)))heading="From earlier notes · update pending";
       else if(analysisCheckpoint.restored)heading="Open in the saved notes · recheck pending";
     }
-    if(!listed.length&&!question&&!followups.length){
-      if(documentOnlyFinding(finding)){
-        heading="Confirm current practice";
-        listed.push("Which parts of the written procedure do people follow today, and where does the work differ?");
-      }else if(!finding||finding.status==="unknown"||finding.status==="partial"){
-        heading="Coverage to check";
-        listed.push(TOPIC_GUIDES[key]);
-      }
+    if(!listed.length&&!question&&!followups.length&&!documentOnlyFinding(finding)&&(!finding||finding.status==="unknown"||finding.status==="partial")){
+      heading="What this topic covers";
+      listed.push(TOPIC_GUIDES[key]);
     }
     const ownerHeading=saved?.length?"Saved owner follow-up · recheck pending":advisory&&!review?"Possible owner follow-up":"For the process owner";
     const contents=JSON.stringify([key,heading,listed,question,ownerHeading,followups]);
@@ -1836,9 +1900,10 @@
     if (!TOPICS.some(([topic]) => topic === key)) return;
     const dialog = $("foundation-dialog");
     if (!dialog || typeof dialog.show !== "function") {notice("This browser can’t show topic details. Try a current version of Chrome or Edge.",true);return;}
-    const finding = state.memo_findings.find(item => item.key === key);
+    const finding = topicFinding(key);
     const switching=dialog.open&&foundationTopic!==key;
-    foundationTopic = key; foundationReturnFocus = trigger?.closest?.("dialog")&&!trigger.closest("dialog").open ? $("open-memo") : trigger;
+    if (!dialog.open || switching) foundationReturnFocus = trigger?.closest?.("dialog")&&!trigger.closest("dialog").open ? $("open-memo") : trigger;
+    foundationTopic = key;
     // The sheet is titled by the label the participant clicked; the report's heading for the
     // section sits under it when it says something different.
     const index=TOPICS.findIndex(([topic])=>topic===key),label=TOPICS[index][1],heading=MEMO_HEADINGS[key]||label;
@@ -1848,39 +1913,28 @@
     const docked=stepInspector();
     if(docked?.open&&docked.parentElement===dialog.parentElement){workflowDetailReturn=null;docked.close();}
     setInspectorStepper("foundation-topic",index,TOPICS.map(([topic,name])=>({key:topic,name})),"topic");
-    // Every topic as a hairline segment, shaded as in the list, with this one marked.
-    const track=$("foundation-topic-track");
-    if(track){
-      if(track.children.length!==TOPICS.length)track.replaceChildren(...TOPICS.map(([topic,name])=>{
-        const segment=el("span","topic-track-segment");segment.dataset.topic=topic;segment.title=name;
-        segment.addEventListener("click",()=>{if(foundationTopic!==topic)showFoundationTopic(topic,document.querySelector(`[data-foundation-topic="${topic}"]`)||foundationReturnFocus);});
-        return segment;
-      }));
-      for(const segment of track.children){
-        const row=coverageNodes.get(segment.dataset.topic)?.node?.classList;
-        const shade=!row?"missing":row.contains("needs-detail")?"attention":row.contains("covered")||row.contains("captured")?"covered":row.contains("partial")?"partial":"missing";
-        if(segment.dataset.shade!==shade)segment.dataset.shade=shade;
-        segment.classList.toggle("current",segment.dataset.topic===key);
-      }
-    }
-    const review=currentTopicReview(key),advisory=provisionalFinding(finding)?advisoryFor(finding):null;
+    const review=currentTopicReview(key),topic=topicPresentation(key,finding,review);
     const statusBadge=$("foundation-topic-status");
-    statusBadge.dataset.status=provisionalFinding(finding)||documentOnlyFinding(finding)?"pending":finding?.status||"unknown";
-    $("foundation-topic-status").textContent = readyWithFollowups(review)?"Owner follow-up recorded":provisionalFinding(finding)?(advisory?(advisory.complete?"Captured · pre-checked, completion review pending":"Captured · advisory check noted a gap"):"Captured · awaiting review"):documentOnlyFinding(finding)?"Documented · needs confirmation":findingStatusLabel(finding);
-    renderTopicGaps(key,finding,review,advisory);
-    $("foundation-topic-answer").textContent = finding?.answer?.trim() ? finding.answer : "Not covered yet.";
+    statusBadge.dataset.tone = topic.tone;
+    setText(statusBadge, topic.label);
+    renderTopicGaps(key,finding,review,topic.advisory);
+    const answer = finding?.answer?.trim() || "";
+    const hasNotes = Boolean(answer && finding?.status !== "unknown");
+    const hasWording = answer && (hasNotes || !/^UNKNOWN(?:$| \/ TBD)/i.test(answer));
+    setText($("foundation-topic-answer"), hasWording ? finding.answer : "Not covered yet.");
     const hint=$("foundation-topic-hint");
-    // A documented topic already says where it came from in its status and sources.
-    hint.textContent=!documentOnlyFinding(finding)&&finding?.answer?.trim()?"From the interview — not independently verified":"";
+    setText(hint, topic.hint || (hasNotes && !documentOnlyFinding(finding) ?
+      fileTopicSourceIds(finding).length ? "From the interview and uploaded files." :
+        finding.evidence_turns?.some(id=>id!=="context") ? "From the interview." : "From the recorded context." : ""));
     hint.hidden=!hint.textContent;
     const sources=$("foundation-topic-sources");
     const focusedTurn=sources.contains(document.activeElement)?document.activeElement?.dataset?.sourceTurn:null;
-    sources.hidden=!finding?.answer?.trim()&&!finding?.evidence_turns?.length;
     // This runs again on every render while the dialog is open (each live caption
     // delta renders). The source links, and the review's earlier notes below, are
     // rebuilt only when what they show has changed, so a click on one of them
     // is not lost between mouse-down and mouse-up.
     const facts=state.factProvenance?.filter(fact=>fact.topic===key)||[];
+    sources.hidden=!finding?.evidence_turns?.length&&!facts.length;
     const evidence=finding?.evidence_turns||[],listed=JSON.stringify([key,evidence.map(id=>[id,sourceCaption(id)]),facts]);
     if(!dialog.open||sources.dataset.listed!==listed){
       sources.dataset.listed=listed;
@@ -1907,12 +1961,89 @@
       rewritten.hidden=!rewrite;rewritten.dataset.topic=key;rewritten.dataset.noted=noted;rewritten.replaceChildren(...(rewrite?[rewrite]:[]));
       if(rewrite&&reading)rewrite.querySelector("details").open=true;
     }
+    renderFileTopicReview(key,finding);
     if (!dialog.open||switching) {
       if(!dialog.open){dialog.show();focusInspector(dialog,"close-foundation-topic","foundation-topic-title");}
       const body=dialog.querySelector(".detail-body");
       if(body)body.scrollTop=0;
     } else if(focusedTurn)matchingCitations(sources,focusedTurn)[0]?.focus({preventScroll:true});
     document.querySelectorAll("[data-foundation-topic]").forEach(button => button.classList.toggle("selected",button.dataset.foundationTopic === key));
+  }
+  function fileTopicReviewLocked() {
+    return state.example || state.importing || state.busy || Boolean(draftInFlight || pendingCompletionReview?.promise);
+  }
+  function syncFileTopicReviewControls() {
+    const locked = fileTopicReviewLocked();
+    for (const id of ["confirm-file-topic", "flag-file-topic", "undo-file-topic-review"]) {
+      if ($(id)) $(id).disabled = locked;
+    }
+  }
+  function renderFileTopicReview(key,finding) {
+    const panel = $("foundation-file-review");
+    if (!panel) return;
+    const previous = state.fileTopicReviews[key];
+    const review = matchingFileTopicReview(finding);
+    const awaiting = fileTopicNeedsConfirmation(finding);
+    const next = nextFileTopic(key);
+    panel.hidden = state.example || !(awaiting || previous);
+    if (panel.hidden) return;
+    $("confirm-file-topic").hidden = $("flag-file-topic").hidden = !awaiting;
+    $("undo-file-topic-review").hidden = !previous;
+    $("next-file-topic").hidden = !next || next === key;
+    const previousDecision = previous?.decision === "confirmed" ? "confirmed" : "flagged for changes";
+    setText($("foundation-file-review-message"), awaiting ?
+      (previous ? "The file notes have changed. Do they describe how you work today?" : "Do these file notes describe how you work today?") :
+      review?.decision === "confirmed" ? "Your confirmation is recorded for these notes." :
+      review?.decision === "needs_changes" ? "The interview can follow up on what needs to change." :
+      `Earlier wording was ${previousDecision}.`);
+    syncFileTopicReviewControls();
+  }
+  function recordFileTopicReview(decision) {
+    const key = foundationTopic;
+    if (!key || fileTopicReviewLocked()) return;
+    const finding = topicFinding(key);
+    const previous = state.fileTopicReviews[key];
+    if (decision) {
+      if (!fileTopicNeedsConfirmation(finding)) return;
+      state.fileTopicReviews[key] = {decision, answer:finding.answer, source_ids:fileTopicSourceIds(finding)};
+    } else {
+      if (!previous) return;
+      delete state.fileTopicReviews[key];
+      // A capture may have cited the exact confirmed wording as interview context.
+      // When that context is withdrawn, restore its original file citations.
+      if (previous.decision === "confirmed" && finding?.answer === previous.answer &&
+          finding.evidence_turns.includes("context") &&
+          finding.evidence_turns.every(id=>id==="context" || id.startsWith("doc_"))) {
+        const available = new Set(state.documentEvidence.map(source=>source.id));
+        const sources = previous.source_ids.filter(id=>available.has(id));
+        const restored = {...finding, status:sources.length ? "partial" : "unknown", evidence_turns:sources};
+        state.memo_findings = state.memo_findings.map(row=>row.key===key ? restored : row);
+      }
+    }
+    // A workspace decision supplements the account without sending an interview reply.
+    const hadFinalCheck = state.coverageVerified || state.closure.asked || state.closure.confirmed || state.closure.partial || Boolean(pendingCompletionReview);
+    state.captureToken = null;
+    cancelAdvisoryCoverage();
+    if (hadFinalCheck) {
+      suppressWorkflowReadiness();
+      state.coverageNeedsReview = true;
+      offerCoverageRecheck("Topic review updated. Wrap up to check coverage again.");
+    }
+    if (conversationUI.live?.active && conversationUI.live.appendContext) {
+      const topic = TOPICS.find(([id])=>id===key)[1];
+      const review = state.fileTopicReviews[key];
+      const update = JSON.stringify({topic, decision:decision || "withdrawn", ...(decision === "confirmed" ? {notes:review.answer} : {})});
+      const guidance = "Private workspace update. Keep listening. A confirmation applies to the supplied notes. A flag asks you to revisit the file notes at a natural point. Newer answers take precedence. ";
+      const message = new TextEncoder().encode(update).length < 8000 ? update : JSON.stringify({topic, decision:decision || "withdrawn"});
+      void conversationUI.live.appendContext(guidance+message, {kind:"topic_review", replaceKey:`topic_review_${key}`});
+    }
+    participantEvidenceChanged();
+    state.dirty = true;
+    renderCoverage();
+    updateControls();
+    const controls = decision ? ["next-file-topic", "undo-file-topic-review"] : ["confirm-file-topic"];
+    const focus = controls.map(id=>$(id)).find(button=>!button.hidden) || $("close-foundation-topic");
+    focus.focus({preventScroll:true});
   }
   function closeFoundationTopic(restoreFocus = true) {
     const dialog = $("foundation-dialog");
@@ -1921,7 +2052,7 @@
     // after the next Tab or even after another topic has opened.
     dialog.close();
     document.querySelectorAll("[data-foundation-topic]").forEach(button => button.classList.remove("selected"));
-    let trigger = foundationReturnFocus?.isConnected ? foundationReturnFocus : document.querySelector(`[data-foundation-topic="${foundationTopic}"]`);
+    let trigger = foundationReturnFocus?.isConnected && !foundationReturnFocus.hidden ? foundationReturnFocus : coverageNodes.get(foundationTopic)?.node;
     // Resizing can move a desktop topic into the closed mobile memo sheet.
     if(trigger?.closest?.("dialog")&&!trigger.closest("dialog").open)trigger=$("open-memo");
     if (restoreFocus && trigger) {revealAncestors(trigger);trigger.focus({preventScroll:true});}
@@ -1929,6 +2060,19 @@
   }
   function initFoundationDialog() {
     $("close-foundation-topic").addEventListener("click",() => closeFoundationTopic());
+    $("review-file-topics")?.addEventListener("click", event=>{
+      const key = nextFileTopic();
+      if (key) showFoundationTopic(key,event.currentTarget);
+    });
+    $("confirm-file-topic")?.addEventListener("click",()=>recordFileTopicReview("confirmed"));
+    $("flag-file-topic")?.addEventListener("click",()=>recordFileTopicReview("needs_changes"));
+    $("undo-file-topic-review")?.addEventListener("click",()=>recordFileTopicReview(null));
+    $("next-file-topic")?.addEventListener("click",()=>{
+      const key = nextFileTopic(foundationTopic);
+      if (!key || key === foundationTopic) return;
+      showFoundationTopic(key,coverageNodes.get(key)?.node);
+      $("close-foundation-topic").focus({preventScroll:true});
+    });
     // Step through the topics without going back to the list. Closing returns focus to the
     // row of the topic last shown.
     const step=button=>{
@@ -2830,7 +2974,8 @@
     }
     conversationUI.liveCoverageKey=null;conversationUI.liveCondensed=false;conversationUI.liveDocumentsCondensed=false;
     const chosen=selectedNaturalVoice();
-    await live.start({...(chosen&&state.config?.agent_team?.voice_mode==="live_front"?{voice:chosen.id}:{}),context:clone(state.context),turns:clone(state.turns.filter(turn=>!turn.document_event)),document_scope:currentDocumentState()?.scope,notes:liveResumeNotes()});
+    const topicReviews = fileTopicReviewContext();
+    await live.start({...(chosen&&state.config?.agent_team?.voice_mode==="live_front"?{voice:chosen.id}:{}),context:clone(state.context),turns:clone(state.turns.filter(turn=>!turn.document_event)),document_scope:currentDocumentState()?.scope,notes:liveResumeNotes(),...(topicReviews.length ? {file_topic_reviews:topicReviews} : {})});
     if(generation===state.generation&&conversationUI.live===live){
       syncLiveCoverage();
       if(live.connected && live.say && state.closure.asked && !state.closure.confirmed && coverageVerified() && pendingFinalCheck?.line){
@@ -3720,7 +3865,7 @@
     }
     const controller = new AbortController();
     const voiceSource=liveFrontActive()&&["/api/interview","/api/agent-team/review"].includes(path)?
-      {...liveSnapshot(),context:clone(data.context),turns:clone(data.turns),document_revision:data.document_revision}:null;
+      {...liveSnapshot(),context:clone(data.context),turns:clone(data.turns),document_revision:data.document_revision,file_topic_reviews:data.file_topic_reviews}:null;
     const interviewRequest=["/api/interview","/api/draft","/api/agent-team/review"].includes(path),intakeSequence=documentIntake?.sequence;
     const replacedByIntake=()=>interviewRequest&&!options.documentIntake&&(intakeActive()||intakeSequence!==documentIntake?.sequence);
     if(interviewRequest&&!options.documentIntake)interviewRequests.add(controller);
@@ -4237,7 +4382,8 @@
     const cited=citedDocumentIds();
     // Excerpts of a file workspace this computer does not have are never named to the server.
     for(const id of unavailableSources())cited.delete(id);
-    return withRequiredDocuments({context:clone(state.context),turns:clone(state.turns),session:{closure_requested:action === "close"},document_revision:activeDocumentSignature(),document_source_ids:[...cited],...(state.captureToken?{capture_token:state.captureToken}:{}),...(currentDocumentState()?.scope?{document_scope:currentDocumentState().scope}:{})},
+    const topicReviews = fileTopicReviewContext();
+    return withRequiredDocuments({context:clone(state.context),turns:clone(state.turns),session:{closure_requested:action === "close"},document_revision:activeDocumentSignature(),document_source_ids:[...cited],...(topicReviews.length ? {file_topic_reviews:topicReviews} : {}),...(state.captureToken?{capture_token:state.captureToken}:{}),...(currentDocumentState()?.scope?{document_scope:currentDocumentState().scope}:{})},
       readableDocuments().filter(file=>!documentWasRead(file.id)).map(file=>file.id));
   }
   function getConcurrentInterview(){
@@ -5789,12 +5935,14 @@
     tab("interview");
     if (id === "context") {
       revealContext();
+      const reviews=$("context-topic-reviews");
+      if(reviews&&!reviews.hidden)reviews.open=true;
       const context = $("context-details");
       scrollToElement(context);
       context.tabIndex = -1;
       context.focus({preventScroll:true});
       showSourceReturn(true);
-      notice("This step comes from the interview setup, not an answer. Confirm it with the process owner.");
+      if(!reviews||reviews.hidden)notice("This step comes from the interview setup, not an answer. Confirm it with the process owner.");
       return;
     }
     const turn = document.getElementById(`turn-${id}`);
@@ -5863,7 +6011,7 @@
     selectReviewSection(reviewUI.section);
   }
   function sourceCaption(id) {
-    if (id === "context") return "Starting context";
+    if (id === "context") return Object.values(state.fileTopicReviews).some(row=>row.decision==="confirmed") ? "Interview context" : "Starting context";
     const source=state.documentEvidence.find(item=>item.id===id);
     if(source)return `${source.label?.includes(source.name)?source.label:source.name+(source.label?" · "+source.label:"")}${source.workspace_unavailable?" · saved reference, file not on this computer":source.retained_only?" · saved excerpt":""}${aiTranscribed(source)?" · AI transcription, unverified":""}`;
     const turn = state.turns.find(item => item.id === id);
@@ -6797,9 +6945,12 @@
   }
   function sessionObject({includePresentation=false}={}) {
     const savedCitations=citedDocumentIds();
+    const topicReviews = Object.entries(state.fileTopicReviews).map(([topic,review])=>({topic,...review}));
+    for (const review of topicReviews) for (const id of review.source_ids) savedCitations.add(id);
     const pendingSubmission=includePresentation?knowledgeUI?.exportAttempt?.():null;
     const provenance=state.captureProvenance===null?null:savedCaptureProvenance(state.captureProvenance);
     const presentation=includePresentation&&draftComponentDesigns.size?{presentation:{component_designs:Object.fromEntries(draftComponentDesigns)}}:{};
+    if (topicReviews.length) presentation.file_topic_reviews = topicReviews;
     const followups=interviewFollowups();
     if(followups.length)presentation.owner_followups=followups;
     const unfinished=intakeActive()?{ids:[...documentIntake.ids]}:owedFiles;
@@ -7086,7 +7237,7 @@
     rawTrace("interview.clearing", {turn_count:state.turns.length, generation:state.generation});
     state.historicalDraft=false;owedFiles=null;renderOwedFiles();state.draftUndo=[];state.draftRedo=[];
     state.savedClosure=null;state.resumedReviewAck=null;state.resumeFileIntake=null;state.previousMap=null;state.mapCorrections=[];state.dictatedAnswer=null;
-    state.savedOwnerFollowups=[];
+    state.savedOwnerFollowups=[];state.fileTopicReviews={};
     deferredDiagrams.clear();
     draftComponentDesigns.clear();
     concurrentInterview?.reset();
@@ -7232,6 +7383,7 @@
       });
       if (turns.reduce((n,t) => n+charCount(t.text),0) > 400000) throw new Error("This interview is too long to open.");
       const documentEvidence=normalizeDocumentEvidence(saved.document_evidence);
+      const fileTopicReviews = savedFileTopicReviews(saved.file_topic_reviews);
       const ownerFollowups=savedFollowups(saved.owner_followups,turns);
       const draft = saved.draft ? normalizeDraft(saved.draft,turns,documentEvidence,saved.context) : null;
       const workflow=saved.workflow?normalizeWorkingMap(saved.workflow,turns,documentEvidence,saved.context):null;
@@ -7266,6 +7418,7 @@
       generation=state.generation;
       Object.assign(state,{...discovery,documentEvidence,turns,coverage,summary,draft,started:turns.length>0,busy:true,importing:true,example:saved.synthetic_example===true,draftEdited:saved.draft_edited===true,memo_findings:findings,focus,parking_lot:parked,captureProvenance,coverageNeedsReview:turns.some(turn=>turn.role==="user"&&!turn.document_event)||documentEvidence.length>0,closure:{asked:saved.closure?.asked===true,confirmed:false}});
       state.captureRepairs=captureRepairs;
+      state.fileTopicReviews=fileTopicReviews;
       state.consolidation=TOPICS.map(([key])=>key).filter(key=>Array.isArray(saved.consolidation_required)&&saved.consolidation_required.includes(key));
       state.factHistory=retiredFacts(saved.fact_history);
       state.savedOwnerFollowups=ownerFollowups;

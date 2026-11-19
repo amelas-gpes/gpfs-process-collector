@@ -255,7 +255,7 @@
               <span id="coverage-count" aria-hidden="true">0%</span>
             </div>
             <div class="coverage-copy">
-              <div class="coverage-heading"><span id="coverage-label">Topic coverage</span><small id="coverage-check" class="coverage-check" role="status"></small></div>
+              <div class="coverage-heading"><span id="coverage-label">Topic coverage</span><small id="coverage-check" class="coverage-check" role="status"></small><button id="review-file-topics" class="review-file-topics" type="button" aria-haspopup="dialog" aria-controls="foundation-dialog" hidden></button></div>
               <span id="coverage-fraction">0 of 16 topics captured</span>
             </div>
           </div>
@@ -271,7 +271,7 @@
               <button class="text-button small" id="update-workflow" aria-description="Refresh the working map using the latest interview answers." type="button" data-icon="refresh" hidden>Update workflow</button>
             </div>
             <div id="memo-focus-block" class="memo-focus active-only"><span class="section-eyebrow">Now discussing</span><p id="memo-focus">Getting started</p></div>
-            <button type="button" class="text-button" id="notes-recheck" aria-description="Check the saved topic findings against the available evidence." hidden>Recheck saved coverage</button>
+            <button type="button" class="text-button" id="notes-recheck" aria-description="Check the topic findings against the available evidence." hidden>Recheck coverage</button>
             <p id="coverage-consolidation" role="status" hidden></p>
           </div>
         </section>
@@ -292,7 +292,6 @@
             </div>
             <button type="button" id="close-foundation-topic" class="inspector-close" aria-label="Close topic" title="Close (Esc)" autofocus></button>
           </div>
-          <div id="foundation-topic-track" class="topic-track" aria-hidden="true"></div>
           <div class="detail-body inspector-body">
             <header class="inspector-header">
               <div class="inspector-heading">
@@ -301,7 +300,7 @@
                 <p id="foundation-topic-scope" class="inspector-subtitle" hidden></p>
               </div>
             </header>
-            <div class="inspector-meta"><span id="foundation-topic-status" class="topic-dialog-status"></span><span id="foundation-topic-hint" class="topic-dialog-hint"></span></div>
+            <div class="inspector-meta"><span id="foundation-topic-status" class="topic-dialog-status" role="status"></span><span id="foundation-topic-hint" class="topic-dialog-hint"></span></div>
             <section class="inspector-section">
               <h3 class="inspector-label">Current understanding</h3>
               <p id="foundation-topic-answer" class="topic-dialog-answer inspector-lead"></p>
@@ -311,6 +310,15 @@
             <section class="inspector-section inspector-sources">
               <h3 class="inspector-label">Sources</h3>
               <div id="foundation-topic-sources" class="topic-dialog-sources"></div>
+            </section>
+            <section id="foundation-file-review" class="topic-file-review" aria-label="Review file notes" hidden>
+              <p id="foundation-file-review-message"></p>
+              <div class="topic-file-actions">
+                <button type="button" id="confirm-file-topic" class="button primary small" data-icon="check">Confirm notes</button>
+                <button type="button" id="flag-file-topic" class="button secondary small">Needs changes</button>
+                <button type="button" id="undo-file-topic-review" class="text-button small" hidden>Undo</button>
+                <button type="button" id="next-file-topic" class="text-button small" data-icon-end="arrow-right" hidden>Review next</button>
+              </div>
             </section>
           </div>
         </dialog>
@@ -328,7 +336,7 @@
           <button class="text-button" id="regenerate-draft" data-icon="refresh">Update draft</button>
           <button class="button secondary" id="export-markdown" data-icon="download" disabled>Download report</button>
           <details class="report-more-exports" id="report-more-exports"><summary aria-description="Choose a diagram, spreadsheet, workflow file or printable report.">More formats</summary><div class="report-export-menu" role="group" aria-label="More formats"><p>Download in another format</p><button type="button" id="download-bpmn" aria-description="Export the process as BPMN 2.0 XML for a modeling tool." data-icon="workflow"><span>BPMN 2.0 workflow <small>For a modeling tool · .bpmn</small></span></button><button type="button" id="download-step-csv" aria-description="Download the steps as rows for a spreadsheet." data-icon="lines"><span>Step table (CSV) <small>Rows for a spreadsheet · .csv</small></span></button><button type="button" id="download-png" aria-description="Save a raster image of the process diagram." data-icon="map"><span>Diagram (PNG) <small>Image of the process map · .png</small></span></button><button type="button" id="print-report" aria-description="Open the print dialog for a paper copy or PDF." data-icon="file"><span>Print / save as PDF <small>Opens the print dialog</small></span></button></div></details>
-          <button type="button" class="text-button" id="draft-recheck" aria-description="Check the saved topic findings against the available evidence." hidden>Recheck saved coverage</button>
+          <button type="button" class="text-button" id="draft-recheck" aria-description="Check the topic findings against the available evidence." hidden>Recheck coverage</button>
           <span id="draft-busy" role="status" hidden></span>
           <span class="muted" id="filed-revision" hidden></span>
           <span class="muted" id="draft-updated-at" hidden></span>
@@ -496,6 +504,10 @@
             <div class="settings-block-heading"><h4>Background</h4><p>Boundaries, terminology and areas the interviewer should focus on.</p></div>
             <div class="settings-card settings-fields settings-context-fields"><label for="background">Background <small>Optional</small></label><textarea id="background" aria-description="Give the interviewer boundaries, terminology or background before starting." rows="6" aria-describedby="background-limit context-lock-note" placeholder="Useful background, boundaries or things to focus on…" dir="auto" autocomplete="off"></textarea><p id="background-limit" class="field-limit" hidden></p></div>
           </div>
+          <details id="context-topic-reviews" class="settings-disclosure settings-card" hidden>
+            <summary>Confirmed file notes</summary>
+            <dl id="context-confirmed-notes" class="context-confirmed-notes"></dl>
+          </details>
         </section>
         <section id="data-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-data" tabindex="0" hidden>
           <header class="settings-section-heading"><h3>Data &amp; recovery</h3><p>Understand what is kept, what is sent, and how to protect unfinished work.</p></header>

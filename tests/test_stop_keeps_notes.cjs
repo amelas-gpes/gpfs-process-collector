@@ -51,7 +51,7 @@ function interviewWithNotes(){
 }
 // What the Notes list shows: the topics that carry a state ("Discussed · needs detail", "Captured · …").
 // The separate line "N of 16 topics discussed" was folded into these per-topic labels, so the panel is read here.
-function topicsWithNotes(h){return h.node("coverage-list").children.filter(topic=>topic.children[2].textContent!=="").length;}
+function topicsWithNotes(h){return h.node("coverage-list").children.filter(topic=>topic.dataset.topicState!=="open").length;}
 function stopSnapshot(h){h.t.state.turns.push({id:"t006",role:"user",text:"I need to stop now."});return h.t.snapshot();}
 function assertNotesKept(h,before,label){
   assert.deepEqual(kept(h),before,label+": the notes changed");

@@ -1,5 +1,5 @@
 "use strict";
-// Topic coverage advances with every solid circle. The final review can add a check mark.
+// Topic coverage advances with capture. Visible labels distinguish pending and reviewed topics.
 // The fixture runs web/index.html and web/app.js together without provider or network calls.
 const assert=require("node:assert/strict");
 const {open}=require("./fixtures/app_page.cjs");
@@ -25,8 +25,8 @@ function headline(page){
   value:meter.getAttribute("aria-valuenow"),valueText:meter.getAttribute("aria-valuetext")
  };
 }
-const ticks=page=>KEYS.filter(key=>topic(page,key).querySelector(".coverage-dot").textContent==="✓").length;
-const solidTopics=page=>KEYS.filter(key=>["captured","covered"].some(status=>topic(page,key).classList.contains(status)));
+const withState=(page,state)=>KEYS.filter(key=>topic(page,key).dataset.topicState===state);
+const label=(page,key)=>topic(page,key).querySelector(".coverage-state").textContent;
 let passed=0;const failed=[];
 async function check(name,fn){
  try{await fn();passed++;console.log("PASS "+name);}
@@ -42,24 +42,21 @@ async function check(name,fn){
   assert.equal(shown.fraction,"13 of 16 topics captured");
   assert.equal(page.$("coverage-meter").getAttribute("role"),"progressbar");
   assert.equal(shown.value,"81");assert.equal(shown.valueText,"13 of 16 topics captured (81%)");
-  assert.deepEqual(solidTopics(page),KEYS.slice(0,13),"Every topic counted in the headline has a solid circle");
+  assert.deepEqual(withState(page,"captured"),KEYS.slice(0,12));assert.deepEqual(withState(page,"notApplicable"),["rules"]);
   assert.equal(shown.check,"","Nothing is marked as checked before the final check");
   assert.equal(shown.label,"Topic coverage");
   // Nothing is presented as covered before the review.
-  assert.equal(ticks(page),0,"No tick before the final check");
-  assert.equal(KEYS.filter(key=>topic(page,key).classList.contains("covered")).length,0);
-  assert.equal(topic(page,"name").querySelector(".coverage-state").textContent,"Captured");
-  assert.match(topic(page,"name").title,/captured; awaiting review/);
+  assert.equal(withState(page,"covered").length,0);
+  assert.equal(label(page,"name"),"Captured");
+  assert.match(topic(page,"name").title,/Final coverage check pending/);
  });
- await check("after the final check the same figure is marked as checked and the topics get their ticks",async()=>{
+ await check("after the final check the same figure is marked as checked and the topics are labeled",async()=>{
   const page=await open({config,expose:EXPOSE});interview(page,true);
   const shown=headline(page);
   assert.equal(shown.count,"81%");assert.equal(shown.pill,"81%");assert.equal(shown.check,"Checked","Verification is said beside the number");
-  assert.equal(ticks(page),13);assert.equal(topic(page,"name").querySelector(".coverage-state").textContent,"","The tick says it; the row adds no word");
-  assert.match(topic(page,"name").title,/Covered$/);
-  assert.equal(topic(page,"rules").querySelector(".coverage-state").textContent,"Not applicable");
-  assert.equal(topic(page,"connections").classList.contains("partial"),true);assert.equal(topic(page,"volume").classList.contains("missing"),true);
-  assert.deepEqual(solidTopics(page),KEYS.slice(0,13));
+  assert.deepEqual(withState(page,"covered"),KEYS.slice(0,12));assert.equal(label(page,"name"),"Covered");
+  assert.equal(label(page,"rules"),"Not applicable");
+  assert.equal(label(page,"connections"),"Needs detail");assert.equal(label(page,"volume"),"Not covered");
  });
  await check("a captured topic with a follow-up gap remains identifiable among partial and empty topics",async()=>{
   const page=await open({config,expose:EXPOSE});interview(page,false);
@@ -70,16 +67,13 @@ async function check(name,fn){
   }));
   page.state.advisory.purpose={answer:"Recorded detail for purpose.",complete:false,gaps:["Clarify the result."]};
   page.t.renderCoverage();
-  assert.equal(headline(page).count,"6%");assert.equal(ticks(page),0);
-  assert.deepEqual(solidTopics(page),["purpose"]);
-  assert.equal(topic(page,"purpose").querySelector(".coverage-state").textContent,"Captured · needs detail");
-  assert.match(topic(page,"purpose").title,/captured; the advisory check noted a gap: Clarify the result/);
-  assert.equal(KEYS.filter(key=>topic(page,key).classList.contains("partial")).length,13);
-  assert.equal(topic(page,"trigger").querySelector(".coverage-state").textContent,"Needs detail");
-  assert.deepEqual(KEYS.filter(key=>topic(page,key).classList.contains("missing")),emptyKeys);
+  assert.equal(headline(page).count,"6%");assert.equal(withState(page,"covered").length,0);
+  assert.equal(label(page,"purpose"),"Needs detail");assert.match(topic(page,"purpose").title,/Clarify the result/);
+  assert.equal(withState(page,"detail").length,14);
+  assert.equal(label(page,"trigger"),"Needs detail");
+  assert.deepEqual(withState(page,"open"),emptyKeys);
   page.state.coverageVerified=true;page.t.renderCoverage();
-  assert.deepEqual(solidTopics(page),["purpose"]);assert.equal(ticks(page),1);
-  assert.equal(topic(page,"purpose").classList.contains("captured"),false);
+  assert.deepEqual(withState(page,"covered"),["purpose"]);
  });
  await check("a new answer withdraws the check, not the progress",async()=>{
   const page=await open({config,expose:EXPOSE});interview(page,true);
@@ -87,7 +81,7 @@ async function check(name,fn){
   page.$("answer-text").input("One more thing about the count.");void page.t.sendAnswer({preventDefault(){}});await page.flush();
   const shown=headline(page);
   assert.equal(shown.count,"81%","The percentage stays current on the next answer");assert.equal(shown.arcOffset,"18.75");
-  assert.equal(shown.check,"","The check mark is withdrawn");assert.equal(ticks(page),0,"The ticks wait for the next check");
+  assert.equal(shown.check,"","The check is withdrawn");assert.equal(withState(page,"covered").length,0);
  });
  await check("only captured and not-applicable topics count, and an explicit note outranks a coverage flag",async()=>{
   const page=await open({config,expose:EXPOSE});interview(page,false);
@@ -108,13 +102,12 @@ async function check(name,fn){
   assert.doesNotMatch(rail,/topics discussed/);assert.doesNotMatch(rail,/\d+ captured · awaiting review/,"The line under the bar no longer repeats the figure");
   assert.equal(page.$("coverage-summary").hidden,true,"With no advisory detail to add, the line under the bar is not shown");
   // What "discussed" told is on each topic.
-  assert.equal(topic(page,"connections").querySelector(".coverage-state").textContent,"Needs detail");
-  assert.equal(topic(page,"connections").classList.contains("needs-detail"),true,"The one state a row colours");
-  assert.equal(topic(page,"volume").querySelector(".coverage-state").textContent,"","An untouched topic says nothing");
+  assert.equal(label(page,"connections"),"Needs detail");
+  assert.equal(label(page,"volume"),"Not covered");
  });
  await check("without the review team there is no check to report and captured topics are simply covered",async()=>{
   const page=await open({config:{agent_team:{enabled:false}},expose:EXPOSE});interview(page,false);
-  const shown=headline(page);assert.equal(shown.count,"81%");assert.equal(shown.check,"");assert.equal(ticks(page),13);
+  const shown=headline(page);assert.equal(shown.count,"81%");assert.equal(shown.check,"");assert.equal(withState(page,"covered").length,12);
  });
  await check("the built-in example shows its sixteen captured topics",async()=>{
   const page=await open({config,expose:EXPOSE});

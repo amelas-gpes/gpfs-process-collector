@@ -279,7 +279,7 @@ class ConcurrentInterview:
         while end and turns[end - 1].get("role") == "assistant":
             end -= 1
         return [payload.get("context", {}), turns[:end], payload.get("document_scope", ""),
-                payload.get("document_revision", "")]
+                payload.get("document_revision", ""), payload.get("file_topic_reviews", [])]
 
     @classmethod
     def revision(cls, payload):

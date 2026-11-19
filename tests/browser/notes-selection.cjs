@@ -48,7 +48,7 @@ async function exercise(browser, url, width) {
     if (address.pathname !== "/app.js") return route.continue();
     const response = await route.fetch(), source = await response.text();
     const seam = source.replace(/  init\(\);\s*\}\)\(\);\s*$/, () =>
-      "  window.notesFixture = {state, renderCoverage, rememberDiscussion, rememberCoverageCheckpoint, clearState, sessionObject};\n  init();\n})();");
+      "  window.notesFixture = {state, renderCoverage, renderTranscript, rememberDiscussion, rememberCoverageCheckpoint, clearState, sessionObject};\n  init();\n})();");
     assert.notEqual(seam, source, "Expose the capture fixture at the application's entry point");
     return route.fulfill({response, body:seam});
   });
@@ -152,7 +152,7 @@ async function exercise(browser, url, width) {
     await page.keyboard.press("Space");
     await checkDialog(page, "Purpose", purposeAnswer);
     await page.evaluate(()=>{
-      const {state,renderCoverage,rememberCoverageCheckpoint,clearState}=window.notesFixture;
+      const {state,renderTranscript,rememberCoverageCheckpoint,clearState}=window.notesFixture;
       clearState({process_name:"Method B release",process_owner:"",objective:"Document current practice",background:""});
       state.started=true;
       state.turns=[{id:"t002",role:"user",text:"Method B stays on hold until the model owner confirms the release test."}];
@@ -160,14 +160,14 @@ async function exercise(browser, url, width) {
       state.memo_findings.push({key:"completion",status:"partial",answer:"The held route stops before release.",evidence_turns:["t002"]});
       rememberCoverageCheckpoint(undefined,undefined,undefined,{topics:[{key:"completion",complete:false,ready_for_owner_review:true,gaps:[],next_question:"",
         owner_followups:[{dimension:"observable_finish",kind:"operational_hold",gap:"The release test for Method B needs approval.",scope:"Method B only",interim_action:"Keep the transaction on hold.",resolver:"The current model owner",evidence_turns:["t002"]}]}]});
-      renderCoverage();
+      renderTranscript();
     });
     if(await page.locator("#open-memo").isVisible())await page.locator("#open-memo").click();
     const finish=topic(page,"completion");
     assert.equal(await finish.locator(".coverage-state").innerText(),"Owner follow-up");
     await finish.focus();await page.keyboard.press("Enter");
     const gaps=page.locator("#foundation-topic-gaps");
-    assert.equal(await gaps.getByRole("heading",{name:"For the process owner"}).isVisible(),true);
+    await gaps.getByRole("heading",{name:"For the process owner"}).waitFor({state:"visible",timeout:3000});
     assert.match(await gaps.innerText(),/Method B only/);
     assert.match(await gaps.innerText(),/Keep the transaction on hold/);
     assert.match(await gaps.innerText(),/The current model owner/);
@@ -193,10 +193,10 @@ async function exercise(browser, url, width) {
       const restoredGaps=restored.locator("#foundation-topic-gaps");
       assert.equal(await restoredGaps.getByRole("heading",{name:"Saved owner follow-up · recheck pending"}).isVisible(),true);
       assert.match(await restoredGaps.innerText(),/Keep the transaction on hold/);
-      assert.notEqual(await restored.locator("#foundation-topic-status").innerText(),"Owner follow-up recorded");
+      assert.notEqual(await restored.locator("#foundation-topic-status").innerText(),"Owner follow-up");
       await restored.keyboard.press("Escape");
       await topic(restored,"risk").click();
-      assert.match(await restoredGaps.innerText(),/Coverage to check/);
+      assert.equal(await restoredGaps.getByRole("heading",{name:"What this topic covers"}).isVisible(),true);
       assert.doesNotMatch(await restoredGaps.innerText(),/current model owner/);
       await restored.keyboard.press("Escape");
       if(await restored.locator("#memo-sheet").isVisible())await restored.locator("#close-memo").click();

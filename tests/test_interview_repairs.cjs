@@ -8,9 +8,9 @@ const out={exports:{}};
 vm.runInNewContext(harness,{require,__dirname,module:out,console,Buffer,Blob,DataView,Uint8Array,Float32Array,TextEncoder,Date,JSON,AbortController,DOMException});
 const {setup,response,flush}=out.exports;
 let passed=0;async function check(name,fn){try{await fn();passed++;}catch(e){e.message=name+': '+e.message;throw e;}}
-// "Discussed" is said on each topic of the Notes list (its third part is the state text); the page keeps
+// The status is visible on each topic of the Notes list. The page keeps
 // one counter, the captured figure, and no longer a separate "N of 16 topics discussed" line.
-const discussed=h=>h.node('coverage-list').children.filter(topic=>/^Needs detail/.test(topic.children[2].textContent)).length;
+const discussed=h=>h.node('coverage-list').children.filter(topic=>topic.dataset.topicState==='detail').length;
 (async()=>{
 await check('a discussed topic is labelled on the topic and does not move the captured figure',async()=>{
  const h=setup();h.t.state.config.concurrent_interview={enabled:true};h.t.state.turns=[{id:'u1',role:'user',text:'I use the spare when equipment is missing.'}];

@@ -4,6 +4,8 @@ The desktop window and browser use the same loopback HTTP service. GET `/api/con
 
 The interview snapshot contains `context` and `turns`. A turn carries a unique ID, role and text. A capture token, conversation token, review ticket, file scope or submission-status receipt is opaque. Keep it with its own interview. The service resolves source text from the local store and validates citations. A browser-supplied source label cannot grant access.
 
+An interview request can include `file_topic_reviews` with one decision per topic. Each entry contains `topic` and `decision` (`confirmed` or `needs_changes`). A confirmation requires the exact `answer` reviewed and adds it to participant context. A flag asks the interviewer to clarify the file notes when material. The interview still checks coverage and waits for its own final reply. Saved interviews keep both the reviewed `answer` and the original `source_ids` for each decision.
+
 | Method and path | Caller, input and result |
 | --- | --- |
 | POST `/api/trace/events` | The browser sends its tab UUID and 1–64 observations, with source sequence, timestamp, type, payload and optional correlation IDs. The 256 KiB batch limit, same-origin and CSRF checks apply. A 200 receipt gives `received` and `accepted` counts. Accepted means enqueued by the local writer. Per-run counters in `/api/config` report writes and detectable loss. [Trace schema and data boundaries](RAW_EVENT_TRACE.md). |

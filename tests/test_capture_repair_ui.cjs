@@ -175,10 +175,10 @@ check("a review that rewrites a section says so, marks the section and keeps the
   assert.equal(byId("notice-text").textContent, announced[0]);
   const item = lifecycleButton(document);
   assert.ok(item.classList.contains("rewritten"));
-  assert.match(item.getAttribute("aria-label"), /rewritten by the completion review, earlier notes kept$/);
+  assert.match(item.title, /Rewritten by the coverage check\. Earlier notes are kept\.$/);
   assert.equal(document.querySelectorAll(".coverage-item").filter(node => node.classList.contains("rewritten")).length, 1);
   assert.equal(byId("coverage-summary").hidden, false);
-  assert.equal(byId("coverage-summary").textContent, "All topics covered · 1 rewritten by the review");
+  assert.equal(byId("coverage-summary").textContent, "1 rewritten by the coverage check");
   app.showFoundationTopic("lifecycle", item);
   assert.equal(byId("foundation-topic-answer").textContent, SHORT);
   const panel = byId("foundation-topic-repair");

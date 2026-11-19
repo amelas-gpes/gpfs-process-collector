@@ -1078,8 +1078,12 @@ def _strings(value, label, limit=100):
 
 def context_has_evidence(context):
     """An interview objective can be prefilled before the participant supplies any facts."""
-    return isinstance(context, dict) and any(isinstance(context.get(key), str) and context[key].strip()
-        for key in ("process_name", "process_owner", "background"))
+    return isinstance(context, dict) and (
+        any(isinstance(context.get(key), str) and context[key].strip()
+            for key in ("process_name", "process_owner", "background"))
+        or any(isinstance(review, dict) and review.get("decision") == "confirmed" and
+               isinstance(review.get("answer"), str) and review["answer"].strip()
+               for review in (context.get("file_topic_reviews") or [])))
 
 
 _CONTEXT_DIMENSIONS = {

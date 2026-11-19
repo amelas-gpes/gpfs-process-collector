@@ -80,6 +80,9 @@
 .settings-disclosure > summary { display: flex; align-items: center; justify-content: space-between; gap: 15px; min-height: 52px; padding: 12px 20px; border-radius: 13px; list-style: none; cursor: pointer; color: var(--ink-2); font: 600 13px/1.4 var(--font); }
 .settings-disclosure > summary:hover { color: var(--ink); }
 .settings-disclosure > summary::-webkit-details-marker, .log-entry > summary::-webkit-details-marker { display: none; }
+.context-confirmed-notes { display: grid; gap: 4px; margin: 0; padding: 0 16px 16px; overflow-wrap: anywhere; }
+.context-confirmed-notes dt { font-weight: 650; }
+.context-confirmed-notes dd { margin: 0 0 8px; white-space: pre-wrap; }
 .settings-disclosure > summary::after, .log-entry > summary::after { content: ""; flex: none; width: 13px; height: 13px; background: var(--muted); mask: var(--i-chevron-down) center/contain no-repeat; transition: rotate var(--dur-fast); }
 .settings-disclosure[open] > summary::after, .log-entry[open] > summary::after { rotate: 180deg; }
 .interview-settings .settings-disclosure p { margin: 0; padding: 0 20px 18px; font-size: 13px; }

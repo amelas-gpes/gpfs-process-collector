@@ -3240,6 +3240,37 @@ def draft_output_tokens(turns, document_evidence=(), working_map=None):
     return max(DRAFT_OUTPUT_TOKENS, min(DRAFT_OUTPUT_TOKENS_MAX, needed))
 
 
+FILE_TOPIC_REVIEW_GUIDANCE = (
+    "The file_topic_reviews in the context are decisions made by the participant in Workspace. "
+    "They are neither replies to the current question nor final confirmation of the account. "
+    "For a confirmed review, treat only its exact answer as the participant's account of the named topic. "
+    "Cite context for that participant statement and keep any documentary claims separately sourced. "
+    "Ask for missing details without asking the participant to repeat approved wording. "
+    "A needs_changes review flags the file notes for that topic. Ask about them if material and unresolved. "
+    "Newer participant testimony takes precedence. A decision never establishes topic completeness or owner approval."
+)
+
+
+def file_topic_reviews(value):
+    if not isinstance(value, list) or len(value) > len(COVERAGE):
+        raise ValueError("Topic reviews must be a bounded list.")
+    reviews, seen = [], set()
+    for row in value:
+        if not isinstance(row, dict) or not {"topic", "decision"} <= set(row) <= {"topic", "decision", "answer"}:
+            raise ValueError("A topic review needs a topic and decision.")
+        topic = row["topic"]
+        if not isinstance(topic, str) or topic not in COVERAGE or topic in seen or row["decision"] not in ("confirmed", "needs_changes"):
+            raise ValueError("A topic review has an invalid topic or decision.")
+        seen.add(topic)
+        review = {"topic": topic, "decision": row["decision"]}
+        if row["decision"] == "confirmed":
+            review["answer"] = bounded_text(row.get("answer"), "Reviewed topic notes", 12000, True)
+        elif "answer" in row:
+            bounded_text(row["answer"], "Reviewed topic notes", 12000, True)
+        reviews.append(review)
+    return reviews
+
+
 def validate_payload(payload, require_answers=False):
     if not isinstance(payload, dict):
         raise ValueError("A JSON object is required.")
@@ -3248,6 +3279,9 @@ def validate_payload(payload, require_answers=False):
         raise ValueError("Interview context is required.")
     clean = {key: bounded_text(context.get(key, ""), key, 8000 if key == "background" else 500)
              for key in ("process_name", "process_owner", "objective", "background")}
+    reviews = file_topic_reviews(payload.get("file_topic_reviews", context.get("file_topic_reviews", [])))
+    if reviews:
+        clean["file_topic_reviews"] = reviews
     # Legacy meeting/timer fields are accepted but ignored. They are never sent
     # to a provider and never affect whether the interview can continue.
     turns = payload.get("turns", [])
@@ -3661,6 +3695,8 @@ def validate_findings(findings, turns, documents=None, carried=(), context=None)
     valid_sources = evidence_sources(turns, documents, context) | set(carried)
     document_ids = {source["id"] for source in documents or []} | set(carried)
     participant_text = {t["id"]: t["text"] for t in turns if t["role"] == "user" and t.get("document_event") is not True}
+    flagged = {row["topic"] for row in (context or {}).get("file_topic_reviews", [])
+               if row["decision"] == "needs_changes"}
     for finding in findings:
         if not set(finding["evidence_turns"]) <= valid_sources:
             raise ValueError("A memo finding references missing or non-participant evidence without an authorized document source.")
@@ -3673,7 +3709,7 @@ def validate_findings(findings, turns, documents=None, carried=(), context=None)
         # evidence explicitly records uncertainty. This is a conservative guard,
         # not a semantic proof that an otherwise confident statement is complete.
         if (finding["status"] in ("captured", "not_applicable")
-                and set(finding["evidence_turns"]) & document_ids
+                and (set(finding["evidence_turns"]) & document_ids or finding["key"] in flagged)
                 and not set(finding["evidence_turns"]) & participant_text.keys()):
             finding["status"] = "partial"
         # Scope this lexical check to the finding. The independent coverage
@@ -5799,6 +5835,9 @@ class OpenAIClient:
     def structured(self, instructions, payload, schema, name, max_tokens, reasoning_effort="low", input_content=None,
                    request_timeout=None, model_override=None, on_text=None, fast=False):
         sources, participant, dimensions = None, [], {}
+        context = payload.get("context") if isinstance(payload, dict) else None
+        if isinstance(context, dict) and context.get("file_topic_reviews"):
+            instructions += "\n\n" + FILE_TOPIC_REVIEW_GUIDANCE
         if isinstance(payload, dict) and isinstance(payload.get("turns"), list):
             intake = ["context"] if interview_coverage.context_has_evidence(payload.get("context", {})) else []
             participant = [turn["id"] for turn in payload["turns"] if isinstance(turn, dict)
@@ -6042,7 +6081,22 @@ class OpenAIClient:
         history, condensed_history = live_history(turns, notes)
         # The composed instructions have a stated budget. Document data takes what
         # the static rules and the intake context leave, as a digest when needed.
+        reviews = context.pop("file_topic_reviews", [])
         instructions = live_instructions(json.dumps(context, ensure_ascii=False))
+        if reviews:
+            # Reserve space for file excerpts and retain exact wording when it fits.
+            voice_reviews = [{"topic": row["topic"], "decision": row["decision"]} for row in reviews]
+            budget = 4000
+            for full, brief in zip(reviews, voice_reviews):
+                if "answer" not in full:
+                    continue
+                length = len(json.dumps(full["answer"], ensure_ascii=False))
+                if length <= budget:
+                    brief["answer"] = full["answer"]
+                    budget -= length
+            instructions += ("\n" + FILE_TOPIC_REVIEW_GUIDANCE
+                             + " When a review has no answer in this context, do not infer what wording was reviewed.\n"
+                             + json.dumps({"file_topic_reviews": voice_reviews}, ensure_ascii=False))
         if memory_enabled:
             instructions = ("Use private process leads as optional background. A lead may already be answered. "
                              "Yield to the participant and use the latest answer. Ask one material question at a natural break. "

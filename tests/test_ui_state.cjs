@@ -111,13 +111,13 @@ assert.equal(new Set(walk(document.body).filter(node=>node.id.startsWith("turn-"
  t.state.draft={memo_summary:[{key:"trigger",status:"captured",answer:"A contradictory reviewer edit."}]};t.renderTranscript();
  const before=JSON.stringify(t.state),trigger=document.querySelector('[data-foundation-topic="trigger"]');t.showFoundationTopic("trigger",trigger);
  assert.equal(dialog.open,true);assert.equal(document.getElementById("foundation-topic-answer").textContent,"The participant reported an email.");
- assert.match(document.getElementById("foundation-topic-hint").textContent,/not independently verified/);assert.equal(JSON.stringify(t.state),before);
+ assert.match(document.getElementById("foundation-topic-hint").textContent,/From the interview/);assert.equal(JSON.stringify(t.state),before);
  const sources=document.getElementById("foundation-topic-sources");sources.querySelector(".evidence-link").dispatch("click");
  assert.equal(dialog.open,false);assert.equal(document.activeElement.id,"turn-t002","A modal source link must close before focusing its target");passes++;
 }
 {
  const button=document.querySelector('[data-foundation-topic="purpose"]');t.showFoundationTopic("purpose",button);
- assert.equal(document.getElementById("foundation-topic-status").textContent,"Unknown");assert.match(document.getElementById("foundation-topic-answer").textContent,/Not covered yet/);
+ assert.equal(document.getElementById("foundation-topic-status").textContent,"Not covered");assert.match(document.getElementById("foundation-topic-answer").textContent,/Not covered yet/);
  t.closeFoundationTopic();assert.equal(document.activeElement,button);passes++;
 }
 {
@@ -614,7 +614,7 @@ if(process.argv.includes("--usability-only")){
   t.setRequest(async()=>memoResult("Current paper flow"));await t.refreshWorkflow();
   assert.equal(t.conversationUI.workflow.title,"Current paper flow");assert.equal(t.state.memo_findings.find(finding=>finding.key==="trigger").answer,"A paper invoice arrives by post.");
   assert.equal(t.state.coverage.find(item=>item.key==="trigger").status,"covered");assert.equal(t.state.summary,"Paper invoices are received by post.");assert.equal(t.state.focus,"Who opens incoming post");assert.equal(t.state.parking_lot[0],"Digital invoice intake is separate.");
-  assert.equal(document.getElementById("coverage-count").textContent,"6%");assert.equal(document.querySelector('[data-foundation-topic="trigger"]').classList.contains("covered"),true);
+  assert.equal(document.getElementById("coverage-count").textContent,"6%");assert.equal(document.querySelector('[data-foundation-topic="trigger"]').dataset.topicState,"covered");
   assert.equal(dialog.open,true);assert.equal(document.getElementById("foundation-topic-answer").textContent,"A paper invoice arrives by post.","An open memo topic must reflect accepted live coverage updates");
   assert.equal(t.state.draft,edited);assert.equal(t.state.draftEdited,true);assert.equal(t.state.closure,closure,"Live coverage must not imply participant completeness confirmation");t.closeFoundationTopic();passes++;
  }
@@ -1407,8 +1407,8 @@ if(process.argv.includes("--usability-only")){
   t.state.turns=[{id:"t002",role:"user",text:"A definite reported process account."}];t.state.memo_findings=["name","purpose","trigger","completion","accountable","lifecycle","checks","variations","pain_points","risk","materials","scope","rules","connections","data_systems","volume"].map(key=>({key,status:"captured",answer:"A definite reported detail.",evidence_turns:["t002"]}));
   // The headline counts captured topics before the review (tests/test_coverage_headline.cjs); "covered" on a topic still waits for it.
   t.state.coverageVerified=false;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"100%");assert.equal(document.getElementById("coverage-summary").textContent,"","The line under the bar does not repeat the figure");assert.match(document.getElementById("memo-next").textContent,/Wrap up for the final check/);
-  const topic=document.querySelector('[data-foundation-topic="name"]');assert.equal(topic.classList.contains("covered"),false);assert.equal(topic.querySelector(".coverage-state").textContent,"Captured");assert.match(topic.title,/awaiting review/,"The row's full state stays in its tooltip");t.showFoundationTopic("name",topic);assert.match(document.getElementById("foundation-topic-status").textContent,/awaiting review/);t.closeFoundationTopic(false);
-  t.state.coverageVerified=true;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"100%");assert.equal(document.querySelector('[data-foundation-topic="name"]').classList.contains("covered"),true);passes++;
+  const topic=document.querySelector('[data-foundation-topic="name"]');assert.equal(topic.querySelector(".coverage-state").textContent,"Captured");assert.match(topic.title,/Final coverage check pending/);t.showFoundationTopic("name",topic);assert.equal(document.getElementById("foundation-topic-status").textContent,"Captured");assert.match(document.getElementById("foundation-topic-hint").textContent,/Final coverage check pending/);t.closeFoundationTopic(false);
+  t.state.coverageVerified=true;t.renderCoverage();assert.equal(document.getElementById("coverage-count").textContent,"100%");assert.equal(topic.querySelector(".coverage-state").textContent,"Covered");passes++;
   t.state.captureToken="opaque-server-capability";assert.equal(t.snapshot().capture_token,"opaque-server-capability");assert.ok(!JSON.stringify(t.sessionObject()).includes("opaque-server-capability"),"Server review capabilities must not be persisted in saved files");passes++;
   t.conversationUI.revision=20;t.conversationUI.applied=0;t.conversationUI.flowBusy=false;t.conversationUI.live=null;t.state.busy=false;t.conversationUI.view="voice";checkpoint();t.scheduleWorkflow();assert.equal(workflowTimers().length,1,"Ordinary turns schedule the map alongside the lead, whichever view is open");
   checkpoint();t.state.busy=true;t.scheduleWorkflow();assert.equal(workflowTimers().length,1,"A lead turn in progress does not postpone the concurrent map");t.state.busy=false;
@@ -1433,20 +1433,18 @@ if(process.argv.includes("--usability-only")){
   const reply=(question,findings)=>({question,summary:"",focus:"",parking_lot:[],coverage:[],memo_findings:findings,speech_authorization:{approved:true,kind:"question",text:question},capture_token:"capture-advisory"});
   t.applyInterview(reply("Who receives the email?",[{key:"trigger",status:"captured",answer:"An email starts the work.",evidence_turns:["t002"]},{key:"purpose",status:"partial",answer:"A registered invoice.",evidence_turns:["t002"]}]));
   assert.equal(calls.length,1);assert.equal(calls[0].url,"/api/agent-team/coverage");assert.equal(calls[0].payload.capture_token,"capture-advisory");
-  assert.match(document.getElementById("coverage-summary").textContent,/checking/);
+  assert.match(document.querySelector('[data-foundation-topic="trigger"]').title,/Preliminary check in progress/);
   await settle();await settle();
   assert.equal(t.state.advisory.trigger.complete,true);
-  let item=document.querySelector('[data-foundation-topic="trigger"]');assert.equal(item.querySelector(".coverage-state").textContent,"Captured");assert.equal(item.classList.contains("advisory-ok"),true);assert.match(item.title,/advisory check found no gaps/);
-  assert.equal(item.classList.contains("covered"),false,"An advisory check never counts as official coverage");assert.equal(item.querySelector(".coverage-dot").textContent,"·","A pre-checked topic gets a dot, never the tick of a reviewed one");
+  let item=document.querySelector('[data-foundation-topic="trigger"]');assert.equal(item.querySelector(".coverage-state").textContent,"Captured");assert.match(item.title,/preliminary check found no gaps/);
   assert.equal(document.getElementById("coverage-count").textContent,"6%","The headline counts the captured topic; it is not a count of reviewed topics");
-  assert.equal(document.getElementById("coverage-summary").textContent,"1 pre-checked");
-  t.showFoundationTopic("trigger",item);assert.match(document.getElementById("foundation-topic-status").textContent,/pre-checked/);t.closeFoundationTopic(false);
+  t.showFoundationTopic("trigger",item);assert.match(document.getElementById("foundation-topic-hint").textContent,/preliminary check found no gaps/);t.closeFoundationTopic(false);
   // Topics already pre-checked for the same answer are not checked again; a changed answer loses its mark.
   t.applyInterview(reply("Who logs it?",[{key:"trigger",status:"captured",answer:"An email starts the work.",evidence_turns:["t002"]}]));
   assert.equal(calls.length,1,"An unchanged pre-checked topic needs no new advisory call");
   t.state.memo_findings.find(f=>f.key==="trigger").answer="A phone call starts the work.";t.renderCoverage();
-  item=document.querySelector('[data-foundation-topic="trigger"]');assert.equal(item.querySelector(".coverage-state").textContent,"Captured");assert.equal(item.classList.contains("advisory-ok"),false,"A changed answer loses its pre-check");
-  t.state.coverageVerified=true;t.renderCoverage();assert.equal(document.querySelector('[data-foundation-topic="trigger"]').classList.contains("covered"),true,"Official review supersedes advisory marks");
+  item=document.querySelector('[data-foundation-topic="trigger"]');assert.equal(item.querySelector(".coverage-state").textContent,"Captured");assert.doesNotMatch(item.title,/preliminary check found no gaps/,"A changed answer loses its pre-check");
+  t.state.coverageVerified=true;t.renderCoverage();assert.equal(item.querySelector(".coverage-state").textContent,"Covered","Official review supersedes advisory checks");
   t.state.coverageVerified=false;t.clearState();assert.equal(Object.keys(t.state.advisory).length,0,"A new interview starts without advisory marks");assert.equal(t.state.provisionalQuestion,null);passes++;
  }
  {

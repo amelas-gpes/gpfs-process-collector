@@ -164,7 +164,7 @@
     get inputClosed() {return Boolean(this.operation?.inputClosed);}
     get participantSpeaking() {return Boolean(this.operation?.sound.inputActive);}
     get assistantSpeaking() {return Boolean(this.operation?.sound.playbackActive || this.operation?.sound.outputActive);}
-    async start({context, turns = [], voice, document_scope, notes} = {}) {
+    async start({context, turns = [], voice, document_scope, notes, file_topic_reviews} = {}) {
       if (this.operation) return false;
       if (!window.RTCPeerConnection || !navigator.mediaDevices?.getUserMedia) {
         this.notify("onError", "Live voice needs a browser with microphone and WebRTC support. You can continue by typing.");
@@ -261,7 +261,8 @@
         // when the transcript exceeds the Live history limit and it must seed a condensed history.
         const result = await this.options.request("/api/live-session", {sdp,context,turns,...(voice ? {voice} : {}),
           ...(this.options.lookupInterview?{interview_memory:true}:{}),
-          ...(document_scope !== undefined ? {document_scope} : {}),...(notes !== undefined ? {notes} : {})},
+          ...(document_scope !== undefined ? {document_scope} : {}),...(notes !== undefined ? {notes} : {}),
+          ...(file_topic_reviews !== undefined ? {file_topic_reviews} : {})},
           {signal:op.controller.signal,timeout:this.options.requestTimeout?.("live_session",55000)||55000});
         if (!current()) return false;
         if (typeof result?.sdp !== "string" || result.model !== "gpt-live-1") throw new Error("The server did not establish a live voice connection. You can continue by typing.");

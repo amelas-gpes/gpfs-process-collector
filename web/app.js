@@ -214,6 +214,8 @@
   // Live front, managed back: GPT-Live speaks; the lead captures each spoken
   // answer in the background and the application still owns completion.
   let liveCapture=null,liveCaptureQueued=false,liveCaptureTimer=null,liveCapturedThrough=null,liveCompleteTimer=null;
+  const LIVE_NOTES_RETRY_DELAYS=[3000,10000];
+  let liveRetryTimer=null,liveRetryCount=0,liveMapEndRevision=null;
   // Captions in which GPT-Live read an application-authorized line, by caption
   // key. Kept until the live front is reset, so no later emission of such a
   // caption (a quiet checkpoint, the next caption change, Stop, cleanup) is added.
@@ -271,6 +273,7 @@
     liveStopTurn=null;liveDelivery?.abort();liveDelivery=null;
     liveCapture?.controller.abort();liveCapture=null;liveCaptureQueued=false;liveCapturedThrough=null;liveReadings.clear();liveFinalReply=null;liveSession++;liveWithheldMoments=0;liveWithheldRepeatSaid=false;
     clearTimeout(liveCaptureTimer);liveCaptureTimer=null;clearTimeout(liveCompleteTimer);liveCompleteTimer=null;state.liveSuggestedQuestion="";
+    clearTimeout(liveRetryTimer);liveRetryTimer=null;liveRetryCount=0;liveMapEndRevision=null;
     liveCatchUpDue=false;liveOpen=false;completionHeld=false;
   }
   // Voice can end (Stop talking, a dropped session, the transcript limit) while
@@ -323,9 +326,16 @@
   }
   function liveVoiceEnded(){
     if(conversationUI.live?.active||intakeActive())return;
+    clearTimeout(liveRetryTimer);liveRetryTimer=null;
     const ended=conversationUI.status==="idle";
     // No caption can be finished once voice has ended: none is waited for any longer.
-    if(ended){liveCatchUpDue=true;conversationUI.pendingParticipantCaptions.clear();}
+    if(ended){
+      liveCatchUpDue=true;conversationUI.pendingParticipantCaptions.clear();
+      const lastAnswer=state.turns.findLast(turn=>turn.role==="user"&&!turn.document_event);
+      if(lastAnswer&&state.turnMetadata?.[lastAnswer.id]?.channel==="live_voice"&&conversationUI.applied!==conversationUI.revision){
+        liveMapEndRevision=conversationUI.revision;scheduleWorkflow();
+      }
+    }
     if(!liveCapture&&!pendingCompletionReview?.promise){settleLiveNotes();return;}
     // A capture that began before the participant's last words cannot be
     // applied. It is not waited for; its end starts the catch-up instead.
@@ -2798,10 +2808,26 @@
     }
   }
   function scheduleLiveCapture() {
-    if(!liveFrontActive()||state.example||intakeActive())return;
+    if(!liveFrontActive()||state.example||intakeActive()||liveRetryTimer!==null)return;
     if(liveCapture){liveCaptureQueued=true;return;}
     clearTimeout(liveCaptureTimer);
     liveCaptureTimer=setTimeout(()=>{liveCaptureTimer=null;void runLiveCapture();},400);
+  }
+  function reportLiveNotesFailure(error){
+    if(error.code==="provider_unavailable"){
+      const delay=LIVE_NOTES_RETRY_DELAYS[liveRetryCount];
+      if(delay!==undefined){
+        liveRetryCount++;
+        if(liveRetryCount===1)notice("The notes service is temporarily unavailable. You can keep talking while it retries.",false,"notes");
+        // runLiveCapture takes a fresh snapshot. Answers finished during the
+        // delay share this one request. Stop and reset cancel the timer.
+        liveRetryTimer=setTimeout(()=>{liveRetryTimer=null;void runLiveCapture();},Math.max(delay,error.retryAfter||0));
+        return;
+      }
+      if(liveRetryCount>LIVE_NOTES_RETRY_DELAYS.length)return;
+      liveRetryCount++;
+    }
+    notice("The notes could not be updated from the last answer. Your transcript is still here. Notes will try again with your next answer. "+(error?.message||""),true,"notes");
   }
   async function runLiveCapture(afterVoice=false) {
     // afterVoice: the catch-up capture for an answer that voice ended on (see
@@ -2820,6 +2846,7 @@
       // liveNotes: the lead's proposed question is never shown for this capture.
       const result=await request("/api/interview",{...payload,action:"answer",live_notes:true},{signal:controller.signal,concurrentBypass:true,liveNotes:true,...(afterVoice?{timeout:LIVE_NOTES_WAIT}:{})});
       if(liveCapture!==check||generation!==state.generation)return;
+      liveRetryCount=0;
       if(liveFrontActive()){
         if(!liveSourceMatches(captured)){
           // The participant answered again, or is speaking, before this capture
@@ -2835,13 +2862,14 @@
       // the paid response is not dropped, its notes are applied (and only those).
       }else if(await applyLiveCapture(result,captured,true))liveCapturedThrough=through;
     }catch(error){
+      if(liveCapture!==check||generation!==state.generation)return;
       // A capture that was given up after voice ended (see liveVoiceEnded) is
       // a failure like any other, and no second attempt follows by itself.
-      if(check.expired&&generation===state.generation&&!liveFrontActive())liveCatchUpDue=false;
-      if(generation===state.generation&&(error.name!=="AbortError"||check.expired)){
+      if(check.expired&&!liveFrontActive())liveCatchUpDue=false;
+      if(error.name!=="AbortError"||check.expired){
         // Words said after the completion line were not judged: it is no longer shown as standing.
         accountChangedAfterCompletion();
-        if(liveFrontActive()){if(!check.expired)notice("The notes could not be updated from the last answer. Voice continues; the notes are tried again with the next answer. "+(error?.message||""),true);}
+        if(liveFrontActive()&&!check.expired)reportLiveNotesFailure(error);
         // With voice off the failure is said once: not while the catch-up for
         // this end of voice is still to come.
         else if(!liveCatchUpDue&&conversationUI.status==="idle")notice("The notes could not be updated from your last answer. Your transcript is still here; choose Update notes in Notes to try again, or continue the interview. "+(check.expired?"That took too long.":error?.message||"")+unsavedReminder(),true,"notes");
@@ -3046,7 +3074,11 @@
   }
   function scheduleWorkflow() {
     if(intakeActive()||state.importing)return;
-    if(state.config?.concurrent_interview?.enabled&&!liveFrontActive()&&analysisState.state!=="error")return;
+    // An older map can still be running when live voice stops. The concurrent
+    // typed interviewer does not own those last spoken answers. Finish that
+    // revision once, after the older map lands.
+    const typedOwnsMap=()=>state.config?.concurrent_interview?.enabled&&!liveFrontActive()&&analysisState.state!=="error"&&liveMapEndRevision!==conversationUI.revision;
+    if(typedOwnsMap())return;
     // Built-in and saved fictional examples already contain their diagram.
     // Browsing them must not replace it with paid, newly generated work.
     // Explicit refresh/intake actions still call refreshWorkflow directly.
@@ -3064,7 +3096,7 @@
     if(conversationUI.pendingParticipantCaptions.size)return;
     conversationUI.flowTimer=setTimeout(()=>{
       conversationUI.flowTimer=null;
-      if(conversationUI.pendingParticipantCaptions.size)return;
+      if(conversationUI.pendingParticipantCaptions.size||typedOwnsMap())return;
       return refreshWorkflow();
     },1000);
     knowledgeUI?.captureChanged?.();
@@ -3178,6 +3210,8 @@
     if(!state.turns.some(t=>t.role==="user")&&!hasDocumentEvidence())return;
     const revision=conversationUI.revision,generation=state.generation, captured=withRequiredDocuments(processEvidence(snapshot()),options.requiredDocuments||[]);
     if(!captured.turns.some(turn=>turn.role==="user"&&!turn.document_event)&&!hasDocumentEvidence())return false;
+    const finalVoiceMap=liveMapEndRevision===revision;
+    if(finalVoiceMap)liveMapEndRevision=null;
     conversationUI.flowBusy=true;conversationUI.flowAbort=new AbortController();
     const flowAbort=conversationUI.flowAbort,abort=()=>flowAbort.abort();
     options.signal?.addEventListener("abort",abort,{once:true});if(options.signal?.aborted)abort();
@@ -3200,6 +3234,7 @@
       // Leave room for both the document update and its independent source audit.
       const result=await request("/api/workflow",captured,{signal:conversationUI.flowAbort.signal,timeout:hasDocumentEvidence()||captured.document_source_ids?.length?requestTimeout("workflow_with_files",510000):requestTimeout("workflow",330000)});
       if(generation!==state.generation||options.signal?.aborted)return;
+      if(conversationUI.applied>revision||finalVoiceMap&&revision!==conversationUI.revision)return;
       if(!workflowEvidenceStillValid(captured))return;
       const pending=revision!==conversationUI.revision;
       const documentEvidence=mergeDocumentEvidence(result.document_evidence);
@@ -3518,6 +3553,11 @@
         error.status = response.status;
         const retryAfter = Number(response.headers?.get?.("Retry-After"));
         if(retryAfter>0 && Number.isFinite(retryAfter))error.retryAfter=retryAfter*1000;
+        if(options.liveNotes&&result.code==="provider_unavailable"){
+          error.code=result.code;
+          if(Number.isInteger(result.retry_after_seconds)&&result.retry_after_seconds>0)
+            error.retryAfter=Math.max(error.retryAfter||0,result.retry_after_seconds*1000);
+        }
         if(["document_scope_unavailable","document_store_unavailable","knowledge_store_unavailable","conversation_expired","document_sources_changed"].includes(result.code))error.code=result.code;
         // The file store failed under an interview request: let Assets find out now, so that its offer to
         // continue without the files is there when the person looks (the file list's own request reports itself).

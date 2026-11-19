@@ -30,6 +30,9 @@ const binding=pattern=>web("app.js").split("\n").filter(line=>pattern.test(line)
 const stopBinding=binding(/\$\("stop-live"\)\.addEventListener/),updateBinding=binding(/\$\("update-notes"\)\??\.addEventListener/);
 assert.ok(stopBinding,"app.js binds the Stop talking control");
 let source=fs.readFileSync(path.join(__dirname,"test_agent_experience.cjs"),"utf8").split("let passed=0;")[0];
+// The original fixture disables map scheduling. Exercise the real scheduler
+// when a scenario enables API access for its synthetic workflow endpoint.
+source=source.replace("scheduleWorkflow=()=>{};","");
 assert.ok(source.includes("setTeam:value=>"),"The application test seam is available");
 source=source.replace("setTeam:value=>",()=>"bindStop:()=>{"+stopBinding+"},bindUpdate:()=>{"+updateBinding+"},generateDraft,refreshWorkflow,renderAnalysisThrough,clearState,setTeam:value=>");
 // The seam's stand-in for setBusy keeps the message too, so the label on screen can be read.
@@ -99,7 +102,7 @@ async function session(){
   const other=s.extra?.(url,options);if(other)return other;
   if(url==="/api/agent-team/interview"){
    const capture={body:JSON.parse(options.body),signal:options.signal,response:null};s.captures.push(capture);
-   if(s.fail)return {ok:false,status:s.fail.status,json:async()=>({error:s.fail.error})};
+   if(s.fail)return {ok:false,status:s.fail.status,json:async()=>s.fail};
    if(s.hold){capture.response=onItsWay(options);return capture.response.promise;}
    return app.response(s.answer(capture.body));
   }
@@ -115,6 +118,56 @@ async function check(name,fn){
  catch(error){failed.push(name);console.log("FAIL "+name+"\n     "+String(error&&error.message||error).split("\n").slice(0,12).join("\n     "));}
 }
 (async()=>{
+ const overload={status:502,code:"provider_unavailable",error:"The AI service is temporarily unavailable."};
+ const timers=(s,ms)=>[...s.h.timers.values()].filter(timer=>timer.ms===ms).length;
+ async function busyNotes(failure=overload){
+  const s=await session();s.fail=failure;
+  s.hear("user",100,1500,FIRST);s.to(3200);await s.h.timer(400);await settle();
+  return s;
+ }
+ await check("an upstream overload retries without another answer and limits consecutive attempts",async()=>{
+  const s=await busyNotes();
+  assert.equal(s.captures.length,1);assert.deepEqual(s.errors(),[]);assert.equal(s.v.api.active,true);
+  await s.h.timer(3000);await settle();assert.equal(s.captures.length,2);
+  await s.h.timer(10000);await settle();assert.equal(s.captures.length,3);
+  assert.equal(s.errors().length,1);assert.equal(timers(s,10000)+timers(s,3000)+timers(s,400),0);
+  assert.equal(s.h.t.state.turns.filter(t=>t.role==="user").length,1);
+  const recovered=await busyNotes();recovered.fail=null;
+  await recovered.h.timer(3000);await settle();
+  assert.equal(recovered.h.t.state.summary,"Notes with 1 topic");assert.deepEqual(recovered.errors(),[]);
+ });
+ await check("answers during backoff share one up-to-date retry and respect the provider wait",async()=>{
+  const s=await busyNotes({...overload,retry_after_seconds:8});
+  s.hear("assistant",3500,4500,"Who checks it?");s.hear("user",5000,6000,SECOND);s.to(7700);
+  assert.equal(timers(s,400),0);assert.equal(timers(s,3000),0);assert.equal(timers(s,8000),1);
+  s.fail=null;await s.h.timer(8000);await settle();
+  assert.equal(s.captures.length,2);assert.equal(s.captures[1].body.turns.at(-1).text,SECOND);
+  assert.equal(s.h.t.state.summary,"Notes with 2 topics");assert.equal(s.lines().length,0);
+ });
+ await check("ending or replacing voice cancels its retry timer",async()=>{
+  const s=await busyNotes();s.fail=null;await s.stop();
+  assert.equal(timers(s,3000),0);assert.equal(s.captures.length,2);assert.equal(s.h.t.state.summary,"Notes with 1 topic");
+  const reset=await busyNotes();reset.h.t.clearState(null);await settle();
+  assert.equal(timers(reset,3000),0);assert.equal(reset.captures.length,1);
+ });
+ await check("a permanent provider rejection does not retry its local 502 response",async()=>{
+  const s=await busyNotes({status:502,code:"authentication",error:"Check the API key."});
+  assert.equal(s.captures.length,1);assert.equal(s.errors().length,1);
+  assert.equal(timers(s,3000)+timers(s,10000),0);assert.equal(s.v.api.active,true);
+ });
+ await check("an older in-flight map at Stop is followed by one map including the final spoken answer",async()=>{
+  const s=await session();await s.first();
+  s.h.t.state.config.api_configured=true;
+  const older=app.deferred();let calls=0;
+  const mapReply=()=>app.response({workflow:{title:"Test",steps:[],connections:[],open_questions:[]}});
+  s.extra=url=>url==="/api/agent-team/workflow"?(++calls===1?older.promise:mapReply()):null;
+  const running=s.h.t.refreshWorkflow();await settle();assert.equal(calls,1);
+  s.hear("assistant",3500,4500,"Who checks it?");s.hear("user",5000,6000,SECOND);
+  await s.stop();assert.equal(calls,1);
+  older.resolve(mapReply());await running;await settle();await s.h.timer(1000);await settle();
+  assert.equal(calls,2);assert.equal(s.posts("/api/agent-team/workflow")[1].turns.at(-1).text,SECOND);
+  assert.equal(s.h.t.conversationUI.applied,s.h.t.conversationUI.revision);assert.equal(timers(s,1000),0);
+ });
  await check("Stop talking while the capture of the last answer is on its way applies its notes when it returns",async()=>{
   const s=await session();await s.first();
   s.hear("assistant",3600,5200,"Got it. And who approves the list?");s.to(6900);

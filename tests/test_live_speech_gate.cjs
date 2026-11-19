@@ -47,6 +47,29 @@ async function check(name,fn){
  catch(error){failed.push(name);console.log("FAIL "+name+"\n     "+String(error&&error.message||error).split("\n").slice(0,12).join("\n     "));}
 }
 (async()=>{
+ await check("short words survive a 1.7-second audio clock lead late in a call, and silence is still filtered",async()=>{
+  const h=await live();
+  h.step(990000);h.run(2400);
+  h.mic(.05);h.run(240);h.mic(0);h.run(400);
+  let end=h.now()+1693;
+  h.user("be",end-200,end);
+  assert.deepEqual(h.heard(),["be"]);assert.equal(h.withheld.length,0);
+  // The next delta is delivered late. It still uses the established clock correction.
+  h.run(4000);h.mic(.05);h.run(240);h.mic(0);h.run(400);
+  end=h.now()+1693;h.run(800);h.user(" from",end-200,end);
+  assert.deepEqual(h.heard(),["be from"]);assert.equal(h.withheld.length,0);
+  h.run(5000);end=h.now()+1693;h.user("a person is",end-200,end);
+  assert.equal(h.withheld.at(-1).text,"a person is");
+  // An impossible timestamp is inconclusive and cannot move the next word's clock.
+  h.user("Later",end+60000,end+60200);h.run(240);
+  h.user("still silent",end+40,end+240);assert.match(h.withheld.at(-1).text,/still silent/);
+  // At 32 minutes the same drift is larger than the gate's entire tolerance.
+  h.step(930000);h.run(2400);h.mic(.05);h.run(240);h.mic(0);h.run(400);
+  end=h.now()+3400;h.user("Approved",end-200,end);assert.equal(h.heard().at(-1),"Approved");
+  h.run(5000);end=h.now()+3400;h.user("over silence",end-200,end);
+  assert.equal(h.withheld.at(-1).text,"over silence");
+  await h.api.stop({immediate:true});
+ });
  await check("quiet speech between 0.004 and 0.008 RMS is captioned",async()=>{
   for(const level of [.004,.006,.0079]){
    const h=await live();

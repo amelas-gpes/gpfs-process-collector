@@ -720,7 +720,9 @@ in the latest answer (a check, threshold, approval, exception, workaround, hand-
 above all one mentioned in passing or one that worries them) and ask the one thing a reviewer would need
 to know about it: the rule and its source, who decides and on what basis, what is compared with what,
 what evidence is kept, or what happens when it fails or is late. That outranks the last thing said: a
-manual workaround or an unowned decision matters more than a contact name. After two questions on one
+manual workaround or an unowned decision matters more than a contact name. Once an exception, its fix
+and its reviewer are clear, return to an unresolved decision on the main route. Revisit that example
+only if the new detail changes the rule, handoff or evidence. After two questions on one
 specific, move on. If the question could be put to any process ("What happens next?", "Who is involved?")
 or an earlier answer already gives it, replace it. Open a new topic through something they described,
 never as a stock question. Never supply a fact they have not given.
@@ -2084,7 +2086,7 @@ def live_delegate_instructions(document_json):
 
 
 class APIError(Exception):
-    def __init__(self, message, status=502, category=None, transient=False):
+    def __init__(self, message, status=502, category=None, transient=False, retry_after_seconds=None):
         super().__init__(message)
         self.status = status
         # What the provider client itself knows about its failure: a fixed label (quota,
@@ -2093,6 +2095,7 @@ class APIError(Exception):
         # text, can still tell the person which kind of problem it was.
         self.category = category
         self.transient = transient
+        self.retry_after_seconds = retry_after_seconds
 
 
 UNUSABLE_KEY_MESSAGE = ("The API key configured for this app contains a space, a line break or a character "
@@ -5603,6 +5606,9 @@ class OpenAIClient:
                 elif error.code in (401, 403):
                     category = "authentication" if error.code == 401 else "permissions"
                     message = "The AI service rejected this key or its project permissions. Check the API key’s project permissions."
+                elif error.code == 503:
+                    category = "provider_unavailable"
+                    message = "The AI service is temporarily unavailable."
                 elif error.code == 429:
                     category = "rate_limit"
                     message = RATE_LIMIT_MESSAGE + (f" Retry after {retry_after} seconds." if retry_after else "")
@@ -5616,7 +5622,8 @@ class OpenAIClient:
                     "http_status": error.code, "category": category, "provider_code": code, "provider_type": error_type})
                 # A rate limit or a provider-side failure can pass by itself; nothing else here can.
                 transient = category == "rate_limit" or 500 <= error.code < 600
-                raise APIError(message, category=category, transient=transient) from None
+                wait_seconds = int(retry_after) if category == "provider_unavailable" and retry_after else None
+                raise APIError(message, category=category, transient=transient, retry_after_seconds=wait_seconds) from None
             except (URLError, OSError, IncompleteRead, BadStatusLine, LineTooLong) as error:
                 if check_abort and check_abort():
                     metrics.update(status=409, error_category="cancelled")
@@ -7889,7 +7896,12 @@ class Handler(BaseHTTPRequestHandler):
         except (ValueError, UnicodeError) as error:
             self._json({"error": own_wording(error, UNREADABLE_REQUEST_MESSAGE) if not isinstance(error, json.JSONDecodeError) else "Invalid JSON body."}, 400)
         except APIError as error:
-            self._json({"error": str(error), **({"code": error.category} if error.category else {})}, error.status)
+            failure = {"error": str(error)}
+            if error.category:
+                failure["code"] = error.category
+            if error.retry_after_seconds:
+                failure["retry_after_seconds"] = error.retry_after_seconds
+            self._json(failure, error.status)
         except PermissionError:
             self._json({"error": "The document reference is not available in this interview. Reopen the saved interview or upload the file again."}, 403)
         except TimeoutError:

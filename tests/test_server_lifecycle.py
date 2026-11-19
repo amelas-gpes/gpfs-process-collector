@@ -163,6 +163,18 @@ class HTTPDiagnosticTests(unittest.TestCase):
         self.assertNotIn("private-disconnect-detail", logged)
         self.assertNotIn(self.httpd.csrf_token, logged)
 
+    def test_live_notes_report_retryable_provider_overload_through_the_http_endpoint(self):
+        self.client.key = 'synthetic-local-test-key'
+        unavailable = urllib.error.HTTPError(
+            'https://example.invalid', 503, 'Busy', {'Retry-After': '8'},
+            io.BytesIO(b'{"error":{"code":"server_is_overloaded","type":"service_unavailable_error"}}'))
+        payload = dict(interview_payload(), live_notes=True)
+        with patch.object(server, 'urlopen', side_effect=unavailable):
+            status, body = self.request('/api/agent-team/interview', payload)
+        self.assertEqual(status, 502)
+        self.assertEqual(body['code'], 'provider_unavailable')
+        self.assertEqual(body['retry_after_seconds'], 8)
+
     def test_workflow_failure_diagnostics_record_class_not_exception_or_payload(self):
         self.httpd.aborted_once = True
         self.client.workflow.side_effect = server.APIError("PRIVATE_PROVIDER_ERROR_SENTINEL", 503)

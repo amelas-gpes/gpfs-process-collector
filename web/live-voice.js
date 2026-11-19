@@ -26,6 +26,9 @@
   // only makes the gate more sensitive below it, never deaf above it, so a loud
   // room or a long steady voice cannot turn real speech into measured silence.
   const GATE_SAMPLES = 32768, GATE_FRAME = 1024, GATE_LEVEL = .002, GATE_RATIO = 2, GATE_RISE = 8000, GATE_KEEP = .008;
+  // Allow half a second of startup skew and up to 10 ms of drift per second.
+  // Outside this envelope the two timelines cannot reliably establish silence.
+  const INPUT_CLOCK_STARTUP_MS = 500, INPUT_CLOCK_MAX_DRIFT = .01;
   // An application line that neither the provider confirmed nor the interviewer
   // was heard reading within this time is reported as unconfirmed (see say).
   const SAY_CONFIRM_MS = 15000;
@@ -172,7 +175,7 @@
         sound:{input:0,output:0,inputActive:false,outputActive:false,playbackActive:false,
           playing:false,buffering:false,lastSample:null,lastInput:-Infinity,lastOutput:-Infinity},
         timers:new Set(), finalized:false, stopResolve:null, commentary:new Map(), said:null, lines:[], held:null,
-        gate:null, speech:[], metered:[], withheld:[], withheldFragments:0,
+        gate:null, speech:[], metered:[], inputClockLead:0, withheld:[], withheldFragments:0,
         greeting:Array.isArray(turns) && turns.length === 0 ? {status:"queued",event_id:null,name:spokenProcessName(context)} : null,
         context:{records:new Map(),history:new Map(),pending:new Map(),bytes:0,events:0}};
       this.operation = op;
@@ -711,7 +714,16 @@
       if (start === null || !Number.isFinite(op.sessionStartedAt) || !op.gate || op.audioContext?.state !== "running") return true;
       const now = window.performance?.now?.() ?? Date.now();
       if (!op.closing) this.sampleGate(op,now); // measure up to this moment before judging
-      const from = op.sessionStartedAt + start - 1500, to = op.sessionStartedAt + (end ?? start) + 1500;
+      // An input caption cannot describe audio captured after its receipt. Over a
+      // long call the provider's audio clock can advance faster than performance.now().
+      // Learn the minimum correction that causality requires. A delayed packet must
+      // not undo it, and one implausible timestamp must not rebase the whole call.
+      const elapsed = now - op.sessionStartedAt, finish = end ?? start;
+      const lead = finish - elapsed;
+      if (start < 0 || finish < start || lead > INPUT_CLOCK_STARTUP_MS + elapsed * INPUT_CLOCK_MAX_DRIFT) return true;
+      op.inputClockLead = Math.max(op.inputClockLead,lead);
+      const from = op.sessionStartedAt + start - op.inputClockLead - 1500;
+      const to = op.sessionStartedAt + finish - op.inputClockLead + 1500;
       if (op.speech.some(window => window.from <= to && (window.to ?? Infinity) >= from)) return true;
       // Nothing was spoken before the session began or after this moment, so the
       // measurement has to span the window between those two. A window that lies

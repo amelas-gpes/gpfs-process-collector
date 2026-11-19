@@ -4,6 +4,7 @@ The ledger prevents omission from deleting prior facts. It does not certify a
 model's interpretation: independent coverage/process review still owns that job.
 """
 from datetime import datetime, timezone
+from collections import defaultdict
 import copy
 import hashlib
 import json
@@ -604,8 +605,24 @@ LIVE_EXCERPT_SCHEMA = _object({
     "needs_full_capture": {"type": "boolean"},
     "facts": {"type": "array", "maxItems": 12, "items": _object({
         "topic": {"type": "string", "enum": list(TOPICS)}, "source_id": _TEXT, "quote": _TEXT})},
-    "open_relationship": _TEXT,
+    "open_relationship": _TEXT, "gap_source_id": _TEXT,
 })
+
+
+def _caption_excerpt(source, proposed):
+    if proposed in source:
+        return proposed
+    # The live captioner can place a space before a comma or omit a final
+    # period. Recover the original span only when words and punctuation agree.
+    parts = re.findall(r"\w+|[^\w\s]", proposed.removesuffix("."))
+    if not parts:
+        return ""
+    pattern = re.escape(parts[0])
+    for previous, part in zip(parts, parts[1:]):
+        separator = r"\s+" if previous[-1].isalnum() and part[0].isalnum() else r"\s*"
+        pattern += separator + re.escape(part)
+    match = re.search(r"(?<!\w)" + pattern + r"(?!\w)" + (r"\.?" if proposed.endswith(".") else ""), source, re.I)
+    return match.group() if match else ""
 
 
 def excerpt_transaction(reply, state, new_answers):
@@ -616,25 +633,42 @@ def excerpt_transaction(reply, state, new_answers):
     states = {k: {"key": k, "status": "owner_followup" if v.get("owner_review_candidate") else v["status"],
                   "participant_unavailable": v["participant_unavailable"]} for k, v in state["topics"].items()}
     ops = []
-    cited = set()
+    cited = defaultdict(list)
     known = {(f["topic"], f["text"], ref) for f in state["facts"] if f["state"] == "active" for ref in f["evidence_turns"]}
     for row in reply["facts"]:
         topic, ref, quote = row["topic"], row["source_id"], row["quote"].strip()
+        if ref in sources and 5 <= len(quote) <= MAX_FACT_TEXT:
+            quote = _caption_excerpt(sources[ref], quote)
         if (ref not in sources or topic not in states or len(quote) < 5 or len(quote) > MAX_FACT_TEXT
                 or quote not in sources[ref] or states[topic]["status"] in ("not_applicable", "owner_followup")
                 or states[topic]["participant_unavailable"]):
             return None
-        cited.add(ref)
+        cited[ref].append(quote)
         if (topic, quote, ref) in known:
             continue
         known.add((topic, quote, ref))
         ops.append({"op":"add", "topic":topic, "target_id":"", "kind":"detail", "text":quote,
                     "reason":"new_evidence", "evidence_turns":[ref], "support":[{"source_id":ref, "quote":quote}]})
         states[topic]["status"] = "partial"
-    if set(sources) != cited:
+    if set(sources) != set(cited):
         return None
+    for ref, answer in sources.items():
+        clauses = re.split(r"(?<=[.!?;])\s+", answer)
+        quotes = cited[ref]
+        words = _content_words(answer)
+        if words and len(words & _content_words(" ".join(quotes))) / len(words) < .8:
+            return None
+        # Quoting an affirmative substring inside a negated or conditional sentence
+        # reverses its meaning. Keep the whole qualification or use the full review.
+        for quote in quotes:
+            for clause in clauses:
+                if quote not in clause:
+                    continue
+                qualifier = r"\b(?:never|not|no|only|unless|except|until|without|if|otherwise|\d+(?:[,.]\d+)*)\b|n't\b"
+                if not set(re.findall(qualifier, clause.casefold())) <= set(re.findall(qualifier, quote.casefold())):
+                    return None
     return {"base_revision":state["revision"], "topic_states":list(states.values()), "fact_operations":ops,
-            "fact_reconciliations":[], "summary":state.get("summary") or reply["facts"][0]["quote"],
+            "fact_reconciliations":[], "summary":state.get("summary") or next(iter(cited.values()))[0],
             "focus":reply["facts"][0]["topic"], "parking_lot":list(state.get("parking_lot", [])),
             "tag_operations":[], "connections_out":[], "remove_connections":[], "resolved_parking_lot":[],
             "active_modules":state.get("active_modules", []), "recap_due":"none"}

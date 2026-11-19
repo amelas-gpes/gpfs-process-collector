@@ -20,6 +20,7 @@ that their them then there these they this through unknown what when where wheth
 while with work would your""".split())
 _MATERIAL = re.compile(r"\b(approv\w*|sign.off|releas\w*|hold|blocks?|resum\w*|reject\w*|handoff|criteria|criterion|threshold|replace[sd]?)\b", re.I)
 _CORRECTION = re.compile(r"\b(actually|correction|instead|no longer|i meant|scratch that|used to|not anymore)\b", re.I)
+_PARKED = re.compile(r"\b(?:I|we) (?:do(?:n't| not) know|(?:am|are) not sure|cannot (?:say|answer))\b|\bI['’]m not sure\b", re.I)
 
 
 def memory_terms(text):
@@ -44,7 +45,7 @@ def question_candidates(turns, questions):
     ranked = []
     for lead in dict.fromkeys(q for q in questions if isinstance(q, str)):
         lead = re.sub(r"^\s*(?:unknown|open question)\s*:\s*", "", lead, flags=re.I).strip()
-        if not lead or len(lead) > 600:
+        if not lead or len(lead) > 600 or re.search(r"\b(?:[Ss]\d+|detached component)\b", lead):
             continue
         terms = memory_terms(lead)
         if not terms or any(len(terms & prior) / max(1, len(terms | prior)) >= .65 for prior in asked):
@@ -61,10 +62,15 @@ def question_candidates(turns, questions):
         source = answers[best]
         # Cite the sentence carrying the match, including qualifiers. Keep its exact wording.
         sentences = re.split(r"(?<=[.!?])\s+", source["text"].strip())
-        quote = max(sentences, key=lambda s: len(terms & memory_terms(s)))
-        if not quote or len(quote) > 650:
+        ordered = [w for word in re.findall(r"[^\W_]+", lead) for w in memory_terms(word) if w in index]
+        subject = ordered[:2]
+        def relevance(sentence):
+            shared = terms & memory_terms(sentence)
+            return sum(1 / len(index[w]) for w in shared) + sum(2 for w in subject if w in shared)
+        quote = max(sentences, key=relevance)
+        if not quote or len(quote) > 650 or _PARKED.search(quote):
             continue
-        anchors = sorted(terms & memory_terms(quote), key=lambda w: (len(index[w]), w))[:5]
+        anchors = sorted(terms & memory_terms(quote), key=lambda w: (w not in subject, len(index[w]), w))[:5]
         if len(anchors) < 2:
             continue
         # A later reply to this same issue can resolve it even when an older map

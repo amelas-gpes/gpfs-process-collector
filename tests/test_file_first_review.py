@@ -157,7 +157,7 @@ class HeaderFirstReviewTests(unittest.TestCase):
         self.fail(f"The review did not settle: {self.store.get(self.scope, identity)}")
 
     def test_verdict_and_summary_are_published_while_the_observations_are_still_written(self):
-        at_header, release = {}, threading.Event()
+        at_header, header_read, release = {}, threading.Event(), threading.Event()
 
         def analyze(context, record, chunks, phase, on_header=None):
             reply = review(chunks)
@@ -165,11 +165,13 @@ class HeaderFirstReviewTests(unittest.TestCase):
                 self.assertIsNotNone(on_header)
                 on_header({key: reply[key] for key in HEADER})
                 at_header.update(copy.deepcopy(self.store.get(self.scope, record["id"])["analysis"]))
+                header_read.set()
                 release.wait(4)
             return reply
         service = self.service(analyze)
         record = service.upload(self.scope, "procedure.csv", b"step,action\n1,check the invoice\n2,approve it\n")
         self.wait(record["id"], lambda analysis: analysis.get("observations_pending"))
+        self.assertTrue(header_read.wait(4))
         # The file can be asked about now: nothing the rest of the reply adds changes that.
         self.assertEqual(at_header["disposition"], "relevant")
         self.assertEqual(at_header["phase"], "complete")

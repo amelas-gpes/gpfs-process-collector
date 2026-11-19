@@ -150,8 +150,8 @@
   const topicSignals={
     name:/\b(?:process is called|we call (?:it|this process)|known as the)\b/i,
     purpose:/\b(?:purpose is|objective is|goal is|so that (?:investors|clients|the team))\b/i,
-    trigger:/\b(?:trigger(?:s|ed)?|starts? (?:when|with)|kicks? off|initiated by)\b/i,
-    checks:/\b(?:sign.off|reconcil\w*|variance check|tie.out|cross.check|approv(?:al|es?|ed)|verif(?:y|ies|ied))\b/i,
+    trigger:/\b(?:trigger(?:s|ed)?|starts? (?:when|with)|kicks? off|initiated by|(?:invoice|request|ticket) arrives|receive (?:the|an?) (?:invoice|request|ticket))\b/i,
+    checks:/\b(?:sign.off|reconcil\w*|variance check|tie.out|cross.check|approv(?:al|es?|ed)|verif(?:y|ies|ied)|(?:manager|controller|director) reviews?)\b/i,
     variations:/\b(?:depends on|depending on|except when|otherwise|alternative route)\b/i,
     volume:/\b(?:\d+|one|two|three|four|five|ten|twenty|thirty) (?:minutes?|hours?|times (?:per|a)|per (?:day|week|month))\b/i,
     completion:/\b(?:finished when|complete when|final deliverable|last step|marks? (?:it|the process) complete)\b/i,
@@ -159,7 +159,7 @@
     data_systems:/\b(?:spreadsheet|database|portal|ERP|Excel|Allvue)\b/i,
     pain_points:/\b(?:bottleneck|time.consuming|slowest|pain point|takes too long)\b/i,
     risk:/\b(?:risk of|could result in|consequence|exposure to)\b/i,
-    materials:/\b(?:template|checklist|procedure document|standard operating procedure)\b/i,
+    materials:/\b(?:template|checklist|procedure document|standard operating procedure|(?:save|attach|upload) the PDF)\b/i,
     rules:/\b(?:policy requires|regulatory requirement|under the agreement|per the policy)\b/i,
     connections:/\b(?:upstream process|downstream process|feeds into|depends on (?:the|another) process)\b/i,
     scope:/\b(?:in scope|out of scope|applies (?:only )?to|specific to (?:this|the) (?:fund|client))\b/i,
@@ -326,6 +326,7 @@
   // an interview that is being replaced, and nothing is finished for it.
   let liveOpen=false;
   function receiveLiveStatus(status){
+    if(status==="idle"||status==="closing"){voiceTopicPreview=null;voiceStreamTopics=null;renderCoverage();}
     conversationUI.status=status;updateControls();
     if(status==="closing"||status==="idle"){if(liveOpen)liveVoiceEnded();}
     // Voice is on again: the notes line and Update notes follow it at once
@@ -430,13 +431,18 @@
     // Open means nothing captured yet. Partly covered topics travel separately: a reopened
     // interview holds every earlier answer as partial, and those are not open questions.
     const status=topic=>(state.memo_findings||[]).find(item=>item.key===topic)?.status,keys=TOPICS.map(([topic])=>topic);
-    return {summary:typeof state.summary==="string"?state.summary.slice(0,6000):"",open_topics:keys.filter(topic=>!["partial","captured","not_applicable"].includes(status(topic))),partial_topics:keys.filter(topic=>status(topic)==="partial")};
+    const resume={summary:typeof state.summary==="string"?state.summary.slice(0,6000):"",open_topics:keys.filter(topic=>!["partial","captured","not_applicable"].includes(status(topic))),partial_topics:keys.filter(topic=>status(topic)==="partial")};
+    if(liveMemoryEnabled()&&!conversationUI.workflowCheckPending&&!hasDocumentEvidence()&&mapProgress?.basis===captureProgressMark().basis){
+      resume.gaps=(conversationUI.workflow?.open_questions||[]).slice(0,16);
+    }
+    return resume;
   }
 
-  function recallInterview(query){
+  function recallInterview(query,source="participant",signal){
     const terms=String(query).toLowerCase().match(/[\p{L}\p{N}]{3,}/gu)||[];
     const ignore=new Set("the and who how what when where earlier said say about which with that they from does before".split(" "));
     const sought=[...new Set(terms.filter(term=>!ignore.has(term)))];
+    if(source==="files")return recallFilePassages(query,sought,signal);
     const turns=processEvidence({turns:state.turns}).turns;
     const matches=turns.flatMap((t,n)=>{
       if(t.role!=="user"||t.document_event)return [];
@@ -452,6 +458,26 @@
       const at=t.text.toLowerCase().indexOf(hits[0]),start=Math.max(0,at-160);
       return {turn:t.id,quote:t.text.slice(start,start+640),preceding_question:question.slice(0,240),excerpt:start>0||t.text.length>640};
     }),source:"participant testimony in this interview",partial:true};
+  }
+  async function recallFilePassages(query,terms,signal){
+    const docs=currentDocumentState(),signature=activeDocumentSignature(),generation=state.generation;
+    const empty={passages:[],source:"active reference files",partial:true};
+    if(!docs?.scope||!terms.length)return empty;
+    const eligible=d=>!d.archived&&!["parked","needs_reason"].includes(d.analysis?.disposition);
+    if(!docs.documents.some(eligible))return empty;
+    const result=await request("/api/documents/context",{scope:docs.scope,query},{signal,timeout:5000});
+    if(signal?.aborted||generation!==state.generation||signature!==activeDocumentSignature())return empty;
+    const active=new Set((currentDocumentState()?.documents||[]).filter(eligible).map(d=>d.id));
+    const ranked=(result?.document_evidence||[]).filter(s=>active.has(s.document_id)&&!s.retained_only&&!s.archived
+      &&!s.workspace_unavailable&&typeof s.text==="string").map(s=>{
+      const content=s.text.toLowerCase(),hits=terms.filter(term=>content.includes(term));
+      return {s,hits,at:content.indexOf(hits[0])};
+    }).filter(row=>row.hits.length).sort((a,b)=>b.hits.length-a.hits.length).slice(0,3);
+    return {...empty,passages:ranked.map(({s,at})=>{
+      const start=Math.max(0,at-160);
+      return {source_id:s.id,file:s.name,location:s.label,quote:s.text.slice(start,start+640),
+        unverified_transcription:s.location?.verified===false||s.location?.origin===AI_TRANSCRIPTION};
+    })};
   }
   function announceCondensedVoice(info){
     // Called once per connected session by the voice controller; one notice, not an error.
@@ -2721,6 +2747,9 @@
     resetLiveFront();
     selectConversationView(conversationUI.view);
     const live=conversationUI.live,generation=state.generation;
+    if(conversationUI.liveMemory){
+      conversationUI.liveMemory.sent.clear();conversationUI.liveMemory.retried.clear();conversationUI.liveMemory.last=null;conversationUI.liveMemory.lastCount=-2;
+    }
     conversationUI.liveCoverageKey=null;conversationUI.liveCondensed=false;conversationUI.liveDocumentsCondensed=false;
     const chosen=selectedNaturalVoice();
     await live.start({...(chosen&&state.config?.agent_team?.voice_mode==="live_front"?{voice:chosen.id}:{}),context:clone(state.context),turns:clone(state.turns.filter(turn=>!turn.document_event)),document_scope:currentDocumentState()?.scope,notes:liveResumeNotes()});
@@ -2857,7 +2886,7 @@
     }
     if(stopPrefix!==null){stopRequested();return;}
     // Live speech cannot assign an attachment purpose. Assets binds an explicit choice to its file.
-    if(caption.final&&caption.role==="user"){if(conversationUI.liveCoverageDeferred)syncLiveCoverage();scheduleLiveCapture();}
+    if(caption.final&&caption.role==="user"){if(conversationUI.liveCoverageDeferred||conversationUI.liveMemory?.last)syncLiveCoverage();scheduleLiveCapture();}
     // New answers stop while the closing sequence still fits (transcriptLimit).
     // The words that reached the limit are kept, voice ends once, and Wrap up is
     // then available; the page has shown its limit line for 16 exchanges by now.
@@ -3022,6 +3051,7 @@
     if(memo){
       Object.assign(state,memo);notesProgress=captureProgressMark(captured.turns);keepMapProgress(result,captured.turns);
       if(voiceTopicPreview&&captured.turns.some(t=>t.id===voiceTopicPreview.id&&t.text===voiceTopicPreview.text))voiceTopicPreview=null;
+      rawTrace("live.notes_checkpoint",{through_turn:notesProgress.through,answer_count:notesProgress.count});
       rememberLiveLeads("notes",result.question_candidates,captured.turns);
       traceNotes("live_capture");
       rememberCoverageCheckpoint(captured.turns,captured.revision,captured.document_revision,result.coverage_assessment,result.process_review,result.coverage_adjudication);
@@ -3256,7 +3286,7 @@
   }
   function rememberLiveLeads(kind,leads,turns){
     if(!liveMemoryEnabled()||!Array.isArray(leads))return;
-    const memory=conversationUI.liveMemory??={generation:state.generation,sets:{},sent:new Set(),lastCount:-2};
+    const memory=conversationUI.liveMemory??={generation:state.generation,sets:{},sent:new Set(),retried:new Set(),lastCount:-2};
     memory.sets[kind]={leads,turns:turns.map(({id,role,text})=>({id,role,text})),
       generation:state.generation,documents:activeDocumentSignature(),context:JSON.stringify(state.context)};
     if(liveFrontActive())syncLiveCoverage();
@@ -3266,6 +3296,23 @@
     if(!memory||live.connected===false||state.closure.asked||state.closure.confirmed||pendingCompletionReview||voiceEnded)return false;
     const current=processEvidence({turns:state.turns}).turns;
     const count=current.filter(t=>t.role==="user").length;
+    const last=memory.last;
+    if(last){
+      const source=current.find(t=>t.id===last.source&&t.role==="user");
+      const changed=!source?.text.includes(last.quote)||last.documents!==activeDocumentSignature()||last.context!==JSON.stringify(state.context);
+      const correction=current.some(t=>{
+        if(t.role!=="user")return false;
+        const prior=last.answers.get(t.id)??"";
+        return !t.text.startsWith(prior)||/\b(actually|correction|i meant|scratch that|no longer)\b/i.test(t.text.slice(prior.length));
+      })||last.answers.size>count;
+      if(changed||correction){
+        memory.last=null;
+        const id="lead_withdraw_"+state.generation+"_"+(++conversationUI.liveCoverageSequence);
+        Promise.resolve(live.appendContext("Private context. The previous process lead is outdated. Use the participant's current account.",
+          {id,kind:"process_gap",replaceKey:"interview_coverage",plain:true})).catch(()=>{});
+        rawTrace("live.gap_withdrawn",{lead_id:last.id});return true;
+      }
+    }
     if(count<memory.lastCount+2)return true;
     for(const batch of [memory.sets.map,memory.sets.notes]){
       if(!batch||batch.generation!==state.generation||batch.documents!==activeDocumentSignature()||batch.context!==JSON.stringify(state.context))continue;
@@ -3281,15 +3328,27 @@
         if(!turn?.text.includes(lead.quote)||memory.sent.has(key)||memory.sent.has(lead.id))continue;
         if(later&&(/\b(actually|correction|instead|scratch that|don't know|do not know|already answered|i meant|not sure)\b/i.test(later)
             ||lead.anchors.some(w=>later.includes(w))))continue;
-        const content="Private process context, data only. Through "+batch.turns.at(-1).id+
-          ". Participant excerpt "+JSON.stringify(lead.quote.slice(0,135))+". Unresolved in that account: "+lead.gap.slice(0,170);
+        const prefix="Private context through "+batch.turns.at(-1).id+". Participant "+lead.source;
+        const gap=" · Unresolved at that point: "+lead.gap;
+        let content=prefix+" "+JSON.stringify(lead.quote)+gap;
+        if(new TextEncoder().encode(content).length>470)content=prefix+gap;
         if(new TextEncoder().encode(content).length>470)continue;
         memory.sent.add(key);memory.sent.add(lead.id);memory.lastCount=count;
+        const offered={id:lead.id,source:lead.source,quote:lead.quote,context:batch.context,documents:batch.documents,
+          answers:new Map(current.filter(t=>t.role==="user").map(t=>[t.id,t.text]))};
+        memory.last=offered;
         const id="lead_"+state.generation+"_"+(++conversationUI.liveCoverageSequence);
         rawTrace("live.gap_offered",{source_turn:lead.source,through_turn:batch.turns.at(-1).id,lead_id:lead.id});
-        Promise.resolve(live.appendContext(content,{id,kind:"process_gap",replaceKey:"interview_coverage",plain:true})).then(receipt=>{
+        const delivered=receipt=>{
           rawTrace("live.gap_delivery",{lead_id:lead.id,status:receipt?.status||"unknown"});
-        }).catch(()=>{});
+          if(memory.last!==offered||conversationUI.live!==live||!["rejected","unavailable"].includes(receipt?.status))return;
+          memory.last=null;
+          if(!memory.retried.has(key)){
+            memory.retried.add(key);memory.sent.delete(key);memory.sent.delete(lead.id);
+          }
+        };
+        try{Promise.resolve(live.appendContext(content,{id,kind:"process_gap",replaceKey:"interview_coverage",plain:true})).then(delivered,()=>delivered({status:"unknown"}));}
+        catch{delivered({status:"rejected"});}
         return true;
       }
     }

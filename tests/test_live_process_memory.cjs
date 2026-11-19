@@ -39,6 +39,22 @@ function session(){
     assert.equal(sent.length,0);
   }
   {
+    const {t,sent}=session();t.rememberLiveLeads("map",[lead],turns);
+    t.state.turns[1].text+=" Actually, the committee decides.";
+    t.syncLiveCoverage();assert.match(sent.at(-1).msg,/outdated/);
+    t.syncLiveCoverage();assert.equal(sent.length,2);
+  }
+  {
+    const {t,live}=session();let attempts=0;
+    live.appendContext=async()=>{attempts++;return {status:"rejected"};};
+    t.rememberLiveLeads("map",[lead],turns);await Promise.resolve();t.syncLiveCoverage();assert.equal(attempts,1);
+    for(let i=0;i<4;i++){
+      t.state.turns.push({role:"user",id:"later"+i,text:"We log the timestamp."});
+      t.syncLiveCoverage();await new Promise(resolve=>setImmediate(resolve));
+    }
+    assert.equal(attempts,2);
+  }
+  {
     const {t,live,sent}=session();live.participantSpeaking=true;t.rememberLiveLeads("map",[lead],turns);
     t.state.turns[1].text="A clerk files routine invoices.";live.participantSpeaking=false;t.syncLiveCoverage();
     assert.equal(sent.length,0);
@@ -50,6 +66,18 @@ function session(){
     t.previewVoiceTopics({id:"u2",text:"Let me think about that."});assert.equal(t.getPreview().keys.size,0);
   }
   {
+    const {h,t}=session(),files={scope:"sample",documents:[{id:"active"},{id:"held",analysis:{disposition:"parked"}}]};
+    t.setDocuments({peekState:()=>files});
+    const evidence={document_evidence:[{id:"p1",document_id:"active",name:"Procedure",text:"A director reviews complex awards."},
+      {id:"p2",document_id:"held",text:"This retired director rule no longer applies."}]};
+    h.route(async url=>{assert.equal(url,"/api/documents/context");return {ok:true,status:200,json:async()=>evidence};});
+    let result=await t.recallInterview("director","files");assert.deepEqual([...result.passages].map(p=>p.source_id),["p1"]);
+    const waiting=t.recallInterview("director","files");
+    files.documents[0].analysis={disposition:"needs_reason"};
+    result=await waiting;assert.equal(result.passages.length,0);
+    assert.equal((await t.recallInterview("director","participant")).passages[0].turn,"u1");
+  }
+  {
     const h=voice.setup();let queries=0;
     h.api.options.lookupInterview=query=>{assert.equal(query,"release");queries++;return {passages:[{turn:"u1",quote}]};};
     await h.api.start();
@@ -58,11 +86,12 @@ function session(){
     event({type:"response.output_item.done",response_id:"resp_1",item});
     const complete={type:"response.completed",response:{id:"resp_1",output:[item]}};
     event(complete);event(complete);
+    await new Promise(resolve=>setImmediate(resolve));
     assert.equal(queries,1);
     const sent=h.channels.at(-1).sent;
     assert.equal(sent.filter(p=>p.type==="response.create").length,1);
     const found=sent.find(p=>p.type==="response.item.create");assert.equal(JSON.parse(found.item.output).passages[0].quote,quote);
     await h.api.stop({immediate:true});
   }
-  console.log("6 live memory, correction, topic and tool scenarios passed");
+  console.log("Live memory, correction, bounded retry, topic and tool scenarios passed");
 })().catch(e=>{console.error(e);process.exitCode=1;});

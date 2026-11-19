@@ -343,23 +343,15 @@
         }
         if(nested?.type==="response.failed"||nested?.type==="response.incomplete")op.lookupRequests.delete(responseId);
         if(nested?.type==="response.completed"){
-          const calls=[...(op.lookupRequests.get(responseId)||[]),...(nested.response?.output||[]).filter(item=>item?.type==="function_call")];
+          const output=Array.isArray(nested.response?.output)?nested.response.output:[];
+          const calls=[...(op.lookupRequests.get(responseId)||[]),...output.filter(item=>item?.type==="function_call")];
           op.lookupRequests.delete(responseId);
-          let sent=false;
+          const fresh=[];
           for(const call of calls){
             if(!channelEventId(call.call_id)||op.recalled.has(call.call_id))continue;
-            let result={passages:[],status:"unavailable"};
-            if(call.name==="lookup_interview"&&typeof call.arguments==="string"&&call.arguments.length<2000){
-              try{
-                const query=JSON.parse(call.arguments).query;
-                if(typeof query==="string"&&query.trim()&&query.length<=400)result=this.options.lookupInterview(query);
-              }catch{/* Incomplete arguments return an empty lookup. */}
-            }
-            sendEvent(op,{type:"response.item.create",event_id:"lookup_"+(++this.sequence),
-              item:{type:"function_call_output",call_id:call.call_id,output:JSON.stringify(result)}});
-            op.recalled.add(call.call_id);sent=true;
+            op.recalled.add(call.call_id);fresh.push(call);
           }
-          if(sent)sendEvent(op,{type:"response.create",event_id:"continue_"+(++this.sequence)});
+          if(fresh.length)void this.answerLookups(op,fresh);
         }
         return;
       }
@@ -783,6 +775,25 @@
       // `muted` says the participant had the microphone off: nothing of theirs was missed.
       this.notify("onWithheld",{id:entry.id,text:entry.text,start_ms:entry.start_ms,end_ms:entry.end_ms,
         fragments:++op.withheldFragments,muted:op.muted});
+    }
+    async answerLookups(op,calls){
+      try{
+        for(const call of calls){
+          let result={passages:[],status:"unavailable"};
+          if(this.operation!==op||op.closing)return;
+          if(call.name==="lookup_interview"&&typeof call.arguments==="string"&&call.arguments.length<2000){
+            try{
+              const {query,source="participant"}=JSON.parse(call.arguments);
+              if(typeof query==="string"&&query.trim()&&query.length<=400&&["participant","files"].includes(source))
+                result=await this.options.lookupInterview(query,source,op.controller.signal);
+            }catch{/* A closed workspace or invalid arguments return an empty lookup. */}
+          }
+          if(this.operation!==op||op.closing)return;
+          sendEvent(op,{type:"response.item.create",event_id:"lookup_"+(++this.sequence),
+            item:{type:"function_call_output",call_id:call.call_id,output:JSON.stringify(result)}});
+        }
+        sendEvent(op,{type:"response.create",event_id:"continue_"+(++this.sequence)});
+      }catch{trace("live.lookup_unavailable",{count:calls.length});}
     }
     appendContext(text, {id,kind="document_findings",replaceKey,plain=false} = {}) {
       // plain: one short note sent as a single event without the chunk wrapper,

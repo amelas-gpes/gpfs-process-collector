@@ -16,7 +16,7 @@ jobs:
       - name: Run dependency-free backend regressions
         shell: pwsh
         run: |
-          foreach ($suite in 'test_capture_facts.py','test_interview_coverage.py','test_workflow_components.py','test_provider_usage_metrics.py','test_provider_cancellation.py','test_document_selection_replay.py','test_route_gaps.py','test_release_boundaries.py') {
+          foreach ($suite in 'test_capture_facts.py','test_process_memory.py','test_interview_coverage.py','test_workflow_components.py','test_provider_usage_metrics.py','test_provider_cancellation.py','test_document_selection_replay.py','test_route_gaps.py','test_release_boundaries.py') {
             python -I -B -m unittest discover -s tests -p $suite
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }

@@ -7272,8 +7272,6 @@
   }
   async function init() {
     positionMapToolsFallback();
-    const documentArt = $("welcome-document-art");
-    if (documentArt) window.CollectorComponentArt?.draw(documentArt, "document_pack");
     if(window.CollectorAgentTeam&&$("agent-team"))agentTeamUI=window.CollectorAgentTeam.create($("agent-team"));
     documentIntake=createDocumentIntake();
     if(window.GPFSPresence)gpfsPresence=window.GPFSPresence.create($("gpfs-presence"));

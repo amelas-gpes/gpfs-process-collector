@@ -29,7 +29,7 @@ async function checkWelcomeUpload(context, url, width) {
     await page.goto(url);
     const upload = page.locator("#welcome-upload");
     await page.waitForFunction(() => document.querySelector("#welcome-upload")?.disabled === false);
-    assert(await page.getByRole("heading",{name:"Let's Document Your Process",exact:true}).isVisible());
+    assert(await page.getByRole("heading",{name:"Let’s document your process.",exact:true}).isVisible());
     await page.emulateMedia({reducedMotion:"no-preference"});
     await page.locator("#gpfs-presence .gpfs-symbol").hover();
     await page.waitForFunction(() => Number(document.querySelector("#gpfs-presence").style.getPropertyValue("--hover")) > 0.1);
@@ -53,10 +53,10 @@ async function checkWelcomeUpload(context, url, width) {
       return transfer;
     });
     await upload.dispatchEvent("dragenter", {dataTransfer:drag});
-    assert(await page.getByRole("button",{name:"Release to add files",exact:true}).isVisible());
+    assert(await page.getByRole("button",{name:"Release to upload",exact:true}).isVisible());
     assert.equal(await page.locator(".document-drop-overlay").isVisible(), false);
     await page.keyboard.press("Escape");
-    assert(await page.getByRole("button",{name:"Choose files",exact:true}).isVisible());
+    assert(await page.getByRole("button",{name:"Upload documents",exact:true}).isVisible());
     await drag.dispose();
 
     const chooser = await choose();

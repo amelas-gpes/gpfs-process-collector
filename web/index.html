@@ -93,25 +93,61 @@
           <div class="stage-toolbar"><span class="session-presence" id="session-presence" hidden><i></i><span id="session-status"></span></span></div>
           <div class="stage-content">
             <div id="voice-panel" class="conversation-view voice-stage" role="tabpanel" aria-labelledby="conversation-tab-voice" tabindex="0">
+              <div class="home-art" aria-hidden="true">
+                <svg class="home-art-docs" viewBox="0 0 480 460" focusable="false">
+                  <defs><filter id="ha-shade-docs" x="-40%" y="-40%" width="180%" height="200%" color-interpolation-filters="sRGB"><feDropShadow class="ha-shade" dx="0" dy="9" stdDeviation="11"></feDropShadow></filter></defs>
+                  <path class="ha-thread" pathLength="1" d="M326 150C392 150 400 230 480 230"></path>
+                  <path class="ha-thread" pathLength="1" d="M268 262C340 262 400 230 480 230"></path>
+                  <path class="ha-thread" pathLength="1" d="M266 330C350 330 388 230 480 230"></path>
+                  <path class="ha-pulse" pathLength="1" d="M268 262C340 262 400 230 480 230"></path>
+                  <g transform="translate(40 110) rotate(-9)"><g class="ha-sheet ha-sheet-a" filter="url(#ha-shade-docs)">
+                    <path class="ha-paper" d="M6 0H128l22 22V190a6 6 0 0 1-6 6H6a6 6 0 0 1-6-6V6a6 6 0 0 1 6-6Z"></path><path class="ha-fold" d="M128 0v16a6 6 0 0 0 6 6h16"></path>
+                    <path class="ha-ink" d="M20 44h58M20 66h108M20 80h96M20 94h108M20 108h72M20 130h108M20 144h88M20 158h100"></path>
+                  </g></g>
+                  <g transform="translate(170 60) rotate(6)"><g class="ha-sheet ha-sheet-b" filter="url(#ha-shade-docs)">
+                    <path class="ha-paper" d="M6 0H128l22 22V190a6 6 0 0 1-6 6H6a6 6 0 0 1-6-6V6a6 6 0 0 1 6-6Z"></path><path class="ha-fold" d="M128 0v16a6 6 0 0 0 6 6h16"></path>
+                    <path class="ha-ink" d="M20 42h46"></path>
+                    <path class="ha-rule" d="M20 62h110v92H20ZM20 85h110M20 108h110M20 131h110M57 62v92M94 62v92"></path>
+                  </g></g>
+                  <g transform="translate(110 190) rotate(-3)"><g class="ha-sheet ha-sheet-c" filter="url(#ha-shade-docs)">
+                    <path class="ha-paper" d="M6 0H128l22 22V190a6 6 0 0 1-6 6H6a6 6 0 0 1-6-6V6a6 6 0 0 1 6-6Z"></path><path class="ha-fold" d="M128 0v16a6 6 0 0 0 6 6h16"></path>
+                    <path class="ha-ink" d="M20 42h64M38 70h86M38 94h70M38 118h88M38 142h58"></path>
+                    <path class="ha-rule" d="M20 66h8v8h-8ZM20 90h8v8h-8ZM20 114h8v8h-8ZM20 138h8v8h-8Z"></path>
+                    <path class="ha-tick" d="M21.5 70l2 2 3.5-4M21.5 94l2 2 3.5-4"></path>
+                  </g></g>
+                </svg>
+                <svg class="home-art-map" viewBox="0 0 480 460" focusable="false">
+                  <defs><filter id="ha-shade-map" x="-40%" y="-40%" width="180%" height="200%" color-interpolation-filters="sRGB"><feDropShadow class="ha-shade" dx="0" dy="9" stdDeviation="11"></feDropShadow></filter></defs>
+                  <g class="ha-card" filter="url(#ha-shade-map)"><rect class="ha-paper" x="84" y="60" width="372" height="288" rx="16"></rect><path class="ha-ink" d="M108 91h82"></path><path class="ha-rule" d="M84 118h372"></path></g>
+                  <path class="ha-link ha-l1" pathLength="1" d="M0 230H110"></path>
+                  <path class="ha-link ha-l2" pathLength="1" d="M126 230h14"></path>
+                  <path class="ha-link ha-l3" pathLength="1" d="M218 230h12"></path>
+                  <path class="ha-link ha-l4" pathLength="1" d="M252 208v-28a10 10 0 0 1 10-10h24"></path>
+                  <path class="ha-link ha-l4" pathLength="1" d="M252 252v28a10 10 0 0 0 10 10h24"></path>
+                  <path class="ha-link ha-l5" pathLength="1" d="M364 170h36a10 10 0 0 1 10 10v40"></path>
+                  <path class="ha-link ha-l5" pathLength="1" d="M364 290h36a10 10 0 0 0 10-10v-40"></path>
+                  <path class="ha-pulse" pathLength="1" d="M0 230H252V180a10 10 0 0 1 10-10H400a10 10 0 0 1 10 10v50"></path>
+                  <g class="ha-node ha-n1"><circle class="ha-paper" cx="118" cy="230" r="8"></circle></g>
+                  <g class="ha-node ha-n2"><rect class="ha-paper" x="140" y="210" width="78" height="40" rx="8"></rect><path class="ha-ink" d="M153 225h40M153 236h26"></path></g>
+                  <g class="ha-node ha-n3"><path class="ha-paper ha-decision" d="M252 208l22 22-22 22-22-22Z"></path></g>
+                  <g class="ha-node ha-n4"><rect class="ha-paper" x="286" y="150" width="78" height="40" rx="8"></rect><path class="ha-ink" d="M299 165h44M299 176h28"></path></g>
+                  <g class="ha-node ha-n4"><rect class="ha-paper" x="286" y="270" width="78" height="40" rx="8"></rect><path class="ha-ink" d="M299 285h34M299 296h46"></path></g>
+                  <g class="ha-node ha-n5"><circle class="ha-paper" cx="410" cy="230" r="10"></circle><circle class="ha-end" cx="410" cy="230" r="5"></circle></g>
+                </svg>
+              </div>
               <div class="gpfs-presence" id="gpfs-presence" data-state="idle" aria-hidden="true"><img class="gpfs-fallback" src="/assets/gpfs-symbol.svg" alt=""></div>
               <div class="voice-copy">
                 <div id="welcome">
-                  <h2>Let's Document Your Process</h2>
-                  <button type="button" id="welcome-upload" aria-labelledby="welcome-choose" aria-describedby="welcome-file-use welcome-formats" disabled>
-                    <span class="welcome-upload-art" aria-hidden="true"><svg id="welcome-document-art" viewBox="-51 -116 100 112" focusable="false"></svg></span>
-                    <span class="welcome-upload-copy">
-                      <strong>Start with your documents</strong>
-                      <span id="welcome-file-use">AI reviews your files and asks about the gaps.</span>
-                      <span class="welcome-upload-actions"><span id="welcome-choose" data-icon="folder"><span class="welcome-pick-label">Choose files</span><span class="welcome-release-label">Release to add files</span></span><span class="welcome-drop-hint">or drag them here</span></span>
-                    </span>
-                    <span id="welcome-formats"></span>
-                  </button>
+                  <h2>Let&rsquo;s document your process.</h2>
+                  <p id="welcome-file-use">Start with the documents you already have. AI reads them first, then asks only about what&rsquo;s missing.</p>
+                  <button type="button" id="welcome-upload" aria-labelledby="welcome-choose" aria-describedby="welcome-file-use welcome-formats" disabled><span id="welcome-choose" data-icon="upload"><span class="welcome-pick-label">Upload documents</span><span class="welcome-release-label">Release to upload</span></span></button>
+                  <p class="welcome-upload-note"><span class="welcome-drop-hint">or drop files anywhere on this page</span><span id="welcome-formats"></span></p>
                 </div>
                 <p class="presence-status" id="presence-status" role="status">Ready when you are</p>
                 <div id="current-question" class="current-question active-only" role="region" aria-label="Current question" aria-live="off"></div>
               </div>
               <div class="configuration-status" id="configuration-status" hidden><p id="configuration-message"></p><button id="retry-config" aria-description="Check whether the interview service is available." class="text-button" type="button">Check configuration</button></div>
-              <button type="button" id="welcome-example" class="text-button" data-icon-end="arrow-right" aria-description="Explore a fictional invoice approval interview and its draft.">See an example workflow</button>
+              <button type="button" id="welcome-example" class="text-button" data-icon-end="arrow-right" aria-description="Explore a fictional invoice approval interview and its draft.">See an example</button>
             </div>
             <div id="transcript-panel" class="conversation-view" role="tabpanel" aria-labelledby="conversation-tab-transcript" tabindex="0" hidden>
               <div id="conversation-history" class="conversation-history">
@@ -182,7 +218,7 @@
               <div class="workflow-update"><p class="workflow-status" id="workflow-status" role="status"></p><button class="text-button small" id="retry-workflow" aria-description="Build the working map again from the captured answers." type="button" data-icon="refresh" hidden>Try again</button></div>
             </div>
           </div>
-          <div id="conversation-dock-host"><div id="conversation-dock" class="conversation-dock"><p class="welcome-alternative">Or start without files</p><div class="thinking" id="thinking" hidden><span class="pulse-dot"></span><span id="thinking-text">Thinking…</span><span id="thinking-elapsed" class="elapsed" aria-hidden="true" hidden></span><button type="button" class="text-button" id="pause-completion-review" aria-description="Pause the check of whether the interview is ready to wrap up." hidden>Pause review</button></div>
+          <div id="conversation-dock-host"><div id="conversation-dock" class="conversation-dock"><p class="welcome-alternative">No documents yet?</p><div class="thinking" id="thinking" hidden><span class="pulse-dot"></span><span id="thinking-text">Thinking…</span><span id="thinking-elapsed" class="elapsed" aria-hidden="true" hidden></span><button type="button" class="text-button" id="pause-completion-review" aria-description="Pause the check of whether the interview is ready to wrap up." hidden>Pause review</button></div>
           <div class="speech-status" id="speech-status" hidden><span id="speech-status-text"></span><button type="button" class="text-button small" id="stop-reading" data-icon="x" title="Stop reading aloud (Esc)">Stop reading</button></div>
           <div class="composer-area" id="composer-area" hidden>
             <p class="dock-question" id="dock-question" hidden><span class="dock-question-label">Current question</span><span id="dock-question-text"></span></p>

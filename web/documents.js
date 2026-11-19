@@ -124,7 +124,9 @@
       const show=target=>{
         if(this.disposed||this.suspended||this.dropTarget.hidden)return this.clearDrop();
         const full=this.full(),allowed=this.allowed();
-        const overWelcome=allowed&&!full&&this.welcomeButton?.contains(target);
+        // On the home screen the whole stage takes the drop, so the file does not have to be aimed at the button.
+        const stage=this.welcomeButton?.closest?.(".voice-stage")||this.welcomeButton;
+        const overWelcome=allowed&&!full&&Boolean(this.welcomeButton)&&!this.welcomeButton.closest?.("[hidden]")&&stage.contains(target);
         this.welcomeButton?.classList.toggle("drag-ready",Boolean(overWelcome));
         if(overWelcome){this.dropOverlay.hidden=true;return;}
         this.dropTitle.textContent=!allowed?"Files can't be attached right now":full?(this.removed.length?`This interview has used its ${this.maximum()} file slots`:`This conversation has ${this.maximum()} files`):"Drop files into this conversation";

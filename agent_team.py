@@ -405,6 +405,8 @@ class TeamRun:
         if set(models or {}) - set(ROLE_CONTRACTS):
             raise ValueError("Unknown specialist model configuration.")
         self._lock = threading.RLock()
+        self._status_changed = threading.Condition(self._lock)
+        self._status_cursor = 0
         self.request_scope = nullcontext
         self._cancelled = self._stale = False
         self._provisional = ""
@@ -423,6 +425,9 @@ class TeamRun:
         self._observe("team.run.created", roles=list(self.roles), max_calls=self.max_calls)
 
     def _observe(self, event, **fields):
+        with self._status_changed:
+            self._status_cursor += 1
+            self._status_changed.notify_all()
         if self._trace:
             self._trace(event, {"team_id": self.run_id, "revision": self.ledger.revision, **fields})
 
@@ -602,6 +607,10 @@ class TeamRun:
         with self._lock:
             return copy.deepcopy(self._results)
 
+    def wait_for_status(self, cursor):
+        with self._status_changed:
+            self._status_changed.wait_for(lambda: self._status_cursor != cursor, timeout=6)
+
     def public_status(self):
         with self._lock:
             states = [row["status"] for row in self._agents.values()]
@@ -610,6 +619,7 @@ class TeamRun:
                       "completed" if "completed" in states and all(state in ("completed", "idle") for state in states) else
                       "idle" if all(state == "idle" for state in states) else "pending")
             return {"run_id": self.run_id, "revision": self.ledger.revision, "status": status,
+                    "status_cursor": self._status_cursor,
                     "cancelled": self._cancelled, "stale": self._stale,
                     "provisional_question": self._provisional if not self._cancelled and not self._stale and self._agents.get("lead_interviewer", {}).get("status") == "running" else "",
                     "provisional_topics": copy.deepcopy(self._provisional_topics) if not self._cancelled and not self._stale and self._agents.get("lead_interviewer", {}).get("status") == "running" else [],

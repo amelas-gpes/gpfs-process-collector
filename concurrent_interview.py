@@ -7,6 +7,7 @@ import collections
 import copy
 import provider_usage
 import raw_trace
+import gpfs_interview
 
 from capture_facts import supporting_identity
 import hashlib
@@ -1205,6 +1206,11 @@ class ConcurrentInterview:
                 if due:
                     # The map's leads are about the branch in hand; they would pull the question back to it.
                     advice.update(breadth_due=due, open_questions=[])
+                elif advice["open_questions"]:
+                    ranked = gpfs_interview.question_candidates(turns, (prior_map or {}).get("workflow", {}).get(
+                        "open_questions", advice["open_questions"]))
+                    if ranked:
+                        advice["priority_gap"] = ranked[0]
         return {"context": context, "turns": turns, "action": payload.get("action", "answer"),
                 "supporting_documents": copy.deepcopy(payload.get("_supporting_documents", {})),
                 "analysis_advice": advice, "known_unknowns": self._known_unknowns(turns),

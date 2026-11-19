@@ -578,6 +578,68 @@ def model_state(state, focus=None):
                       for fact in state["facts"] if fact["state"] == "active"]}
 
 
+def incremental_turns(turns, baseline, state, focus):
+    """Keep new testimony, its surrounding questions, and earlier sources relevant to this change."""
+    if len(turns) < 14 or not baseline or not focus:
+        return turns
+    # A revision, correction or ambiguous short answer warrants all the original wording.
+    if turns[:len(baseline)] != baseline or len(focus["answer"].split()) < 7 or re.search(
+            r"\b(actually|correction|instead|previous|earlier|i meant|used to|not anymore|scratch that)\b",
+            focus["answer"], re.I):
+        return turns
+    related = {ref for f in state["facts"] if f["state"] == "active" and _touched(f, focus)
+               for ref in f["evidence_turns"]}
+    terms = _content_words(focus["answer"] + " " + focus["question"])
+    start = max(0, len(baseline) - 4)
+    keep = set(range(start, len(turns)))
+    for n, turn in enumerate(turns[:start]):
+        if turn["id"] in related or (turn["role"] == "user" and len(terms & _content_words(turn["text"])) >= 2):
+            keep.add(n)
+            if n:
+                keep.add(n - 1)
+    return [t for n, t in enumerate(turns) if n in keep]
+
+
+LIVE_EXCERPT_SCHEMA = _object({
+    "needs_full_capture": {"type": "boolean"},
+    "facts": {"type": "array", "maxItems": 12, "items": _object({
+        "topic": {"type": "string", "enum": list(TOPICS)}, "source_id": _TEXT, "quote": _TEXT})},
+    "open_relationship": _TEXT,
+})
+
+
+def excerpt_transaction(reply, state, new_answers):
+    """Promote only exact participant clauses. A correction or a complex turn uses normal reconciliation."""
+    if reply["needs_full_capture"] or not reply["facts"]:
+        return None
+    sources = {t["id"]: t["text"] for t in new_answers}
+    states = {k: {"key": k, "status": "owner_followup" if v.get("owner_review_candidate") else v["status"],
+                  "participant_unavailable": v["participant_unavailable"]} for k, v in state["topics"].items()}
+    ops = []
+    cited = set()
+    known = {(f["topic"], f["text"], ref) for f in state["facts"] if f["state"] == "active" for ref in f["evidence_turns"]}
+    for row in reply["facts"]:
+        topic, ref, quote = row["topic"], row["source_id"], row["quote"].strip()
+        if (ref not in sources or topic not in states or len(quote) < 5 or len(quote) > MAX_FACT_TEXT
+                or quote not in sources[ref] or states[topic]["status"] in ("not_applicable", "owner_followup")
+                or states[topic]["participant_unavailable"]):
+            return None
+        cited.add(ref)
+        if (topic, quote, ref) in known:
+            continue
+        known.add((topic, quote, ref))
+        ops.append({"op":"add", "topic":topic, "target_id":"", "kind":"detail", "text":quote,
+                    "reason":"new_evidence", "evidence_turns":[ref], "support":[{"source_id":ref, "quote":quote}]})
+        states[topic]["status"] = "partial"
+    if set(sources) != cited:
+        return None
+    return {"base_revision":state["revision"], "topic_states":list(states.values()), "fact_operations":ops,
+            "fact_reconciliations":[], "summary":state.get("summary") or reply["facts"][0]["quote"],
+            "focus":reply["facts"][0]["topic"], "parking_lot":list(state.get("parking_lot", [])),
+            "tag_operations":[], "connections_out":[], "remove_connections":[], "resolved_parking_lot":[],
+            "active_modules":state.get("active_modules", []), "recap_due":"none"}
+
+
 _TOPIC_WORDS = {
     "name": r"name|called|alias", "purpose": r"purpose|result|outcome|deliver",
     "trigger": r"start|trigger|cadence|frequency|deadline|receiv|detect",

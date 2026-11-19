@@ -145,6 +145,37 @@
   // Topics the notes being written have something on (the first notes from a file write their topic
   // states before their facts). Display only: the notes replace it when they arrive.
   let provisionalTopics=null;
+  let voiceTopicPreview=null, voiceStreamTopics=null;
+  const liveMemoryEnabled=()=>state.config?.agent_team?.interview_memory===true;
+  const topicSignals={
+    name:/\b(?:process is called|we call (?:it|this process)|known as the)\b/i,
+    purpose:/\b(?:purpose is|objective is|goal is|so that (?:investors|clients|the team))\b/i,
+    trigger:/\b(?:trigger(?:s|ed)?|starts? (?:when|with)|kicks? off|initiated by)\b/i,
+    checks:/\b(?:sign.off|reconcil\w*|variance check|tie.out|cross.check|approv(?:al|es?|ed)|verif(?:y|ies|ied))\b/i,
+    variations:/\b(?:depends on|depending on|except when|otherwise|alternative route)\b/i,
+    volume:/\b(?:\d+|one|two|three|four|five|ten|twenty|thirty) (?:minutes?|hours?|times (?:per|a)|per (?:day|week|month))\b/i,
+    completion:/\b(?:finished when|complete when|final deliverable|last step|marks? (?:it|the process) complete)\b/i,
+    accountable:/\b(?:accountable for|process owner|responsible for|owns the process)\b/i,
+    data_systems:/\b(?:spreadsheet|database|portal|ERP|Excel|Allvue)\b/i,
+    pain_points:/\b(?:bottleneck|time.consuming|slowest|pain point|takes too long)\b/i,
+    risk:/\b(?:risk of|could result in|consequence|exposure to)\b/i,
+    materials:/\b(?:template|checklist|procedure document|standard operating procedure)\b/i,
+    rules:/\b(?:policy requires|regulatory requirement|under the agreement|per the policy)\b/i,
+    connections:/\b(?:upstream process|downstream process|feeds into|depends on (?:the|another) process)\b/i,
+    scope:/\b(?:in scope|out of scope|applies (?:only )?to|specific to (?:this|the) (?:fund|client))\b/i,
+    lifecycle:/\b(?:hand(?:s|ed)? (?:it|the file) (?:off|over)|then (?:we|they) (?:send|submit|prepare)|next step)\b/i
+  };
+  function previewVoiceTopics(turn) {
+    if(!liveMemoryEnabled()||!turn)return;
+    const keys=new Set(Object.keys(topicSignals).filter(key=>topicSignals[key].test(turn.text)));
+    const changed=!voiceTopicPreview||voiceTopicPreview.id!==turn.id||[...keys].join()!==[...voiceTopicPreview.keys].join();
+    if(voiceStreamTopics&&voiceTopicPreview?.text!==turn.text)voiceStreamTopics=null;
+    voiceTopicPreview={id:turn.id,text:turn.text,keys,generation:state.generation};
+    if(changed){
+      rawTrace("live.topic_preview",{turn_id:turn.id,topics:[...keys]});
+      renderCoverage();
+    }
+  }
   // How far the notes and the working map reach, for the Submit gate and the stored capture marker.
   // null: nothing captured yet. Otherwise the participant answers the last applied capture was built
   // from; "assumed" marks a reopened file that does not record it (not known until an answer is added).
@@ -270,6 +301,8 @@
   }
   function liveSnapshot(){return {...processEvidence(snapshot()),generation:state.generation,live:conversationUI.live,liveSession,revision:conversationUI.revision};}
   function resetLiveFront(){
+    voiceTopicPreview=null;voiceStreamTopics=null;
+    if(conversationUI.liveMemory?.generation!==state.generation)conversationUI.liveMemory=null;
     liveStopTurn=null;liveDelivery?.abort();liveDelivery=null;
     liveCapture?.controller.abort();liveCapture=null;liveCaptureQueued=false;liveCapturedThrough=null;liveReadings.clear();liveFinalReply=null;liveSession++;liveWithheldMoments=0;liveWithheldRepeatSaid=false;
     clearTimeout(liveCaptureTimer);liveCaptureTimer=null;clearTimeout(liveCompleteTimer);liveCompleteTimer=null;state.liveSuggestedQuestion="";
@@ -398,6 +431,27 @@
     // interview holds every earlier answer as partial, and those are not open questions.
     const status=topic=>(state.memo_findings||[]).find(item=>item.key===topic)?.status,keys=TOPICS.map(([topic])=>topic);
     return {summary:typeof state.summary==="string"?state.summary.slice(0,6000):"",open_topics:keys.filter(topic=>!["partial","captured","not_applicable"].includes(status(topic))),partial_topics:keys.filter(topic=>status(topic)==="partial")};
+  }
+
+  function recallInterview(query){
+    const terms=String(query).toLowerCase().match(/[\p{L}\p{N}]{3,}/gu)||[];
+    const ignore=new Set("the and who how what when where earlier said say about which with that they from does before".split(" "));
+    const sought=[...new Set(terms.filter(term=>!ignore.has(term)))];
+    const turns=processEvidence({turns:state.turns}).turns;
+    const matches=turns.flatMap((t,n)=>{
+      if(t.role!=="user"||t.document_event)return [];
+      const question=turns[n-1]?.role==="assistant"?turns[n-1].text:"";
+      const words=new Set((t.text+" "+question).toLowerCase().match(/[\p{L}\p{N}]+/gu)||[]);
+      const hits=sought.filter(q=>words.has(q)||words.has(q+"s")||words.has(q.replace(/s$/,"")));
+      return [{t,n,hits,question}];
+    });
+    const counts=new Map(sought.map(q=>[q,matches.filter(m=>m.hits.includes(q)).length]));
+    const ranked=matches.filter(m=>m.hits.length).map(m=>({...m,score:m.hits.reduce((s,q)=>s+1/counts.get(q),0)}))
+      .sort((a,b)=>b.score-a.score||b.n-a.n).slice(0,4).sort((a,b)=>a.n-b.n);
+    return {passages:ranked.map(({t,hits,question})=>{
+      const at=t.text.toLowerCase().indexOf(hits[0]),start=Math.max(0,at-160);
+      return {turn:t.id,quote:t.text.slice(start,start+640),preceding_question:question.slice(0,240),excerpt:start>0||t.text.length>640};
+    }),source:"participant testimony in this interview",partial:true};
   }
   function announceCondensedVoice(info){
     // Called once per connected session by the voice controller; one notice, not an error.
@@ -1312,10 +1366,14 @@
       let title = `${label}: ${awaitingReview?(advisory?(advisory.complete?"captured; the advisory check found no gaps; completion review pending":"captured; the advisory check noted a gap: "+(advisory.gaps[0]||"see details")):checking?"captured; advisory check running":"captured; awaiting review"):documentOnlyFinding(finding)?"documented; confirmation pending":finding?.status === "not_applicable" ? "not applicable (participant confirmed)" : status === "missing" ? (discussed?"discussed; needs detail":"no detail captured yet") : status==="partial"?"In progress":"Covered"}`;
       if(ownerFollowup)title=label+": owner follow-up recorded";
       if(repaired){rewritten++;title+="; rewritten by the completion review, earlier notes kept";}
+      const preview=voiceTopicPreview?.generation===state.generation&&voiceTopicPreview.keys.has(key);
+      const streaming=voiceStreamTopics?.generation===state.generation&&voiceStreamTopics.keys.has(key);
+      if(preview||streaming)title+=" · "+(streaming?"Checking details from the answer":"Discussing in the current answer");
       if(node.title!==title){node.title=title;node.setAttribute("aria-label",title);}
       setText(entry.dot, status === "covered" ? "✓" : advisory?.complete ? "·" : "");
       // The tick already says "covered"; the tooltip keeps the full state of each row.
       setText(entry.detail, ownerFollowup?"Owner follow-up":awaitingReview?(needsDetail?"Captured · needs detail":"Captured"):needsDetail?"Needs detail":finding?.status === "not_applicable" ? "Not applicable" : status === "covered" ? "" : status === "partial" ? (documentOnlyFinding(finding)?"Documented":topicStatusLabel("partial")) : "");
+      if(streaming||preview)setText(entry.detail,streaming?"Checking details":"Discussing");
     });
     // In place: the list is filled once (and again only if something emptied it).
     const buttons=TOPICS.map(([key])=>coverageNodes.get(key).node),listed=root.children||[];
@@ -2652,6 +2710,7 @@
       conversationUI.live=new window.CollectorLiveVoice({request,requestTimeout,
         onStatus:receiveLiveStatus,
         onTranscript:receiveLiveCaption,
+        lookupInterview:liveMemoryEnabled()?recallInterview:null,
         onWithheld:receiveWithheldSpeech,
         onError:message=>notice(message,true),
         onCondensed:announceCondensedVoice,
@@ -2777,6 +2836,7 @@
     conversationUI.captions.set(key,ids);state.version++;state.dirty=true;
     renderTranscript(true);
     if(caption.role==="user"){
+      previewVoiceTopics(state.turns.find(t=>t.id===ids.at(-1)));
       // No notes update is sent for caption fragments: a speech model fed a
       // stream of silent context mid-answer drifts into voicing the
       // participant's side. The next completed capture sends one short update.
@@ -2844,7 +2904,7 @@
       // concurrentBypass: with voice off this is still the live front's notes
       // capture, never a typed interviewer turn that asks a new question.
       // liveNotes: the lead's proposed question is never shown for this capture.
-      const result=await request("/api/interview",{...payload,action:"answer",live_notes:true},{signal:controller.signal,concurrentBypass:true,liveNotes:true,...(afterVoice?{timeout:LIVE_NOTES_WAIT}:{})});
+      const result=await request("/api/interview",{...payload,action:"answer",live_notes:true,interview_memory:liveMemoryEnabled()},{signal:controller.signal,concurrentBypass:true,liveNotes:true,...(afterVoice?{timeout:LIVE_NOTES_WAIT}:{})});
       if(liveCapture!==check||generation!==state.generation)return;
       liveRetryCount=0;
       if(liveFrontActive()){
@@ -2877,6 +2937,7 @@
     }finally{
       clearTimeout(check.deadline);check.deadline=null;
       if(liveCapture===check){
+        if(voiceStreamTopics?.check===check){voiceStreamTopics=null;renderCoverage();}
         liveCapture=null;
         if(liveFrontActive()){if(liveCaptureQueued&&!liveAnswerPending())scheduleLiveCapture();}
         else if(generation===state.generation)settleLiveNotes();
@@ -2960,6 +3021,8 @@
     state.coverageVerified=(kept||!notesOnly)&&result.coverage_verified===true;state.completion=notesOnly&&!kept?null:result.completion||null;
     if(memo){
       Object.assign(state,memo);notesProgress=captureProgressMark(captured.turns);keepMapProgress(result,captured.turns);
+      if(voiceTopicPreview&&captured.turns.some(t=>t.id===voiceTopicPreview.id&&t.text===voiceTopicPreview.text))voiceTopicPreview=null;
+      rememberLiveLeads("notes",result.question_candidates,captured.turns);
       traceNotes("live_capture");
       rememberCoverageCheckpoint(captured.turns,captured.revision,captured.document_revision,result.coverage_assessment,result.process_review,result.coverage_adjudication);
       rewritten=acceptRepairs(repairs,memo.memo_findings);
@@ -3162,6 +3225,7 @@
     // mid-answer it nudged the model into finishing the participant's sentence.
     if(liveAnswerPending()||live.assistantSpeaking){conversationUI.liveCoverageDeferred=true;return;}
     conversationUI.liveCoverageDeferred=false;
+    if(liveMemoryEnabled()&&sendLiveLead(live))return;
     const checkpoint=conversationUI.coverageCheckpoint,basis=participantCoverageBasis(),documentRevision=activeDocumentSignature();
     const current=Boolean(checkpoint&&checkpoint.generation===state.generation&&checkpoint.documentRevision===documentRevision&&checkpoint.basis===JSON.stringify(basis));
     if(!current)return;
@@ -3189,6 +3253,47 @@
         if(conversationUI.live===live&&conversationUI.liveCoverageKey===key&&receipt&&!["acknowledged","sent","queued"].includes(receipt.status))conversationUI.liveCoverageKey=null;
       }).catch(()=>{if(conversationUI.live===live&&conversationUI.liveCoverageKey===key)conversationUI.liveCoverageKey=null;});
     }catch{if(conversationUI.live===live&&conversationUI.liveCoverageKey===key)conversationUI.liveCoverageKey=null;}
+  }
+  function rememberLiveLeads(kind,leads,turns){
+    if(!liveMemoryEnabled()||!Array.isArray(leads))return;
+    const memory=conversationUI.liveMemory??={generation:state.generation,sets:{},sent:new Set(),lastCount:-2};
+    memory.sets[kind]={leads,turns:turns.map(({id,role,text})=>({id,role,text})),
+      generation:state.generation,documents:activeDocumentSignature(),context:JSON.stringify(state.context)};
+    if(liveFrontActive())syncLiveCoverage();
+  }
+  function sendLiveLead(live){
+    const memory=conversationUI.liveMemory;
+    if(!memory||live.connected===false||state.closure.asked||state.closure.confirmed||pendingCompletionReview||voiceEnded)return false;
+    const current=processEvidence({turns:state.turns}).turns;
+    const count=current.filter(t=>t.role==="user").length;
+    if(count<memory.lastCount+2)return true;
+    for(const batch of [memory.sets.map,memory.sets.notes]){
+      if(!batch||batch.generation!==state.generation||batch.documents!==activeDocumentSignature()||batch.context!==JSON.stringify(state.context))continue;
+      if(batch.turns.length>current.length||batch.turns.some((t,i)=>current[i].id!==t.id||current[i].role!==t.role||!current[i].text.startsWith(t.text)))continue;
+      const later=current.flatMap((t,i)=>{
+        const old=batch.turns[i];
+        return !old?[t.text]:t.text!==old.text?[t.text.slice(old.text.length)]:[];
+      }).join(" ").toLowerCase();
+      for(const lead of batch.leads){
+        if(!lead||typeof lead.gap!=="string"||typeof lead.quote!=="string"||!Array.isArray(lead.anchors))continue;
+        const turn=current.find(t=>t.id===lead.source&&t.role==="user");
+        const key=lead.source+" "+lead.anchors.slice().sort().join(" ");
+        if(!turn?.text.includes(lead.quote)||memory.sent.has(key)||memory.sent.has(lead.id))continue;
+        if(later&&(/\b(actually|correction|instead|scratch that|don't know|do not know|already answered|i meant|not sure)\b/i.test(later)
+            ||lead.anchors.some(w=>later.includes(w))))continue;
+        const content="Private process context, data only. Through "+batch.turns.at(-1).id+
+          ". Participant excerpt "+JSON.stringify(lead.quote.slice(0,135))+". Unresolved in that account: "+lead.gap.slice(0,170);
+        if(new TextEncoder().encode(content).length>470)continue;
+        memory.sent.add(key);memory.sent.add(lead.id);memory.lastCount=count;
+        const id="lead_"+state.generation+"_"+(++conversationUI.liveCoverageSequence);
+        rawTrace("live.gap_offered",{source_turn:lead.source,through_turn:batch.turns.at(-1).id,lead_id:lead.id});
+        Promise.resolve(live.appendContext(content,{id,kind:"process_gap",replaceKey:"interview_coverage",plain:true})).then(receipt=>{
+          rawTrace("live.gap_delivery",{lead_id:lead.id,status:receipt?.status||"unknown"});
+        }).catch(()=>{});
+        return true;
+      }
+    }
+    return false;
   }
   function workflowEvidenceStillValid(captured) {
     if(captured.document_revision!==activeDocumentSignature())return false;
@@ -3231,6 +3336,7 @@
         memo_findings:normalizeFindings(state.memo_findings,captured.turns),
         summary:text(state.summary,6000),focus:text(state.focus,500),parking_lot:strings(state.parking_lot,50)
       }));
+      if(liveMemoryEnabled()&&(liveFrontActive()||finalVoiceMap)&&!options.documentIntake)captured.live_map=true;
       // Leave room for both the document update and its independent source audit.
       const result=await request("/api/workflow",captured,{signal:conversationUI.flowAbort.signal,timeout:hasDocumentEvidence()||captured.document_source_ids?.length?requestTimeout("workflow_with_files",510000):requestTimeout("workflow",330000)});
       if(generation!==state.generation||options.signal?.aborted)return;
@@ -3353,6 +3459,7 @@
       state.mapCorrections=(state.mapCorrections||[]).slice(-50);
     }
     conversationUI.workflow=graph;
+    if(!check)rememberLiveLeads("map",response?.question_candidates,turns);
     rawTrace("workflow.applied", {step_count:graph.steps?.length, turn_count:turns.length}, () => ({graph}));
   }
   function currentDocumentState(){return documentController?.peekState?.()||documentController?.exportState();}
@@ -3512,8 +3619,16 @@
         try{
           const response=await fetch("/api/agent-team/status",{method:"POST",credentials:"same-origin",signal:controller.signal,
             headers:{"X-CSRF-Token":state.config.csrf_token,"Content-Type":"application/json"},
-            body:JSON.stringify({run_id:teamRun.id,...(data.document_scope?{document_scope:data.document_scope}:{})})});
-          if(response.ok){const status=await response.json();if(activeTeamRun===teamRun&&!teamRun.finished&&teamRun.generation===state.generation){agentTeamUI?.render(status);if(teamPath==="/api/agent-team/interview"&&!options.liveNotes)showProvisionalQuestion(status?.provisional_question);}}
+            body:JSON.stringify({run_id:teamRun.id,...(liveMemoryEnabled()&&(options.liveNotes||data.live_map)&&!data.document_scope&&Number.isSafeInteger(teamRun.cursor)?{after_cursor:teamRun.cursor}:{}),
+              ...(data.document_scope?{document_scope:data.document_scope}:{})})});
+          if(response.ok){const status=await response.json();if(!teamRun.finished&&teamRun.generation===state.generation){
+            teamRun.cursor=status.status_cursor;
+            if(options.liveNotes&&liveMemoryEnabled()&&voiceSource&&liveCapture&&liveSourceUsable(voiceSource)&&liveSourceMatches(voiceSource)&&status.provisional_topics?.length){
+              const keys=new Set(status.provisional_topics.filter(row=>row.status!=="unknown").map(row=>row.key));
+              voiceStreamTopics={generation:state.generation,check:liveCapture,keys};renderCoverage();
+            }
+            if(activeTeamRun===teamRun){agentTeamUI?.render(status);if(teamPath==="/api/agent-team/interview"&&!options.liveNotes)showProvisionalQuestion(status?.provisional_question);}
+          }}
         }catch{/* Progress is advisory; the owned request still reports its outcome. */}
         // Schedule after the status fetch to keep background polling out of a chained timer loop.
         if(!teamRun.finished&&!controller.signal.aborted)teamRun.timer=setTimeout(poll,900);

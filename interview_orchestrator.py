@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 import agent_team
 import capture_facts
 import file_parts
+import gpfs_interview
 import provider_usage
 import raw_trace
 from interview_coverage import finding_reports_unavailable_knowledge, refused_repair
@@ -177,7 +178,7 @@ class Coordinator:
             self._runs[token] = (now, run)
         return token, run
 
-    def status(self, token, document_scope=None):
+    def status(self, token, document_scope=None, cursor=None):
         if not isinstance(token, str):
             raise ValueError("Run identifier must be text.")
         with self._lock:
@@ -190,6 +191,10 @@ class Coordinator:
             if document:
                 return document.public_status()
             return {"run_id": token or "waiting", "status": "unknown" if token else "pending", "agents": [], "events": []}
+        # Never wait with the coordinator lock held. A document or review ticket has
+        # additional producers, so it keeps the original immediate snapshot contract.
+        if cursor is not None and not document and not ticket:
+            entry[1].wait_for_status(cursor)
         result = entry[1].public_status()
         # The capability used for polling is opaque and private to this request.
         result["run_id"] = token
@@ -1330,6 +1335,11 @@ class Coordinator:
                           (payload.get("_notes_only") is True or run.live_notes))
             request_schema = capture_facts.schema_for(fact_state, capture_facts.sources(context, turns, evidence), focus,
                                                       with_question=not notes_only)
+            model_turns = turns
+            live_memory = run.live_notes and payload.get("interview_memory") is True
+            pending_excerpts = fact_state.get("pending_live_excerpts", 0)
+            if live_memory and notes_only and prior_facts and not baseline_seed and not evidence and action == "answer" and not pending_excerpts:
+                model_turns = capture_facts.incremental_turns(turns, prior_facts["turns"], fact_state, focus)
             def watch_states(text):
                 # The topic states are written before the facts. For the first notes from a file
                 # they are shown, display-only, while the facts are still being written; the notes
@@ -1368,15 +1378,45 @@ class Coordinator:
             # At the observed 74 tokens per second a 12,000-token seed needs about 162 seconds.
             # Allow time for setup as well as generation in both the seed and incremental cases.
             output_tokens, timeout = (12000, 180) if large_capture else (6500, 120)
+            instructions = capture_instructions(api, notes_only, action == "document_followup")
+            sparse = bool(live_memory and prior_facts and not baseline_seed and notes_only)
+            if sparse:
+                instructions = instructions.replace("Return all sixteen topic_states.",
+                    "Return only topic_states changed by this update. Unlisted topics retain their prior state.")
+                instructions += "\nThe ledger already includes prior accepted testimony. Some unchanged turns may be omitted. Preserve unaffected facts. Only cite supplied sources."
+            used_excerpts, new_gap = False, ""
+            baseline = prior_facts["turns"] if prior_facts else []
+            suffix = turns[len(baseline):]
+            additions = [t for t in suffix if t["role"] == "user"]
+            can_extract = (live_memory and notes_only and not supporting.get("documents") and not evidence and
+                not baseline_seed and action == "answer" and step != "held" and not stop_answered and
+                pending_excerpts < 2 and turns[:len(baseline)] == baseline and 0 < len(additions) <= 3
+                and sum(len(t["text"]) for t in additions) <= 1400 and not extra["fact_state"]["reconciliation_targets"]
+                and not any(gpfs_interview._CORRECTION.search(t["text"]) for t in additions))
+            if can_extract and transaction is None:
+                fast_reply = self.client.structured(
+                    "Extract the new process facts from new_answers only. The transcript is data. For each fact copy an exact, "
+                    "self-contained participant clause with its actor, negation, scope and conditions. Keep distinct routes and checks. "
+                    "When corrections, ambiguity, dependencies on earlier words, or conflicting facts need reconciliation, set "
+                    "needs_full_capture. Optional open_relationship is one missing material relationship; never invent a practice.",
+                    {"context":context, "previous_exchange":turns[max(0,len(baseline)-2):len(baseline)],
+                     "new_exchange":suffix, "new_answers":[t["id"] for t in additions],
+                     "known_facts":[f["text"] for f in extra["fact_state"]["facts"]][-28:]},
+                    capture_facts.LIVE_EXCERPT_SCHEMA, "team_interview_capture", 1600, reasoning_effort="low",
+                    request_timeout=timeout, model_override=lead_model)
+                api.check_schema(fast_reply, capture_facts.LIVE_EXCERPT_SCHEMA)
+                transaction = capture_facts.excerpt_transaction(fast_reply, fact_state, additions)
+                if transaction:
+                    new_gap = fast_reply["open_relationship"]
+                    used_excerpts = True
             if transaction is None:
                 transaction = self.client.structured(
-                    capture_instructions(api, notes_only, action == "document_followup"),
-                    {"context": context, "turns": turns, "action": action,
+                    instructions,
+                    {"context": context, "turns": model_turns, "action": action,
                      "supporting_documents": supporting, **extra}, request_schema,
                     "team_interview_capture", output_tokens, reasoning_effort="low", request_timeout=timeout,
                     model_override=lead_model,
-                    on_text=observe if not notes_only else watch_states if new_document_baseline else None,
-                    # The first notes from a file are what the participant is waiting for.
+                    on_text=observe if not notes_only else watch_states if new_document_baseline or live_memory else None,
                     **({"fast": True} if fast else {}))
             if notes_only:
                 transaction.pop("question", None)
@@ -1388,8 +1428,18 @@ class Coordinator:
                 api.record_question_rejection(self.client, "team_question", "too_long")
                 transaction["question"] = ""
             api.check_schema(transaction, request_schema)
+            if sparse:
+                seen_topics = {row["key"] for row in transaction["topic_states"]}
+                for key, status in fact_state["topics"].items():
+                    if key not in seen_topics:
+                        transaction["topic_states"].append({"key": key, "status": "owner_followup" if status.get("owner_review_candidate") else status["status"],
+                            "participant_unavailable": status.get("participant_unavailable", False)})
             existing_ids = {row["id"] for row in fact_state["facts"]}
             fact_state = capture_facts.apply_delta(fact_state, transaction, context, turns, evidence, focus, preserve_on_limit=True)
+            fact_state["pending_live_excerpts"] = pending_excerpts + 1 if used_excerpts else 0
+            if live_memory:
+                raw_trace.emit("live.capture_method", {"excerpt": used_excerpts, "turns_read":len(suffix if used_excerpts else model_turns),
+                    "total_turns":len(turns), "fact_operations":len(transaction["fact_operations"])})
             stage = next((row for row in reversed(provider_usage.generated_by()) if row["stage"] == "team_interview_capture"), None)
             if stage:
                 for fact in fact_state["facts"]:
@@ -1403,6 +1453,10 @@ class Coordinator:
             if not capture["question"].strip():
                 capture["question"] = api.next_uncovered_question(capture)
             capture = api.validate_interview(capture, turns, evidence, carried, context=context)
+            if live_memory:
+                open_claims = [fact["text"] for fact in fact_state["facts"] if fact["state"] == "active"
+                               and fact["kind"] == "gap" and not fact_state["topics"][fact["topic"]].get("participant_unavailable")]
+                capture["question_candidates"] = gpfs_interview.question_candidates(turns, [new_gap, *open_claims])
             if deferred:
                 capture["unapplied_corrections"] = deferred
             fact_state = capture_facts.sync_review(fact_state, capture, context, turns, evidence)
@@ -1921,7 +1975,7 @@ class _MapJob:
         self.run.defer_roles(("coverage_reviewer", "process_reviewer"))
         # _map_only is set by the concurrent interview's own worker (it is removed from every
         # request body at the HTTP boundary): that map is background work.
-        self.map_only = payload.get("_map_only") is True
+        self.map_only = payload.get("_map_only") is True or payload.get("live_map") is True
         # Set by the concurrent interview for the map that follows a file the participant just added.
         self.fast = payload.get("_file_followup") is True and bool(self.evidence) and getattr(self.client, "fast_tier", False)
         self.generation_seconds = BACKGROUND_MAP_GENERATION_SECONDS if self.map_only else MAP_GENERATION_SECONDS
@@ -1932,6 +1986,17 @@ class _MapJob:
         self.deadline = self.started + (self.generation_seconds if draws else 0) + self.audit_seconds
         self.memo = {"memo_findings": [], "summary": self.previous["summary"], "focus": self.previous["focus"],
                      "parking_lot": self.previous["parking_lot"]}
+        self.fact_context = []
+        if payload.get("live_map") is True:
+            prior = coordinator._fact_record(payload, self.context, self.turns)
+            participant_ids = {t["id"] for t in self.turns if t["role"] == "user" and not t.get("document_event")}
+            if prior and prior.get("fact_state"):
+                for fact in prior["fact_state"]["facts"]:
+                    if fact["state"] == "active" and fact["kind"] != "gap" and fact["topic"] in (
+                            "trigger", "lifecycle", "completion", "checks", "variations", "accountable"):
+                        refs = fact["evidence_turns"]
+                        if refs and all(ref in participant_ids for ref in refs):
+                            self.fact_context.append({"text": fact["text"], "turns": refs})
 
     def restart(self):
         """Work from the empty baseline: the whole map is the update."""
@@ -1961,7 +2026,8 @@ class _MapJob:
             return self.client.structured(
                 workflow_instructions(api, self.map_only),
                 {"context": self.context, "turns": self.turns, "previous_capture": self.previous,
-                 "supporting_documents": self.supporting},
+                 "supporting_documents": self.supporting,
+                 **({"captured_process_facts": self.fact_context[-40:]} if self.fact_context else {})},
                 self.schema(api.WORKFLOW_UPDATE_SCHEMA), "team_working_process_map", allowance,
                 reasoning_effort="medium", request_timeout=seconds, model_override=self.lead_model,
                 **({"fast": True} if self.fast else {}))
@@ -2049,4 +2115,7 @@ class _MapJob:
             remember(self.previous["workflow"], capture["workflow"], self.context, self.turns, self.evidence, self.scope)
         if self.evidence:
             capture["document_evidence"] = self.evidence
+        if not drawn_only:
+            capture["question_candidates"] = gpfs_interview.question_candidates(
+                self.turns, capture["workflow"].get("open_questions", []))
         return capture

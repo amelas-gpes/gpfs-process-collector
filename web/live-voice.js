@@ -175,6 +175,7 @@
         sound:{input:0,output:0,inputActive:false,outputActive:false,playbackActive:false,
           playing:false,buffering:false,lastSample:null,lastInput:-Infinity,lastOutput:-Infinity},
         timers:new Set(), finalized:false, stopResolve:null, commentary:new Map(), said:null, lines:[], held:null,
+        recalled:new Set(),lookupRequests:new Map(),
         gate:null, speech:[], metered:[], inputClockLead:0, withheld:[], withheldFragments:0,
         greeting:Array.isArray(turns) && turns.length === 0 ? {status:"queued",event_id:null,name:spokenProcessName(context)} : null,
         context:{records:new Map(),history:new Map(),pending:new Map(),bytes:0,events:0}};
@@ -259,6 +260,7 @@
         // notes: the current capture summary and open topics. The server uses them only
         // when the transcript exceeds the Live history limit and it must seed a condensed history.
         const result = await this.options.request("/api/live-session", {sdp,context,turns,...(voice ? {voice} : {}),
+          ...(this.options.lookupInterview?{interview_memory:true}:{}),
           ...(document_scope !== undefined ? {document_scope} : {}),...(notes !== undefined ? {notes} : {})},
           {signal:op.controller.signal,timeout:this.options.requestTimeout?.("live_session",55000)||55000});
         if (!current()) return false;
@@ -330,6 +332,37 @@
         if (!op.closing) this.notify("onError","The live voice session ended. Your transcript is retained. Start talking again or continue by typing.");
         this.cleanup(op);return;
       }
+      if(event.type==="response.event"&&!op.closing&&this.options.lookupInterview){
+        const nested=event.event;
+        const responseId=channelEventId(nested?.response_id||nested?.response?.id||event.delegation_id);
+        if(nested?.type==="response.output_item.done"&&nested.item?.type==="function_call"&&responseId){
+          const calls=op.lookupRequests.get(responseId)||[];
+          if(calls.length<16&&op.lookupRequests.size<16){
+            calls.push(nested.item);op.lookupRequests.set(responseId,calls);
+          }
+        }
+        if(nested?.type==="response.failed"||nested?.type==="response.incomplete")op.lookupRequests.delete(responseId);
+        if(nested?.type==="response.completed"){
+          const calls=[...(op.lookupRequests.get(responseId)||[]),...(nested.response?.output||[]).filter(item=>item?.type==="function_call")];
+          op.lookupRequests.delete(responseId);
+          let sent=false;
+          for(const call of calls){
+            if(!channelEventId(call.call_id)||op.recalled.has(call.call_id))continue;
+            let result={passages:[],status:"unavailable"};
+            if(call.name==="lookup_interview"&&typeof call.arguments==="string"&&call.arguments.length<2000){
+              try{
+                const query=JSON.parse(call.arguments).query;
+                if(typeof query==="string"&&query.trim()&&query.length<=400)result=this.options.lookupInterview(query);
+              }catch{/* Incomplete arguments return an empty lookup. */}
+            }
+            sendEvent(op,{type:"response.item.create",event_id:"lookup_"+(++this.sequence),
+              item:{type:"function_call_output",call_id:call.call_id,output:JSON.stringify(result)}});
+            op.recalled.add(call.call_id);sent=true;
+          }
+          if(sent)sendEvent(op,{type:"response.create",event_id:"continue_"+(++this.sequence)});
+        }
+        return;
+      }
       if (event.type === "session.commentary.appended" || event.type === "session.instructions.appended") {
         if (op.greeting?.status === "sent" && event.client_event_id === op.greeting.event_id && !op.closing)
           this.finishGreeting(op,"acknowledged",null,event);
@@ -363,6 +396,9 @@
             if (!op.closing) this.notify("onError","Voice is connected. Say what work you'd like to walk through to begin.");
           }
           return;
+        }
+        if(typeof id==="string"&&/^(lookup|continue)_\d+$/.test(id)){
+          this.notify("onNotice","The earlier passage could not be retrieved. The interview can continue.");return;
         }
         const pending = op.context.pending.get(id);
         if (pending) {

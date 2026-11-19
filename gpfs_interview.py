@@ -4,11 +4,99 @@ Vocabulary guides questions; it never establishes a client's practice or an
 approved GPFS standard. No provider, filesystem or runtime work occurs here.
 """
 import copy
+from collections import Counter, defaultdict
+import hashlib
 import re
 import unicodedata
 
 
 STEP_DETAIL_FIELDS = ("duration", "deadline", "frequency", "responsible", "accountable", "consulted", "informed", "system", "control", "exception")
+
+# Words that cannot identify which part of a process a question concerns.
+_GENERAL = set("""about after again already also another asked before could detail determine
+does each else from goes happen happens have into know more next other precisely process
+question really reported second should someone something specific stated step team tell
+that their them then there these they this through unknown what when where whether which
+while with work would your""".split())
+_MATERIAL = re.compile(r"\b(approv\w*|sign.off|releas\w*|hold|blocks?|resum\w*|reject\w*|handoff|criteria|criterion|threshold|replace[sd]?)\b", re.I)
+_CORRECTION = re.compile(r"\b(actually|correction|instead|no longer|i meant|scratch that|used to|not anymore)\b", re.I)
+
+
+def memory_terms(text):
+    words = re.findall(r"[^\W_]+", unicodedata.normalize("NFKC", text).casefold())
+    return {w.rstrip("s") for w in words if len(w) >= 4 and w not in _GENERAL}
+
+
+def question_candidates(turns, questions):
+    """Rank grounded leads. Each quote is participant testimony, each lead an unresolved hypothesis."""
+    answers = [t for t in turns if t.get("role") == "user" and not t.get("document_event")]
+    if not answers:
+        return []
+    index = defaultdict(list)
+    for n, turn in enumerate(answers):
+        for term in memory_terms(turn["text"]):
+            index[term].append(n)
+    turn_terms = [memory_terms(t["text"]) for t in turns]
+    positions = {t["id"]: i for i, t in enumerate(turns)}
+    asked = [turn_terms[i] for i, t in enumerate(turns) if t.get("role") == "assistant" and "?" in t["text"]]
+    exchanges = [(i, turn_terms[i], turn_terms[i] | turn_terms[i+1]) for i, t in enumerate(turns[:-1])
+                 if t.get("role") == "assistant" and turns[i+1].get("role") == "user"]
+    ranked = []
+    for lead in dict.fromkeys(q for q in questions if isinstance(q, str)):
+        lead = re.sub(r"^\s*(?:unknown|open question)\s*:\s*", "", lead, flags=re.I).strip()
+        if not lead or len(lead) > 600:
+            continue
+        terms = memory_terms(lead)
+        if not terms or any(len(terms & prior) / max(1, len(terms | prior)) >= .65 for prior in asked):
+            continue
+        scores, hits = Counter(), Counter()
+        for term in terms:
+            for n in index.get(term, ()):
+                scores[n] += 1 / len(index[term])
+                hits[n] += 1
+        matches = [n for n in scores if hits[n] >= 2]
+        if not matches:
+            continue
+        best = max(matches, key=lambda n: (scores[n], n))
+        source = answers[best]
+        # Cite the sentence carrying the match, including qualifiers. Keep its exact wording.
+        sentences = re.split(r"(?<=[.!?])\s+", source["text"].strip())
+        quote = max(sentences, key=lambda s: len(terms & memory_terms(s)))
+        if not quote or len(quote) > 650:
+            continue
+        anchors = sorted(terms & memory_terms(quote), key=lambda w: (len(index[w]), w))[:5]
+        if len(anchors) < 2:
+            continue
+        # A later reply to this same issue can resolve it even when an older map
+        # continues to list the question. Leave that case for the next review.
+        source_pos = positions[source["id"]]
+        anchor_set = set(anchors)
+        if any(i > source_pos and (len(anchor_set & question) >= 2 or len(anchor_set & exchange) >= 3)
+               for i, question, exchange in exchanges):
+            continue
+        identity = hashlib.sha256((" ".join(sorted(terms))).encode()).hexdigest()[:16]
+        candidate = {"id": identity, "gap": lead, "source": source["id"], "quote": quote, "anchors": anchors}
+        ranked.append(((bool(_MATERIAL.search(lead)), scores[best], best), candidate))
+    return [item for _, item in sorted(ranked, key=lambda pair: pair[0], reverse=True)[:4]]
+
+
+def resume_passages(turns):
+    """Select verbatim operating evidence across the account, including later corrections."""
+    groups = (r"trigger|starts?|begins?|request|receiv\w*", r"if|unless|depending|otherwise",
+              r"approv\w*|sign.off|director|authoriz\w*", r"hold|reject\w*|rework|correct\w*",
+              r"releas\w*|portal|complet\w*|notif\w*")
+    answers = [t for t in turns if t.get("role") == "user" and not t.get("document_event")]
+    selected = {}
+    for pattern in [_CORRECTION, *(re.compile(r"\b(?:" + part + r")\b", re.I) for part in groups)]:
+        candidates = [(t, s) for t in answers for s in re.split(r"(?<=[.!?])\s+", t["text"].strip())
+                      if t["id"] not in selected and 12 <= len(s) <= 550 and pattern.search(s)]
+        if candidates and pattern is _CORRECTION:
+            t, sentence = candidates[-1]
+            selected[t["id"]] = sentence
+        elif candidates:
+            t, sentence = max(candidates, key=lambda pair: (len(set(pattern.findall(pair[1].lower()))), -len(pair[1]) if len(pair[1]) > 300 else 0))
+            selected[t["id"]] = sentence
+    return [{"turn": k, "quote": v} for k, v in selected.items()]
 
 
 def _detail_text(value):

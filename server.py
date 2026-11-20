@@ -314,11 +314,11 @@ AI_VOICE_IDS = {voice["id"] for voice in AI_VOICES}
 # policy review here; client input and environment variables cannot widen CSP.
 APPROVED_BROWSER_CONNECT_SOURCES = frozenset({"wss://api.openai.com"})
 COVERAGE = {
-    "name": "Name & other names", "purpose": "Purpose & result", "trigger": "Start, cadence & deadlines",
+    "name": "Process name", "purpose": "Purpose & result", "trigger": "Start, cadence & deadlines",
     "completion": "Finished condition", "accountable": "Accountability", "lifecycle": "Items, stages & handoffs",
     "checks": "Checks, approvals & proof", "variations": "Variations and conditions",
     "pain_points": "Manual work & pain", "risk": "Consequences of failure", "materials": "Existing materials",
-    "scope": "Scope & entity context", "rules": "Business rules & lineage",
+    "scope": "Where it applies", "rules": "Business rules & lineage",
     "connections": "Connected processes", "data_systems": "Data & systems", "volume": "Volume & effort",
 }
 

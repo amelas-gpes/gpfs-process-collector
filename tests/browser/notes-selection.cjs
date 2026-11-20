@@ -59,7 +59,7 @@ async function exercise(browser, url, width) {
     await page.locator("#conversation-tab-transcript").click();
     if (await page.locator("#open-memo").isVisible()) await page.locator("#open-memo").click();
     await page.evaluate(() => {
-      const {state, renderCoverage} = window.notesFixture;
+      const {state, renderTranscript} = window.notesFixture;
       state.example = false;
       state.coverageVerified = false;
       state.config.concurrent_interview = {enabled:true};
@@ -68,7 +68,9 @@ async function exercise(browser, url, width) {
       state.coverage = [];
       state.advisory = {};
       state.consolidation = [];
-      renderCoverage();
+      // Render the replacement interview before measuring pointer positions. The example
+      // banner above the rail otherwise disappears during the subsequent capture update.
+      renderTranscript();
     });
     const meter=page.getByRole("progressbar",{name:"Topic coverage",exact:true});
     const arc=page.locator("#coverage-progress");
@@ -146,7 +148,9 @@ async function exercise(browser, url, width) {
     assert.equal(focusAfterReopen, "name", "A later keyboard move can select the original opener again");
     await topic(page, "name").focus();
     await page.keyboard.press("Enter");
-    await checkDialog(page, "Name and scope", nameAnswer);
+    assert.equal(await page.locator("#foundation-topic-scope").innerText(), "Process name");
+    assert.equal(await page.locator("#foundation-topic-status").innerText(), "Not covered");
+    await checkDialog(page, "Invoice approval and payment handoff", nameAnswer);
     await page.keyboard.press("Tab");
     assert.equal(await topic(page, "purpose").evaluate(button => button === document.activeElement), true);
     await page.keyboard.press("Space");
@@ -188,6 +192,10 @@ async function exercise(browser, url, width) {
       await restored.locator("#session-file").setInputFiles({name:"hold.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(saved))});
       await restored.waitForFunction(()=>document.querySelector("#process-name").value==="Method B release");
       if(await restored.locator("#open-memo").isVisible())await restored.locator("#open-memo").click();
+      await topic(restored,"name").click();
+      await restored.getByRole("dialog",{name:"Method B release",exact:true}).waitFor();
+      assert.equal(await restored.locator("#foundation-topic-scope").innerText(),"Process name");
+      await restored.keyboard.press("Escape");
       const restoredTopic=topic(restored,"completion");
       await restoredTopic.focus();await restored.keyboard.press("Enter");
       const restoredGaps=restored.locator("#foundation-topic-gaps");

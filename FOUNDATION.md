@@ -60,7 +60,7 @@ Each topic needs a substantive answer or an explicitly recorded gap. `UNKNOWN` i
 
 | Memo topic | What the interview must capture |
 | --- | --- |
-| 1. Name and other names | Everyday name, checklist/system names and names used by other teams; preserve meaningful distinctions. |
+| 1. Process name | Everyday name, checklist/system names and names used by other teams; preserve meaningful distinctions. |
 | 2. Purpose | One sentence describing what the client or firm has at the end that it did not have at the start. |
 | 3. Start, cadence and fixed deadlines | The specific event that actually initiates work, who receives or detects it, normal frequency, relevant dates and deadlines that cannot move. Distinguish asserted obligations from documents actually reviewed. |
 | 4. Finished condition | Observable conditions demonstrating the result is complete, including downstream posting, reconciliation, delivery or closure when applicable; not merely the last task named. |
@@ -71,7 +71,7 @@ Each topic needs a substantive answer or an explicitly recorded gap. `UNKNOWN` i
 | 9. Manual or painful work | Time-consuming activities, errors, repeated entry, reconciliations, chasing and workarounds. Preserve rough effort as an attributed estimate. |
 | 10. Consequence of failure | What could go wrong for money, investors, clients, deadlines, regulation or internal operations, as described by the participant. |
 | 11. Existing written material | Checklists, procedures, templates, sample outputs, screenshots, tickets and training notes, with a link/location or attachment when provided. Record materials mentioned but not reviewed as unreviewed. |
-| 12. Scope and entity context | Entity/product types or enterprise scope; single/multiple applicability and branch points; GPFS standard versus client route with basis; parent lifecycle or whole process. |
+| 12. Where it applies | Entity/product types or enterprise scope; single/multiple applicability and branch points; GPFS standard versus client route with basis; parent lifecycle or whole process. |
 | 13. Business rules and lineage | Sources, authority/conflicts, interpreter and recorded interpretation, implementation, client modifications; relevant calculation inputs, sequence, dimensions, dates, rounding, prior periods, overrides and corrections. Keep economic rules distinct from implementation. |
 | 14. Connected processes | Named upstream, downstream, embedded and parallel work, shared calculations and blocking dependencies with readiness evidence. |
 | 15. Data and systems | Reported system of record, input origin, entry mode/re-keying, workbook logic ownership, calculation location/repetition, storage and file-only information. |

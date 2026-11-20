@@ -9,6 +9,7 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
 ## Unreleased
 
+- **Process name** now shows the recognized or edited name in Notes. **Where it applies** covers funds, clients and other entities that use the process. The naming check focuses on the name and aliases.
 - **Start talking** now asks whether you have files for the process. Go straight to the interview, or choose files and start with a question based on what they cover.
 - A topic opened from **Notes** now appears inside the Workspace panel instead of a dialog over the page, so the voice and transcript stay in view and usable. It shows the current understanding, what is still open and compact sources, and steps through the 16 topics with the arrows, the arrow keys or a strip that shows each topic's coverage. Esc returns to the list.
 - A workflow step selected on a diagram now opens in the same kind of panel as a topic: beside the Workspace on Interview, and docked in the map's frame on Review, in an expanded map and in Cinematic, where the map makes room for it when it is wide enough. Neither is a dialog over the page any more: the map stays usable, selecting another step updates the panel, and the arrows or arrow keys step through the map in order. A cited document passage opens with the same header and type.

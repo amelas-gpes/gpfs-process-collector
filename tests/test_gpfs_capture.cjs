@@ -32,5 +32,5 @@ const restored=app.normalizeDraft(JSON.parse(JSON.stringify(saved.draft)),saved.
 assert.equal(JSON.stringify(restored.taxonomy),JSON.stringify(saved.draft.taxonomy));
 assert.equal(JSON.stringify(restored.connections_out),JSON.stringify(saved.draft.connections_out));
 const markdown=app.markdown(),memo=app.memoMarkdown();
-for(const text of ["## Classification","## Connected processes","Scope and entity context","Business rules and lineage","Data and systems","Volume and effort"]){assert(markdown.includes(text),text);assert(memo.includes(text),text);}
+for(const text of ["## Classification","## Connected processes","Process name","Where it applies","Business rules and lineage","Data and systems","Volume and effort"]){assert(markdown.includes(text),text);assert(memo.includes(text),text);}
 console.log(JSON.stringify({checks_passed:checks,provider_calls:0,network_calls:0}));

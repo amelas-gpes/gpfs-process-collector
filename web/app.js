@@ -19,28 +19,28 @@
     }));
   }
   const TOPICS = [
-    ["name", "Name and scope"], ["purpose", "Purpose"], ["trigger", "Starting point"],
+    ["name", "Process name"], ["purpose", "Purpose"], ["trigger", "Starting point"],
     ["completion", "End point"], ["accountable", "Owner"], ["lifecycle", "Flow of work"],
     ["checks", "Checks and controls"], ["variations", "Variations"], ["pain_points", "Pain points"],
     ["risk", "Risks"], ["materials", "Documents"],
-    ["scope", "Scope and entities"], ["rules", "Rules and sources"], ["connections", "Connected processes"],
+    ["scope", "Where it applies"], ["rules", "Rules and sources"], ["connections", "Connected processes"],
     ["data_systems", "Data and systems"], ["volume", "Volume and effort"]
   ];
   const MEMO_HEADINGS = {
-    name:"Name and other names",purpose:"Purpose",trigger:"Start, cadence and fixed deadlines",
+    name:"Process name",purpose:"Purpose",trigger:"Start, cadence and fixed deadlines",
     completion:"Finished condition",accountable:"Accountability",lifecycle:"Things, stages, locations and handoffs",
     checks:"Checks, approvals and proof",variations:"Differences",pain_points:"Manual or painful work",
-    risk:"Consequence of failure",materials:"Existing written material",scope:"Scope and entity context",
+    risk:"Consequence of failure",materials:"Existing written material",scope:"Where it applies",
     rules:"Business rules and lineage",connections:"Connected processes",data_systems:"Data and systems",volume:"Volume and effort"
   };
   const TOPIC_GUIDES = {
-    name:"The work's name, other names and boundary.",purpose:"The result this work is meant to deliver.",
+    name:"What people call this process, including other names used by teams or systems.",purpose:"The result this work is meant to deliver.",
     trigger:"What starts the work, how often it happens and any deadlines.",completion:"What must be true for this work to be finished.",
     accountable:"The role accountable for the overall result; it may remain unknown.",lifecycle:"The items, stages, locations and handoffs along the route.",
     checks:"The reported checks, reviewers, approvals and supporting evidence.",variations:"Where the process differs and whether that changes its boundary.",
     pain_points:"Manual work, waiting, rework and other friction.",risk:"What happens if this work is late, wrong or missed.",
     materials:"Existing procedures, templates, examples and other useful records.",
-    scope:"Entities or enterprise scope, client applicability, standard basis and parent process.",
+    scope:"Which funds, clients or other entities follow this process, whether it applies across the organization, and where it fits in the wider workflow.",
     rules:"Where rules originate, who interprets them and how calculations implement them.",
     connections:"Upstream, downstream, embedded and parallel work and dependencies.",
     data_systems:"Recorded result, input origins, entry mode, workpapers and repeated calculations.",
@@ -1001,6 +1001,7 @@
     // A derived label is presentation metadata. Changing source context here
     // would invalidate the concurrent question, voice and analysis revisions.
     state.derivedProcessTitle=title;$("process-name").value=title;
+    if(foundationTopic==="name")renderFoundationHeading("name");
     if(!state.importing){
       state.dirty=true;$("live-status").textContent=`Process named: ${title}. You can edit the title above.`;updateSaveHint();
     }
@@ -2034,20 +2035,27 @@
     const rail=$("memo-rail"),host=$("memo-host");
     return Boolean(rail&&host&&rail.parentElement===host&&!$("interview-view")?.classList.contains("workflow-expanded")&&host.getClientRects?.().length);
   }
+  function renderFoundationHeading(key) {
+    const [,label]=TOPICS.find(([topic])=>topic===key);
+    const name=key==="name"?$("process-name").value.trim():"";
+    const title=name||label, subtitle=name?label:MEMO_HEADINGS[key]||label;
+    setText($("foundation-topic-title"),title);
+    const scope=$("foundation-topic-scope");
+    if(scope){
+      setText(scope,subtitle.toLowerCase()===title.toLowerCase()?"":subtitle);
+      scope.hidden=!scope.textContent;
+    }
+  }
   function showFoundationTopic(key, trigger) {
-    if (!TOPICS.some(([topic]) => topic === key)) return;
+    const index=TOPICS.findIndex(([topic])=>topic===key);
+    if(index<0)return;
     const dialog = $("foundation-dialog");
     if (!dialog || typeof dialog.show !== "function") {notice("This browser can’t show topic details. Try a current version of Chrome or Edge.",true);return;}
     const finding = topicFinding(key);
     const switching=dialog.open&&foundationTopic!==key;
     if (!dialog.open || switching) foundationReturnFocus = trigger?.closest?.("dialog")&&!trigger.closest("dialog").open ? $("open-memo") : trigger;
     foundationTopic = key;
-    // The sheet is titled by the label the participant clicked; the report's heading for the
-    // section sits under it when it says something different.
-    const index=TOPICS.findIndex(([topic])=>topic===key),label=TOPICS[index][1],heading=MEMO_HEADINGS[key]||label;
-    $("foundation-topic-title").textContent = label;
-    const scope=$("foundation-topic-scope");
-    if(scope){scope.textContent=heading.toLowerCase()===label.toLowerCase()?"":heading;scope.hidden=!scope.textContent;}
+    renderFoundationHeading(key);
     const docked=stepInspector();
     if(docked?.open&&docked.parentElement===dialog.parentElement){workflowDetailReturn=null;docked.close();}
     setInspectorStepper("foundation-topic",index,TOPICS.map(([topic,name])=>({key:topic,name})),"topic");
@@ -8734,6 +8742,7 @@
     $("draft-confirm-current")?.addEventListener("click",confirmDraftCurrent);
     $("process-name").addEventListener("input",()=>{
       state.processNameManual=Boolean($("process-name").value.trim());state.derivedProcessTitle="";
+      if(foundationTopic==="name")renderFoundationHeading("name");
       if(state.context){if(state.context.process_name!==$("process-name").value.trim())contextReviewChanged();state.context.process_name=$("process-name").value.trim();state.version++;if(conversationUI.workflow)conversationUI.workflow.title=state.context.process_name;}
       updateControls();
     });

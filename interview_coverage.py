@@ -21,7 +21,7 @@ except ModuleNotFoundError:
 
 TOPIC_DIMENSIONS = {
     "name": {
-        "everyday_name": "Everyday name, included work, scope and boundaries.",
+        "everyday_name": "The everyday name people use for this work.",
         "other_names": "Other team, checklist or system names, or an explicit absence of other names.",
     },
     "purpose": {

@@ -7,7 +7,7 @@
 // captions arrive through the real receiveLiveCaption. No browser, provider or network.
 const assert=require("node:assert/strict");
 const {open}=require("./fixtures/app_page.cjs");
-const EXPOSE="renderTranscript,renderCoverage,receiveLiveCaption,showFoundationTopic,closeFoundationTopic,tab,selectConversationView,rememberCoverageCheckpoint,normalizedFacts,snapshot,sessionObject,applySavedSession";
+const EXPOSE="renderTranscript,renderCoverage,receiveLiveCaption,showFoundationTopic,closeFoundationTopic,tab,selectConversationView,rememberCoverageCheckpoint,normalizedFacts,snapshot,sessionObject,applySavedSession,ensureConversation,applyProcessTitle";
 const topic=(page,key)=>page.document.querySelector(`[data-foundation-topic="${key}"]`);
 const fileEvidence={id:"doc_sample_page1",document_id:"doc_sample",name:"Procedure.csv",label:"Procedure.csv · row 2",text:"A weekly count starts an order. The buyer checks stock afterwards."};
 function fileNotes(page){
@@ -83,6 +83,48 @@ async function check(name,fn){
   // The open topic stays marked as selected through re-renders, and loses the mark when it closes.
   page.t.showFoundationTopic("risk",risk);page.t.renderCoverage();assert.equal(risk.classList.contains("selected"),true);assert.equal(purpose.classList.contains("selected"),false);
   page.t.closeFoundationTopic();page.t.renderCoverage();assert.equal(risk.classList.contains("selected"),false);
+ });
+ await check("an open name topic follows inferred and manual titles while keeping its partial notes and source",async()=>{
+  const page=await open({config,expose:EXPOSE});
+  assert.ok(page.t.ensureConversation());
+  const answer="Our team calls this a capital call. We still need to establish where it ends.";
+  page.state.turns=[{id:"t001",role:"user",text:answer}];
+  page.state.memo_findings=[{key:"name",status:"partial",answer,evidence_turns:["t001"]}];
+  page.t.renderTranscript();
+  const row=topic(page,"name");
+  assert.ok(row.click());
+  const heading=()=>page.text("foundation-topic-title"),subtitle=()=>page.text("foundation-topic-scope");
+  assert.equal(heading(),"Process name");
+  assert.equal(page.$("foundation-topic-scope").hidden,true);
+  const source=page.$("foundation-topic-sources").querySelector(".evidence-link");
+  assert.equal(source.dataset.sourceTurn,"t001");
+  const focus=page.document.activeElement;
+  page.t.applyProcessTitle("Capital Call");
+  assert.equal(heading(),"Capital Call");
+  assert.equal(subtitle(),"Process name");
+  assert.equal(topic(page,"name"),row);
+  assert.equal(page.document.activeElement,focus,"An arriving process title leaves focus in place");
+  assert.equal(page.text("foundation-topic-status"),"Needs detail");
+  assert.equal(page.text("foundation-topic-answer"),answer);
+  assert.equal(page.$("foundation-topic-sources").querySelector(".evidence-link"),source);
+  assert.equal(page.state.context.process_name,"","An inferred title does not change the participant's supplied context");
+  page.$("process-name").input("Partner Capital Call");
+  page.t.applyProcessTitle("Earlier suggestion");
+  assert.equal(heading(),"Partner Capital Call");
+  page.$("process-name").input("");
+  assert.equal(heading(),"Process name");
+  assert.equal(page.$("foundation-topic-scope").hidden,true);
+  assert.equal(page.text("foundation-topic-answer"),answer);
+  assert.equal(page.text("foundation-topic-status"),"Needs detail");
+  page.t.applyProcessTitle("Quarterly Capital Call");
+  assert.equal(heading(),"Quarterly Capital Call");
+  assert.ok(page.$("foundation-topic-next").click());
+  assert.equal(heading(),"Purpose");
+  assert.equal(page.$("foundation-topic-scope").hidden,true);
+  assert.ok(topic(page,"scope").click());
+  assert.equal(heading(),"Where it applies");
+  const guidance=page.text("foundation-topic-gaps");
+  for(const term of [/fund/i,/client/i,/entit/i])assert.match(guidance,term);
  });
  await check("a press on a source link in an open topic that straddles caption deltas still opens the source",async()=>{
   const page=await open({config,expose:EXPOSE}),delta=await voice(page);

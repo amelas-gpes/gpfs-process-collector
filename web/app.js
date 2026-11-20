@@ -313,16 +313,37 @@
   }
   // The command stays in the transcript. A final request for process evidence reads only the account before it.
   let liveStopTurn=null,liveDelivery=null;
+  const stopSaid=match=>match[0].trim().toLowerCase().replace(/,?\s+please$/u,"");
+  const stopAsked=(patterns,text)=>(patterns||[]).some(pattern=>new RegExp(pattern,"u").test(text));
+  // The server sends which words are only a courtesy or a goodbye ("Thanks.", "Okay, bye.").
+  const stopCourtesy=()=>{const pattern=state.config?.agent_team?.stop_sign_off_pattern;return pattern?new RegExp(pattern,"u"):null;};
   function voiceStopPrefix(value){
-    const last=[...value.matchAll(/[^.!?]+/gu)].filter(match=>match[0].trim()).at(-1);
+    const team=state.config?.agent_team||{},sentences=[...value.matchAll(/[^.!?]+/gu)].filter(match=>match[0].trim());
+    const last=sentences.at(-1);
     if(!last)return null;
-    const end=last[0].trim().toLowerCase().replace(/,?\s+please$/u,"");
-    const patterns=state.config?.agent_team?.stop_intent_patterns||[];
-    return patterns.some(pattern=>new RegExp(pattern,"u").test(end))?value.slice(0,last.index).trimEnd():null;
+    if(stopAsked(team.stop_intent_patterns,stopSaid(last)))return value.slice(0,last.index).trimEnd();
+    // A request that names the speaker stands with courtesies around it: "I need to stop
+    // now. Thanks.", "Sorry, I need to stop now, thanks." A bare "Stop." does not.
+    const courtesy=stopCourtesy();
+    if(!courtesy)return null;
+    let end=sentences.length;
+    while(end>1&&courtesy.test(stopSaid(sentences[end-1])))end--;
+    const request=sentences[end-1],clauses=stopSaid(request).split(/\s*,\s*/u);
+    while(clauses.length>1&&courtesy.test(clauses.at(-1)))clauses.pop();
+    while(clauses.length>1&&courtesy.test(clauses[0]))clauses.shift();
+    return stopAsked(team.stop_named_intent_patterns,clauses.join(", "))?value.slice(0,request.index).trimEnd():null;
+  }
+  // Answers that are only courtesies, said after the request to stop ("Thanks."), are part of it.
+  function courtesyOnly(text){
+    const courtesy=stopCourtesy(),sentences=[...text.matchAll(/[^.!?]+/gu)].filter(match=>match[0].trim());
+    return Boolean(courtesy&&sentences.length)&&sentences.every(sentence=>courtesy.test(stopSaid(sentence)));
   }
   function processEvidence(captured){
     if(!liveStopTurn)return captured;
-    const index=captured.turns.findLastIndex(turn=>turn.role==="user"&&!turn.document_event),turn=captured.turns[index];
+    const said=captured.turns.flatMap((turn,index)=>turn.role==="user"&&!turn.document_event?[index]:[]);
+    let at=said.length-1;
+    while(at>0&&captured.turns[said[at]].id!==liveStopTurn.id&&courtesyOnly(captured.turns[said[at]].text))at--;
+    const index=said[at]??-1,turn=captured.turns[index];
     if(turn?.id!==liveStopTurn.id||turn.text!==liveStopTurn.text)return captured;
     const turns=captured.turns.slice(0,index);
     if(liveStopTurn.prefix)turns.push({...turn,text:liveStopTurn.prefix});

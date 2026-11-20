@@ -363,10 +363,21 @@ class ConcurrentHTTPTests(unittest.TestCase):
     def test_sync_of_a_stopped_recording_also_captures_its_substantive_prefix(self):
         self.check_stop_prefix("/api/conversation/sync")
 
-    def check_stop_prefix(self, route):
+    # In live voice the interviewer can answer the request before the participant says
+    # "Thanks.", which is then a turn of its own after the interviewer's line.
+    THANKS_AFTER_THE_LINE = ({"id": "line", "role": "assistant", "text": "And who approves it? Of course, we can pause here."},
+                             {"id": "thanks", "role": "user", "text": "Thanks."})
+
+    def test_a_thank_you_after_a_stop_is_part_of_it(self):
+        self.check_stop_prefix("/api/conversation/turn", "I log it in the register. I need to stop now.", self.THANKS_AFTER_THE_LINE)
+
+    def test_sync_of_a_stop_with_a_thank_you_after_it(self):
+        self.check_stop_prefix("/api/conversation/sync", "I log it in the register. I need to stop now.", self.THANKS_AFTER_THE_LINE)
+
+    def check_stop_prefix(self, route, original="I log it in the register. Please stop the interview.", after=()):
         payload = self.client.payload()
-        original = "I log it in the register. Please stop the interview."
         payload["turns"].append({"id": "closing_answer", "role": "user", "text": original})
+        payload["turns"].extend(after)
         status, pause = self.post(route, payload)
         self.assertEqual(status, 200, pause)
         self.assertEqual(pause["speech_authorization"]["kind"], "pause")
@@ -384,7 +395,7 @@ class ConcurrentHTTPTests(unittest.TestCase):
         for body in requests:
             turns = json.loads(body["input"][0]["content"])["turns"]
             self.assertEqual(turns[-1], {"id": "closing_answer", "role": "user", "text": "I log it in the register."})
-        self.assertEqual(payload["turns"][-1]["text"], original)
+        self.assertEqual(payload["turns"][-1 - len(after)]["text"], original)
 
     def test_parallel_delivery_of_one_action_runs_the_question_once(self):
         entered, release = threading.Event(), threading.Event()

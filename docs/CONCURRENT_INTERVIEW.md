@@ -115,7 +115,9 @@ were in this module and its callers, and each is changed:
   when it is done the interview queues its next one behind the others. One map
   worker used to serve the whole server and stayed with one interview for as long
   as it had work. `COLLECTOR_MAP_WORKERS` (default 2, 1 to 8) maps are drawn at
-  once; checks use one worker fewer, at least one.
+  once; checks use one worker fewer, at least one. `COLLECTOR_NOTES_WORKERS` (default 2, 1 to 8)
+  notes are written at once; on a server shared by several people raise it, since
+  with six interviews answering every 20 seconds two workers never caught up.
 
 At Wrap up (action `close`) a map that was built answer by answer is compared
 once with a map drawn from the whole account, because an incrementally updated

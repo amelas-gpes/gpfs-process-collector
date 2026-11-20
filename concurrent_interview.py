@@ -237,7 +237,7 @@ class ConcurrentInterview:
     # never holds the notes back (a queued or failed map used to block Wrap up for five minutes).
     MAP_WAIT_SECONDS = 2.0
 
-    def __init__(self, client, api, validate_sources=None, max_sessions=32, workers=2, map_workers=None):
+    def __init__(self, client, api, validate_sources=None, max_sessions=32, workers=None, map_workers=None):
         self.client, self.api = client, api
         self.validate_sources = validate_sources
         self.max_sessions = max_sessions
@@ -249,6 +249,8 @@ class ConcurrentInterview:
         # another: notes, the map as it is drawn, and the source check of that map. One map
         # worker used to serve every interview on the server and each map was a draw followed
         # by its check, so a check that took minutes held up every other map.
+        if workers is None:
+            workers = getattr(client, "notes_workers", 2)
         if map_workers is None:
             map_workers = getattr(client, "map_workers", 2)
         self._notes = _Pool("collector-analysis", workers, self._lock)
@@ -1565,10 +1567,13 @@ class ConcurrentInterview:
         if (session.get("pause") or {}).get("revision") == revision:
             return True
         turns = payload["turns"]
-        last = next((i for i in reversed(range(len(turns))) if turns[i]["role"] == "user"
-                     and not turns[i].get("document_event")), None)
-        if last is None:
+        said = [i for i in range(len(turns)) if turns[i]["role"] == "user" and not turns[i].get("document_event")]
+        if not said:
             return False
+        # The request itself, also when only a courtesy ('Thanks.') has followed it.
+        find = getattr(self.api, "stop_request_turn", None)
+        request = find(turns) if callable(find) else None
+        last = next((i for i in said if turns[i] is request), said[-1])
         split = getattr(self.api, "stop_request_prefix", None)
         prefix = split(turns[last]["text"]) if callable(split) else None
         evidence_turns = turns[:last]
@@ -1796,7 +1801,9 @@ class ConcurrentInterview:
             if self._closed or session.get("abandoned"):
                 raise self.api.APIError("This conversation has ended.", 409)
             split = getattr(self.api, "stop_request_prefix", None)
-            latest = next((t for t in reversed(payload["turns"]) if t["role"] == "user" and not t.get("document_event")), None)
+            find = getattr(self.api, "stop_request_turn", None)
+            latest = (find(payload["turns"]) if callable(find) else
+                      next((t for t in reversed(payload["turns"]) if t["role"] == "user" and not t.get("document_event")), None))
             mixed_stop = (latest and callable(split) and self.api.participant_requested_stop(payload["turns"], payload.get("action", "answer"))
                           and split(latest["text"]))
             kind = (session.get("synchronized") or {}).get("speech_authorization", {}).get("kind")

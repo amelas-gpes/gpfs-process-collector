@@ -87,6 +87,12 @@ REPLY FORMAT
 Each section's text is shown with a line number before every line ("12| text"); the numbers are not part of
 the text. A fact names its supporting passage in support as the section's source_id with first_line and
 last_line (at most 8 lines). Do not copy the passage: the application cuts it from the section itself."""
+# What the sweep adds when a file it reads was read only up to a limit (context_coverage.read_limit).
+SWEEP_CUT_NOTE = """
+A file whose context_coverage has a read_limit was read only up to that limit: its sections here end there.
+Record nothing about the part of it that was not read."""
+# The selection named for such a file when all of its indexed text is supplied.
+CUT_SELECTION = "all indexed text (file read up to a limit)"
 
 WHOLE_INSTRUCTIONS = """
 
@@ -157,8 +163,11 @@ def plan(supporting, sections_by_document):
     for document, sections in files:
         target = whole_documents[document["id"]]
         target["excerpts"] = [_excerpt(document, section) for section in sections]
+        # A file read only up to a page, row, sheet or cell limit (context_coverage.read_limit): all of
+        # its index is supplied, and that is not the whole file.
+        cut = bool((target.get("context_coverage") or {}).get("read_limit"))
         target["context_coverage"] = {**(target.get("context_coverage") or {}), "included_chunks": len(sections),
-                                      "complete_text": True, "selection": "whole file",
+                                      "complete_text": not cut, "selection": CUT_SELECTION if cut else "whole file",
                                       "all_indexed_sections_supplied": True, "text_sections_supplied": len(sections)}
     lines = {section["id"]: section["text"].split("\n") for _, sections in files for section in sections}
     return {"supporting": whole, "files": files, "parts": parts, "total_chars": total, "total_facts": facts, "lines": lines}
@@ -258,7 +267,9 @@ def sweep_request(reading, base_payload):
     ids = list(chosen)
     schema = part_schema(ids, 8)
     schema["properties"]["fact_operations"]["maxItems"] = 16
-    return {**copy.deepcopy(base_payload), "supporting_documents": value}, SWEEP_INSTRUCTIONS, schema
+    cut = any((row.get("context_coverage") or {}).get("read_limit") for row in value.get("documents", []))
+    return ({**copy.deepcopy(base_payload), "supporting_documents": value},
+            SWEEP_INSTRUCTIONS + (SWEEP_CUT_NOTE if cut else ""), schema)
 
 
 def part_output_tokens(budget):

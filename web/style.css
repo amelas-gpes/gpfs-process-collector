@@ -1335,7 +1335,7 @@ dialog.inspector:not([open]) { pointer-events: none; }
 }
 
 /* ─── Reading, search and navigation tools ───────────────────────────────── */
-.inline-error { flex: none; display: flex; align-items: center; gap: 12px; max-height: 100px; margin: 0 20px 10px; padding: 10px 12px 10px 14px; overflow: auto; border: 1px solid color-mix(in oklch, var(--danger) 30%, transparent); border-radius: var(--r-md); background: var(--danger-soft); color: var(--danger); font-size:var(--text-sm); line-height: 1.5; }
+.inline-error { flex: none; display: flex; align-items: safe center; gap: 12px; max-height: 100px; margin: 0 20px 10px; padding: 10px 12px 10px 14px; overflow: auto; border: 1px solid color-mix(in oklch, var(--danger) 30%, transparent); border-radius: var(--r-md); background: var(--danger-soft); color: var(--danger); font-size:var(--text-sm); line-height: 1.5; }
 .inline-error::before { content: ""; flex: none; width: 18px; height: 18px; background: currentColor; -webkit-mask: var(--i-alert) center/contain no-repeat; mask: var(--i-alert) center/contain no-repeat; }
 .inline-error span { flex: 1; }
 .inline-error button { padding: 6px 10px; border: 0; border-radius: var(--r-pill); background: transparent; color: inherit; font-size:var(--text-sm); font-weight: 600; }
@@ -1452,6 +1452,11 @@ dialog.inspector:not([open]) { pointer-events: none; }
   .memo-status { max-width: 110px; white-space: normal; text-align: center; }
   .example-banner { padding: 3px 12px; }
   .example-explanation { display: none; }
+}
+/* On a phone the header holds the logo, three tabs and Menu; the unsaved state moves to the dot on Menu
+   (see #session-menu-toggle.has-unsaved) so Menu stays on screen. */
+@media (max-width:480px) {
+  .header-actions .save-hint { display: none; }
 }
 @media (max-width:390px) {
   .tab-nav { gap: 16px; }

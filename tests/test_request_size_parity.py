@@ -143,8 +143,9 @@ class RequestSizeParityTests(unittest.TestCase):
 
     def test_an_empty_request_is_not_called_too_large(self):
         _, status, result = self.post("/api/interview", b"")
-        self.assertEqual(status, 413)
+        self.assertEqual(status, 400)  # empty is a bad request, not one that is too large
         self.assertNotIn("too large", result["error"])
+        self.assertIn("empty", result["error"])
 
     def test_routes_with_small_bodies_keep_the_small_limit(self):
         self.assertLess(server.MAX_JSON, server.MAX_SNAPSHOT_JSON)

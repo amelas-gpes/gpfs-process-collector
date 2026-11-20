@@ -96,6 +96,13 @@ Without a signer list, your approval in the window is the only gate: the questio
 that the signature was not checked. The subject line shown is whatever the commit's author
 wrote; treat it as a claim.
 
+For maintainers: that line is the subject of the newest commit on `main`, so everyone who
+updates reads it as the description of the release. Write it as a plain description of what
+changed for the people using the app, in at most 120 characters (the window cuts it there).
+When a branch that holds merge commits lands, merge it with its own description
+(`git merge --no-ff <branch> -m "<description>"`) so that a subject such as
+"Merge branch 'fix-captions' into stress-fixes" is never the newest commit.
+
 A download cannot hold the window. When an approved build exists, the window allows the fetch
 8 seconds before it opens that build (45 seconds on a first run, 90 for the scheduled task).
 Git is told to give up on a connection that carries almost nothing for two thirds of that

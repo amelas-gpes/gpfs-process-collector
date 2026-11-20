@@ -209,6 +209,11 @@ class DocumentService:
             self._failures.clear()
             self._contexts.clear()
             self._condition.notify_all()
+        # A file being read now stays as it is and is read again at the next start: its reader
+        # process (documents._parse_apart) ends here instead of reading on for an app that is closing.
+        stop = getattr(self.store, 'stop_readers', None)
+        if callable(stop):
+            stop()
         for worker in self._workers:
             if threading.current_thread() is not worker:
                 # Let an idle worker or short local transaction settle, while never
@@ -1675,7 +1680,10 @@ class DocumentService:
             analysis = record.get('analysis') or {}
             coverage = record.get('coverage') or {}
             summary = analysis.get('summary', '')
-            complete_text = len(grouped[identity]) == totals[identity] and not any(chunk.get('requires_vision') for chunk in grouped[identity])
+            # A file past a page, sheet, row or cell limit was indexed only up to it (coverage.read_limit):
+            # all of its index is not all of its text.
+            complete_text = (len(grouped[identity]) == totals[identity] and not coverage.get('read_limit')
+                             and not any(chunk.get('requires_vision') for chunk in grouped[identity]))
             # Four facts about a file that must not be read as one: how much of its own text is
             # indexed, how much of the index this request carries, how far the AI review has
             # come, and which graphics or scans nobody has read yet. Assets shows them apart
@@ -1716,7 +1724,11 @@ class DocumentService:
                                                 # counted beside it and do not make that text partial.
                                                 'all_indexed_sections_supplied': len(grouped[identity]) == totals[identity],
                                                 'text_sections_supplied': len(grouped[identity]) - placeholders,
-                                                'unread_visual_placeholders_supplied': placeholders},
+                                                'unread_visual_placeholders_supplied': placeholders,
+                                                # What a file read only up to a limit leaves out. A request
+                                                # that supplies all of its index (file_parts) still must
+                                                # not call that text complete.
+                                                **({'read_limit': coverage['read_limit']} if coverage.get('read_limit') else {})},
                            'questions': [{**item, 'text': item['text'][:600]} for item in analysis.get('questions', [])
                                          if all(source['source_id'] in included for source in item.get('sources', []))][:2],
                            'observations': [{**item, 'text': item['text'][:1500]} for item in analysis.get('observations', [])
@@ -1735,8 +1747,9 @@ class DocumentService:
                            '(review.native_text_units of review.total_units), the sections supplied with this request '
                            '(context_coverage), the progress of the AI review (review.reviewed_chunks of review.total_chunks, '
                            'review.phase, review.review_stopped), and graphics or scans not yet read (review.unread_visual_units). '
-                           'When every unit has indexed text and all indexed sections were supplied, do not call the text coverage '
-                           'incomplete: name an unread graphic or a paused review as its own limitation. '
+                           'When every unit has indexed text, all indexed sections were supplied and context_coverage has no '
+                           'read_limit, do not call the text coverage incomplete: name an unread graphic or a paused review as its '
+                           'own limitation. A read_limit says where the reading of a file stopped; what follows it was not indexed. '
                            'Retained-only evidence from parked or removed files is solely provenance for existing cited capture; '
                            'do not use it to extract new facts or reopen that document.'),
                 'omitted_documents': max(0, len(records) - len(identities)),

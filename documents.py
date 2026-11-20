@@ -12,6 +12,7 @@ from contextlib import contextmanager, ExitStack
 import hashlib
 import importlib.util
 import io
+import itertools
 import json
 import os
 from pathlib import Path
@@ -19,6 +20,7 @@ from pathlib import PurePosixPath
 import re
 import secrets
 import sqlite3
+import subprocess
 import sys
 import threading
 import time
@@ -27,12 +29,34 @@ import unicodedata
 import zipfile
 from xml.etree import ElementTree
 
+
+def _source_digest():
+    try:
+        return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    except (NameError, OSError):
+        return None  # Loaded from somewhere other than a file of its own.
+
+
+# What this file held when it was loaded. A reader process (_parse_apart) reports its own, and a
+# file is read in this process instead when they differ: a git pull or a half-saved edit after
+# the server started must not change how it reads files before it is restarted.
+_SOURCE_DIGEST = _source_digest()
+
 MAX_FILE_BYTES = 64 * 1024 * 1024
 MAX_FILES_PER_SCOPE = 20
+# Count limits. A file past one is indexed up to it and the rest is named in its coverage, the way
+# unread pages and hidden sheets are: pages and sheets after the limit, a CSV's rows after the limit,
+# a CSV row's columns after the limit, and every row after the one that would pass MAX_CELLS (stored
+# cells of an XLSX, populated cells of a CSV) or no longer fits in the index (MAX_INDEX_BYTES and
+# MAX_CHUNKS below). The safety limits that follow them still refuse the whole file.
 MAX_PDF_PAGES = 500
 MAX_SHEETS = 100
 MAX_ROWS = 1_048_576
+MAX_COLUMNS = 16_384
 MAX_CELLS = 2_000_000
+# Not a count limit. A longer cell is not something Excel writes (its own limit is 32,767
+# characters); in a CSV it is most often a stray quote that swallowed the rows after it. Cutting the
+# cell would index a mangled value as if it had been read, so this one still refuses the file.
 MAX_CELL_CHARS = 100_000
 MAX_INDEX_BYTES = 64 * 1024 * 1024
 MAX_CHUNKS = 50_000
@@ -118,6 +142,40 @@ class UnknownDocumentScope(PermissionError):
 
 class ExtractionError(DocumentError):
     pass
+
+
+INDEX_FULL_MESSAGE = 'This file is too large to read: even its first page or row holds more text than the app can store for one file.'
+
+
+class _IndexFull(ExtractionError):
+    """The index has no room for another section (MAX_INDEX_BYTES or MAX_CHUNKS).
+
+    A reader catches it where one page or group of rows begins, takes that unit's sections back
+    out (_Chunks.rollback) and stops there, so the index holds whole units only. Uncaught, it
+    refuses the file with INDEX_FULL_MESSAGE.
+    """
+    def __init__(self):
+        super().__init__(INDEX_FULL_MESSAGE)
+
+
+# What earlier versions said when they refused a file over a count limit, or one whose text did not
+# fit in the index. This version reads such a file up to the limit, so a saved record refused with
+# one of these, with nothing of it indexed, can be retried (Retry review) instead of having to be
+# added again. Every refusal this version still gives has other wording, so a retry that fails
+# again keeps its new reason and is not offered once more (tests/test_document_count_limits.py).
+COUNT_LIMIT_REFUSALS = frozenset((
+    'Document exceeds the 64 MiB text or 50,000-chunk indexing limit; no partial index was published.',
+    'PDF page count exceeds the 500-page limit or is empty; no partial index was published.',
+    'A sheet exceeds 1,048,576 rows; no partial index was published.',
+    'A sheet exceeds two million populated cells; no partial index was published.',
+    'A sheet exceeds 16,384 columns.',
+    'Workbook exceeds two million stored cells; no partial index was published.',
+    'Workbook exceeds two million populated cells; no partial index was published.',
+    'Workbook exceeds 100 sheets; no partial index was published.',
+    'Workbook exceeds two million stored cells.',
+    'Workbook exceeds 100 sheets.',
+))
+COUNT_LIMIT_RETRY = 'An earlier version refused this file for its size. Retry review reads it up to the limits.'
 
 
 class StoreFormatError(RuntimeError):
@@ -235,6 +293,18 @@ INVENTORY_LIMIT_MESSAGE = ('This file has more pages or sheets than its 50 KiB i
                            'Split it into smaller files and add those. Nothing was indexed, and no unit or source content was silently omitted.')
 TRANSCRIPTION_LIMIT_MESSAGE = ('The visual readings of this file no longer fit its 64 MiB text or 50,000-section index, so this reading was not stored. '
                                'Split the file into smaller files and add those; retrying the review will stop at the same place.')
+PDF_BUDGET_MESSAGE = 'This PDF is too complex to read in time. Split it into smaller files and add those.'
+WORKBOOK_TIME_MESSAGE = 'This workbook took too long to read. Split it into smaller files and add those.'
+# Two failures that reading the file again can get past. Neither names a button: a file indexed by an
+# earlier version offers Re-index and review in place of Retry review, and its card says so on its own line.
+# READING_STOPPED_MESSAGE: its reader process was ended by something other than this app (Task Manager,
+# a log-off, the system short of memory). Nothing says the file is at fault.
+READING_STOPPED_MESSAGE = 'Reading this file stopped before it finished. It can be read again.'
+STORAGE_UNAVAILABLE_MESSAGE = 'Local storage could not publish the index. Check free disk space and access, then read the file again.'
+# Earlier builds stored these failures with wording that named Retry review; a read gives the current wording.
+RETRYABLE_MESSAGES = {'reading_stopped': READING_STOPPED_MESSAGE, 'storage_unavailable': STORAGE_UNAVAILABLE_MESSAGE}
+# A PNG that Pillow cannot decode: cut off, or not an image at all. Reading it again fails the same way.
+DAMAGED_IMAGE_MESSAGE = 'The image could not be read. Export it again as PNG and add that copy.'
 SAMPLES_SHORTENED ='Preview samples were shortened to keep inventory under 50 KiB. All unit names/counts and full indexed content are retained.'
 SAMPLES_OMITTED = 'Preview samples were left out to keep inventory under 50 KiB. All unit names/counts and full indexed content are retained.'
 
@@ -315,9 +385,17 @@ class _Chunks:
                 continue
             self.characters += len(part.encode('utf-8'))
             if self.characters > MAX_INDEX_BYTES or len(self.items) >= MAX_CHUNKS:
-                raise ExtractionError('Document exceeds the 64 MiB text or 50,000-chunk indexing limit; no partial index was published.')
+                raise _IndexFull()
             chunk_id = f'{self.document["id"]}_{source}_c{index}'
             self.items.append({'id': chunk_id, 'label': label, 'text': part, 'location': location})
+
+    def mark(self):
+        """Where the index stands before a unit is added; rollback() returns to it."""
+        return len(self.items), self.characters
+
+    def rollback(self, mark):
+        del self.items[mark[0]:]
+        self.characters = mark[1]
 
 
 def _transcribed_coverage(inventory, coverage):
@@ -333,6 +411,12 @@ def _transcribed_coverage(inventory, coverage):
         coverage['limitations'].append(f'{len(unresolved)} pages still require native visual review.')
     coverage['limitations'].append('AI visual transcriptions are searchable but have not been independently verified.')
     coverage['limitations'] = list(dict.fromkeys(coverage['limitations']))
+
+
+# A re-index that keeps the stored AI visual readings, and with them has more text than the index
+# holds. Not a count limit: reading the file again would give the same result.
+CARRIED_TOO_LARGE_MESSAGE = ('Together with its saved AI visual readings, this file has more text than the app can store '
+                             'for one file, so it was not read again.')
 
 
 def _carry_transcriptions(saved, chunks, inventory, coverage):
@@ -367,7 +451,7 @@ def _carry_transcriptions(saved, chunks, inventory, coverage):
         kept[item['id']] = item['text']
     if kept:
         if chunks.characters > MAX_INDEX_BYTES or len(items) > MAX_CHUNKS:
-            raise ExtractionError('Document exceeds the 64 MiB text or 50,000-chunk indexing limit; no partial index was published.')
+            raise ExtractionError(CARRIED_TOO_LARGE_MESSAGE)
         chunks.items = items
         inventory['visual_transcribed_units'] = units
         _transcribed_coverage(inventory, coverage)
@@ -548,13 +632,34 @@ class DocumentStore:
         # authorize full coverage. check_extraction compares the saved index
         # with what the current parser reads, on this computer and at no cost;
         # only when they differ does Revisit have to re-index the original.
+        # A file that could not be read and has nothing indexed has no earlier index to re-index or
+        # confirm, whichever version failed to read it: the re-index projection below would say it
+        # was indexed and name a button the card does not show. That holds after a retry by this
+        # version fails too, since a failed read leaves extraction_version as it was.
+        unindexed = record.get('status') == 'error' and not record.get('chunk_count')
+        if record.get('status') == 'error' and record.get('error_code') in RETRYABLE_MESSAGES:
+            record['error'] = RETRYABLE_MESSAGES[record['error_code']]
+        if unindexed and (record.get('error') in COUNT_LIMIT_REFUSALS or record.get('error') == COUNT_LIMIT_RETRY):
+            # Refused whole by an earlier version for passing a count limit. Its original is kept,
+            # and this version reads it up to the limit, so it is offered Retry review again.
+            record.update(error=COUNT_LIMIT_RETRY, retryable=True)
+        if unindexed:
+            # A copy of the re-index projection which a later action saved with the record is taken back out.
+            record['extraction_needs_reindex'] = False
+            coverage = record.get('coverage') or {}
+            record['coverage'] = {**coverage, 'limitations': [entry for entry in coverage.get('limitations', [])
+                                                              if entry not in REINDEX_NOTICES]}
+            analysis = record.get('analysis') or {}
+            if analysis.get('phase') == 'reindex_required' or analysis.get('error') in REINDEX_NOTICES:
+                record['analysis'] = {**{key: value for key, value in analysis.items() if key != 'phase'},
+                                      **({'error': None} if analysis.get('error') in REINDEX_NOTICES else {})}
         version = record.get('extraction_version')
         # Stated on every read, never trusted from a saved copy of this projection.
         record.pop('indexed_by_newer_build', None)
         if type(version) is int and version > EXTRACTION_VERSION:
             record['indexed_by_newer_build'] = True
         checked = record.pop('reindex_check', None)
-        if record.get('status') in ('ready', 'partial', 'error') and not DocumentStore.extraction_current(record):
+        if not unindexed and record.get('status') in ('ready', 'partial', 'error') and not DocumentStore.extraction_current(record):
             record['extraction_needs_reindex'] = True
             if record['status'] != 'error':
                 record['status'] = 'partial'
@@ -573,7 +678,7 @@ class DocumentStore:
                                   **({'error': None} if analysis.get('error') in REINDEX_NOTICES else {})}
         return record
 
-    def __init__(self, root):
+    def __init__(self, root, parser_processes=0):
         self.root = _private_dir(root).resolve()
         self.db_path = self.root / 'documents.sqlite3'
         if self.db_path.is_symlink():
@@ -582,6 +687,15 @@ class DocumentStore:
         self._locks_guard = threading.Lock()
         self._locks = {}
         self.diagnostic = None  # Set by the server to its bounded local event log.
+        # Up to this many files are read at once, each by a separate Python process (_parse_apart);
+        # with none, files are read in this process. The server allows one per review worker, also
+        # on a computer with few processors: a reader runs below normal priority, so the server's
+        # requests and the window come first, and a small file is not kept waiting behind large ones.
+        self._parser_slots = threading.BoundedSemaphore(parser_processes) if parser_processes else None
+        self._readers = _Readers()
+        # Files whose free comparison (check_extraction) lost its reader to something outside the
+        # app in this run. Each is compared once more before the comparison counts as failed.
+        self._interrupted_checks = set()
         # Before any statement that creates or changes anything in the file.
         probe = sqlite3.connect(_long_path(self.db_path), timeout=30)
         try:
@@ -1039,12 +1153,9 @@ class DocumentStore:
             if record['archived'] or (record['status'] in ('ready', 'partial') and self.extraction_current(record)):
                 return record
             self.update(scope, document_id, {'status': 'indexing', 'error': None})
-            chunks = _Chunks(record)
             try:
                 path = _long_path(self.original_path(scope, document_id))
-                extractor = {'pdf': _pdf, 'png': _png, 'xlsx': _workbook, 'xlsm': _workbook,
-                             'csv': _csv, 'xls': _legacy_xls}[record['kind']]
-                inventory, coverage = extractor(path, record, chunks)
+                inventory, coverage, chunks = self._parse(path, record)
                 with self._db() as db:
                     db.execute('BEGIN IMMEDIATE')
                     digest, current = self._record(db, scope, document_id)
@@ -1077,6 +1188,13 @@ class DocumentStore:
                         current['visual_reread_basis'] = {'placeholders': sentences, 'limitations': parsed_limitations}
                     db.execute('UPDATE documents SET record=? WHERE id=?', (json.dumps(current), document_id))
                 return current
+            except ReadingStopped:
+                raise  # The app is closing. The file stays 'indexing' and is read again at the next start.
+            except ReadingInterrupted:
+                # Its reader process was ended by something other than this app. The file may well be
+                # fine: it can be read again.
+                return self.update(scope, document_id, {'status': 'error', 'error_code': 'reading_stopped', 'retryable': True,
+                                                        'error': READING_STOPPED_MESSAGE})
             except ImportError as error:
                 # The selected Python lacks a reader. That is not a damaged file: name the package,
                 # as _legacy_xls does for xlrd, and leave a diagnostic that names the module.
@@ -1087,13 +1205,39 @@ class DocumentStore:
                 return self.update(scope, document_id, {'status': 'error', 'error_code':'dependency_missing', 'retryable':False,
                                                       'error': missing_reader_message(record['kind'], module)})
             except (OSError, sqlite3.Error) as error:
-                self._diagnose('document_storage_unavailable', stage='publish', error_type=type(error).__name__)
+                # A reader in its own process (_parse_apart) reports the class of its OSError by name.
+                self._diagnose('document_storage_unavailable', stage='publish',
+                               error_type=getattr(error, 'reported_type', None) or type(error).__name__)
                 return self.update(scope, document_id, {'status':'error', 'error_code':'storage_unavailable', 'retryable':True,
-                    'error':'Local storage could not publish the index. Check free disk space and access, then select Retry review.'})
+                    'error':STORAGE_UNAVAILABLE_MESSAGE})
             except Exception as error:
                 # Parser messages can contain source text; publish only controlled diagnostics.
                 message = str(error) if isinstance(error, DocumentError) else 'The document could not be safely decoded. Its original is retained.'
                 return self.update(scope, document_id, {'status': 'error', 'error_code':'invalid_file', 'retryable':False, 'error': message})
+
+    def _parse(self, path, record):
+        """The file's (inventory, coverage, chunks), from the reader for its kind.
+
+        With parser processes the reader runs in a separate Python process. When none
+        can be started on this computer, the file is read here as before, so an upload
+        never depends on one.
+        """
+        if self._parser_slots is not None:
+            parsed = _parse_apart(path, record, self._parser_slots, self._diagnose, self._readers)
+            if parsed is not None:
+                return parsed
+        chunks = _Chunks(record)
+        inventory, coverage = globals()[PARSERS[record['kind']]](path, record, chunks)
+        return inventory, coverage, chunks
+
+    def stop_readers(self, wait=2.0):
+        """End every reader process now and start no more: the app is closing.
+
+        Each file being read stays as it was ('indexing') and is read again when the app next
+        starts. Waits up to `wait` seconds for the processes to end, so that none still holds
+        a file open once the app has closed.
+        """
+        self._readers.stop(wait)
 
     def _diagnose(self, event, **fields):
         """Report an operational fact (never file content) to whoever started the store, if anyone listens."""
@@ -1125,14 +1269,23 @@ class DocumentStore:
             if (before['archived'] or not before.get('extraction_needs_reindex')
                     or (before.get('reindex_check') or {}).get('outcome') != 'pending'):
                 return before
-            chunks, outcome = _Chunks(before), 'changed'
+            outcome = 'changed'
             try:
                 path = _long_path(self.original_path(scope, document_id))
-                extractor = {'pdf': _pdf, 'png': _png, 'xlsx': _workbook, 'xlsm': _workbook,
-                             'csv': _csv, 'xls': _legacy_xls}[before['kind']]
-                inventory, coverage = extractor(path, before, chunks)
+                inventory, coverage, chunks = self._parse(path, before)
+            except ReadingStopped:
+                raise  # The app is closing: the comparison is still owed, at the next start.
+            except ReadingInterrupted:
+                # Its reader was ended from outside (Task Manager, the system short of memory). That
+                # says nothing about the file: the comparison stays owed and the next status poll
+                # runs it again, once. A reader ended again is a file this computer cannot read.
+                if document_id not in self._interrupted_checks:
+                    self._interrupted_checks.add(document_id)
+                    return self.get(scope, document_id)
+                outcome = 'failed'
             except Exception:
                 outcome = 'failed'
+            self._interrupted_checks.discard(document_id)
             with self._db() as db:
                 db.execute('BEGIN IMMEDIATE')
                 digest = self._authorize(db, scope)
@@ -1194,14 +1347,18 @@ class DocumentStore:
         record = self.get(scope, document_id)
         if record['kind'] != 'pdf' or not isinstance(page_number, int) or isinstance(page_number, bool):
             raise DocumentError('Choose a PDF page by its one-based number.')
-        reader = PdfReader(_long_path(self.original_path(scope, document_id)))
-        _open_pdf(reader)
-        if not 1 <= page_number <= min(len(reader.pages), MAX_PDF_PAGES):
-            raise DocumentError('That PDF page is unavailable.')
-        writer = PdfWriter()
-        writer.add_page(reader.pages[page_number - 1])
-        output = io.BytesIO()
-        writer.write(output)
+        # Read through an open file: given a path, pypdf loads the whole file into memory for every page
+        # (69 MiB for one page of a 63 MiB PDF, sixteen pages at a time in an in-depth wave). pypdf reads
+        # objects lazily while writing, so the page is written before the file is closed.
+        with open(_long_path(self.original_path(scope, document_id)), 'rb', buffering=1 << 20) as stream:
+            reader = PdfReader(stream)
+            _open_pdf(reader)
+            if not 1 <= page_number <= min(len(reader.pages), MAX_PDF_PAGES):
+                raise DocumentError('That PDF page is unavailable.')
+            writer = PdfWriter()
+            writer.add_page(reader.pages[page_number - 1])
+            output = io.BytesIO()
+            writer.write(output)
         if output.tell() > MAX_PDF_PAGE_BYTES:
             raise DocumentError('This single PDF page exceeds the 16 MiB review limit. Export the page separately and attach it.')
         return output.getvalue()
@@ -1416,6 +1573,7 @@ def _pdf(path, record, chunks):
     reader = PdfReader(path)
     _open_pdf(reader)
     deadline = time.monotonic() + 45
+    _budget_started()
     drawing_seconds = 0.0
     operations = 0
     exhausted = False
@@ -1424,12 +1582,17 @@ def _pdf(path, record, chunks):
         operations += 1
         if exhausted or operations > 2_000_000 or (operations % 128 == 0 and time.monotonic() > deadline):
             exhausted = True
-            raise ExtractionError('PDF content expands beyond the extraction budget; no partial index was published.')
+            raise ExtractionError(PDF_BUDGET_MESSAGE)
     count = len(reader.pages)
-    if not 1 <= count <= MAX_PDF_PAGES:
-        raise ExtractionError('PDF page count exceeds the 500-page limit or is empty; no partial index was published.')
+    if not count:
+        raise ExtractionError('This PDF has no pages.')
+    # Pages after MAX_PDF_PAGES are not opened. Their number is known from the page tree, so the
+    # coverage can say exactly what was left out.
+    read = min(count, MAX_PDF_PAGES)
+    index_full = False
     missing, failures, mixed, content_bytes, indexed, page_inventory = [], [], [], 0, 0, []
-    for number, page in enumerate(reader.pages, 1):
+    for number, page in enumerate(itertools.islice(reader.pages, read), 1):
+        failed = False
         try:
             contents = page.get_contents()
             # ContentStream is a dictionary-like object and can be false even
@@ -1440,7 +1603,7 @@ def _pdf(path, record, chunks):
                 raise ExtractionError('PDF decoded content exceeds 16 MiB per page or 128 MiB total; no partial index was published.')
             text = page.extract_text(visitor_operand_before=bound) or ''
             if exhausted or time.monotonic() > deadline:
-                raise ExtractionError('PDF content expands beyond the extraction budget; no partial index was published.')
+                raise ExtractionError(PDF_BUDGET_MESSAGE)
             annotations, unread_annotations = _pdf_annotation_text(page)
             text = '\n'.join([text, *annotations]) if annotations else text
             suspect = sum(char == '\ufffd' or unicodedata.category(char) in ('Cs', 'Co') or
@@ -1476,52 +1639,86 @@ def _pdf(path, record, chunks):
         except DocumentError:
             raise
         except Exception:
+            failed = True
+        label = f'{record["name"]} · page {number}'
+        mark = chunks.mark()
+        try:
+            if failed:
+                chunks.add(f'p{number}', label,
+                           'PDF page text decoding failed. Native visual review is required; page contents have not been read.',
+                           {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder', 'text_decode_failed': True})
+            elif not text.strip():
+                chunks.add(f'p{number}', label,
+                           'PDF page contains no extractable text. Native visual review is required; page contents have not been read.',
+                           {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder'})
+            else:
+                chunks.add(f'p{number}', label, text, {'page': number})
+                if visual:
+                    chunks.add(f'p{number}_visual', f'{label} · visual content',
+                               'This PDF page also contains visual graphics. Its native text is indexed separately; graphic contents and layout require native visual review and have not been read.',
+                               {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder', 'native_text_preserved': True})
+        except _IndexFull:
+            # No room for this page: it and the pages after it are left out, as pages past
+            # MAX_PDF_PAGES are. The index keeps whole pages only.
+            chunks.rollback(mark)
+            read, index_full = number - 1, True
+            break
+        if failed:
             failures.append(number)
             page_inventory.append({'page': number, 'text_chars': 0, 'sample': '', 'requires_vision': True})
-            chunks.add(f'p{number}', f'{record["name"]} · page {number}',
-                       'PDF page text decoding failed. Native visual review is required; page contents have not been read.',
-                       {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder', 'text_decode_failed': True})
-            continue
-        if not text.strip():
+        elif not text.strip():
             missing.append(number)
             page_inventory.append({'page': number, 'text_chars': 0, 'sample': '', 'requires_vision': True})
-            chunks.add(f'p{number}', f'{record["name"]} · page {number}',
-                       'PDF page contains no extractable text. Native visual review is required; page contents have not been read.',
-                       {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder'})
-            continue
-        chunks.add(f'p{number}', f'{record["name"]} · page {number}', text, {'page': number})
-        if visual:
-            mixed.append(number)
-            chunks.add(f'p{number}_visual', f'{record["name"]} · page {number} · visual content',
-                       'This PDF page also contains visual graphics. Its native text is indexed separately; graphic contents and layout require native visual review and have not been read.',
-                       {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder', 'native_text_preserved': True})
-        page_inventory.append({'page': number, 'text_chars': len(text), 'sample': re.sub(r'\s+', ' ', text).strip()[:180],
-                               'requires_vision': visual})
-        indexed += 1
+        else:
+            if visual:
+                mixed.append(number)
+            page_inventory.append({'page': number, 'text_chars': len(text), 'sample': re.sub(r'\s+', ' ', text).strip()[:180],
+                                   'requires_vision': visual})
+            indexed += 1
+    if not read:
+        raise ExtractionError(INDEX_FULL_MESSAGE)
     limitations = []
+    # Stated first: it is the largest limit on what the index can answer.
+    # The rest "did not fit" only when the index alone left it out: pages past MAX_PDF_PAGES were never tried.
+    cut = (f'{_span("Page", read)} of {count:,} {"was" if read == 1 else "were"} read; the rest '
+           + ('did not fit.' if index_full and count <= MAX_PDF_PAGES else 'was not.')) if read < count else ''
+    if cut:
+        limitations.append(cut)
     if missing:
         limitations.append(f'{len(missing)} pages contain no extractable text and require native visual review; they were not treated as read.')
     if failures:
         limitations.append(f'{len(failures)} pages could not be decoded and require review.')
     if mixed:
         limitations.append(f'{len(mixed)} pages contain native text plus graphics; text is preserved separately, but graphics and layout still require native visual review.')
-    return ({'pages': count, 'page_inventory': page_inventory, 'text_pages': indexed, 'text_only_pages': indexed - len(mixed),
-             'mixed_visual_pages': mixed, 'vision_pages': sorted(missing + failures + mixed), 'failed_pages': failures,
-             'requires_vision': bool(missing or failures or mixed)}, {'indexed_units': indexed - len(mixed), 'total_units': count, 'text_indexed_units': indexed,
-              'visual_pending_units': len(missing)+len(failures)+len(mixed), 'unit':'pages', 'limitations': limitations})
+    return ({'pages': count, **({'pages_read': read} if cut else {}), 'page_inventory': page_inventory, 'text_pages': indexed,
+             'text_only_pages': indexed - len(mixed), 'mixed_visual_pages': mixed, 'vision_pages': sorted(missing + failures + mixed),
+             'failed_pages': failures, 'requires_vision': bool(missing or failures or mixed)},
+            {'indexed_units': indexed - len(mixed), 'total_units': count, 'text_indexed_units': indexed,
+             'visual_pending_units': len(missing)+len(failures)+len(mixed), 'unit':'pages', 'limitations': limitations,
+             **({'read_limit': cut} if cut else {})})
 
 
 def _png(path, record, chunks):
     from PIL import Image
-    with warnings.catch_warnings():
+    # Opened here, so that a missing or unreadable original is still a storage failure (OSError).
+    with open(path, 'rb') as handle, warnings.catch_warnings():
         warnings.simplefilter('error', Image.DecompressionBombWarning)
-        with Image.open(path) as image:
-            if image.format != 'PNG' or image.width * image.height > MAX_IMAGE_PIXELS:
-                raise ExtractionError('The image is not PNG or exceeds 40 million pixels.')
-            width, height = image.size
-            image.verify()
-        with Image.open(path) as image:
-            image.load()
+        try:
+            with Image.open(handle) as image:
+                if image.format != 'PNG' or image.width * image.height > MAX_IMAGE_PIXELS:
+                    raise ExtractionError('The image is not PNG or exceeds 40 million pixels.')
+                width, height = image.size
+                image.verify()
+            handle.seek(0)
+            with Image.open(handle) as image:
+                image.load()
+        except (OSError, SyntaxError) as error:
+            # Pillow reports a damaged or cut-off image as an OSError without an error number
+            # (UnidentifiedImageError, "image file is truncated") or, for a broken checksum, a
+            # SyntaxError; an error from the disk has a number and stays a storage failure.
+            if isinstance(error, OSError) and error.errno is not None:
+                raise
+            raise ExtractionError(DAMAGED_IMAGE_MESSAGE) from None
     chunks.add('image', f'{record["name"]} · image',
                f'PNG image {width} by {height} pixels. Image contents require native visual review; no OCR was performed.',
                {'image': True, 'requires_vision': True, 'origin': 'visual_placeholder'})
@@ -1587,102 +1784,231 @@ def _formula_text(value):
 HIDDEN_SHEET_LABEL = ' · hidden sheet'
 
 
-def _row_chunks(record, chunks, sheet_index, sheet_name, rows):
+class _SheetLimit:
+    """How far a spreadsheet is read, and the sentence that says what was left out.
+
+    One allowance of MAX_CELLS covers the whole file. Each reader's rows() takes a row's cells from
+    it (take) before it yields the row; a row that does not fit stops the reading there. So does a
+    CSV row past MAX_ROWS, and a group of rows that no longer fits in the index (_row_chunks). That
+    row and the rest of its sheet are then only counted (skip): never rendered, chunked or indexed.
+    The sheets after it are not opened. Counting gives up rather than fail the file (counted False)
+    when the rest cannot be read or the parser's time runs out.
+
+    The sentence names rows and sheets, from the rows whose sections the index holds, and never a
+    number of cells: the stored cells of a workbook include empty ones that only carry formatting,
+    so a count of them would not say how much of the content was read.
+    """
+
+    def __init__(self):
+        self.left = MAX_CELLS
+        # What stopped the reading: 'cells' or 'rows', or 'index' once rows read before it did not
+        # fit in the index. 'index' replaces the other two: the index then ends before they did.
+        self.reason = None
+        self.limited = False  # a cell or row limit left rows out, so not only the full index did
+        self.counted = True
+        self.rows = 0         # the highest row number the current sheet has shown, read or counted
+        self.wide = []        # (row number, last populated column) of each CSV row cut at MAX_COLUMNS
+        self.cut = None       # (number, name, rows read) of the sheet where a workbook's reading stopped;
+                              # rows read is None when all of its cells were read and only comments were not
+        self.comments = False  # comments of that sheet did not all fit
+
+    def take(self, cells, number):
+        """True when this row is read; False when it is past a limit and only counted."""
+        if self.reason is None and cells > self.left:
+            self.stop('cells')
+        if self.reason is not None:
+            self.skip(number)
+            return False
+        self.rows = max(self.rows, number)
+        self.left -= cells
+        return True
+
+    def skip(self, number):
+        self.rows = max(self.rows, number)
+
+    def stop(self, reason):
+        if reason == 'index':
+            self.reason = 'index'
+        elif self.reason is None:
+            self.reason, self.limited = reason, True
+
+    def rest(self, past_other_limit=False):
+        """How a sentence ends. 'did not fit' only when the full index alone left the rest out: not when
+        a cell, row, page or sheet limit also did, as reading would have stopped there in any case."""
+        return 'did not fit' if self.reason == 'index' and not (self.limited or past_other_limit) else 'was not'
+
+    def columns_note(self):
+        return f'Columns 1 to {MAX_COLUMNS:,} of {max(column for _, column in self.wide):,} were read; the rest was not.'
+
+    def rows_note(self, read, total):
+        """A CSV's sentence: the rows read, of all it has when they were counted to the end."""
+        return (_span('Row', read) + (f' of {total:,}' if self.counted and total > read else '')
+                + f' {"was" if read == 1 else "were"} read; the rest {self.rest(total > MAX_ROWS)}.')
+
+    def sheets_note(self, sheet_count, charts=0):
+        """A workbook's sentence: the sheets read whole, then the rows read of the sheet where reading stopped.
+
+        charts: the chart-only tabs before that sheet. They hold no cells to read (a limitation of their
+        own says so), so they are not counted as read: the sheets before the stop are named only when one
+        of them held cells, and the chart-only tabs among them are named apart.
+        """
+        number, name, rows = self.cut
+        rest = self.rest(sheet_count > MAX_SHEETS)
+        # The tabs named as read whole: those before the stop, and the sheet where it came as well when
+        # all of its cells were read and only comments were not.
+        whole = number if rows is None else number - 1
+        if not rows and whole >= sheet_count:
+            return f'Some comments in {name} did not fit and were not read.'
+        apart = [*([f'some comments in {name}'] if self.comments else []), *_chart_tabs(charts, whole)]
+        apart = f', apart from {" and ".join(apart)}' if apart else ''
+        if rows:
+            read = _span('Row', rows) + f' of {name}'
+            if whole > charts:
+                read = _span('Sheet', whole) + ' and ' + read[0].lower() + read[1:]
+            return f'{read} {"was" if read.startswith("Row 1 ") else "were"} read{apart}; the rest of the workbook {rest}.'
+        return f'{_span("Sheet", whole)} of {sheet_count:,} {"was" if whole == 1 else "were"} read{apart}; the rest {rest}.'
+
+
+def _chart_tabs(charts, named):
+    """['2 chart-only tabs'] when a sentence names tabs 1 to `named` as read and `charts` of them are chart-only."""
+    return [f'{charts:,} chart-only {"tab" if charts == 1 else "tabs"}'] if 0 < charts < named else []
+
+
+def _span(unit, last):
+    """'Row 1' or 'Rows 1 to 20': the first units of a file, up to the last one read."""
+    return f'{unit} 1' if last == 1 else f'{unit}s 1 to {last:,}'
+
+
+NOTHING_READ_MESSAGE = 'The first row of this file is already past the reading limits, so nothing of it was indexed.'
+
+
+def _row_chunks(record, chunks, sheet_index, sheet_name, rows, limit):
     def get_column_letter(number):
         result = ''
         while number:
             number, remainder = divmod(number - 1, 26)
             result = chr(65 + remainder) + result
         return result
-    buffer, start, end, high_col, count, cells, formulas, uncached = [], None, None, 0, 0, 0, 0, 0
-    columns, header_sample, header_truncated = 0, '', False
+    buffer, start, end, high_col = [], None, None, 0
+    header_sample, header_truncated = '', False
     serial = 0
     buffer_chars = 0
     buffer_lengths = []
+    # What the rows read so far hold, and the same for those whose sections are in the index. The
+    # two differ only while rows wait in the buffer; when the index fills, the committed counts stand.
+    totals = {'rows': 0, 'columns': 0, 'populated_cells': 0, 'formula_cells': 0, 'formulas_without_cached_values': 0}
+    committed = dict(totals)
 
     def flush():
         nonlocal buffer, buffer_chars, start, end, high_col, serial
         if buffer:
             serial += 1
             area = f'A{start}:{get_column_letter(max(1, high_col))}{end}'
-            chunks.add(f's{sheet_index}_r{start}_{end}_b{serial}', f'{record["name"]} · {sheet_name}!{area}',
-                       '\n'.join(buffer), {'sheet': sheet_name, 'sheet_index': sheet_index, 'range': area,
-                                            'row_start': start, 'row_end': end, 'header_sample': header_sample,
-                                            'cell_lengths': list(buffer_lengths)})
+            mark = chunks.mark()
+            try:
+                chunks.add(f's{sheet_index}_r{start}_{end}_b{serial}', f'{record["name"]} · {sheet_name}!{area}',
+                           '\n'.join(buffer), {'sheet': sheet_name, 'sheet_index': sheet_index, 'range': area,
+                                                'row_start': start, 'row_end': end, 'header_sample': header_sample,
+                                                'cell_lengths': list(buffer_lengths)})
+            except _IndexFull:
+                chunks.rollback(mark)
+                raise
             buffer, buffer_chars, start, end, high_col = [], 0, None, None, 0
             buffer_lengths.clear()
+        committed.update(totals)
 
-    for row_number, row in rows:
-        if row_number > MAX_ROWS:
-            raise ExtractionError('A sheet exceeds 1,048,576 rows; no partial index was published.')
-        count = max(count, row_number)
-        values = []
-        for column, value, formula, cached in row:
-            cells += 1
-            if cells > MAX_CELLS:
-                raise ExtractionError('A sheet exceeds two million populated cells; no partial index was published.')
-            if column > 16384:
-                raise ExtractionError('A sheet exceeds 16,384 columns.')
-            if formula:
-                formulas += 1
-                uncached += cached is None
-                rendered = f'FORMULA (not executed) {_formula_text(formula)}; cached value (not recalculated): {_cell_text(cached) if cached is not None else "UNAVAILABLE"}'
-            else:
-                rendered = _cell_text(value)
-            values.append(f'{get_column_letter(column)}{row_number}={rendered}')
-        if not values:
-            continue
-        line = ' | '.join(values)
-        columns = max(columns, max(item[0] for item in row))
-        if not header_sample:
-            header_sample, header_truncated = line[:180], len(line) > 180
-        if len(line) > MAX_CHUNK_CHARS:
-            flush()
-            group, group_length = [], 0
-            def emit_cells():
-                nonlocal serial
-                if not group:
-                    return
-                first, last = group[0][0], group[-1][0]
-                area = f'{first}:{last}' if first != last else first
-                serial += 1
-                source = f's{sheet_index}_wide_{first}_{last}_b{serial}'
-                body = ' | '.join(rendered for _, rendered in group)
-                caption = f'{record["name"]} · {sheet_name}!{area}'
-                location = {'sheet': sheet_name, 'sheet_index': sheet_index, 'range': area,
-                            'row_start': row_number, 'row_end': row_number, 'header_sample': header_sample,
-                            'cell_lengths': [len(rendered) for _, rendered in group]}
-                if len(group) == 1 and len(body) > MAX_CHUNK_CHARS:
-                    # Keep the address on every continuation of a single oversized cell.
-                    prefix = first + '='
-                    value = body[len(prefix):]
-                    width = MAX_CHUNK_CHARS - len(prefix)
-                    for part, offset in enumerate(range(0, len(value), width), 1):
-                        chunks.add(f'{source}_part{part}', f'{caption} · part {part}',
-                                   prefix + value[offset:offset+width],
-                                   {**location, 'cell_part': part, 'cell_lengths': [len(prefix) + len(value[offset:offset+width])]})
+    def add(row_number, row, formulas, uncached):
+        totals.update(rows=max(totals['rows'], row_number), populated_cells=totals['populated_cells'] + len(row),
+                      formula_cells=totals['formula_cells'] + formulas,
+                      formulas_without_cached_values=totals['formulas_without_cached_values'] + uncached)
+        if row:
+            totals['columns'] = max(totals['columns'], max(item[0] for item in row))
+
+    try:
+        for row_number, row in rows:
+            values, formulas, uncached = [], 0, 0
+            for column, value, formula, cached in row:
+                if formula:
+                    formulas += 1
+                    uncached += cached is None
+                    rendered = f'FORMULA (not executed) {_formula_text(formula)}; cached value (not recalculated): {_cell_text(cached) if cached is not None else "UNAVAILABLE"}'
                 else:
-                    chunks.add(source, caption, body, location)
-            for rendered in values:
-                address = rendered.split('=', 1)[0]
-                if group and group_length + 3 + len(rendered) > MAX_CHUNK_CHARS:
+                    rendered = _cell_text(value)
+                values.append(f'{get_column_letter(column)}{row_number}={rendered}')
+            if not values:
+                add(row_number, row, formulas, uncached)
+                continue
+            line = ' | '.join(values)
+            if not header_sample:
+                header_sample, header_truncated = line[:180], len(line) > 180
+            if len(line) > MAX_CHUNK_CHARS:
+                flush()
+                mark = chunks.mark()
+                group, group_length = [], 0
+                def emit_cells():
+                    nonlocal serial
+                    if not group:
+                        return
+                    first, last = group[0][0], group[-1][0]
+                    area = f'{first}:{last}' if first != last else first
+                    serial += 1
+                    source = f's{sheet_index}_wide_{first}_{last}_b{serial}'
+                    body = ' | '.join(rendered for _, rendered in group)
+                    caption = f'{record["name"]} · {sheet_name}!{area}'
+                    location = {'sheet': sheet_name, 'sheet_index': sheet_index, 'range': area,
+                                'row_start': row_number, 'row_end': row_number, 'header_sample': header_sample,
+                                'cell_lengths': [len(rendered) for _, rendered in group]}
+                    if len(group) == 1 and len(body) > MAX_CHUNK_CHARS:
+                        # Keep the address on every continuation of a single oversized cell.
+                        prefix = first + '='
+                        value = body[len(prefix):]
+                        width = MAX_CHUNK_CHARS - len(prefix)
+                        for part, offset in enumerate(range(0, len(value), width), 1):
+                            chunks.add(f'{source}_part{part}', f'{caption} · part {part}',
+                                       prefix + value[offset:offset+width],
+                                       {**location, 'cell_part': part, 'cell_lengths': [len(prefix) + len(value[offset:offset+width])]})
+                    else:
+                        chunks.add(source, caption, body, location)
+                try:
+                    for rendered in values:
+                        address = rendered.split('=', 1)[0]
+                        if group and group_length + 3 + len(rendered) > MAX_CHUNK_CHARS:
+                            emit_cells()
+                            group, group_length = [], 0
+                        group_length += (3 if group else 0) + len(rendered)
+                        group.append((address, rendered))
                     emit_cells()
-                    group, group_length = [], 0
-                group_length += (3 if group else 0) + len(rendered)
-                group.append((address, rendered))
-            emit_cells()
-            continue
-        if buffer and (buffer_chars + 1 + len(line) > MAX_CHUNK_CHARS or row_number - start >= 50):
-            flush()
-        start = row_number if start is None else start
-        end, high_col = row_number, max(high_col, max(item[0] for item in row))
-        buffer_chars += len(line) + (1 if buffer else 0)
-        buffer.append(line)
-        buffer_lengths.extend(len(rendered) for rendered in values)
-    flush()
-    return {'name': sheet_name, 'index': sheet_index, 'rows': count, 'columns': columns,
-            'header_sample': header_sample, 'header_sample_truncated': header_truncated, 'populated_cells': cells,
-            'formula_cells': formulas, 'formulas_without_cached_values': uncached}
+                except _IndexFull:
+                    chunks.rollback(mark)  # A row is indexed whole or not at all.
+                    raise
+                add(row_number, row, formulas, uncached)
+                committed.update(totals)
+                continue
+            if buffer and (buffer_chars + 1 + len(line) > MAX_CHUNK_CHARS or row_number - start >= 50):
+                flush()
+            start = row_number if start is None else start
+            end, high_col = row_number, max(high_col, max(item[0] for item in row))
+            buffer_chars += len(line) + (1 if buffer else 0)
+            buffer.append(line)
+            buffer_lengths.extend(len(rendered) for rendered in values)
+            add(row_number, row, formulas, uncached)
+        flush()
+    except _IndexFull:
+        # The sections of the rows that did not fit were taken back out: the index ends with the
+        # last committed rows. The rows after them, read or not, are left out.
+        limit.stop('index')
+        for _ in rows:
+            pass
+    return {'name': sheet_name, 'index': sheet_index, 'rows': committed['rows'], 'columns': committed['columns'],
+            'header_sample': header_sample if committed['rows'] else '', 'header_sample_truncated': header_truncated and bool(committed['rows']),
+            'populated_cells': committed['populated_cells'], 'formula_cells': committed['formula_cells'],
+            'formulas_without_cached_values': committed['formulas_without_cached_values']}
+
+
+def _sheet_text_read(item):
+    """A sheet with indexed cell text: read whole, or read up to a limit with text before it. A sheet whose
+    reading stopped at its first row, or before any filled cell, has none and is not counted as text."""
+    return 'read_to_row' not in item or bool(item.get('populated_cells') or item.get('comment_count'))
 
 
 def _vml_only_notes(archive, source_path, relations):
@@ -1708,6 +2034,10 @@ def _vml_only_notes(archive, source_path, relations):
     return found
 
 
+class _CountCut(Exception):
+    """The parser's time ran out while it was only counting what a limit left out."""
+
+
 def _workbook(path, record, chunks):
     from openpyxl import load_workbook
     from openpyxl.worksheet._reader import WorkSheetParser, FORMULA_TAG
@@ -1717,17 +2047,28 @@ def _workbook(path, record, chunks):
         archive = cleanup.enter_context(zipfile.ZipFile(path))
         book = load_workbook(path, read_only=True, data_only=False, keep_links=False, keep_vba=False)
         cleanup.callback(book.close)
-        remaining = MAX_CELLS
+        # Stored cells count here, as each row's XML holds them, and before the row is parsed: an
+        # empty but formatted cell costs the parser as much as a filled one.
+        limit = _SheetLimit()
         deadline = time.monotonic() + 90
+        _budget_started()
 
         class SparseParser(WorkSheetParser):
             def parse_row(self, element):
-                nonlocal remaining
                 if time.monotonic() > deadline:
-                    raise ExtractionError('Workbook processing exceeded 90 seconds. Split the workbook and attach smaller copies.')
-                remaining -= len(element)
-                if remaining < 0:
-                    raise ExtractionError('Workbook exceeds two million stored cells; no partial index was published.')
+                    if limit.reason is None:
+                        raise ExtractionError(WORKBOOK_TIME_MESSAGE)
+                    raise _CountCut()
+                try:
+                    number = int(element.get('r') or self.row_counter + 1)
+                except ValueError:
+                    number = self.row_counter + 1
+                if limit.reason is None and number > MAX_ROWS:
+                    # Past the row limit, as in a CSV: the rows before it are read, the rest counted.
+                    limit.stop('rows')
+                if not limit.take(len(element), number):
+                    self.row_counter = number
+                    return None  # Past a limit: counted, not parsed.
                 return super().parse_row(element)
 
             def parse_cell(self, element):
@@ -1741,29 +2082,24 @@ def _workbook(path, record, chunks):
                 return cell
         if not book.sheetnames:
             raise ExtractionError('No worksheets could be read. Save a copy as Excel Workbook (.xlsx) and attach it.')
-        if len(book.sheetnames) > MAX_SHEETS:
-            raise ExtractionError('Workbook exceeds 100 sheets; no partial index was published.')
-        inventory = []
-        for index, name in enumerate(book.sheetnames, 1):
-            sheet = book[name]
-            if not hasattr(sheet, 'iter_rows'):
-                inventory.append({'name': name, 'index': index, 'kind': 'chart_sheet', 'rows': 0,
-                                  'columns': 0, 'header_sample': '',
-                                  'populated_cells': 0, 'formula_cells': 0, 'formulas_without_cached_values': 0,
-                                  'requires_vision': True, 'visibility': sheet.sheet_state})
-                continue
-            def rows():
-                with sheet._get_source() as stream:
-                    parser = SparseParser(stream, sheet._shared_strings, False, book.epoch, book._date_formats, book._timedelta_formats)
-                    last_row = 0
-                    for number, cells in parser.parse():
+        names = book.sheetnames
+
+        def rows(sheet):
+            with sheet._get_source() as stream:
+                parser = SparseParser(stream, sheet._shared_strings, False, book.epoch, book._date_formats, book._timedelta_formats)
+                last_row = 0
+                try:
+                    for parsed in parser.parse():
+                        if parsed is None:
+                            continue
+                        number, cells = parsed
                         if number <= last_row or not 1 <= number <= MAX_ROWS:
                             raise ExtractionError('Worksheet rows repeat or are out of order. Save a repaired copy and attach it.')
                         last_row = number
                         row, last_col = [], 0
                         for cell in cells:
                             col, raw = cell['column'], cell['value']
-                            if cell['row'] != number or col <= last_col or col > 16384:
+                            if cell['row'] != number or col <= last_col or col > MAX_COLUMNS:
                                 raise ExtractionError('Worksheet cells repeat or are out of order. Save a repaired copy and attach it.')
                             last_col = col
                             if raw is None: continue
@@ -1775,8 +2111,26 @@ def _workbook(path, record, chunks):
                                 if fmt and fmt != 'General': raw = f'{raw} [Excel format: {fmt[:100]}]'
                             row.append((col, raw, formula, cell.get('cached')))
                         yield number, row
-            first_chunk = len(chunks.items)
-            item = _row_chunks(record, chunks, index, sheet.title, rows())
+                except _CountCut:
+                    limit.counted = False
+
+        inventory = []
+        for index, name in enumerate(names[:MAX_SHEETS], 1):
+            if limit.reason is not None:
+                break  # The sheets after the one where reading stopped are not opened.
+            sheet = book[name]
+            if not hasattr(sheet, 'iter_rows'):
+                inventory.append({'name': name, 'index': index, 'kind': 'chart_sheet', 'rows': 0,
+                                  'columns': 0, 'header_sample': '',
+                                  'populated_cells': 0, 'formula_cells': 0, 'formulas_without_cached_values': 0,
+                                  'requires_vision': True, 'visibility': sheet.sheet_state})
+                continue
+            first_chunk, limit.rows = len(chunks.items), 0
+            item = _row_chunks(record, chunks, index, sheet.title, rows(sheet), limit)
+            if limit.reason is not None:
+                # Reading stopped in this sheet. Its rows after the stop were counted, not read.
+                item.update(read_to_row=item['rows'], rows=max(item['rows'], limit.rows))
+                limit.cut = (index, sheet.title, item['read_to_row'])
             item['visibility'] = sheet.sheet_state
             for chunk in chunks.items[first_chunk:]:
                 chunk['location']['visibility'] = sheet.sheet_state
@@ -1798,23 +2152,42 @@ def _workbook(path, record, chunks):
                                    if relation.get('Type', '').rsplit('/', 1)[-1] in
                                    {'drawing', 'vmlDrawing', 'image', 'chart', 'oleObject', 'control', 'ctrlProp', 'diagramData', 'diagramLayout'}})
                 comments = 0
-                for relation in relations:
-                    if relation.get('Type','').rsplit('/',1)[-1] != 'comments' or relation.get('TargetMode') == 'External': continue
-                    import posixpath
-                    target = relation.get('Target','')
-                    path_name = posixpath.normpath(target.lstrip('/') if target.startswith('/') else posixpath.join(str(source_path.parent),target))
-                    if path_name.startswith('../') or path_name not in archive.namelist(): continue
-                    with archive.open(path_name) as notes:
-                        for _, note in ElementTree.iterparse(notes,events=('end',)):
-                            if note.tag.rsplit('}',1)[-1]!='comment': continue
-                            address = note.get('ref','')
-                            if not re.fullmatch(r'[A-Z]{1,3}[1-9]\d{0,6}',address): continue
-                            value = ''.join(part.text or '' for part in note.iter() if part.tag.rsplit('}',1)[-1]=='t')
-                            if value.strip():
-                                comments += 1
-                                chunks.add(f's{index}_comment{comments}',f'{record["name"]} · {sheet.title}!{address} comment',value,
-                                           {'sheet':sheet.title,'sheet_index':index,'cell':address,'visibility':sheet.sheet_state,'origin':'cell_comment'})
-                            note.clear()
+                try:
+                    for relation in relations:
+                        if relation.get('Type','').rsplit('/',1)[-1] != 'comments' or relation.get('TargetMode') == 'External': continue
+                        import posixpath
+                        target = relation.get('Target','')
+                        path_name = posixpath.normpath(target.lstrip('/') if target.startswith('/') else posixpath.join(str(source_path.parent),target))
+                        if path_name.startswith('../') or path_name not in archive.namelist(): continue
+                        with archive.open(path_name) as notes:
+                            for _, note in ElementTree.iterparse(notes,events=('end',)):
+                                if note.tag.rsplit('}',1)[-1]!='comment': continue
+                                address = note.get('ref','')
+                                if not re.fullmatch(r'[A-Z]{1,3}[1-9]\d{0,6}',address): continue
+                                # Where reading stopped in this sheet, a comment on a row after the stop
+                                # is left out with its row.
+                                if 'read_to_row' in item and int(address.lstrip('ABCDEFGHIJKLMNOPQRSTUVWXYZ')) > item['read_to_row']:
+                                    note.clear()
+                                    continue
+                                value = ''.join(part.text or '' for part in note.iter() if part.tag.rsplit('}',1)[-1]=='t')
+                                if value.strip():
+                                    mark = chunks.mark()
+                                    try:
+                                        chunks.add(f's{index}_comment{comments + 1}',f'{record["name"]} · {sheet.title}!{address} comment',value,
+                                                   {'sheet':sheet.title,'sheet_index':index,'cell':address,'visibility':sheet.sheet_state,'origin':'cell_comment'})
+                                    except _IndexFull:
+                                        chunks.rollback(mark)
+                                        raise
+                                    comments += 1
+                                note.clear()
+                except _IndexFull:
+                    # The cells of this sheet that were read are indexed; its remaining comments and the
+                    # sheets after it are not. Whatever stopped the reading before, the index now ends here.
+                    limit.stop('index')
+                    limit.comments = True
+                    if limit.cut is None:
+                        item['read_to_row'] = item['rows']
+                        limit.cut = (index, sheet.title, None)
                 if comments: item['comment_count']=comments
                 if 'vmlDrawing' in graphics and _vml_only_notes(archive, source_path, relations):
                     # Excel draws every cell comment's note box in a VML drawing. Those comments are
@@ -1823,9 +2196,15 @@ def _workbook(path, record, chunks):
                 if graphics:
                     item.update(requires_vision=True, unread_visual_parts=graphics)
             inventory.append(item)
-            if sum(item['populated_cells'] for item in inventory) > MAX_CELLS:
-                raise ExtractionError('Workbook exceeds two million populated cells; no partial index was published.')
-        limitations = []
+        if not chunks.items and limit.reason is not None:
+            raise ExtractionError(INDEX_FULL_MESSAGE if limit.reason == 'index' else NOTHING_READ_MESSAGE)
+        # Chart-only tabs among those a sentence names as read: they hold no cells, and are named apart.
+        charts = sum(item.get('kind') == 'chart_sheet' for item in inventory[:limit.cut[0] - 1 if limit.cut else None])
+        apart = ''.join(f', apart from {tabs}' for tabs in _chart_tabs(charts, MAX_SHEETS))
+        limitations = ([limit.sheets_note(len(names), charts)] if limit.cut
+                       else [f'Sheets 1 to {MAX_SHEETS:,} of {len(names):,} were read{apart}; the rest was not.'] if len(names) > MAX_SHEETS
+                       else [])
+        read_limit = ' '.join(limitations)
         missing = sum(item['formulas_without_cached_values'] for item in inventory)
         if missing:
             limitations.append(f'{missing} formula cells have no cached result. Formulas were indexed as text, never executed.')
@@ -1837,10 +2216,30 @@ def _workbook(path, record, chunks):
             limitations.append(f'{mixed_sheets} worksheets contain drawings, charts, images or embedded objects that cell extraction does not read. Cell text is indexed; export the visual content as PDF or PNG for review. No graphic content was inferred.')
         if record['kind'] == 'xlsm':
             limitations.append('Macros are preserved in the original only and were never executed or interpreted.')
-        return ({'sheets': inventory, 'sheet_count': len(inventory), 'rows': sum(item['rows'] for item in inventory),
+        # A sheet counts as indexed when all of it is: no chart-only tab, no unread graphics, no stop.
+        indexed = sum(item.get('kind') != 'chart_sheet' and not item.get('unread_visual_parts') and 'read_to_row' not in item
+                      for item in inventory)
+        # Sheets whose own cell text is indexed, whatever else they hold, as for a PDF's pages: a sheet read up
+        # to a limit has its rows up to there, and the read limit says where it stops.
+        text_indexed = sum(item.get('kind') != 'chart_sheet' and _sheet_text_read(item) for item in inventory)
+        return ({'sheets': inventory, 'sheet_count': len(names), **({'sheets_read': len(inventory)} if len(inventory) < len(names) else {}),
+                 'rows': sum(item['rows'] for item in inventory),
                  'formula_cells': sum(item['formula_cells'] for item in inventory), 'macros_executed': False,
                  'formula_policy': 'Formula text and saved cached values only; no recalculation.'},
-                {'indexed_units': len(inventory) - chart_sheets - mixed_sheets, 'total_units': len(inventory), 'limitations': limitations})
+                {'indexed_units': indexed, 'total_units': len(names), 'text_indexed_units': text_indexed, 'limitations': limitations,
+                 **({'read_limit': read_limit} if read_limit else {})})
+
+
+def _looks_utf16_or_32(head):
+    """Null bytes the way UTF-16/32 without a byte-order mark has them: many, or nearly all on one byte
+    parity (every ASCII character of UTF-16-LE text is followed by a null, also in Cyrillic or Arabic text)."""
+    nulls = [index for index, byte in enumerate(head) if byte == 0]
+    if not nulls:
+        return False
+    if len(nulls) * 4 >= len(head):
+        return True
+    odd = sum(index % 2 for index in nulls)
+    return len(nulls) >= 8 and max(odd, len(nulls) - odd) >= 0.9 * len(nulls)
 
 
 def _csv(path, record, chunks):
@@ -1852,7 +2251,9 @@ def _csv(path, record, chunks):
         encoding = 'utf-32'
     elif head.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
         encoding = 'utf-16'
-    elif b'\x00' in head:
+    elif _looks_utf16_or_32(head):
+        # UTF-16/32 text saved without a byte-order mark. A stray null in an otherwise UTF-8
+        # export is reported by its row below instead of as an encoding problem.
         raise ExtractionError(error)
     else:
         encoding = 'utf-8-sig'
@@ -1865,21 +2266,60 @@ def _csv(path, record, chunks):
             except csv.Error:
                 delimiter = ','
             reader = csv.reader(stream, delimiter=delimiter, strict=True)
+            limit = _SheetLimit()
             def rows():
-                for number, row in enumerate(reader, 1):
+                numbered = enumerate(reader, 1)
+                while True:
+                    try:
+                        number, row = next(numbered)
+                    except StopIteration:
+                        return
+                    except (csv.Error, UnicodeError):
+                        if limit.reason is None:
+                            raise
+                        # Past a limit the rest is only counted. A fault in it ends the count, not the file.
+                        limit.counted = False
+                        return
+                    if not any(row):
+                        # An empty line holds nothing to read or to leave out. It neither stops the
+                        # reading nor counts toward the rows a cut file is said to have (limit.rows).
+                        if limit.reason is None and number <= MAX_ROWS:
+                            yield number, []
+                        continue
+                    if limit.reason is None and number > MAX_ROWS:
+                        limit.stop('rows')
+                    if limit.reason is not None:
+                        limit.skip(number)
+                        continue
                     if any('\x00' in value for value in row):
-                        raise ExtractionError(error)
-                    yield number, [(column, value, None, None) for column, value in enumerate(row, 1) if value]
-            item = _row_chunks(record, chunks, 1, 'CSV', rows())
+                        raise ExtractionError(f'Row {number:,} of this CSV contains a null character, which a CSV cell '
+                                              'cannot hold. In Excel, choose Save As > CSV UTF-8 (Comma delimited), '
+                                              'or attach an XLSX copy.')
+                    cells = [(column, value, None, None) for column, value in enumerate(row, 1) if value]
+                    kept = [cell for cell in cells if cell[0] <= MAX_COLUMNS]
+                    if limit.take(len(kept), number):
+                        if len(kept) < len(cells):
+                            limit.wide.append((number, cells[-1][0]))
+                        yield number, kept
+            item = _row_chunks(record, chunks, 1, 'CSV', rows(), limit)
     except UnicodeError:
         raise ExtractionError(error) from None
     except csv.Error:
         raise ExtractionError('CSV has an invalid or oversized field; no partial index was published.') from None
     if not item['populated_cells']:
-        raise ExtractionError('CSV has no populated cells to index.')
-    return ({'sheets': [item], 'sheet_count': 1, 'rows': item['rows'], 'delimiter': delimiter,
+        raise ExtractionError(INDEX_FULL_MESSAGE if limit.reason == 'index' else NOTHING_READ_MESSAGE if limit.reason
+                              else 'CSV has no populated cells to index.')
+    # Rows count as indexed when all of their cells are: a row cut at MAX_COLUMNS is not, nor is any row after a stop.
+    read = item['rows']
+    limit.wide = [entry for entry in limit.wide if entry[0] <= read]
+    total = max(read, limit.rows) if limit.reason else read
+    notes = [*([limit.columns_note()] if limit.wide else []), *([limit.rows_note(read, total)] if limit.reason else [])]
+    if limit.reason:
+        item.update(read_to_row=read, rows=total)
+    return ({'sheets': [item], 'sheet_count': 1, 'rows': total, 'delimiter': delimiter,
              'formula_policy': 'CSV cells are literal text; formulas are never executed.'},
-            {'indexed_units': item['rows'], 'total_units': item['rows'], 'limitations': []})
+            {'indexed_units': read - len(limit.wide), 'total_units': total, 'text_indexed_units': read, 'limitations': notes,
+             **({'read_limit': ' '.join(notes)} if notes else {})})
 
 
 def _legacy_xls(path, record, chunks):
@@ -1894,27 +2334,374 @@ def _legacy_xls(path, record, chunks):
             raise ExtractionError('Legacy XLS must be an OLE binary workbook. Save as XLSX or CSV and attach it.')
     book = xlrd.open_workbook(str(path), on_demand=True, ragged_rows=True)
     try:
-        if book.nsheets > MAX_SHEETS:
-            raise ExtractionError('Workbook exceeds 100 sheets.')
-        sheets, remaining = [], MAX_CELLS
-        for index in range(book.nsheets):
-            sheet = book.sheet_by_index(index)
-            def rows():
-                nonlocal remaining
-                for number in range(sheet.nrows):
-                    row = sheet.row_values(number)
-                    remaining -= len(row)
-                    if remaining < 0: raise ExtractionError('Workbook exceeds two million stored cells.')
+        _budget_started()  # As in _workbook: the time it took to open the workbook does not count.
+        # As in _workbook: stored cells count, the first MAX_SHEETS sheets are read, and a stop
+        # leaves the rest of its sheet counted but unread and the sheets after it unopened.
+        limit, sheets = _SheetLimit(), []
+        def rows(sheet):
+            for number in range(sheet.nrows):
+                row = sheet.row_values(number)
+                if limit.take(len(row), number + 1):
                     yield number + 1, [(col, value, None, None) for col,value in enumerate(row,1) if value != '']
-            first_chunk = len(chunks.items)
-            item = _row_chunks(record, chunks, index + 1, sheet.name, rows())
+        for index in range(min(book.nsheets, MAX_SHEETS)):
+            if limit.reason is not None:
+                break
+            sheet = book.sheet_by_index(index)
+            first_chunk, limit.rows = len(chunks.items), 0
+            item = _row_chunks(record, chunks, index + 1, sheet.name, rows(sheet), limit)
+            if limit.reason is not None:
+                item.update(read_to_row=item['rows'], rows=max(item['rows'], limit.rows))
+                limit.cut = (index + 1, sheet.name, item['read_to_row'])
             item.update(visibility={0:'visible',1:'hidden',2:'veryHidden'}.get(sheet.visibility,'unknown'), formula_cells=None)
             if item['visibility'] in ('hidden', 'veryHidden'):
                 for chunk in chunks.items[first_chunk:]: chunk['label'] += HIDDEN_SHEET_LABEL
             sheets.append(item)
-        return ({'sheets': sheets, 'sheet_count': len(sheets), 'rows': sum(item['rows'] for item in sheets),
+        if not chunks.items and limit.reason is not None:
+            raise ExtractionError(INDEX_FULL_MESSAGE if limit.reason == 'index' else NOTHING_READ_MESSAGE)
+        notes = ([limit.sheets_note(book.nsheets)] if limit.cut
+                 else [f'Sheets 1 to {MAX_SHEETS:,} of {book.nsheets:,} were read; the rest was not.'] if book.nsheets > MAX_SHEETS
+                 else [])
+        return ({'sheets': sheets, 'sheet_count': book.nsheets, **({'sheets_read': len(sheets)} if len(sheets) < book.nsheets else {}),
+                 'rows': sum(item['rows'] for item in sheets),
                  'formula_policy': 'Saved legacy cell results only; formula provenance may be unavailable.'},
-                {'indexed_units': len(sheets), 'total_units': len(sheets),
-                 'limitations': ['Legacy XLS exposes saved cell results. Formula counts, chart and image contents, and macros are unavailable.']})
+                {'indexed_units': sum('read_to_row' not in item for item in sheets), 'total_units': book.nsheets,
+                 'text_indexed_units': sum(_sheet_text_read(item) for item in sheets),
+                 'limitations': [*notes, 'Legacy XLS exposes saved cell results. Formula counts, chart and image contents, and macros are unavailable.'],
+                 **({'read_limit': ' '.join(notes)} if notes else {})})
     finally:
         book.release_resources()
+
+
+# Reading a file in a separate process. A 300-page PDF or a 200,000-row workbook is 4 to 20
+# seconds of pure-Python work. Inside the server it held the interpreter lock that every
+# request thread needs, so everyone else waited: a typed interview's next question took 2.02 s
+# instead of 1.86 s while five large files were read in another interview, and status polls up
+# to 175 ms. The server's store therefore has each file read by a separate Python, which runs
+# the same reader and sends back exactly what it produced. Publishing stays in the server.
+PARSERS = {'pdf': '_pdf', 'png': '_png', 'xlsx': '_workbook', 'xlsm': '_workbook', 'csv': '_csv', 'xls': '_legacy_xls'}
+# How long a reader may run in its own process, by kind. The PDF and workbook readers stop
+# themselves at their 45 s and 90 s budgets, with their own message (time spent telling
+# drawings from page furniture extends a PDF's budget by up to PDF_DRAWING_SECONDS). This
+# limit also ends what their checks cannot interrupt, such as one long library call, and a
+# reader that hangs, so no review worker waits forever. It counts from when the reader is
+# ready, and again from when a reader's own budget starts (after opening the file), so the
+# margin only has to let the reader's own message come first.
+PARSER_SECONDS = {'pdf': 45 + PDF_DRAWING_SECONDS, 'png': 45, 'xlsx': 90, 'xlsm': 90, 'xls': 90, 'csv': 90}
+PARSER_MARGIN_SECONDS = 15
+# How long Python may take to start and load the reader before it is ready, apart from the
+# limit above: an antivirus scan of python.exe or a cold disk must not use up the reading's
+# time. A reader not ready by then is ended and the file is read in the server instead.
+PARSER_START_SECONDS = 30
+# What a file says when its reader was ended at that limit: that it took too long, with what to do
+# instead, never that it is damaged.
+PARSER_TIME_MESSAGES = {'pdf': PDF_BUDGET_MESSAGE, 'xlsx': WORKBOOK_TIME_MESSAGE, 'xlsm': WORKBOOK_TIME_MESSAGE,
+                        'xls': WORKBOOK_TIME_MESSAGE,
+                        # Neither has a budget of its own: only this limit stops them. Saying that the file could
+                        # not be read would call a large, sound file damaged.
+                        'csv': 'This CSV took too long to read. Split it into smaller files and add those.',
+                        'png': 'This image took too long to read. Export a smaller copy as PNG and add that.'}
+# The process loads this file by its path. Python starts isolated (-I), which puts neither the
+# app's folder nor the working directory on sys.path, in a checkout and a desktop release alike.
+_PARSER_BOOT = ('import importlib.util, sys\n'
+                "spec = importlib.util.spec_from_file_location('documents', sys.argv[1])\n"
+                'module = importlib.util.module_from_spec(spec)\n'
+                "sys.modules['documents'] = module\n"
+                'spec.loader.exec_module(module)\n'
+                'module._parse_apart_main()\n')
+# Set in a reader process only: tells the server that a reader's own time budget has started.
+_budget_signal = None
+
+
+def _budget_started():
+    """Called by a reader as its own time budget starts. In a reader process the server then
+    counts the process's limit from here (_parse_apart): the time it took to open the file does
+    not count against it, and the reader's own message comes first. Elsewhere, nothing."""
+    if _budget_signal is not None:
+        _budget_signal()
+
+
+class ParserProcessError(Exception):
+    """A reader in its own process failed in a way that must not be described here: the
+    process ended without a result, or the reader raised an error whose message could
+    quote the file. The file then shows the usual message for a file that cannot be read."""
+
+
+class ReadingInterrupted(ParserProcessError):
+    """A reader process ended before it finished, and this app did not end it: the system or
+    a person did. The file shows READING_STOPPED_MESSAGE and can be read again."""
+
+
+class ReadingStopped(ParserProcessError):
+    """The store ended its reader processes because the app is closing (stop_readers). The file
+    is left as it was, to be read again when the app next starts."""
+
+
+def _line(value):
+    """One line of the exchange with a reader process. Text keeps every character the reader produced."""
+    return json.dumps(value, ensure_ascii=False, separators=(',', ':')).encode('utf-8', 'surrogatepass') + b'\n'
+
+
+def _end_process(child):
+    try:
+        child.kill()
+    except OSError:
+        pass  # It had already ended.
+
+
+class _Readers:
+    """The reader processes one store is running, so that a closing app can end them."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._running = set()
+        self.stopped = False
+
+    def add(self, child):
+        """Count a reader process as running. False once the store has stopped: end it."""
+        with self._lock:
+            if not self.stopped:
+                self._running.add(child)
+            return not self.stopped
+
+    def discard(self, child):
+        with self._lock:
+            self._running.discard(child)
+
+    def stop(self, wait):
+        with self._lock:
+            self.stopped = True
+            running = list(self._running)
+        for child in running:
+            _end_process(child)
+        until = time.monotonic() + wait
+        for child in running:
+            try:
+                child.wait(max(0.0, until - time.monotonic()))
+            except subprocess.TimeoutExpired:
+                pass  # The worker that started it still waits for it.
+
+
+class _ReaderClock:
+    """Ends a reader process when its time runs out. The time can be set again (restart), and
+    `expired` names the phase ('start' or 'read') whose time ran out, if one did."""
+
+    def __init__(self, child, seconds, phase):
+        self._child, self._condition = child, threading.Condition()
+        self._deadline, self._phase, self._done = time.monotonic() + seconds, phase, False
+        self.expired = None
+        threading.Thread(target=self._watch, name='document-reader-clock', daemon=True).start()
+
+    def restart(self, seconds, phase):
+        with self._condition:
+            if self.expired is None:
+                self._deadline, self._phase = time.monotonic() + seconds, phase
+                self._condition.notify()
+
+    def cancel(self):
+        with self._condition:
+            self._done = True
+            self._condition.notify()
+
+    def _watch(self):
+        with self._condition:
+            while not self._done and self._deadline > time.monotonic():
+                self._condition.wait(self._deadline - time.monotonic())
+            if self._done:
+                return
+            self.expired = self._phase
+        _end_process(self._child)
+
+
+def _parse_apart(path, record, slots, diagnose, readers=None):
+    """Read a file with its reader in a separate Python process: (inventory, coverage, chunks).
+
+    The result equals what the reader returns in this process, and its errors are raised
+    again here: a DocumentError with its own message, an ImportError naming the missing
+    module, an OSError, or ParserProcessError for any other error, without its message. A
+    reader still running at its limit is ended and raises its time-limit error. One that
+    ends without a result, and that this app did not end (a crash, a person or the system
+    ending it), raises ReadingInterrupted; one ended by `readers` being stopped raises
+    ReadingStopped. Returns None when no reader process can run on this computer, or when
+    the one that started does not run the code this process loaded; the caller then reads
+    the file itself.
+    """
+    kind = record['kind']
+    limit = PARSER_SECONDS[kind] + PARSER_MARGIN_SECONDS  # An unsupported kind fails as it does in-process.
+    if not sys.executable or getattr(sys, 'frozen', False) or not _SOURCE_DIGEST:
+        return None  # This Python is part of another program and cannot be started on its own.
+    readers = readers or _Readers()
+    command = [sys.executable, '-I', '-B', '-c', _PARSER_BOOT, os.fspath(_long_path(Path(__file__).resolve()))]
+    # The reader process looks for packages where this process does: a desktop release, a launcher
+    # or a Python started without -I can have put them on sys.path.
+    request = _line({'path': os.fspath(path), 'record': record,
+                     'sys_path': [entry for entry in sys.path if isinstance(entry, str)]})
+    # No console window on Windows, and below normal priority there; elsewhere the reader lowers
+    # its own priority. Either way it takes no processor time that the server's requests or the
+    # window need.
+    flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0) | getattr(subprocess, 'BELOW_NORMAL_PRIORITY_CLASS', 0)
+    with slots:
+        if readers.stopped:
+            raise ReadingStopped()
+        try:
+            # What the reader prints is discarded: it can quote the file. Its own session: Ctrl+C in
+            # the terminal that runs the server stops the server, which ends this reader and leaves
+            # the file to be read again, instead of failing this reader and the file with it.
+            child = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                     creationflags=flags, start_new_session=True)
+        except (OSError, ValueError) as error:
+            diagnose('document_parser_process', stage=kind, outcome='unavailable', error_type=type(error).__name__)
+            return None
+        clock = _ReaderClock(child, PARSER_START_SECONDS, 'start')
+        if not readers.add(child):
+            _end_process(child)
+        loaded, items, outcome, broken = None, [], None, False
+        try:
+            try:
+                # 'ready' with the digest of the code it loaded, then, once it has the request, one
+                # line per section, and the result. stdin stays open until the reader has ended: the
+                # reader ends itself when it closes, that is when this process has ended.
+                for line in child.stdout:
+                    if not line.endswith(b'\n'):
+                        break  # Cut short: the process ended while it wrote.
+                    value = json.loads(line.decode('utf-8', 'surrogatepass'))
+                    if loaded is None:
+                        if type(value) is not dict or not isinstance(value.get('ready'), str):
+                            raise ValueError('not a reader process')
+                        loaded = value['ready']
+                        if loaded != _SOURCE_DIGEST:
+                            _end_process(child)  # documents.py changed on disk after this process loaded it.
+                            break
+                        clock.restart(limit, 'read')
+                        try:
+                            child.stdin.write(request)
+                            child.stdin.flush()
+                        except OSError:
+                            pass  # It ended before reading the request; its exit says why.
+                    elif value == 'clock':
+                        clock.restart(limit, 'read')  # The reader's own budget starts now.
+                    elif type(value) is list:
+                        items.append({'id': value[0], 'label': value[1], 'text': value[2], 'location': value[3]})
+                    else:
+                        outcome = value
+            except (ValueError, IndexError):
+                outcome, broken = None, True  # A line out of place: nothing it sent is used.
+                _end_process(child)
+            code = child.wait()  # Bounded: at its limit the clock ends the process.
+        finally:
+            clock.cancel()
+            readers.discard(child)
+            if child.poll() is None:
+                _end_process(child)
+                child.wait()
+            for stream in (child.stdin, child.stdout):
+                try:
+                    stream.close()
+                except OSError:
+                    pass
+    if isinstance(outcome, dict):
+        # A whole result counts, even when the limit arrived as it was written.
+        error = outcome.get('error')
+        if error == 'document':
+            raise (ExtractionError if outcome.get('extraction') else DocumentError)(str(outcome.get('message')))
+        if error == 'import':
+            raise ImportError(name=outcome.get('module'))
+        if error == 'os':
+            failure = OSError()
+            failure.reported_type = outcome.get('type')
+            raise failure
+        if error is None and outcome.get('sections') == len(items):
+            chunks = _Chunks(record)
+            chunks.items, chunks.characters = items, outcome['characters']
+            return outcome['inventory'], outcome['coverage'], chunks
+        raise ParserProcessError()
+    if readers.stopped:
+        raise ReadingStopped()
+    if loaded is not None and loaded != _SOURCE_DIGEST:
+        diagnose('document_parser_process', stage=kind, outcome='unavailable', reason='source_changed')
+        return None
+    if clock.expired == 'read':
+        diagnose('document_parser_process', stage=kind, outcome='time_limit', timeout_seconds=int(limit))
+        if kind in PARSER_TIME_MESSAGES:
+            raise ExtractionError(PARSER_TIME_MESSAGES[kind])
+        raise ParserProcessError()
+    if loaded is None or clock.expired == 'start':
+        # Python started but could not load the reader, or not in time (a locked-down, damaged or
+        # very slow installation).
+        diagnose('document_parser_process', stage=kind, outcome='unavailable',
+                 reason='start_time_limit' if clock.expired == 'start' else f'exit_{code}')
+        return None
+    diagnose('document_parser_process', stage=kind, outcome='ended', reason='protocol' if broken else f'exit_{code}')
+    if broken:
+        raise ParserProcessError()
+    raise ReadingInterrupted()
+
+
+def _end_with_server(descriptor):
+    """In a reader process: end it when the server's end of stdin closes, that is when the server
+    has ended, however it ended (closed, crashed or killed). Without the server nobody needs the
+    result, and the reader must not go on using a processor and holding the file open."""
+    try:
+        if os.name == 'nt':
+            try:
+                # The pipe's own handle: os.read would hold the C runtime's lock on stdin while it waits.
+                import _winapi
+                import msvcrt
+                handle = msvcrt.get_osfhandle(descriptor)
+                while _winapi.ReadFile(handle, 4096)[0]:
+                    pass
+                os._exit(1)
+            except OSError:
+                raise
+            except Exception:
+                pass  # Pipe calls that are not what this expects: wait below rather than not at all.
+        while os.read(descriptor, 4096):
+            pass
+    except OSError:
+        pass  # The pipe is broken: the server has ended.
+    os._exit(1)
+
+
+def _parse_apart_main():
+    """The reader process of _parse_apart. Writes 'ready' with the digest of the code it loaded,
+    reads the request (the file's path and record, and the server's sys.path) as one line from
+    stdin, and writes each section and then the result to stdout, one JSON value a line."""
+    global _budget_signal
+    if hasattr(os, 'nice'):
+        try:
+            os.nice(10)  # Below normal priority (on Windows the server starts it so).
+        except OSError:
+            pass
+    protocol = sys.stdout.buffer
+    sys.stdout = sys.stderr  # Whatever a library prints must not land among the result's lines.
+    protocol.write(_line({'ready': _SOURCE_DIGEST}))
+    protocol.flush()
+    stdin = sys.stdin.buffer
+    request = json.loads(stdin.readline().decode('utf-8', 'surrogatepass'))
+    # The server sends nothing more; the pipe stays open while it waits for the result.
+    threading.Thread(target=_end_with_server, args=(stdin.fileno(),), name='server-watch', daemon=True).start()
+
+    def clock():
+        protocol.write(_line('clock'))
+        protocol.flush()
+    _budget_signal = clock
+    sys.path[:] = request['sys_path']
+    record = request['record']
+    chunks = _Chunks(record)
+    try:
+        inventory, coverage = globals()[PARSERS[record['kind']]](Path(request['path']), record, chunks)
+        for item in chunks.items:
+            protocol.write(_line([item['id'], item['label'], item['text'], item['location']]))
+        result = _line({'inventory': inventory, 'coverage': coverage, 'characters': chunks.characters,
+                        'sections': len(chunks.items)})
+    except DocumentError as error:
+        result = _line({'error': 'document', 'extraction': isinstance(error, ExtractionError), 'message': str(error)})
+    except ImportError as error:
+        result = _line({'error': 'import', 'module': getattr(error, 'name', None)})
+    except OSError as error:
+        result = _line({'error': 'os', 'type': type(error).__name__})
+    except Exception:
+        # Its message can quote the file: the server shows its own. A result that is not
+        # JSON lands here too; the server could not have stored it either.
+        result = _line({'error': 'other'})
+    protocol.write(result)
+    protocol.flush()

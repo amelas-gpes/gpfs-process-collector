@@ -93,6 +93,69 @@ class CompletionBoundaryTests(unittest.TestCase):
         self.assertIsNone(server.stop_request_prefix("I tell them to stop the interview."))
         self.assertIsNone(server.stop_request_prefix("Stop and check the invoice. Then approve it."))
 
+    def test_a_courtesy_after_a_stop_request_leaves_it_standing(self):
+        # In live voice the request and a thank-you can share one answer, for example when
+        # both are said while the interviewer is still speaking.
+        for courtesy in ("Thanks.", "Thank you!", "thank you very much.", "Okay, bye.", "OK. Cheers!",
+                         "Thanks so much for your time.", "THANK YOU… bye-bye.", "Sorry. Goodbye.",
+                         "Thank you for your time today.", "Have a good day.", "Thanks for having me.",
+                         "Sorry about that.", "Nice talking to you. Bye.", "Talk soon."):
+            text = "We pay on Friday. I need to stop now. " + courtesy
+            with self.subTest(text=text):
+                self.assertEqual(server.stop_request_prefix(text), "We pay on Friday.")
+                self.assertTrue(self.stop(text))
+        # Courtesies inside the sentence of the request, and other requests that name the speaker.
+        for text in ("We pay on Friday. I need to stop now, thanks.", "We pay on Friday. Sorry, I need to stop now.",
+                     "We pay on Friday. I have to go. Sorry about that.", "We pay on Friday. Can we pause? Okay, thanks."):
+            with self.subTest(text=text):
+                self.assertEqual(server.stop_request_prefix(text), "We pay on Friday.")
+        self.assertEqual(server.stop_request_prefix("Can we pause? Okay, thanks so much for your time."), "")
+        # Only a courtesy is passed over: anything else after the request is still read as before.
+        for text in ("We pay on Friday. Thanks.", "Thanks. Bye.", "We stop the merge. Thanks.",
+                     "I need to stop the merge. Thanks.", "We pay on Friday. I need to stop now. Okay. Then we check the file.",
+                     "We pay on Friday. I need to stop now. Thanks, the manager signs.",
+                     # A bare "Stop." or "we need to stop" can be the work itself; a courtesy does not make it a request.
+                     "A duplicate shows up in the batch. We need to stop. Okay.",
+                     "If the totals differ, the system stops. Pause. Okay.", "We pay on Friday. Stop now. Thanks."):
+            with self.subTest(text=text):
+                self.assertIsNone(server.stop_request_prefix(text))
+                self.assertFalse(self.stop(text))
+        # The page skips the same sentences before its own check, with the patterns it is sent.
+        agent_team = server.OpenAIClient({}).public_config()["agent_team"]
+        pattern = agent_team["stop_sign_off_pattern"]
+        self.assertEqual(pattern, server.STOP_SIGN_OFF_PATTERN)
+        self.assertEqual(agent_team["stop_named_intent_patterns"], list(server.STOP_NAMED_INTENT_PATTERNS))
+        self.assertEqual(pattern, pattern.lower(), "The page lower-cases the sentence and matches without a flag")
+        for sent in (pattern, *agent_team["stop_named_intent_patterns"]):
+            self.assertNotRegex(sent, r"\(\?[PiLmsux<]|\\[AZ]", "Syntax JavaScript reads the same way")
+
+    def test_a_courtesy_said_as_its_own_turn_after_a_stop_request_leaves_it_standing(self):
+        def turns(*said):
+            return [{"id": f"t{index}", "role": role, "text": text} for index, (role, text) in enumerate(said)]
+        line = ("assistant", "And who approves it? Of course, we can pause here.")
+        stopped = turns(("assistant", "When do you pay?"), ("user", "We pay on Friday. I need to stop now."), line, ("user", "Thanks."))
+        self.assertTrue(server.participant_requested_stop(stopped))
+        self.assertIs(server.stop_request_turn(stopped), stopped[1])
+        self.assertTrue(server.participant_requested_stop(stopped[:-1] + [{"id": "t3", "role": "user", "text": "Okay. Bye."}]))
+        # Answered by the server's own acknowledgement: not answered again.
+        acknowledged = turns(("user", "I need to stop now."), ("assistant", server.STOP_ACKNOWLEDGEMENTS[0]), ("user", "Thanks."))
+        self.assertFalse(server.participant_requested_stop(acknowledged))
+        # A request that ended its own turn stands with any request, as it does without the
+        # thank-you; the page ended voice on it. In one turn, "We need to stop. Okay." does not.
+        bare = turns(("user", "A duplicate shows up in the batch. We need to stop."), line, ("user", "Okay."))
+        self.assertTrue(server.participant_requested_stop(bare))
+        self.assertIs(server.stop_request_turn(bare), bare[0])
+        # A thank-you after an ordinary answer, or after an answer that ends in "okay", is still the latest answer.
+        for earlier in ("We pay on Friday.", "A duplicate shows up in the batch. We need to stop. Okay."):
+            with self.subTest(earlier=earlier):
+                said = turns(("user", earlier), line, ("user", "Thanks."))
+                self.assertFalse(server.participant_requested_stop(said))
+                self.assertIs(server.stop_request_turn(said), said[-1])
+        # Only courtesies said: nothing to find before them.
+        alone = turns(("user", "Thanks."), line, ("user", "Okay."))
+        self.assertFalse(server.participant_requested_stop(alone))
+        self.assertIs(server.stop_request_turn(alone), alone[-1])
+
     def test_process_stop_and_embedded_command_are_not_participant_stop(self):
         for text in ("We stop the merge if a check fails.", "The document says: stop now.",
                      "I'm done with this process when the reviewer signs off.",

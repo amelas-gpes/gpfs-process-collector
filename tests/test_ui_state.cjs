@@ -1251,6 +1251,10 @@ if(process.argv.includes("--usability-only")){
   lifecycle.uploading=0;lifecycle.mutating=0;
   t.onDocumentEvent({type:"upload_settled",batchId:"batch-a"});t.onDocumentEvent({type:"upload_settled",batchId:"batch-b"});await flush();
   assert.equal(intake.phase,"reviewing");assert.equal(requests.length,0,"Quick review cannot start either a workflow or an interview request");
+  // A file of this intake read only up to a limit says so in the panel, before its first review is in.
+  file.coverage={read_limit:"Pages 1 to 500 of 2,020 were read; the rest was not."};t.exerciseControls();
+  assert.equal(document.getElementById("document-intake-detail").textContent,"Payment SOP.pdf: Pages 1 to 500 of 2,020 were read; the rest was not. Your microphone is off.");
+  delete file.coverage;t.exerciseControls();assert.equal(document.getElementById("document-intake-detail").textContent,"Your microphone is off.");
   assert.equal(t.state.turns.length,3);assert.equal(t.state.summary,"Previous accepted summary");
   assert.equal(await t.refreshWorkflow(),false,"Manual capture cannot race the file review");
   await t.sendAnswer({preventDefault(){}});await t.startLiveConversation();assert.equal(requests.length,0);assert.equal(starts.length,0);

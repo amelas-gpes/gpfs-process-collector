@@ -85,9 +85,15 @@ class DocumentAuditTests(unittest.TestCase):
         self.assertEqual(saved['inventory']['sheets'][0]['visibility'],'hidden')
         self.assertIsNone(saved['inventory']['sheets'][0]['formula_cells'])
         book.release_resources.assert_called_once()
+        # Past the cell limit the workbook is read up to it, and the rest is named, not refused.
+        chunks=documents._Chunks(saved)
         with patch.dict(sys.modules,{'xlrd':reader}),patch.object(documents,'MAX_CELLS',1):
-            with self.assertRaisesRegex(documents.ExtractionError,'million'):
-                documents._legacy_xls(self.store.original_path(self.scope,saved['id']), saved,documents._Chunks(saved))
+            inventory,coverage=documents._legacy_xls(self.store.original_path(self.scope,saved['id']), saved,chunks)
+        self.assertEqual([chunk['text'] for chunk in chunks.items],['A1=header'])
+        self.assertEqual((inventory['sheets'][0]['read_to_row'],inventory['sheets'][0]['rows']),(1,2))
+        self.assertEqual((coverage['indexed_units'],coverage['total_units']),(0,1))
+        self.assertEqual(coverage['read_limit'],'Row 1 of Hidden was read; the rest of the workbook was not.')
+        self.assertEqual(coverage['limitations'][0],coverage['read_limit'])
 
     def test_fictional_settlement_fixtures_include_pdf_forms_comments_hidden_sheets_and_legacy_csv(self):
         base=Path(__file__).parent/'fixtures'/'document-audit'

@@ -401,6 +401,12 @@
           /timed out|network|connection|resolve|secure connection/i.test(detail)?"The transcription connection did not finish. Check the connection, then retry the recording.":
           "I could not transcribe that recording. Earlier transcript answers are retained. Retry the recording, repeat your answer, or type it.";
         if(noSpeech&&!continuation){this.recoverEmptyTranscript(op,blob);return;}
+        // The service could not decode this recording at all (422): sending it again cannot succeed, so it
+        // is not kept for Retry recording.
+        if(cause?.status===422){
+          this.discardPendingAudio();
+          const error=new Error("Transcription failed");error.voiceMessage=detail||"That recording could not be read. Record your answer again, or type it.";throw error;
+        }
         if(!noSpeech){
           const retained=this.retainAudio(blob,"request_failed",message);
           if(!retained)message=message.replace(/retry the recording,?\s*(?:or\s*)?/gi,"")+" This recording exceeds the in-memory retry limit; please repeat it or type it.";

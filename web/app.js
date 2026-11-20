@@ -122,13 +122,20 @@
       const body=JSON.stringify({...snapshot(),previous_capture:captureForFollowup(),prepare_only:true});
       const key=draftPreparationKey(body);
       if(key===draftAhead.body)return;
-      draftAhead.body=key;draftAhead.flight=true;
+      // The head start can be cancelled like any interview request (Start over, another interview,
+      // Continue talking): it holds one of the server's four AI request places for the whole draft.
+      const flight=new AbortController();draftAhead.body=key;draftAhead.flight=flight;interviewRequests.add(flight);
       const generation=state.generation;
-      fetch("/api/draft",{method:"POST",credentials:"same-origin",headers:{...usageHeaders(),"X-CSRF-Token":state.config?.csrf_token||"","Content-Type":"application/json"},body})
-        .then(response=>response.ok?response.json():null).then(result=>{if(result?.prepared===true&&key===draftAhead.body&&generation===state.generation){draftAhead.ready=key;draftAhead.readyAt=Date.now();}}).catch(()=>{})
-        .finally(()=>{draftAhead.flight=false;if(generation===state.generation)prepareDraftAhead();});
+      fetch("/api/draft",{method:"POST",credentials:"same-origin",signal:flight.signal,headers:{...usageHeaders(),"X-CSRF-Token":state.config?.csrf_token||"","Content-Type":"application/json"},body})
+        .then(response=>response.ok?response.json():null).then(result=>{if(!flight.signal.aborted&&result?.prepared===true&&key===draftAhead.body&&generation===state.generation){draftAhead.ready=key;draftAhead.readyAt=Date.now();}}).catch(()=>{})
+        .finally(()=>{interviewRequests.delete(flight);if(draftAhead.flight!==flight)return;draftAhead.flight=false;
+          if(flight.signal.aborted){if(draftAhead.body===key)draftAhead.body="";return;}
+          if(generation===state.generation)prepareDraftAhead();});
     }catch{/* A head start only. */}
   }
+  // Stops a running head start. When the account changed (disarm) it stays stopped until Wrap up or the
+  // final check arms it again; otherwise the next map update may start it again for the same account.
+  function cancelDraftAhead(disarm=true){if(disarm)draftAhead.turns=-1;draftAhead.flight?.abort?.();}
   // True only for the account as it stands now and a first half the server still holds.
   function draftAheadReady(){
     try{
@@ -245,6 +252,40 @@
   // Live front, managed back: GPT-Live speaks; the lead captures each spoken
   // answer in the background and the application still owns completion.
   let liveCapture=null,liveCaptureQueued=false,liveCaptureTimer=null,liveCapturedThrough=null,liveCompleteTimer=null;
+  // A long answer is noted while it is still being spoken (see captureMidAnswer).
+  // LIVE_MID_ANSWER_CHARS: the answer being spoken is longer than this (the
+  //   server's limit for its quick excerpt capture, interview_orchestrator.py),
+  //   about 95 seconds of ordinary speech; LIVE_MID_ANSWER_MS: or has gone on
+  //   this long. An ordinary answer is captured once, at its end, as before.
+  // LIVE_DEFERRED_CHARS: answers that already ended hold this many characters
+  //   the notes lack (their capture waited because the participant went on).
+  // LIVE_MID_ANSWER_GAPS: before the first, second and third capture of one
+  //   answer, at least this long since the previous capture returned (the
+  //   first for answers that already ended goes at once); no more than three
+  //   per answer. The end-of-answer capture is never held by them.
+  // liveNotesChars: how much participant speech the notes on screen read;
+  // liveMidAnswer: the answer being noted ({key,count,resumed}); liveMidAnswerHeld: a
+  // capture of it waits for a caption check (captureMidAnswer); liveCaptureReturned:
+  // when the last notes capture came back; liveAnswerStarts: when each open
+  // participant caption, by caption key, began.
+  // The capture of the whole answer (see liveCaptureQuiet, overtakeLiveCapture):
+  // LIVE_CAPTURE_QUIET: it goes this long after the participant's caption
+  //   finishes (the caption finishes after 1.5 s without words); while the
+  //   microphone still hears sound it is tried again this often.
+  // LIVE_LONG_ANSWER_QUIET, LIVE_RESUMED_QUIET: an answer that is already long,
+  //   or whose caption already went on after a pause, is captured when the
+  //   interviewer replies, or this long after its last words if it does not
+  //   (10 s: after that, more words start a new caption, web/live-voice.js), so
+  //   a thinking pause is not taken for its end.
+  // LIVE_KEEP_SHARE: a capture of part of the answer still on its way is waited
+  //   for when it has been on its way this share of the time the last capture
+  //   of its kind took, and until it is that much past it; otherwise it is
+  //   given up. liveCaptureTook: those times ({part,whole}, ms); liveWordsAt:
+  //   when the participant's words last grew; liveCaptureDue: when the capture
+  //   timer (liveCaptureTimer) fires.
+  const LIVE_MID_ANSWER_CHARS=1400,LIVE_MID_ANSWER_MS=100000,LIVE_DEFERRED_CHARS=200,LIVE_MID_ANSWER_GAPS=[30000,60000,120000];
+  const LIVE_CAPTURE_QUIET=400,LIVE_LONG_ANSWER_QUIET=3500,LIVE_RESUMED_QUIET=10000,LIVE_KEEP_SHARE=0.75;
+  let liveNotesChars=0,liveMidAnswer=null,liveMidAnswerHeld=false,liveCaptureReturned=null,liveWordsAt=null,liveCaptureDue=null;const liveAnswerStarts=new Map(),liveCaptureTook={part:null,whole:null};
   const LIVE_NOTES_RETRY_DELAYS=[3000,10000];
   let liveRetryTimer=null,liveRetryCount=0,liveMapEndRevision=null;
   // Captions in which GPT-Live read an application-authorized line, by caption
@@ -264,6 +305,10 @@
   const liveResponseSources=new WeakMap();
   const liveFrontActive=()=>Boolean(conversationUI.live?.active&&state.config?.agent_team?.voice_mode==="live_front");
   const liveAnswerPending=()=>Boolean(conversationUI.pendingParticipantCaptions.size||conversationUI.live?.participantSpeaking);
+  // A participant caption is still open: more words of it may come, and its end
+  // schedules the capture (receiveLiveCaption). The microphone alone may also
+  // still hear sound (liveAnswerPending); runLiveCapture waits that out itself.
+  const liveCaptionOpen=()=>conversationUI.pendingParticipantCaptions.size>0;
   function liveSourceMatches(captured){
     return captured&&captured.generation===state.generation&&captured.liveSession===liveSession&&captured.live===conversationUI.live&&
       captured.document_revision===activeDocumentSignature()&&
@@ -276,31 +321,81 @@
   // transcript, unchanged and in the same order, and newer answers (or one being
   // spoken) only follow them. Its notes are used for those answers; it decides
   // nothing about completion (see applyLiveCapture). A capture that read an
-  // answer which has since been corrected, extended or removed is not usable.
+  // answer which has since been corrected, extended or removed is not usable,
+  // except that an answer a live caption wrote may since have grown by the words
+  // that followed: one still being spoken when it was read, or one that a
+  // pause finished and that went on (a caption that resumes keeps its turn).
+  // Its notes are then applied as notes only; only a capture that read the
+  // answers exactly as they stand marks them as captured (liveSourceMatches).
   function liveSourceUsable(captured){
     if(!captured||captured.generation!==state.generation||captured.liveSession!==liveSession||captured.live!==conversationUI.live||
       captured.document_revision!==activeDocumentSignature()||JSON.stringify(captured.context)!==JSON.stringify(state.context))return false;
-    const read=participantCoverageBasis(captured.turns),now=participantCoverageBasis();
-    return read.length<=now.length&&read.every(([id,answer],index)=>now[index][0]===id&&now[index][1]===answer);
+    return answersStand(participantCoverageBasis(captured.turns),participantCoverageBasis(),liveCaptionAnswers());
+  }
+  // Every answer read is still in the transcript, unchanged and in the same
+  // order; an answer named in `growing` may only have had words added at its
+  // end (its text then begins with every character that was read).
+  function answersStand(read,now,growing=[]){
+    return read.length<=now.length&&read.every(([id,answer],index)=>now[index][0]===id&&(now[index][1]===answer||growing.includes(id)&&now[index][1].startsWith(answer)));
+  }
+  // The participant's turns whose captions are still open: words are still being added to them.
+  function openParticipantTurns(){
+    return [...conversationUI.pendingParticipantCaptions].flatMap(key=>conversationUI.captions.get(key)||[]);
+  }
+  // The participant's turns that live captions wrote. A caption only ever has
+  // words added at its end, also when it resumes after a pause.
+  function liveCaptionAnswers(){
+    return [...conversationUI.captions].flatMap(([key,ids])=>key.startsWith("user:")?ids:[]);
+  }
+  // A capture read part of an answer: one still open when it was read, or one
+  // that has grown since (see liveSourceUsable).
+  function readPartOfAnswer(captured){
+    const now=new Map(participantCoverageBasis());
+    return Boolean(captured.openAnswers?.length)||participantCoverageBasis(captured.turns).some(([id,answer])=>now.has(id)&&now.get(id)!==answer);
+  }
+  function participantChars(turns=state.turns){
+    return participantCoverageBasis(turns).reduce((sum,[,answer])=>sum+answer.length,0);
   }
   // The command stays in the transcript. A final request for process evidence reads only the account before it.
   let liveStopTurn=null,liveDelivery=null;
+  const stopSaid=match=>match[0].trim().toLowerCase().replace(/,?\s+please$/u,"");
+  const stopAsked=(patterns,text)=>(patterns||[]).some(pattern=>new RegExp(pattern,"u").test(text));
+  // The server sends which words are only a courtesy or a goodbye ("Thanks.", "Okay, bye.").
+  const stopCourtesy=()=>{const pattern=state.config?.agent_team?.stop_sign_off_pattern;return pattern?new RegExp(pattern,"u"):null;};
   function voiceStopPrefix(value){
-    const last=[...value.matchAll(/[^.!?]+/gu)].filter(match=>match[0].trim()).at(-1);
+    const team=state.config?.agent_team||{},sentences=[...value.matchAll(/[^.!?]+/gu)].filter(match=>match[0].trim());
+    const last=sentences.at(-1);
     if(!last)return null;
-    const end=last[0].trim().toLowerCase().replace(/,?\s+please$/u,"");
-    const patterns=state.config?.agent_team?.stop_intent_patterns||[];
-    return patterns.some(pattern=>new RegExp(pattern,"u").test(end))?value.slice(0,last.index).trimEnd():null;
+    if(stopAsked(team.stop_intent_patterns,stopSaid(last)))return value.slice(0,last.index).trimEnd();
+    // A request that names the speaker stands with courtesies around it: "I need to stop
+    // now. Thanks.", "Sorry, I need to stop now, thanks." A bare "Stop." does not.
+    const courtesy=stopCourtesy();
+    if(!courtesy)return null;
+    let end=sentences.length;
+    while(end>1&&courtesy.test(stopSaid(sentences[end-1])))end--;
+    const request=sentences[end-1],clauses=stopSaid(request).split(/\s*,\s*/u);
+    while(clauses.length>1&&courtesy.test(clauses.at(-1)))clauses.pop();
+    while(clauses.length>1&&courtesy.test(clauses[0]))clauses.shift();
+    return stopAsked(team.stop_named_intent_patterns,clauses.join(", "))?value.slice(0,request.index).trimEnd():null;
+  }
+  // Answers that are only courtesies, said after the request to stop ("Thanks."), are part of it.
+  function courtesyOnly(text){
+    const courtesy=stopCourtesy(),sentences=[...text.matchAll(/[^.!?]+/gu)].filter(match=>match[0].trim());
+    return Boolean(courtesy&&sentences.length)&&sentences.every(sentence=>courtesy.test(stopSaid(sentence)));
   }
   function processEvidence(captured){
     if(!liveStopTurn)return captured;
-    const index=captured.turns.findLastIndex(turn=>turn.role==="user"&&!turn.document_event),turn=captured.turns[index];
+    const said=captured.turns.flatMap((turn,index)=>turn.role==="user"&&!turn.document_event?[index]:[]);
+    let at=said.length-1;
+    while(at>0&&captured.turns[said[at]].id!==liveStopTurn.id&&courtesyOnly(captured.turns[said[at]].text))at--;
+    const index=said[at]??-1,turn=captured.turns[index];
     if(turn?.id!==liveStopTurn.id||turn.text!==liveStopTurn.text)return captured;
     const turns=captured.turns.slice(0,index);
     if(liveStopTurn.prefix)turns.push({...turn,text:liveStopTurn.prefix});
     return {...captured,turns};
   }
-  function liveSnapshot(){return {...processEvidence(snapshot()),generation:state.generation,live:conversationUI.live,liveSession,revision:conversationUI.revision};}
+  // openAnswers: the answers that were still being spoken when this was read (none, unless a capture is taken mid-answer).
+  function liveSnapshot(){return {...processEvidence(snapshot()),generation:state.generation,live:conversationUI.live,liveSession,revision:conversationUI.revision,openAnswers:openParticipantTurns()};}
   function resetLiveFront(){
     voiceTopicPreview=null;voiceStreamTopics=null;
     if(conversationUI.liveMemory?.generation!==state.generation)conversationUI.liveMemory=null;
@@ -308,7 +403,15 @@
     liveCapture?.controller.abort();liveCapture=null;liveCaptureQueued=false;liveCapturedThrough=null;liveReadings.clear();liveFinalReply=null;liveSession++;liveWithheldMoments=0;liveWithheldRepeatSaid=false;
     clearTimeout(liveCaptureTimer);liveCaptureTimer=null;clearTimeout(liveCompleteTimer);liveCompleteTimer=null;state.liveSuggestedQuestion="";
     clearTimeout(liveRetryTimer);liveRetryTimer=null;liveRetryCount=0;liveMapEndRevision=null;
+    liveNotesChars=participantChars();liveMidAnswer=null;liveMidAnswerHeld=false;liveCaptureReturned=null;liveWordsAt=null;liveAnswerStarts.clear();liveCaptureTook.part=liveCaptureTook.whole=null;
     liveCatchUpDue=false;liveOpen=false;completionHeld=false;
+    // Caption checks belong to their live session: they are given up, and their results not used.
+    for(const check of captionChecks){
+      if(!check.dropped)traceCaptionCheck(check,"discarded",{reason:"session_changed"});
+      check.dropped="session_changed";check.controller.abort();
+      if(!check.sent){captionChecks.delete(check);clearTimeout(check.timer);}
+    }
+    captionRecords.clear();
   }
   // Voice can end (Stop talking, a dropped session, the transcript limit) while
   // work that the live front started is still running. That work is finished,
@@ -357,7 +460,7 @@
   // whenever the notes are not the live front's to bring up to date.
   function liveNotesStatus(){
     if(conversationUI.live?.active||intakeActive()||!liveNotesLag())return null;
-    return liveCapture||conversationUI.status==="closing"?"updating":"behind";
+    return liveCapture||conversationUI.status==="closing"||captionCheckHolds()?"updating":"behind";
   }
   function liveVoiceEnded(){
     if(conversationUI.live?.active||intakeActive())return;
@@ -393,6 +496,11 @@
   // capture could not be used), the one catch-up capture that is owed runs;
   // otherwise the page is given back.
   function settleLiveNotes(){
+    // The catch-up waits, a few seconds at most, for a caption check that may still correct
+    // the last answer (releaseCaptionHold calls this again); the page stays busy meanwhile.
+    if(liveCatchUpDue&&conversationUI.status==="idle"&&!conversationUI.live?.active&&!intakeActive()&&!liveCapture&&captionCheckHolds()&&liveNotesLag()){
+      holdLiveBusy(LIVE_NOTES_LABEL);renderAnalysisThrough();return;
+    }
     const due=liveCatchUpDue&&conversationUI.status==="idle";
     if(due)liveCatchUpDue=false;
     if(due&&!conversationUI.live?.active&&!intakeActive()&&liveNotesLag()){holdLiveBusy(LIVE_NOTES_LABEL);void runLiveCapture(true);}
@@ -532,6 +640,16 @@
   // CJK character is one character on both sides, not two here and one there.
   const charCount = value => {let count = 0; for (const _ of value) count++; return count;};
   const exceeds = (value, limit) => value.length > limit && charCount(value) > limit;
+  // A turn's text as the server will see it. The server trims with Python's whitespace set, which also
+  // strips U+001C–U+001F and U+0085; JavaScript's trim keeps them, so an answer of only those would be
+  // added here and then refused on every later request. A lone surrogate half (from a broken paste) is
+  // refused by the server as well, so it becomes U+FFFD here, the way any UTF-8 encoder would write it.
+  const SERVER_SPACE = /^[\s\x1c-\x1f\x85]+|[\s\x1c-\x1f\x85]+$/g;
+  const wellFormed = value => typeof value.toWellFormed === "function" ? value.toWellFormed()
+    : value.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "�");
+  // Files named in a one-line message: up to three by name, more by count, so the line stays readable.
+  const fileNames = files => files.length > 3 ? `${files.length} files` : files.map(file => file.name || "File").join(", ");
+  const turnText = value => typeof value === "string" ? wellFormed(value).replace(SERVER_SPACE, "") : "";
   const text = (value, limit = 18000) => {
     if (typeof value !== "string") return "";
     if (exceeds(value, limit)) throw new Error(`A text field exceeds the supported ${limit.toLocaleString("en-US")} characters. No content was truncated.`);
@@ -624,8 +742,13 @@
   // available while one closing sequence still fits. The reply to the final
   // check is the one answer accepted inside that reserve.
   const CLOSING_TURNS=4,CLOSING_TEXT=1200;
+  // Every keystroke checks the transcript limit, at least twice. Counting each turn's characters once
+  // and remembering the count until its text changes keeps typing as fast at 392 turns as at 2.
+  const turnSizes=new WeakMap();
+  const turnSize=turn=>{const held=turnSizes.get(turn);if(held&&held.text===turn.text)return held.size;
+    const size=charCount(turn.text);turnSizes.set(turn,{text:turn.text,size});return size;};
   function transcriptLimit() {
-    const turns=state.turns.length,size=state.turns.reduce((total,turn)=>total+charCount(turn.text),0);
+    const turns=state.turns.length,size=state.turns.reduce((total,turn)=>total+turnSize(turn),0);
     const finalReply=state.closure.asked===true&&!state.closure.confirmed&&turns+2<=400&&size<400000;
     const answersFull=turns>=400-2*CLOSING_TURNS||size>=394000;
     return {turns,size,finalReply,answersFull,answersBlocked:answersFull&&!finalReply,
@@ -819,12 +942,14 @@
     updatePresence();
     if (focus) focusWorkspace(name);
   }
+  // A broken character from a paste (half an emoji) is repaired here as in answers: the server refuses
+  // it, and once the interview has started these fields can no longer be edited.
   function readContext() {
     return {
-      process_name: $("process-name").value.trim(),
-      process_owner: $("process-owner").value.trim(),
-      objective: $("objective").value.trim(),
-      background: $("background").value.trim()
+      process_name: wellFormed($("process-name").value).trim(),
+      process_owner: wellFormed($("process-owner").value).trim(),
+      objective: wellFormed($("objective").value).trim(),
+      background: wellFormed($("background").value).trim()
     };
   }
   function fillContext(context) {
@@ -1179,7 +1304,7 @@
     }
     if($("process-name"))$("process-name").title=$("process-name").value.trim()||"Rename this process";
     const replyTooLong = Boolean(showFieldLimit(REPLY_FIELD));
-    $("send-answer").disabled = working || recording || !ready || limit.answersBlocked || !$("answer-text").value.trim() || replyTooLong;
+    $("send-answer").disabled = working || recording || !ready || limit.answersBlocked || !turnText($("answer-text").value) || replyTooLong;
     $("record-answer").disabled = working || !ready || limit.answersBlocked || (!recording && charCount(replyBox.value.trim())>=REPLY_FIELD.limit);
     $("skip-question").disabled = !state.started || working || recording || !ready || limit.answersFull;
     const finalReviewReady=state.config?.concurrent_interview?.enabled||!state.config?.agent_team?.enabled||state.completion?.ready_for_final_check===true;
@@ -1565,11 +1690,22 @@
     // After a pause the notes are as old as the last real capture: say through
     // which answer they go, never that they include every saved answer.
     const through=analysisCheckpoint?.kept?analysisCheckpoint.through:analysisCheckpoint?.count;
+    // Notes taken while an answer was being spoken read part of it (their last answer has since grown,
+    // see liveSourceUsable); those of the whole answer follow. While voice is on, busy only while a notes
+    // capture is on its way or about to go: otherwise (between captures, after a failed one) the notes
+    // stay as they are and the line only says what they hold.
+    const read=!current&&analysisCheckpoint&&!analysisCheckpoint.kept&&!analysisCheckpoint.restored&&
+      analysisCheckpoint.documents===activeDocumentSignature()?JSON.parse(analysisCheckpoint.basis):null;
+    const part=read?.length&&answersStand(read,basis,liveCaptionAnswers())&&read.at(-1)[1]!==basis[read.length-1][1]?read.length:0;
+    const updating=Boolean(liveCapture)||liveCaptureTimer!==null||liveRetryTimer!==null;
+    const quiet=!current&&!updating&&(liveFrontActive()||part>0);
     node.textContent=current?(analysisCheckpoint.kept?`${through?`Notes kept through answer ${through}`:'Notes kept as they were'} · paused at your request`:`Notes include all ${count} saved answers`):
-      !analysisCheckpoint||analysisCheckpoint.kept&&!through?`Updating notes for answer ${count}`:
+      part&&part<count?`Notes include part of answer ${part} of ${count}`:
+      part&&!updating?`Notes include part of answer ${count}`:
+      !analysisCheckpoint||part||analysisCheckpoint.kept&&!through?`Updating notes for answer ${count}`:
       analysisCheckpoint.count<count?(through?`Notes through answer ${through} of ${count}`:`Updating notes for answer ${count}`):
       'Notes are updating for the revised conversation or files';
-    setLevel(node,current?(analysisCheckpoint.kept?"info":""):"busy");
+    setLevel(node,current?(analysisCheckpoint.kept?"info":""):quiet?"":"busy");
   }
   function captureProgressMark(turns=state.turns){
     const basis=participantCoverageBasis(turns);
@@ -2634,8 +2770,14 @@
       question:["Preparing a follow-up",provisional?"Your notes and workflow will update while you answer.":"Your notes and workflow are ready."],
       error:["File review needs attention",documentIntake.error]};
     const [title,detail]=copy[phase]||copy.reviewing;
-    const progress=phase==="reviewing"?intakeSnapshot().documents.filter(file=>!file.archived&&file.analysis?.disposition!=="parked"&&Number(file.analysis?.total_chunks)>0)
-      .map(file=>file.name+": "+(Number(file.analysis.reviewed_chunks)||0)+" of "+file.analysis.total_chunks+" sections reviewed.").join(" "):"";
+    // A file of this intake read only up to a page, row or cell limit says so here as soon as it is indexed,
+    // before its first review is in.
+    const files=intakeSnapshot().documents,own=new Set(intakeDocuments(files).map(file=>file.id));
+    const progress=phase==="reviewing"?files.filter(file=>!file.archived&&file.analysis?.disposition!=="parked").map(file=>{
+      const total=Number(file.analysis?.total_chunks),limit=own.has(file.id)&&typeof file.coverage?.read_limit==="string"?file.coverage.read_limit.trim():"";
+      const parts=[...(total>0?[(Number(file.analysis.reviewed_chunks)||0)+" of "+total+" sections reviewed."]:[]),...(limit?[limit]:[])];
+      return parts.length?file.name+": "+parts.join(" "):"";
+    }).filter(Boolean).join(" "):"";
     $("document-intake-title").textContent=title;
     const description=[detail,progress,intakeWasLive?"Your microphone is off.":""].filter(Boolean).join(" ");
     $("document-intake-detail").textContent=description;$("document-intake-detail").hidden=!description;
@@ -2743,7 +2885,7 @@
         if(typeof result.question!=="string"||!result.question.trim())throw new Error("The file was read, but the follow-up did not load. Try again.");
         // What the request read from the new files; the notes that cite them follow in the background.
         const read=new Set((result.document_reading?.documents||[]).filter(file=>Number(file.included_chunks)>0).map(file=>file.id));
-        const unread=own.filter(file=>!read.has(file.id)&&!documentWasRead(file.id)),names=unread.map(file=>file.name||"File").join(", ");
+        const unread=own.filter(file=>!read.has(file.id)&&!documentWasRead(file.id)),names=fileNames(unread);
         if(unread.length&&result.document_reading)notice(`The interviewer did not receive readable text from ${names} for this question. In Assets, ${unread.length===1?"the file is":"the files are"} marked “Not yet read in this interview”.`,true);
         return {...result,question:text(result.question,6000)};
       },
@@ -2754,7 +2896,7 @@
         const own=intakeDocuments(documents);
         if(!await refreshWorkflow({documentIntake:true,signal,requiredDocuments:own.map(file=>file.id)}))throw new Error("The notes and workflow could not be updated. Your earlier notes and workflow are still here. Try again.");
         // The baseline is only this intake's update if its files were in it.
-        const unread=own.filter(file=>!documentWasRead(file.id)),names=unread.map(file=>file.name||"File").join(", ");
+        const unread=own.filter(file=>!documentWasRead(file.id)),names=fileNames(unread);
         if(unread.length&&unread.length===own.length)throw new Error(`The interviewer did not receive readable text from ${names} in this update, usually because the excerpts already in use fill the limit for one request. Your notes and workflow are otherwise up to date. In Assets, ${unread.length===1?"the file is":"the files are"} marked “Not yet read in this interview”.`);
         if(unread.length)notice(`The interviewer did not receive readable text from ${names} in this update. In Assets, ${unread.length===1?"the file is":"the files are"} marked “Not yet read in this interview”.`,true);
         return captureForFollowup();
@@ -2890,6 +3032,9 @@
     if(!ensureConversation())return;
     // Retry recording belongs to the voice session from here on.
     discardFailedDictation();
+    // A running draft head start holds one of the server's AI request places, which voice needs to
+    // connect. It is paused, not dropped: voice may end without a word, and the account is then the same.
+    cancelDraftAhead(false);
     stopSpeaking(); voiceEnded=false; conversationUI.typing=false; conversationUI.muted=false;
     if(state.config?.agent_team?.voice_mode==="live_front")concurrentInterview?.reset({handoff:true});
     if(!conversationUI.live) {
@@ -2956,8 +3101,10 @@
       // GPT-Live is the spoken front; the managed team runs on its captions.
       if(!window.CollectorLiveVoice){notice("Voice couldn’t start. Refresh the page, or type instead.",true);return;}
       conversationUI.live=new window.CollectorLiveVoice({request,requestTimeout,
+        // The microphone tap for the caption check (checkLiveCaption); without it nothing is recorded.
+        ...(captionCheckOn()?{captionAudio:true}:{}),
         onStatus:receiveLiveStatus,
-        onTranscript:receiveLiveCaption,
+        onTranscript:captionCheckOn()?receiveCheckedCaption:receiveLiveCaption,
         lookupInterview:liveMemoryEnabled()?recallInterview:null,
         onWithheld:receiveWithheldSpeech,
         onError:message=>notice(message,true),
@@ -3024,8 +3171,464 @@
   // The filler each live caption continues, by caption key, and the captions of those fillers (see
   // receiveLiveCaption). Both belong to one interview and are emptied with its captions.
   const liveLeads=new Map(),liveAbsorbed=new Set();
+  // Caption check (LIVE_CAPTION_CHECK, on unless the server says otherwise): fund terms and
+  // configured names in live captions are corrected using the participant's own audio. The live
+  // transcriber takes no spelling hints, so "KYC" can be captioned "kite", and the notes must
+  // quote the caption as it is. When a participant caption becomes final, the transport hands
+  // over that caption's own microphone audio (captionAudio in live-voice.js) and it is
+  // transcribed again through /api/transcribe, marked as a caption check: the server hints that
+  // transcription with its glossary alone (the fund terms, the process name and the configured
+  // keywords; never terms from the transcript, which may be the mishearings) and names those
+  // terms, with the mishearings it lists for them, in its answer. The turn keeps the caption's own
+  // words everywhere except where the reading has one of those terms in the place of a misheard
+  // caption word (correctCaption). A whole reading is never used: in a real session it fixed "K
+  // one" (K-1), but for words the caption had right it wrote "Investron" for "Investran", lost
+  // "pack" after "LPAC" and lost the first words where its audio began late. The notes capture
+  // (also one taken mid-answer) and the map wait for the check, at most CAPTION_CHECK_HOLD ms
+  // from when the check began, so that they read the corrected wording; a result after that,
+  // while voice is on, is a correction like any other (the capture that read the caption is not
+  // used and the capture is redone), except that a process lead already offered to the live
+  // interviewer stands (keepLiveLead). Once voice has ended a result is used only within that
+  // time: the catch-up, Wrap up or a draft then read the transcript as it stands. Whenever
+  // anything is uncertain (no audio, a failed or refused request, a reading that corrects no
+  // term, a caption that changed meanwhile, the closing sequence) the caption stays exactly as
+  // the live transcriber sent it. Nothing is said to the participant about a check; the raw
+  // trace records each outcome without any text.
+  // At most CAPTION_CHECK_FLIGHT requests at once and CAPTION_CHECK_QUEUE waiting; none is
+  // repeated. A caption of fewer than CAPTION_CHECK_WORDS words is left as it is. A caption
+  // that goes on after a quiet checkpoint keeps the checked wording of its words so far, and
+  // only the words added since are checked (with their own audio) once it is final again.
+  const CAPTION_CHECK_HOLD=6000,CAPTION_CHECK_FLIGHT=2,CAPTION_CHECK_QUEUE=4,CAPTION_CHECK_TIMEOUT=30000,CAPTION_CHECK_WORDS=2;
+  // The mark of a check's request (X-Transcription-Purpose; server.py CAPTION_CHECK_PURPOSE).
+  const CAPTION_CHECK_PURPOSE="live-caption-check";
+  // A reading corrects nothing unless at least this share of the caption's words (counted by
+  // their letters and digits, so that "L P A C" is not four words to "LPAC"'s one) are its words
+  // too: otherwise its audio was not the caption's (a window that fell on other speech).
+  const CAPTION_CHECK_ALIGNED=.6;
+  // By caption key: the live transcriber's latest text (caption) and whether it is final; the
+  // part of it already checked (base: the transcriber's text through there, shown: the turn's
+  // wording of it, frags: how many of the caption's fragments it holds); the text last
+  // considered (tried) and the check on its way (check).
+  const captionRecords=new Map(),captionChecks=new Set();let captionChecksSent=0,captionMapHeld=false;
+  const captionCheckOn=()=>state.config?.live?.caption_check===true&&state.config?.agent_team?.voice_mode==="live_front";
+  // The words of a text, for comparing two readings of the same speech (correctCaption): each
+  // word as written, from its first letter or digit to its last (its punctuation around it is
+  // left out), with its place in the text, and its key: NFKC, lower case, its letters and digits
+  // only, so that case, punctuation and hyphens do not count ("K-1" and "K1" are one word). "one"
+  // to "ten" are read as digits, "ones" as "1s" ("K ones" for K-1s) and "okay" as "ok". Fillers
+  // are not words a reading can add or lose.
+  const CAPTION_SAME=new Map([["okay","ok"],["ones","1s"],..."one two three four five six seven eight nine ten".split(" ").map((word,index)=>[word,String(index+1)])]);
+  const CAPTION_FILLERS=new Set("um umm uh uhm er erm ah eh hm hmm mm mmm mhm".split(" "));
+  const captionKey=value=>(value.normalize("NFKC").toLowerCase().match(/[\p{L}\p{N}]+/gu)||[]).map(run=>CAPTION_SAME.get(run)??run).join("");
+  function captionTokens(value){
+    const tokens=[];
+    for(const match of value.matchAll(/\S+/gu)){
+      const word=/[\p{L}\p{N}](?:.*[\p{L}\p{N}])?/u.exec(match[0]);
+      const key=word?captionKey(word[0]):"";
+      if(!key||CAPTION_FILLERS.has(key))continue;
+      const start=match.index+word.index;
+      tokens.push({key,text:word[0],start,end:start+word[0].length});
+    }
+    return tokens;
+  }
+  // The closing sequence decides on the participant's exact words (the reply to the final
+  // check, an acknowledgement, a request to stop, what follows the completion line), and the
+  // interview limit keeps room for it: no caption is checked then, and a result that arrives
+  // once it has begun is not applied. Neither is one while a draft, Wrap up or a typed turn
+  // reads the transcript (busy, other than the live front's own wait for its notes).
+  const captionCheckClosed=()=>Boolean(liveFinalReply||liveStopTurn||liveDelivery||completionHeld||completionStands()||
+    pendingCompletionReview||pendingFinalCheck||state.closure.asked||state.closure.confirmed||state.closure.partial||transcriptLimit().answersFull||
+    draftInFlight||state.busy&&!liveBusyHeld());
+  // A check that began less than CAPTION_CHECK_HOLD ago and can still be used holds the notes captures and the map.
+  const captionCheckHolds=()=>captionChecks.size>0&&!captionCheckClosed()&&[...captionChecks].some(check=>!check.dropped&&Date.now()-check.started<CAPTION_CHECK_HOLD);
+  const traceCaptionCheck=(check,outcome,details={})=>rawTrace("live.caption_check",{caption_id:check.id,turn_id:check.turn,outcome,...details});
+  function captionRecord(key,caption){
+    if(!captionCheckOn())return null;
+    let record=captionRecords.get(key);
+    if(!record){
+      record={caption:"",final:false,tried:null,check:null,base:"",shown:"",frags:0};
+      captionRecords.set(key,record);
+      if(captionRecords.size>64)captionRecords.delete(captionRecords.keys().next().value);
+    }
+    if(record.caption!==caption.text){
+      // A check of the earlier words is out of date: the next one reads all that is not yet checked.
+      if(record.check)dropCaptionCheck(record.check,"caption_changed");
+      // The checked part keeps its checked wording while the caption only adds words after it
+      // (not in the middle of a word); anything else starts the caption afresh.
+      const added=caption.text.slice(record.base.length);
+      if(!caption.text.startsWith(record.base)||record.base&&/[\p{L}\p{N}]$/u.test(record.base)&&/^[\p{L}\p{N}]/u.test(added)||charCount(record.shown+added)>6000)
+        Object.assign(record,{base:"",shown:"",frags:0});
+    }
+    record.caption=caption.text;record.final=caption.final===true;
+    return record;
+  }
+  // The turn's text for a caption: the part already checked as checked, the rest as captioned.
+  const captionShown=record=>record.shown+record.caption.slice(record.base.length);
+  function checkLiveCaption(key,record,caption,ids){
+    const live=conversationUI.live,text=record?.caption;
+    if(!record||!record.final||record.check||record.tried===text||record.base===text)return;
+    if(typeof live?.captionAudio!=="function"||state.example||intakeActive())return;
+    record.tried=text;
+    const part=text.slice(record.base.length);
+    const skip=reason=>rawTrace("live.caption_check",{caption_id:caption.id,turn_id:ids[0],outcome:"skipped",reason});
+    if(ids.length!==1)return skip("split");
+    if(captionTokens(part).length<CAPTION_CHECK_WORDS)return skip("short");
+    if(captionCheckClosed()||voiceStopPrefix(text)!==null)return skip("closing");
+    if(captionChecks.size>=CAPTION_CHECK_FLIGHT+CAPTION_CHECK_QUEUE)return skip("busy");
+    // The audio of the words not yet checked: the whole caption the first time, then from the
+    // first fragment after the checked part.
+    const fragments=Array.isArray(caption.fragments)?caption.fragments:[],since=record.base?fragments[record.frags]?.start_ms:null;
+    if(record.base&&!Number.isFinite(since))return skip("no_audio");
+    let audio=null;
+    try{audio=record.base?live.captionAudio(caption.id,since):live.captionAudio(caption.id);}catch{audio=null;}
+    if(!(audio?.wav?.byteLength>44))return skip("no_audio");
+    const check={key,id:caption.id,turn:ids[0],caption:text,part,frags:fragments.length,prefix:record.shown,shown:captionShown(record),
+      blob:new Blob([audio.wav],{type:"audio/wav"}),audio_ms:audio.duration_ms,
+      generation:state.generation,session:liveSession,controller:new AbortController(),started:Date.now(),timer:null,sent:false,dropped:null};
+    record.check=check;captionChecks.add(check);
+    // Past the hold the notes capture and the map go ahead without the check (see captionCheckHolds).
+    check.timer=setTimeout(()=>{check.timer=null;expireCaptionCheck(check);},CAPTION_CHECK_HOLD);
+    pumpCaptionChecks();
+  }
+  // The hold of a check has passed. While voice is on its result may still correct the turn;
+  // once voice has ended it can no longer be used (see applyCaptionCheck), and it is given up.
+  function expireCaptionCheck(check){
+    if(!conversationUI.live?.active)dropCaptionCheck(check,"late");
+    releaseCaptionHold();
+  }
+  function pumpCaptionChecks(){
+    // No check is sent, or waited for, once the closing sequence has begun.
+    if(captionChecks.size&&captionCheckClosed())return dropCaptionChecks();
+    for(const check of captionChecks){
+      if(captionChecksSent>=CAPTION_CHECK_FLIGHT)return;
+      if(!check.sent&&!check.dropped)void sendCaptionCheck(check);
+    }
+  }
+  async function sendCaptionCheck(check){
+    check.sent=true;captionChecksSent++;
+    traceCaptionCheck(check,"sent",{audio_ms:check.audio_ms,bytes:check.blob.size});
+    let result=null,failure=null;
+    try{
+      // Marked as a check: its hints are the server's glossary, not the transcript's terms (see request).
+      result=await request("/api/transcribe",check.blob,{signal:check.controller.signal,timeout:CAPTION_CHECK_TIMEOUT,purpose:CAPTION_CHECK_PURPOSE});
+    }catch(error){failure=error;}
+    finally{captionChecksSent--;check.blob=null;}
+    // A refusal (429, 503) or any other failure keeps the caption: nothing is repeated or announced.
+    if(failure){if(!check.dropped)traceCaptionCheck(check,"failed",{status:Number.isInteger(failure.status)?failure.status:undefined,reason:failure.name==="AbortError"?"aborted":failure.transient?"transient":"error"});}
+    else applyCaptionCheck(check,result);
+    settleCaptionCheck(check);
+    pumpCaptionChecks();
+  }
+  function dropCaptionCheck(check,reason){
+    if(!check||check.dropped)return;
+    check.dropped=reason;check.controller.abort();
+    traceCaptionCheck(check,"discarded",{reason});
+    // A check on its way settles when its request ends.
+    if(!check.sent)settleCaptionCheck(check);
+  }
+  // The closing sequence, Wrap up or a draft has begun: every check is given up.
+  function dropCaptionChecks(reason="closing"){for(const check of [...captionChecks])dropCaptionCheck(check,reason);}
+  function closeCaptionChecks(){if(captionChecks.size&&captionCheckClosed())dropCaptionChecks();}
+  function settleCaptionCheck(check){
+    if(!captionChecks.delete(check))return;
+    clearTimeout(check.timer);check.timer=null;check.blob=null;
+    const record=captionRecords.get(check.key);if(record?.check===check)record.check=null;
+    releaseCaptionHold();
+  }
+  // No check holds the notes any longer: a capture or a map that waited for one goes ahead.
+  function releaseCaptionHold(){
+    if(captionCheckHolds())return;
+    if(liveFrontActive()){
+      // The capture owed follows once no caption is open; while the microphone still hears sound,
+      // runLiveCapture waits that out itself, as after any capture (not only until the next
+      // caption ends, which could be an answer later).
+      if(liveCaptureQueued&&!liveCaptionOpen())scheduleLiveCapture();
+      // A capture of part of the answer that waited goes now, if it is still due (captureMidAnswer).
+      if(liveMidAnswerHeld){liveMidAnswerHeld=false;captureMidAnswer(false);}
+    }
+    else if(liveCatchUpDue&&!liveCapture)settleLiveNotes();
+    if(captionMapHeld){captionMapHeld=false;scheduleWorkflow();}
+  }
+  // The caption's words against the transcription's (their keys, see captionTokens): a global
+  // alignment of the caption with any stretch of the transcription (words before and after that
+  // stretch cost nothing; they come from the padding of the audio). Each caption word is
+  // matched, read differently (sub) or lost; each other word of the stretch is added. A word
+  // read differently costs less than one lost or added, so "kite" read as "KYC" is that, not a
+  // word lost and another added. null when the two are too long to align.
+  const ALIGN_MATCH=4,ALIGN_SUB=-2,ALIGN_GAP=-3;
+  function alignCaption(was,now){
+    const n=was.length,m=now.length,width=m+1;
+    if((n+1)*width>4000000)return null;
+    const score=new Int32Array((n+1)*width),move=new Uint8Array((n+1)*width);
+    for(let i=1;i<=n;i++){score[i*width]=ALIGN_GAP*i;move[i*width]=2;}
+    for(let i=1;i<=n;i++)for(let j=1;j<=m;j++){
+      const at=i*width+j;
+      let best=score[at-width-1]+(was[i-1]===now[j-1]?ALIGN_MATCH:ALIGN_SUB),how=1;
+      if(score[at-width]+ALIGN_GAP>best){best=score[at-width]+ALIGN_GAP;how=2;}
+      if(score[at-1]+ALIGN_GAP>best){best=score[at-1]+ALIGN_GAP;how=3;}
+      score[at]=best;move[at]=how;
+    }
+    let end=0;for(let j=1;j<=m;j++)if(score[n*width+j]>score[n*width+end])end=j;
+    const pairs=[];let i=n,j=end;
+    while(i>0){
+      const how=move[i*width+j];
+      if(how===1){pairs.push({i:i-1,j:j-1,kind:was[i-1]===now[j-1]?"match":"sub"});i--;j--;}
+      else if(how===2){pairs.push({i:i-1,j:-1,kind:"lost"});i--;}
+      else{pairs.push({i:-1,j:j-1,kind:"added"});j--;}
+    }
+    return {pairs:pairs.reverse(),start:j,end};
+  }
+  // The terms a check may write: the server's glossary, named in its answer (server.py
+  // caption_check_terms), each with its key, its letters and digits as the glossary writes it, and
+  // the keys of the forms the server lists as its mishearings (caption_check_misheard: "CPAC" for
+  // LPAC, "kite" for KYC, "DI" for IRR).
+  function captionGlossary(terms,misheard){
+    const glossary=[],listed=misheard&&typeof misheard==="object"&&!Array.isArray(misheard)?misheard:{};
+    for(const term of Array.isArray(terms)?terms.slice(0,60):[]){
+      if(typeof term!=="string"||term.length>100)continue;
+      const text=term.normalize("NFKC").trim(),key=captionKey(text),forms=Object.prototype.hasOwnProperty.call(listed,term)?listed[term]:null;
+      if(key.length<2||glossary.some(entry=>entry.key===key))continue;
+      const aliases=Array.isArray(forms)?forms.slice(0,10).filter(form=>typeof form==="string"&&form.length<=100).map(captionKey).filter(Boolean):[];
+      glossary.push({text,key,letters:captionLetters(text),aliases});
+    }
+    return glossary;
+  }
+  const captionLetters=value=>(value.normalize("NFKC").match(/[\p{L}\p{N}]+/gu)||[]).join("");
+  // The same writing, a capital first letter aside: "PEP" and "Pep" are not, "Investran" and "investran" are.
+  const sameWriting=(one,other)=>{const a=[...one],b=[...other];return a.length===b.length&&a.length>0&&a[0].toLowerCase()===b[0].toLowerCase()&&a.slice(1).join("")===b.slice(1).join("");};
+  // Whether the word at `at` begins a sentence of `text` (nothing but an opening quote or bracket
+  // since the end of the last sentence).
+  const captionSentenceStart=(text,at)=>/(?:^|[.!?…]["'”’)\]]*)\s*["'“‘(\[]*$/u.test(text.slice(0,at));
+  // Two keys of one word, or of a word and its plural or possessive ("NAVs", "NAV's", "LPAs",
+  // "distribution" and "distributions"): such a difference is the number, not a mishearing.
+  const captionForms=(one,other)=>one===other||one===other+"s"||one===other+"es"||other===one+"s"||other===one+"es";
+  // A word written as an acronym (two capitals or more, then at most a plural s: "GP", "TVPI",
+  // "CPACs"): the live transcriber heard an acronym there.
+  const captionAcronym=token=>/^\p{Lu}{2,}s?$/u.test(captionLetters(token.text).replace(/\p{N}/gu,""));
+  // Common words that a check never replaces with a term on its own (rule a of correctCaption).
+  // A transcriber hinted with a term can hear a common word that sounds like it as that term, and
+  // the participant may well have said the word: "each side letter" read as "ACH side letter".
+  // server.py lists no common word as a mishearing of a term (SPOKEN_FUND_TERMS gives ACH none),
+  // and neither does this: "each" stays "each". The price is that "each or SWIFT", captioned for
+  // "ACH or SWIFT", stays as captioned too.
+  const CAPTION_COMMON=new Set(("a an and any are as at be but by each eh for from he her his i if in is it its me my no of oh ok on or our "+
+    "she so than that the their them then there they this to us was we were what when which who why with yes you your").split(" "));
+  // The caption with the terms a reading of its own audio corrects ({text, count, fixes: where, in
+  // the caption's order}), or why it corrects none ({reason}); word counts for the trace either
+  // way. The reading is aligned word by word with the caption (alignCaption, on the words' keys;
+  // words of the reading before or after the caption's cost nothing, they come from the padding
+  // of the audio). Unless at least CAPTION_CHECK_ALIGNED of the caption's words (by letters) are
+  // matched, nothing is used. Between two matched words, a stretch where the two differ (caption
+  // words C, reading words R) is corrected only when R is exactly one glossary term T or its
+  // plural ("K-1s") (for rule c also T with common words beside it), written as the glossary
+  // writes it (the first letter may be a capital only where the reading begins a sentence: "pep"
+  // and "distributions" are words, "PEP" and "Distributions" the terms), C does not have T or a
+  // form of it already, and
+  //  (a) C is one word that may become T (captionFix): "kite" or "Calc" becomes KYC; or
+  //  (b) words of C next to each other spell T, in one place only, with nothing but spaces or
+  //      hyphens between them, and none of them a term: "LP AC" becomes LPAC, "K one" K-1, and the
+  //      rest of C stays ("LP AC pack" becomes "LPAC pack"); or
+  //  (c) the reading lost a word beside the term, and just one word of C, one that may become T,
+  //      is a mishearing the server lists for T: "CPAC pack" read as "LPAC" becomes "LPAC pack".
+  //      So too where the reading has T with only common words (CAPTION_COMMON) beside it: "DI"
+  //      read as "The IRR" becomes "IRR". The common words are not written into the caption.
+  // A caption word may become T when it is not a common word (CAPTION_COMMON), not a glossary term
+  // or a form of one (the caption heard a term: "LPA" never becomes LPAC, nor "NAVs" NAV), not
+  // written as an acronym unless it is a mishearing listed for T ("GP", "TVPI" and "IR" stay;
+  // "CPAC" and "DI" do not), and, for a plural, a plural itself. Where each caption word of the
+  // stretch is read as one other word ("kite CPAC" as "KYC LPAC"), and the stretch as a whole is no
+  // term, each word is judged by itself, except one that is part of the term it is read as ("K
+  // one" read as "K-1 form": "K" stays).
+  // T replaces just those words, written as the glossary writes it, inside the caption word's own
+  // punctuation, with a capital where it begins a sentence. Every other difference keeps the
+  // caption's words: other words read differently, words added or lost, and any difference before
+  // the caption's first matched word or after its last, where the reading may be cut short by the
+  // window or run into other speech.
+  function correctCaption(caption,reading,terms,misheard){
+    const was=captionTokens(caption),now=captionTokens(reading),counts={words_before:was.length,words_after:now.length};
+    if(!now.length)return {reason:"empty",counts};
+    const glossary=captionGlossary(terms,misheard);
+    if(!glossary.length)return {reason:"no_terms",counts};
+    const aligned=alignCaption(was.map(token=>token.key),now.map(token=>token.key));
+    if(!aligned)return {reason:"too_long",counts};
+    const pairs=aligned.pairs,matched=pairs.filter(pair=>pair.kind==="match"),size=tokens=>tokens.reduce((sum,token)=>sum+token.key.length,0);
+    if(!matched.length||size(matched.map(pair=>was[pair.i]))<size(was)*CAPTION_CHECK_ALIGNED)return {reason:"misaligned",counts};
+    if(matched.length===was.length)return {reason:"same",counts};
+    const fixes=[];let anchor=-1;
+    pairs.forEach((pair,index)=>{
+      if(pair.kind!=="match")return;
+      if(anchor>=0&&index>anchor+1)fixes.push(...captionFixes(caption,reading,was,now,pairs.slice(anchor+1,index),glossary));
+      anchor=index;
+    });
+    if(!fixes.length)return {reason:"no_correction",counts};
+    let text=caption;
+    for(const fix of [...fixes].reverse())text=text.slice(0,fix.start)+fix.text+text.slice(fix.end);
+    return {text,count:fixes.length,counts,fixes};
+  }
+  // The corrections of one stretch between two matched words (see correctCaption): a list of
+  // {start, end, text} of the caption to replace, in the caption's order.
+  function captionFixes(caption,reading,was,now,stretch,glossary){
+    const said=stretch.filter(pair=>pair.i>=0).map(pair=>was[pair.i]),read=stretch.filter(pair=>pair.j>=0).map(pair=>now[pair.j]);
+    if(!said.length||!read.length)return [];
+    const whole=captionFix(caption,reading,said,read,glossary,false);
+    if(whole)return [whole];
+    // Each caption word read as one other word: each pair is a stretch of its own.
+    if(said.length<2||!stretch.every(pair=>pair.kind==="sub"))return [];
+    return stretch.map(pair=>captionFix(caption,reading,[was[pair.i]],[now[pair.j]],glossary,true)).filter(Boolean);
+  }
+  // The glossary term (or its plural) that the reading's words `read` are, written as the glossary
+  // writes it (see correctCaption): {term, plural}, or null.
+  function readTerm(reading,read,glossary){
+    const key=read.map(token=>token.key).join("");
+    let term=glossary.find(entry=>entry.key===key),plural="";
+    if(!term&&key.endsWith("s")){term=glossary.find(entry=>entry.key+"s"===key);plural="s";}
+    if(!term)return null;
+    const writing=read.map(token=>captionLetters(token.text)).join(""),want=term.letters+plural;
+    return writing===want||sameWriting(writing,want)&&captionSentenceStart(reading,read[0].start)?{term,plural}:null;
+  }
+  // The caption words `said` read as the words `read` (see correctCaption): {start, end, text} of
+  // the caption to replace, or null. `paired`: one word of a stretch read word for word.
+  function captionFix(caption,reading,said,read,glossary,paired){
+    let found=readTerm(reading,read,glossary),beside=false;
+    // Or the reading has the term with common words beside it, in one place only ("The IRR").
+    if(!found){
+      const options=[];
+      for(let first=0;first<read.length;first++)for(let last=first;last<read.length;last++){
+        if(last-first+1===read.length||![...read.slice(0,first),...read.slice(last+1)].every(token=>CAPTION_COMMON.has(token.key)))continue;
+        const hit=readTerm(reading,read.slice(first,last+1),glossary);
+        if(hit)options.push(hit);
+      }
+      if(options.length!==1)return null;
+      found=options[0];beside=true;
+    }
+    const {term,plural}=found;
+    if(said.some(token=>captionForms(token.key,term.key)))return null;
+    const isTerm=token=>glossary.some(entry=>captionForms(token.key,entry.key));
+    const listed=token=>term.aliases.some(alias=>token.key===alias+plural);
+    const may=token=>!CAPTION_COMMON.has(token.key)&&!isTerm(token)&&(!captionAcronym(token)||listed(token))&&(!plural||token.key.endsWith("s"));
+    let from=0,to=0;
+    if(beside){
+      // Only the one caption word there that the server lists as a mishearing of the term (rule c).
+      const named=said.flatMap((token,index)=>listed(token)&&may(token)?[index]:[]);
+      if(named.length!==1)return null;
+      from=to=named[0];
+    }else if(said.length===1){
+      if(!may(said[0])||paired&&(term.key.startsWith(said[0].key)||term.key.endsWith(said[0].key)))return null;
+    }else{
+      const target=term.key+plural,spelt=[];
+      for(let first=0;first<said.length;first++){
+        let joined="";
+        for(let last=first;last<said.length&&joined.length<target.length;last++){joined+=said[last].key;if(joined===target&&last>first)spelt.push([first,last]);}
+      }
+      if(spelt.length>1)return null;
+      if(spelt.length===1){
+        [from,to]=spelt[0];
+        if(said.slice(from,to+1).some(isTerm))return null;
+        // Only spaces or hyphens between the words: a sentence break, a comma, a dot, a filler or a
+        // sign between them ("the LP. AC members", "LP, uh, AC") is not one term.
+        for(let at=from;at<to;at++)if(!/^[\s\-‐‑–]*$/u.test(caption.slice(said[at].end,said[at+1].start)))return null;
+      }else{
+        const named=said.flatMap((token,index)=>listed(token)&&may(token)?[index]:[]);
+        if(named.length!==1)return null;
+        from=to=named[0];
+      }
+    }
+    let text=term.text+plural;
+    // A term in lower case that begins a sentence begins with a capital, as the caption's word did
+    // ("waterfall"; a name written in mixed case, such as "eFront", keeps its writing).
+    if(text===text.toLowerCase()&&/^\p{Ll}/u.test(text)&&/^\p{Lu}/u.test(said[from].text)&&captionSentenceStart(caption,said[from].start))
+      text=text[0].toUpperCase()+text.slice(1);
+    return {start:said[from].start,end:said[to].end,text};
+  }
+  function applyCaptionCheck(check,result){
+    if(check.dropped)return;
+    const record=captionRecords.get(check.key);
+    if(check.generation!==state.generation||check.session!==liveSession||record?.check!==check)return traceCaptionCheck(check,"discarded",{reason:"session_changed"});
+    const ids=conversationUI.captions.get(check.key),turn=state.turns.find(item=>item.id===check.turn);
+    if(record.caption!==check.caption||!record.final||conversationUI.pendingParticipantCaptions.has(check.key)||
+       ids?.length!==1||ids[0]!==check.turn||turn?.text!==check.shown)return traceCaptionCheck(check,"discarded",{reason:"caption_changed"});
+    if(captionCheckClosed())return traceCaptionCheck(check,"discarded",{reason:"closing"});
+    // After voice a result counts only while the notes still wait for it (see expireCaptionCheck).
+    if(!conversationUI.live?.active&&Date.now()-check.started>=CAPTION_CHECK_HOLD)return traceCaptionCheck(check,"discarded",{reason:"late"});
+    // The words not yet checked, with the terms the reading corrects (correctCaption).
+    const reading=correctCaption(check.part,typeof result?.text==="string"?result.text:"",result?.terms,result?.misheard);
+    const candidate=reading.text===undefined?null:check.prefix+reading.text;
+    let reason=reading.reason;
+    if(!reason){
+      // It never ends like a request to stop (that is decided on the caption), and it keeps the
+      // room the closing sequence needs.
+      const grow=charCount(candidate)-charCount(check.shown);
+      reason=voiceStopPrefix(candidate)!==null?"stop_phrase":charCount(candidate)>6000?"too_long":grow>0&&transcriptLimit().size+grow>=394000?"limit":null;
+    }
+    // The part is settled either way: it is not checked again, and its wording is kept when the caption goes on.
+    record.base=check.caption;record.frags=check.frags;record.shown=reason?check.prefix+check.part:candidate;
+    if(reason)return traceCaptionCheck(check,"kept",{reason,...reading.counts});
+    turn.text=candidate;traceTurn("turn.amended",turn,{channel:"live_caption_check"});
+    keepLiveLead(check,reading.fixes);
+    traceCaptionCheck(check,"replaced",{...reading.counts,count:reading.count,chars_before:charCount(check.shown),chars_after:charCount(candidate)});
+    state.version++;state.dirty=true;renderTranscript(true);
+    // The participant's evidence changed, as when a caption is corrected (receiveLiveCaption).
+    previewVoiceTopics(turn);
+    participantEvidenceChanged();conversationUI.revision++;suppressWorkflowReadiness();
+    // After voice, the map owed for the last spoken answers is drawn from the new wording, not
+    // left to the typed interviewer (see liveVoiceEnded and scheduleWorkflow).
+    if(!liveFrontActive())liveMapEndRevision=conversationUI.revision;
+    scheduleWorkflow();
+    // Notes read the new wording: a capture on its way read the caption and is not used
+    // (liveSourceUsable), and the next one follows it. After voice, the catch-up runs again.
+    if(liveFrontActive())scheduleLiveCapture();
+    else if(!conversationUI.live?.active&&conversationUI.status==="idle")liveCatchUpDue=true;
+  }
+  // A term the check corrects is not the participant correcting themselves. The process lead last
+  // offered to the live interviewer (sendLiveLead) remembers each answer's words as they stood, and
+  // reads any change in them as a correction that makes the lead outdated; the words of the answer
+  // the check corrected, and the lead's quote of it, are given the checked wording instead. Where a
+  // corrected word runs across the end of what was remembered, it is left as it was (the lead is
+  // then withdrawn, as before).
+  function keepLiveLead(check,fixes){
+    const offered=conversationUI.liveMemory?.last;
+    if(!offered||!Array.isArray(fixes))return;
+    // The checked wording of check.shown from `from` to `to`, or null.
+    const checked=(from,to)=>{
+      let text=check.shown.slice(from,to);
+      for(const fix of [...fixes].reverse()){
+        const start=check.prefix.length+fix.start,end=check.prefix.length+fix.end;
+        if(end<=from||start>=to)continue;
+        if(start<from||end>to)return null;
+        text=text.slice(0,start-from)+fix.text+text.slice(end-from);
+      }
+      return text;
+    };
+    const prior=offered.answers?.get(check.turn);
+    if(typeof prior==="string"&&check.shown.startsWith(prior)){const text=checked(0,prior.length);if(text!==null)offered.answers.set(check.turn,text);}
+    const at=offered.source===check.turn&&typeof offered.quote==="string"?check.shown.indexOf(offered.quote):-1;
+    if(at>=0){const quote=checked(at,at+offered.quote.length);if(quote!==null)offered.quote=quote;}
+  }
+  // The transport's captions pass through here when the caption check is on (onTranscript); with
+  // it off they go straight to receiveLiveCaption. A participant caption is recorded, shown with
+  // the checked wording of the part already checked, and, once final, checked before
+  // receiveLiveCaption applies it, so that the notes capture it schedules waits for the check.
+  // The transport emits a final caption with the text of its last open emission, so the
+  // caption's turn is normally there already; if it is not, the check follows the caption.
+  function receiveCheckedCaption(caption){
+    let late=null;
+    if(caption?.role==="user"&&typeof caption.text==="string"&&turnText(caption.text)&&captionCheckOn()){
+      const key=`user:${caption.id}`,record=captionRecord(key,{...caption,text:wellFormed(caption.text)});
+      if(record.base)caption={...caption,text:captionShown(record)};
+      if(caption.final){
+        if(conversationUI.captions.get(key)?.length)checkLiveCaption(key,record,caption,conversationUI.captions.get(key));
+        else late={key,record,caption};
+      }
+    }
+    receiveLiveCaption(caption);
+    if(late)checkLiveCaption(late.key,late.record,late.caption,conversationUI.captions.get(late.key)||[]);
+    // This caption may have begun the closing sequence (a request to stop, the reply to the final check).
+    closeCaptionChecks();
+  }
   function receiveLiveCaption(caption) {
-    if(!caption.text||!["user","assistant"].includes(caption.role))return;
+    // A caption the server would read as empty is not a turn (see turnText).
+    if(!turnText(caption.text)||!["user","assistant"].includes(caption.role))return;
+    caption={...caption,text:wellFormed(caption.text)};
     const key=`${caption.role}:${caption.id}`;
     // An application-authorized line is already the assistant's turn. The
     // transport gives its reading a caption of its own and tags it `authorized`;
@@ -3092,6 +3695,8 @@
       // No notes update is sent for caption fragments: a speech model fed a
       // stream of silent context mid-answer drifts into voicing the
       // participant's side. The next completed capture sends one short update.
+      // A long answer may be noted on screen meanwhile (captureMidAnswer); that
+      // capture sends nothing to the live interviewer.
       // After the completion line the capture of these words decides whether
       // the account changed; until then nothing is revoked (see completionHeld).
       liveDelivery?.abort();
@@ -3118,12 +3723,186 @@
       liveLimitStops.add(live);void live.stop();
       notice("This interview has reached its limit for new answers, so voice has stopped. Choose Wrap up to get the final check, then create a draft or save a copy.",false,"limit",true);
     }
+    if(caption.role==="user"&&!caption.final)captureMidAnswer();
+    // The capture of a long answer may be waiting for the interviewer's reply (liveCaptureQuiet).
+    if(caption.role==="assistant")liveInterviewerSpoke();
   }
-  function scheduleLiveCapture() {
+  // Notes wait for the participant to pause (runLiveCapture), so one who talks
+  // for minutes would see none of it noted until the end. When the answer being
+  // spoken is long (LIVE_MID_ANSWER_CHARS, LIVE_MID_ANSWER_MS), or an answer
+  // that already ended is still missing from the notes because the participant
+  // went straight on (LIVE_DEFERRED_CHARS), the transcript as it stands is
+  // captured while they keep talking: at most three times per answer, spaced
+  // from when the previous capture returned (LIVE_MID_ANSWER_GAPS). The server
+  // is told it is partial (live_partial): it keeps the capture the page holds
+  // and does not continue from this one. Its notes are applied as a lagging
+  // capture's are (applyLiveCapture): nothing is said or sent to the live
+  // interviewer for it, and the capture of the whole answer still follows when
+  // the answer ends and alone marks the answer as captured (scheduleLiveCapture
+  // gives this one up then). The closing sequence judges whole replies (see
+  // completionHeld), so nothing is captured mid-answer there. Nor while a
+  // caption check may still correct an answer that ended, which this capture
+  // would read (captionCheckHolds): it waits, as the capture of the whole
+  // answer does, and goes with the next words or when the check settles
+  // (releaseCaptionHold). words: called for new words of a caption (false when
+  // the check settles).
+  function captureMidAnswer(words=true){
+    const now=Date.now(),open=[...conversationUI.pendingParticipantCaptions];
+    if(words){
+      for(const key of open)if(!liveAnswerStarts.has(key))liveAnswerStarts.set(key,now);
+      liveWordsAt=now;
+      // The participant is speaking again: a capture that was about to go waits
+      // for this caption to finish, which schedules it (scheduleLiveCapture).
+      if(liveCaptureTimer!==null&&open.length){clearTimeout(liveCaptureTimer);liveCaptureTimer=null;liveCaptureQueued=true;renderAnalysisThrough();}
+    }
+    if(!liveFrontActive()||state.example||intakeActive()||!open.length||liveClosing())return;
+    // A capture sent when the participant paused (their caption finished) read
+    // the answer as it then stood. The same caption has gone on, so it now reads
+    // only part of the answer, like one sent mid-answer: it counts toward the
+    // answer's captures of part of it (the cap and spacing below), the capture of
+    // the whole answer does not wait behind it (overtakeLiveCapture), and the
+    // answer is captured when the interviewer replies or its caption can no
+    // longer go on (liveCaptureQuiet): this speaker goes on after a pause.
+    const resumed=liveCapture&&!liveCapture.midAnswer&&!liveCapture.outgrown&&
+      open.findLast(key=>(conversationUI.captions.get(key)||[]).some(id=>liveCapture.captured.turns.some(turn=>turn.id===id)));
+    if(resumed){
+      liveCapture.outgrown=true;
+      if(liveMidAnswer?.key!==resumed)liveMidAnswer={key:resumed,count:0,resumed:false};
+      liveMidAnswer.count++;liveMidAnswer.resumed=true;
+      rawTrace("live.notes_outgrown",{count:liveMidAnswer.count});
+    }
+    if(liveCapture||liveRetryTimer!==null)return;
+    // The answer being spoken is the newest open caption; a caption that resumes after a pause is the same answer.
+    const key=open.at(-1);
+    if(liveMidAnswer?.key!==key)liveMidAnswer={key,count:0,resumed:false};
+    const gap=LIVE_MID_ANSWER_GAPS[liveMidAnswer.count];
+    if(gap===undefined)return;
+    const rested=liveCaptureReturned===null||now-liveCaptureReturned>=gap;
+    const spoken=new Set(openParticipantTurns()),basis=participantCoverageBasis();
+    const length=answers=>answers.reduce((sum,[,answer])=>sum+answer.length,0);
+    const speaking=length(basis.filter(([id])=>spoken.has(id))),ended=length(basis.filter(([id])=>!spoken.has(id)));
+    const long=speaking>LIVE_MID_ANSWER_CHARS||now-Math.min(...open.map(entry=>liveAnswerStarts.get(entry)))>=LIVE_MID_ANSWER_MS;
+    // An answer that ended goes at once: its own capture only waited because this one began.
+    const waiting=ended-liveNotesChars>=LIVE_DEFERRED_CHARS;
+    if(!(rested&&(long||waiting)||waiting&&!liveMidAnswer.count))return;
+    // Words that could be read as a request to stop are left to the end of the
+    // answer, where a request to stop is decided (see liveStopInWords).
+    if(openParticipantTurns().some(id=>liveStopInWords(state.turns.find(turn=>turn.id===id)?.text||"")))return;
+    // A check that holds is on an answer that ended (one whose caption goes on gives its check
+    // up), and every capture reads every answer.
+    if(captionCheckHolds()){
+      if(!liveMidAnswerHeld){liveMidAnswerHeld=true;rawTrace("live.notes_held",{count:captionChecks.size,mid_answer:true});}
+      return;
+    }
+    liveMidAnswerHeld=false;
+    liveMidAnswer.count++;
+    void runLiveCapture(false,true);
+  }
+  // The closing sequence, or voice ending: whole replies are judged there (see
+  // completionHeld), so nothing is captured mid-answer and the capture of an
+  // answer goes as it always did (liveCaptureQuiet).
+  function liveClosing(){
+    return voiceEnded||liveLimitStops.has(conversationUI.live)||liveFinalReply||liveStopTurn||completionHeld||completionStands()||pendingCompletionReview||pendingFinalCheck||state.closure.asked;
+  }
+  // Whether the words so far could be read by the server as a request to stop
+  // (server.py stop_request_prefix). The server splits at . ! ? … ; and line
+  // breaks, then at commas, colons, brackets and dashes, so fillers, courtesies
+  // and reasons are clauses of their own ("…noon. Okay, I need to stop",
+  // "Sorry, I need to stop", "I need to stop now, my boss is calling"). It
+  // reads a request to stop among the first clauses of the words, after such
+  // asides, or in their last sentence. This check is broader, so that it never
+  // lets one through: a clause that is a request to stop on its own (the
+  // patterns the server gives the page), among the first nine clauses or in
+  // the last three sentences (room for a goodbye after it). At worst a capture
+  // waits for a few more words, or one answer is noted only at its end; the
+  // server refuses part of an answer that reads as a stop in any case (it
+  // decides a stop when the answer ends). Separate from voiceStopPrefix, which
+  // ends voice and so reads only how the words end.
+  // The server reads with Python's re: \w, \d, \s and \b take in every
+  // language's letters, digits and spaces, and its case-blind match takes İ and
+  // ı for i and ſ for s ("another café meeting", "İ need to stop"). The
+  // patterns come to the page as Python wrote them, so they are read here the
+  // same way (pythonStopPattern); one that cannot be is read as written.
+  function liveStopInWords(value,patterns=state.config?.agent_team?.stop_intent_patterns||[]){
+    const expressions=patterns.flatMap(pattern=>{try{return [pythonStopPattern(pattern)];}catch{try{return [new RegExp(pattern,"u")];}catch{return [];}}});
+    const stop=clause=>expressions.some(expression=>expression.test(clause));
+    const sentences=value.split(/[.!?…;\n]+/u).filter(sentence=>sentence.trim());
+    const clauses=list=>list.flatMap(sentence=>sentence.split(new RegExp(`[,()]|:(?!\\p{Nd})|${PY_SPACE}[—–-]+${PY_SPACE}`,"u")))
+      .map(clause=>clause.split(new RegExp(`${PY_SPACE}+`,"u")).filter(Boolean).join(" ").replace(/[\u0130\u0131]/gu,"i").replace(/\u017f/gu,"s").toLowerCase()).filter(Boolean);
+    return clauses(sentences).slice(0,9).some(stop)||clauses(sentences.slice(-3)).some(stop);
+  }
+  // Python's \s (str.isspace) and \w; \d is \p{Nd} in both.
+  const PY_SPACE="[\\t-\\r\\x1c-\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]",PY_WORD="[\\p{L}\\p{N}_]";
+  function pythonStopPattern(pattern){
+    return new RegExp(pattern.replace(/\\(.)/gsu,(escape,code)=>code==="w"?PY_WORD:code==="d"?"\\p{Nd}":code==="s"?PY_SPACE:
+      code==="b"?`(?:(?<=${PY_WORD})(?!${PY_WORD})|(?<!${PY_WORD})(?=${PY_WORD}))`:escape),"u");
+  }
+  // A capture on its way read only part of the answer: it was sent mid-answer
+  // (captureMidAnswer), or at a pause after which the same caption went on.
+  const livePartOfAnswer=check=>Boolean(check?.midAnswer||check?.outgrown);
+  // wait: how long until the capture goes (liveCaptureQuiet by default).
+  function scheduleLiveCapture(wait=liveCaptureQuiet()) {
     if(!liveFrontActive()||state.example||intakeActive()||liveRetryTimer!==null)return;
-    if(liveCapture){liveCaptureQueued=true;return;}
-    clearTimeout(liveCaptureTimer);
-    liveCaptureTimer=setTimeout(()=>{liveCaptureTimer=null;void runLiveCapture();},400);
+    // A capture of the conversation as it stood is on its way: this one follows
+    // it (runLiveCapture's finally). One that read only part of the answer does
+    // not hold this one back: when this one is due, it is given up or, if it is
+    // nearly back, waited for (overtakeLiveCapture).
+    if(liveCapture&&!livePartOfAnswer(liveCapture)){liveCaptureQueued=true;return;}
+    if(liveCapture)liveCaptureQueued=true;
+    armLiveCapture(wait);
+  }
+  function armLiveCapture(wait){
+    clearTimeout(liveCaptureTimer);liveCaptureDue=Date.now()+wait;
+    liveCaptureTimer=setTimeout(()=>{liveCaptureTimer=null;void runLiveCapture();renderAnalysisThrough();},wait);
+    renderAnalysisThrough();
+  }
+  // How long after a participant caption finishes the capture of the answer
+  // goes. An ordinary answer: LIVE_CAPTURE_QUIET, as always, and so in the
+  // closing sequence. One that is already long (LIVE_MID_ANSWER_CHARS,
+  // LIVE_MID_ANSWER_MS) or whose caption already went on after a pause
+  // (captureMidAnswer): until the interviewer replies (liveInterviewerSpoke), or
+  // LIVE_LONG_ANSWER_QUIET or LIVE_RESUMED_QUIET after its last words. A capture
+  // sent at a thinking pause reads only part of the answer and is a full
+  // capture, so a long answer with pauses in it would otherwise cost one at
+  // every pause, each given up at the next.
+  function liveCaptureQuiet(){
+    const index=state.turns.findLastIndex(turn=>turn.role==="user"&&!turn.document_event),latest=state.turns[index];
+    const key=latest&&[...conversationUI.captions].find(([key,ids])=>key.startsWith("user:")&&ids.includes(latest.id))?.[0];
+    // The interviewer has replied since: the answer is over.
+    if(!key||liveWordsAt===null||liveClosing()||conversationUI.live?.assistantSpeaking||state.turns.slice(index+1).some(turn=>turn.role==="assistant"))return LIVE_CAPTURE_QUIET;
+    const chars=conversationUI.captions.get(key).reduce((sum,id)=>sum+(state.turns.find(turn=>turn.id===id)?.text.length||0),0);
+    const resumed=liveMidAnswer?.key===key&&liveMidAnswer.resumed;
+    const long=resumed||chars>LIVE_MID_ANSWER_CHARS||liveWordsAt-(liveAnswerStarts.get(key)??liveWordsAt)>=LIVE_MID_ANSWER_MS;
+    return long?Math.max(LIVE_CAPTURE_QUIET,liveWordsAt+(resumed?LIVE_RESUMED_QUIET:LIVE_LONG_ANSWER_QUIET)-Date.now()):LIVE_CAPTURE_QUIET;
+  }
+  // The interviewer has begun its reply (receiveLiveCaption): an answer that
+  // was waiting for a longer silence (liveCaptureQuiet) is over, and its capture
+  // goes now.
+  function liveInterviewerSpoke(){
+    if(liveCaptureTimer!==null&&!liveCaptionOpen()&&liveCaptureDue-Date.now()>LIVE_CAPTURE_QUIET)armLiveCapture(LIVE_CAPTURE_QUIET);
+  }
+  // The capture of the whole answer is due (its caption has finished and the
+  // microphone is quiet) while one that read only part of it is on its way.
+  // That one can never mark the answer as captured, so the capture of the whole
+  // answer does not wait behind it: it is given up, unless it is nearly back
+  // (on its way for LIVE_KEEP_SHARE of the time the last capture of its kind
+  // took, and not that much past it). Then its notes are applied when it
+  // returns and the capture of the whole answer goes at once after it (the
+  // finally of runLiveCapture), or here, given up, once it is overdue. Returns
+  // whether the capture of the whole answer can go now.
+  function overtakeLiveCapture(){
+    const check=liveCapture;
+    if(!livePartOfAnswer(check)){liveCaptureQueued=true;return false;}
+    const on=Date.now()-check.sent,took=liveCaptureTook[check.midAnswer?"part":"whole"],due=took===null?0:took*(2-LIVE_KEEP_SHARE);
+    if(took!==null&&on>=took*LIVE_KEEP_SHARE&&on<due){
+      liveCaptureQueued=true;armLiveCapture(due-on);
+      rawTrace("live.notes_part_awaited",{on_its_way_ms:on,expected_ms:took});
+      return false;
+    }
+    liveCapture=null;liveCaptureQueued=true;check.controller.abort();
+    if(voiceStreamTopics?.check===check){voiceStreamTopics=null;renderCoverage();}
+    rawTrace("live.notes_mid_answer_superseded",{through_turn:check.captured.turns.findLast(turn=>turn.role==="user")?.id||null,on_its_way_ms:on});
+    return true;
   }
   function reportLiveNotesFailure(error){
     if(error.code==="provider_unavailable"){
@@ -3141,30 +3920,48 @@
     }
     notice("The notes could not be updated from the last answer. Your transcript is still here. Notes will try again with your next answer. "+(error?.message||""),true,"notes");
   }
-  async function runLiveCapture(afterVoice=false) {
+  async function runLiveCapture(afterVoice=false,midAnswer=false) {
     // afterVoice: the catch-up capture for an answer that voice ended on (see
     // settleLiveNotes). It is the same notes capture, sent once voice is off.
-    if((afterVoice?Boolean(conversationUI.live?.active):!liveFrontActive())||liveCapture||state.example||intakeActive())return;
-    if(!afterVoice&&liveAnswerPending()){liveCaptureQueued=true;scheduleLiveCapture();return;}
+    // midAnswer: a capture of an answer still being spoken (captureMidAnswer).
+    if((afterVoice?Boolean(conversationUI.live?.active):!liveFrontActive())||state.example||intakeActive())return;
+    if(!afterVoice&&!midAnswer){
+      // The capture of the conversation as it stands waits for the participant:
+      // a caption still open schedules it when it finishes (receiveLiveCaption);
+      // a microphone that still hears sound is waited out here.
+      if(liveAnswerPending()){liveCaptureQueued=true;if(!liveCaptionOpen())scheduleLiveCapture(LIVE_CAPTURE_QUIET);return;}
+      // A caption check may still correct the words this capture would read: it waits for the
+      // check, for a few seconds at most (releaseCaptionHold sends it).
+      if(captionCheckHolds()){liveCaptureQueued=true;rawTrace("live.notes_held",{count:captionChecks.size});return;}
+      if(liveCapture&&!overtakeLiveCapture())return;
+    }
+    if(liveCapture)return;
     const captured=liveSnapshot(),latest=captured.turns.findLast(turn=>turn.role==="user"&&!turn.document_event);
     if(!latest||liveCapturedThrough===`${latest.id}:${latest.text}`)return;
     const through=`${latest.id}:${latest.text}`;
-    const generation=state.generation,controller=new AbortController(),check={controller,generation,captured};
-    liveCapture=check;liveCaptureQueued=false;
+    // sent: when it went (overtakeLiveCapture, liveCaptureTook).
+    const generation=state.generation,controller=new AbortController(),check={controller,generation,captured,midAnswer,sent:Date.now()};
+    // A capture taken mid-answer leaves the capture of the whole answer owed.
+    liveCapture=check;liveCaptureQueued=midAnswer;renderAnalysisThrough();
+    if(midAnswer)rawTrace("live.notes_mid_answer",{through_turn:latest.id,unnoted_chars:participantChars(captured.turns)-liveNotesChars,count:liveMidAnswer?.count||0});
     try{
-      const {live:_,liveSession:sessionId,generation:__,revision:___,...payload}=captured;
+      const {live:_,liveSession:sessionId,generation:__,revision:___,openAnswers:____,...payload}=captured;
       // concurrentBypass: with voice off this is still the live front's notes
       // capture, never a typed interviewer turn that asks a new question.
       // liveNotes: the lead's proposed question is never shown for this capture.
-      const result=await request("/api/interview",{...payload,action:"answer",live_notes:true,interview_memory:liveMemoryEnabled()},{signal:controller.signal,concurrentBypass:true,liveNotes:true,...(afterVoice?{timeout:LIVE_NOTES_WAIT}:{})});
+      // live_partial: the server keeps nothing of a capture taken mid-answer (see captureMidAnswer).
+      const result=await request("/api/interview",{...payload,action:"answer",live_notes:true,interview_memory:liveMemoryEnabled(),...(midAnswer?{live_partial:true}:{})},{signal:controller.signal,concurrentBypass:true,liveNotes:true,...(afterVoice?{timeout:LIVE_NOTES_WAIT}:{})});
       if(liveCapture!==check||generation!==state.generation)return;
+      liveCaptureTook[midAnswer?"part":"whole"]=Date.now()-check.sent;
       liveRetryCount=0;
       if(liveFrontActive()){
-        if(!liveSourceMatches(captured)){
+        if(midAnswer||!liveSourceMatches(captured)){
           // The participant answered again, or is speaking, before this capture
           // returned. Its notes are shown for the answers it read; the capture
           // of the conversation as it now stands follows (see finally), and
-          // only that one can be marked as covering the latest answer.
+          // only that one can be marked as covering the latest answer. A
+          // capture taken mid-answer is always such a capture, even if the
+          // answer ended on the words it read.
           liveCaptureQueued=true;
           if(liveSourceUsable(captured))await applyLiveCapture(result,captured,false,true);
           return;
@@ -3181,7 +3978,9 @@
       if(error.name!=="AbortError"||check.expired){
         // Words said after the completion line were not judged: it is no longer shown as standing.
         accountChangedAfterCompletion();
-        if(liveFrontActive()&&!check.expired)reportLiveNotesFailure(error);
+        // A failed mid-answer capture is not reported or retried: the capture
+        // of the whole answer follows it, and reports its own failure.
+        if(liveFrontActive()&&!check.expired){if(!midAnswer)reportLiveNotesFailure(error);}
         // With voice off the failure is said once: not while the catch-up for
         // this end of voice is still to come.
         else if(!liveCatchUpDue&&conversationUI.status==="idle")notice("The notes could not be updated from your last answer. Your transcript is still here; choose Update notes in Notes to try again, or continue the interview. "+(check.expired?"That took too long.":error?.message||"")+unsavedReminder(),true,"notes");
@@ -3190,8 +3989,12 @@
       clearTimeout(check.deadline);check.deadline=null;
       if(liveCapture===check){
         if(voiceStreamTopics?.check===check){voiceStreamTopics=null;renderCoverage();}
-        liveCapture=null;
-        if(liveFrontActive()){if(liveCaptureQueued&&!liveAnswerPending())scheduleLiveCapture();}
+        // Captures taken mid-answer are spaced from this moment (captureMidAnswer).
+        liveCapture=null;liveCaptureReturned=Date.now();renderAnalysisThrough();
+        // The capture owed follows once no caption is open; while the microphone
+        // still hears sound, runLiveCapture waits that out (not only until the
+        // next caption ends, which could be an answer later).
+        if(liveFrontActive()){if(liveCaptureQueued&&!liveCaptionOpen())scheduleLiveCapture();}
         else if(generation===state.generation)settleLiveNotes();
       }
     }
@@ -3205,6 +4008,8 @@
     const generation=state.generation;
     const controller=waitForCaption?new AbortController():null;
     if(controller){liveDelivery?.abort();liveDelivery=controller;}
+    // A closing line (the final check, the completion line) ends every caption check.
+    closeCaptionChecks();
     const delivery=Promise.resolve(conversationUI.live?.say?.(text,{waitForCaption,signal:controller?.signal})).catch(()=>null);
     delivery.then(receipt=>{
       // Only an acknowledged receipt (confirmed by the provider, or the line
@@ -3272,10 +4077,14 @@
     if(typeof result.capture_token==="string"&&result.capture_token&&result.capture_token.length<=4096&&!(notesOnly&&result.no_new_run===true)&&continues)state.captureToken=result.capture_token;
     state.coverageVerified=(kept||!notesOnly)&&result.coverage_verified===true;state.completion=notesOnly&&!kept?null:result.completion||null;
     if(memo){
-      Object.assign(state,memo);notesProgress=captureProgressMark(captured.turns);keepMapProgress(result,captured.turns);
+      Object.assign(state,memo);notesProgress=captureProgressMark(captured.turns);keepMapProgress(result,captured.turns);liveNotesChars=participantChars(captured.turns);
       if(voiceTopicPreview&&captured.turns.some(t=>t.id===voiceTopicPreview.id&&t.text===voiceTopicPreview.text))voiceTopicPreview=null;
-      rawTrace("live.notes_checkpoint",{through_turn:notesProgress.through,answer_count:notesProgress.count});
-      rememberLiveLeads("notes",result.question_candidates,captured.turns);
+      const midAnswer=lagging&&readPartOfAnswer(captured);
+      rawTrace("live.notes_checkpoint",{through_turn:notesProgress.through,answer_count:notesProgress.count,...(midAnswer?{mid_answer:true}:{})});
+      // Leads from part of an answer are not kept: offered to the interviewer
+      // when the answer ends, they would take the place of those from the
+      // whole answer (sendLiveLead offers one lead per two answers).
+      if(!midAnswer)rememberLiveLeads("notes",result.question_candidates,captured.turns);
       traceNotes("live_capture");
       rememberCoverageCheckpoint(captured.turns,captured.revision,captured.document_revision,result.coverage_assessment,result.process_review,result.coverage_adjudication);
       rewritten=acceptRepairs(repairs,memo.memo_findings);
@@ -3413,6 +4222,9 @@
     conversationUI.flowTimer=setTimeout(()=>{
       conversationUI.flowTimer=null;
       if(conversationUI.pendingParticipantCaptions.size||typedOwnsMap())return;
+      // A caption check may still correct the answer the map would read: the map waits for it,
+      // as the notes do, a few seconds at most (releaseCaptionHold schedules it again).
+      if(captionCheckHolds()){captionMapHeld=true;return;}
       return refreshWorkflow();
     },1000);
     knowledgeUI?.captureChanged?.();
@@ -3852,6 +4664,12 @@
       return [...counts].filter(([,weight])=>weight>=0.8).sort((a,b)=>b[1]-a[1]).slice(0,20).map(([found])=>found);
     }catch{return [];}
   }
+  // A caption check's only hint: the process name, which the server adds to its glossary (server.py
+  // caption_check_terms). The answers' terms are left out: a live caption may hold the mishearings.
+  function captionCheckHints(){
+    const name=typeof state.context?.process_name==="string"?state.context.process_name.trim():"";
+    return name.length>=2&&name.length<=60&&!/[<>,\r\n]/.test(name)?[name]:[];
+  }
   function requestTimeout(key,fallback) {
     const value=state.config?.request_timeouts_ms?.[key];
     return Number.isSafeInteger(value)&&value>0?value:fallback;
@@ -3926,7 +4744,10 @@
       if (data instanceof Blob) {
         headers["Content-Type"] = data.type || "audio/webm";
         body = data;
-        const hints=path==="/api/transcribe"?transcriptionHints():[];
+        // A live caption check is marked as one: the server then hints it with its glossary alone.
+        const checking=path==="/api/transcribe"&&options.purpose===CAPTION_CHECK_PURPOSE;
+        if(checking)headers["X-Transcription-Purpose"]=CAPTION_CHECK_PURPOSE;
+        const hints=path!=="/api/transcribe"?[]:checking?captionCheckHints():transcriptionHints();
         if(hints.length)headers["X-Transcription-Hints"]=encodeURIComponent(hints.join(","));
       } else {
         headers["Content-Type"] = "application/json";
@@ -3981,7 +4802,8 @@
       // response, a completion review above all, needs the exact conversation.
       if(voiceSource&&!(options.liveNotes?liveSourceUsable(voiceSource):liveSourceMatches(voiceSource))){
         liveCaptureQueued=true;
-        if(!liveCapture&&!liveAnswerPending())scheduleLiveCapture();
+        // A caption still open schedules it when it finishes; a microphone that still hears sound is waited out by runLiveCapture.
+        if(!liveCapture&&!liveCaptionOpen())scheduleLiveCapture();
         throw new DOMException("New participant evidence replaced these notes","AbortError");
       }
       if(voiceSource)liveResponseSources.set(result,voiceSource);
@@ -4769,13 +5591,15 @@
   const NOTHING_TO_ADD="No, nothing to add.";
   function confirmNothingToAdd() {
     if(!state.closure.asked||state.closure.confirmed||state.coverageNeedsReview)return;
-    if($("answer-text").value.trim()){notice("Send or clear the answer you have typed first.");return;}
+    if(turnText($("answer-text").value)){notice("Send or clear the answer you have typed first.");return;}
     return sendAnswer(null,NOTHING_TO_ADD);
   }
   async function sendAnswer(event,preset) {
     event?.preventDefault();
     if(exampleIsReadOnly())return;
-    const answer = (typeof preset==="string"?preset:$("answer-text").value).trim();
+    const answer = turnText(typeof preset==="string"?preset:$("answer-text").value);
+    // Only invisible separators in the box: there is nothing to send, so the box is cleared.
+    if(!answer&&typeof preset!=="string"&&$("answer-text").value){$("answer-text").value="";updateControls();return;}
     if (intakeActive() || !answer || state.busy || state.recording || state.transcribing || state.requestingMic || conversationUI.live?.active || conversationUI.status==="closing") return;
     // The Send button is disabled at the limit; the keyboard shortcut arrives here all the same.
     if (transcriptLimit().answersBlocked) {notice(limitReason(transcriptLimit()), true); return;}
@@ -4786,11 +5610,14 @@
     const generation = state.generation,pauseSequence=reviewPauseSequence;
     clearSourceReturn();
     const turn = {id: nextTurnId(), role: "user", text: answer};
+    // What sending changes before the reply, so that an answer the server refuses can be taken back whole.
+    const unsent={completion:state.completion,pendingFinalCheck,closure:state.closure,coverageVerified:state.coverageVerified,
+      savedOwnerFollowups:state.savedOwnerFollowups,evidenceVersion:state.evidenceVersion,completionHeld,dictatedAnswer:state.dictatedAnswer};
     state.turns.push(rememberTurn(turn,state.dictatedAnswer===answer?"dictated":"typed"));state.dictatedAnswer=null;
     // After the completion line the reply to this message decides whether the
     // account changed; until then nothing is revoked (see completionHeld).
     if(completionStands())completionHeld=true;
-    else{conversationUI.revision++;suppressWorkflowReadiness();participantEvidenceChanged();}
+    else{conversationUI.revision++;suppressWorkflowReadiness();participantEvidenceChanged();cancelDraftAhead();}
     state.version++;
     state.dirty = true;
     $("answer-text").value = "";
@@ -4807,6 +5634,18 @@
         // The final check has been answered and the account is complete: its draft can be started.
         if(state.closure?.confirmed)armDraftAhead();}
     } catch (error) {
+      // The server refused the request itself, so the interview never received this answer. It goes
+      // back to the box and the interview returns to where it was; left in the transcript it would be
+      // sent, and refused, with every later request.
+      if(error.status===400&&!preset&&generation===state.generation&&state.turns.at(-1)===turn){
+        state.turns.pop();if(state.turnMetadata)delete state.turnMetadata[turn.id];state.version++;
+        ({completion:state.completion,pendingFinalCheck,closure:state.closure,coverageVerified:state.coverageVerified,
+          savedOwnerFollowups:state.savedOwnerFollowups,evidenceVersion:state.evidenceVersion,completionHeld,dictatedAnswer:state.dictatedAnswer}=unsent);
+        if(!$("answer-text").value)$("answer-text").value=answer;
+        renderTranscript();
+        notice((error.message||"That answer could not be sent.")+" Your answer is back in the box.",true,"question");
+        return;
+      }
       // The message was not judged: a completion is no longer shown as standing.
       if (generation === state.generation) accountChangedAfterCompletion();
       if (generation !== state.generation || intakeActive() || error.name==="AbortError") return;
@@ -4900,7 +5739,7 @@
   async function skipQuestion() {
     if(exampleIsReadOnly())return;
     if (intakeActive() || !state.started || state.busy || state.recording || state.transcribing || state.requestingMic) return;
-    if ($("answer-text").value.trim() && !confirm("Skip this question? Your unsent answer will stay in the answer box.")) return;
+    if (turnText($("answer-text").value) && !confirm("Skip this question? Your unsent answer will stay in the answer box.")) return;
     stopSpeaking();
     const generation = state.generation,pauseSequence=reviewPauseSequence;
     setBusy(true, "Finding another topic to explore…");
@@ -4915,10 +5754,12 @@
   async function finalCheck() {
     if(exampleIsReadOnly())return;
     if (intakeActive() || !state.started || state.busy || state.recording || state.transcribing || state.requestingMic) return;
-    if ($("answer-text").value.trim()) {notice("Send your answer first, then wrap up."); return;}
+    if (turnText($("answer-text").value)) {notice("Send your answer first, then wrap up."); return;}
     stopSpeaking();
     const generation = state.generation,pauseSequence=reviewPauseSequence,origin=document.activeElement;
     setBusy(true,"Checking for omissions, contradictions, and unresolved questions…");
+    // Wrap up reads the transcript as it stands: no caption check changes it now.
+    if(captionChecks.size)dropCaptionChecks();
     let replied=false;
     try {
       const result = await request("/api/interview",{...snapshot("close"),action:"close",...(liveFrontActive()?{live_notes:true}:{})});
@@ -5111,7 +5952,11 @@
         notice(fieldLimitProblem(REPLY_FIELD),true,"limit");
         return;
       }
-      notice(intakeActive()?"Your dictated text is in the reply box. Send it after the file has been read.":"Check the text, then choose Send.");
+      // Transcription can merge a spoken amount (a wire of $4,250,000.17 came back as $4,250,017), so
+      // when the text holds one the reminder names it.
+      const figures=/[$€£¥]\s?\d|\d[\d,]*\.\d|\d{1,3}(?:,\d{3})+|%|\b(?:dollars?|cents?|euros?|pounds?|percent|hundred|thousand|million|billion|USD|EUR|GBP|CHF|JPY)\b/i.test(answer);
+      notice(intakeActive()?"Your dictated text is in the reply box. Send it after the file has been read.":
+        figures?"Check the text and every amount, then choose Send.":"Check the text, then choose Send.");
     } catch (error) {
       if (generation !== state.generation) return;
       const retryable = error.transient === true || [408, 429].includes(error.status) || error.status >= 500;
@@ -5444,12 +6289,14 @@
     if (conversationUI.live?.active) {notice("Stop talking before you create a draft.");return;}
     if (state.busy || state.recording || state.transcribing || state.requestingMic || (!state.turns.some(t => t.role === "user")&&!hasDocumentEvidence())) return;
     if ((state.draftEdited||draftComponentDesigns.size) && state.draft && !confirm("Update the draft from the interview? Your edits to the current draft will be replaced.")) return;
-    if ($("answer-text").value.trim() && !confirm("You have an unsent answer. Create the draft from your sent answers only? Your unsent text stays in the box.")) return;
+    if (turnText($("answer-text").value) && !confirm("You have an unsent answer. Create the draft from your sent answers only? Your unsent text stays in the box.")) return;
     stopSpeaking();
     const generation = state.generation;
     const version = state.version;
     const evidence = draftEvidenceMark();
     const flight = draftInFlight = {};state.draftStartedAt=Date.now();
+    // The draft reads the transcript as it stands: no caption check changes it now.
+    if(captionChecks.size)dropCaptionChecks();
     setBusy(true, draftAheadReady()?"Checking your draft against your answers · usually 1 to 2 minutes":"Building your draft · usually 2 to 5 minutes");renderDraftElapsed();
     // The server gives the first half up with the draft it delivers: a later draft starts afresh.
     draftAhead.ready="";draftAhead.body="";
@@ -7368,7 +8215,8 @@
       if (saved?.schema_version !== 1 || !saved.context || typeof saved.context!=="object" || Array.isArray(saved.context) || !Array.isArray(saved.turns)) throw new Error("Choose an interview file saved from this app.");
       if (saved.turns.length > 400 || exceeds(text(saved.context.objective),500) || exceeds(text(saved.context.background),8000) || (typeof saved.unsent_answer === "string" && saved.unsent_answer.length > 18000)) throw new Error("This interview is too long to open.");
       const context = {
-        process_name:text(saved.context.process_name,500),process_owner:text(saved.context.process_owner,500),objective:text(saved.context.objective,500),background:text(saved.context.background,8000)
+        process_name:wellFormed(text(saved.context.process_name,500)),process_owner:wellFormed(text(saved.context.process_owner,500)),
+        objective:wellFormed(text(saved.context.objective,500)),background:wellFormed(text(saved.context.background,8000))
       };
       if(saved.derived_process_title!==undefined&&(typeof saved.derived_process_title!=="string"||saved.derived_process_title.length>180))throw new Error("The saved process title is invalid.");
       const derivedTitle=text(saved.derived_process_title,180);
@@ -7379,8 +8227,12 @@
         if (!turn || !["user","assistant"].includes(turn.role) || typeof turn.text !== "string" || typeof turn.id !== "string" || turn.id === "context" || !/^[a-zA-Z0-9_-]{1,40}$/.test(turn.id) || ids.has(turn.id)) throw new Error(`The session has an invalid, reserved, or duplicate turn ID at position ${i+1}.`);
         if(!turn.text.trim())throw new Error("A saved conversation turn was empty. Open a complete interview file.");
         if (exceeds(turn.text,6000)) throw new Error(`Turn ${turn.id} exceeds the 6,000-character limit.`);
-        ids.add(turn.id); return {id:turn.id,role:turn.role,text:turn.text,...(turn.role==="assistant"&&turn.delivery==="text"?{delivery:"text"}:{}),...(turn.document_event===true?{document_event:true}:{}),...(typeof turn.document_id==="string"&&/^doc_[a-zA-Z0-9_]+$/.test(turn.document_id)?{document_id:turn.document_id}:{})};
-      });
+        ids.add(turn.id);
+        // An answer the server would read as empty (only control characters that JavaScript's trim keeps)
+        // was saved by an older page; it carries nothing and would refuse every request, so it is left out.
+        if(turn.role==="user"&&!turnText(turn.text))return null;
+        return {id:turn.id,role:turn.role,text:wellFormed(turn.text),...(turn.role==="assistant"&&turn.delivery==="text"?{delivery:"text"}:{}),...(turn.document_event===true?{document_event:true}:{}),...(typeof turn.document_id==="string"&&/^doc_[a-zA-Z0-9_]+$/.test(turn.document_id)?{document_id:turn.document_id}:{})};
+      }).filter(Boolean);
       if (turns.reduce((n,t) => n+charCount(t.text),0) > 400000) throw new Error("This interview is too long to open.");
       const documentEvidence=normalizeDocumentEvidence(saved.document_evidence);
       const fileTopicReviews = savedFileTopicReviews(saved.file_topic_reviews);

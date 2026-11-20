@@ -8,7 +8,8 @@
   const FILE_NOTICE = "Files are saved on this computer. The AI service can receive file names, the full extracted text (including hidden sheets), and pages or images for visual review. Large files pause for your choice before sending more. Files saved for later pause further background review. Remove stops further review and takes the file out of future interview requests. Use Permanently delete in Removed files to erase its local original and index. Excerpts in earlier saves or submissions remain. Confirm file details in the interview.";
   // The Assets panel says what is needed to add a file; the full limits and the notice are one click away.
   const formatHint = kinds => kinds.length ? kinds.join(", ").toUpperCase() + " · up to 64 MiB each" : "No file formats are available.";
-  const EXTRACTION_LIMITS = "Extraction limits: 500 PDF pages, 100 sheets, 2 million populated cells, 40 megapixels per image, and 64 MiB of indexed text in up to 50,000 sections.";
+  // Kept true to documents.py: MAX_PDF_PAGES, MAX_SHEETS, MAX_CELLS (an XLSX counts the cells it stores, empty formatted ones too) and the image size check.
+  const EXTRACTION_LIMITS = "Reading limits: 500 PDF pages, 100 sheets, about 2 million spreadsheet cells (formatted empty cells count) and 40 megapixels per image. A file past a page, sheet or cell limit is read up to it.";
   const FILE_LIMITS = formatHint([...EXTENSIONS]).replace("up to", "Up to") + ". " + EXTRACTION_LIMITS;
   const FILE_NOTICE_LEAD = "Saved on this computer and read by the AI service";
   const PARKED_REVIEW_NOTICE = "Further review is paused while this file is saved for later. A request already sent can finish.";
@@ -467,6 +468,9 @@
       if(!this.needsReindex(document))return "";
       const updated="Process Collector was updated since this file was indexed.";
       if(this.reindexChecking(document))return `${updated} It is being read again on this computer to confirm that its saved index is still current. Nothing is sent to the AI provider for this check.`;
+      // No sentence names a button the card does not show. A file this version could not read again
+      // has none, and its own error already says why.
+      if(document.retryable===false)return document.status==="error"?"":updated;
       if(document.status==="error")return `${updated} Choose Re-index and review to read it with the current version.`;
       const why=document.reindex_check?.outcome==="failed"?"it could not be read again on this computer":document.reindex_check?.outcome==="changed"?"the current version reads it differently":"its saved index predates the current completeness checks";
       return `${updated} Its earlier review does not count as a full review, because ${why}. Choose ${document.analysis?.disposition==="parked"?"Revisit this file":"Re-index and review"} to bring it up to date.`;
@@ -520,9 +524,12 @@
       const analysis=document.analysis||{},parts=[];
       // An index from an earlier version counts for nothing until it is confirmed: "0/5 units indexed" beside
       // "1 of 1 sections reviewed" would describe that as two contradicting facts.
-      if(this.needsReindex(document))return "Indexed by an earlier version; not counted until it is confirmed.";
-      const indexed=Number(document.coverage?.indexed_units),total=Number(document.coverage?.total_units);
-      if(Number.isFinite(indexed)&&Number.isFinite(total)&&total>0)parts.push(`${indexed}/${total} ${({pdf:"pages",png:"images",xls:"sheets",xlsx:"sheets",xlsm:"sheets",csv:"rows"})[document.kind]||"units"} indexed.`);
+      if(this.needsReindex(document))return document.status==="error"?"Indexed by an earlier version; not counted.":"Indexed by an earlier version; not counted until it is confirmed.";
+      // A file past a page, row, sheet or cell limit was indexed up to it. That sentence says what was left
+      // out more plainly than the unit count, so it takes the count's place on the card.
+      const indexed=Number(document.coverage?.indexed_units),total=Number(document.coverage?.total_units),readLimit=this.readLimit(document);
+      if(readLimit)parts.push(readLimit);
+      else if(Number.isFinite(indexed)&&Number.isFinite(total)&&total>0)parts.push(`${indexed}/${total} ${({pdf:"pages",png:"images",xls:"sheets",xlsx:"sheets",xlsm:"sheets",csv:"rows"})[document.kind]||"units"} indexed.`);
       const coverage=document.coverage||{};
       if(document.kind==="pdf"&&Number.isFinite(coverage.text_indexed_units)&&coverage.visual_pending_units>0)
         parts.push(coverage.text_indexed_units+" pages with indexed text; "+coverage.visual_pending_units+" pages still have unread visual content.");
@@ -534,6 +541,7 @@
       if(this.leftOut(document))parts.push("Left out of the latest update.");
       return parts.join(" ");
     }
+    readLimit(document) {const value=document.coverage?.read_limit;return typeof value==="string"?value.trim():"";}
     // A background review that is sending, or about to send, this file's text to the provider.
     reviewRunning(document) {return !this.reviewError(document)&&!document.analysis?.review_stopped&&(["pending","indexing"].includes(document.status)||["quick","deep"].includes(document.analysis?.phase));}
     // The first assessment says about how many requests reviewing the whole file takes; this is the share still to come.
@@ -715,7 +723,9 @@
       if(document.coverage){
         const coverage=typeof document.coverage==="string"?document.coverage:document.coverage.summary||document.coverage.note;if(coverage)content.append(this.node("p","documents-progress",coverage));
       }
-      const limitations=[document.coverage?.limitations,analysis.limitations].flatMap(value=>Array.isArray(value)?value:typeof value==="string"?[value]:[]).filter(value=>typeof value==="string"&&value.trim());
+      // What the card's stage line already says about a read limit is not listed again.
+      const readLimit=this.needsReindex(document)?"":this.readLimit(document);
+      const limitations=[document.coverage?.limitations,analysis.limitations].flatMap(value=>Array.isArray(value)?value:typeof value==="string"?[value]:[]).filter(value=>typeof value==="string"&&value.trim()&&!(readLimit&&readLimit.includes(value.trim())));
       if(limitations.length){const section=this.node("div","documents-limitations"),list=this.node("ul");section.append(this.node("h4","","Reading limits"));for(const limitation of new Set(limitations))list.append(this.node("li","",this.reviewNotice(limitation)));section.append(list);content.append(section);}
       if(document.inventory)this.renderInventory(content,document.inventory,document.kind);
       const primary=typeof analysis.question==="string"?analysis.question.trim():"";
@@ -732,8 +742,8 @@
       if(this.reviewError(document)){
         // The button says what it does: for an index from an earlier version that is a re-index and a paid review.
         const retry=this.needsReindex(document)?"Re-index and review":"Retry review";
-        const cost=this.reindexNote(document,retry);if(cost)card.append(cost);
-        if(document.retryable!==false)card.append(this.control(this.button(retry,"documents-text-button",()=>this.action(document,"revisit")),document,"retry-review"));
+        // Only beside the button it describes: a file that cannot be retried has neither.
+        if(document.retryable!==false){const cost=this.reindexNote(document,retry);if(cost)card.append(cost);card.append(this.control(this.button(retry,"documents-text-button",()=>this.action(document,"revisit")),document,"retry-review"));}
         if(analysis.disposition!=="parked")card.append(this.control(this.button("Save for later","documents-text-button",()=>this.action(document,"park")),document,"park"));
       }
       else if(analysis.disposition==="parked"){

@@ -1,14 +1,16 @@
-"""Live voice notes taken while an answer is still being spoken (web/app.js captureMidAnswer).
+"""Live voice notes of an answer whose caption then goes on (web/app.js liveSourceUsable).
 
-The page sends the transcript as it stands, with the open answer cut off mid-sentence, and later
-sends the whole answer. The capability it sends then is either the one it held before (the answer
-grew while the first capture was on its way) or the mid-answer capture's own (it had not grown
-yet). Either way the server accepts the capture of the whole answer: the private fact ledger is
-continued from the mid-answer capture (a live caption that grew by words added at its end is the
-same answer, see InterviewCoordinator._fact_record), facts from other answers are kept, and the
-grown answer is read whole by the full capture (capture_facts.rebase retires the facts quoted
-from its shorter text, whose source changed; the quick excerpt path needs unchanged earlier
-turns). The provider is a local stand-in; no network.
+A capture sent when the participant pauses reads the answer as it stood; when the same caption
+resumes, the page applies that capture as notes only and sends the whole answer later. The
+capability it sends then is either the one it held before (the answer grew while the first capture
+was on its way) or the first capture's own (it had not grown yet). Either way the server accepts
+the capture of the whole answer: the private fact ledger is continued from the first capture (a
+live caption that grew by words added at its end is the same answer, see
+InterviewCoordinator._fact_record), facts from other answers are kept, and the grown answer is read
+whole by the full capture (capture_facts.rebase retires the facts quoted from its shorter text,
+whose source changed; the quick excerpt path needs unchanged earlier turns). A capture taken while
+the answer is still being spoken is sent with live_partial instead and is never continued from
+(tests/test_live_partial_capture.py). The provider is a local stand-in; no network.
 """
 import json
 import unittest

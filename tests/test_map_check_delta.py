@@ -224,10 +224,11 @@ class CheckedBesideTheDraw(unittest.TestCase):
         # It returns no memo, so the memo rules are the one part it does not need.
         self.assertNotIn("In memo_findings return", instructions)
         self.assertEqual(instructions, server.WORKFLOW_MAP_INSTRUCTIONS)
-        # A map the page waits for returns the memo as well and keeps the full instructions, unchanged.
+        # A map the page waits for returns the memo as well, including the naming criterion.
         self.assertTrue(server.WORKFLOW_INSTRUCTIONS.startswith(server.ARTIFACT_EVIDENCE_POLICY + server.WORKFLOW_MAP_RULES))
         self.assertIn(server.WORKFLOW_MEMO_RULES, server.WORKFLOW_INSTRUCTIONS)
-        self.assertEqual(server.provider_usage.prompt_id(server.WORKFLOW_INSTRUCTIONS), "f57783fe73a74655")
+        self.assertIn("everyday_name: The everyday name people use for this work.", server.WORKFLOW_INSTRUCTIONS)
+        self.assertEqual(server.provider_usage.prompt_id(server.WORKFLOW_INSTRUCTIONS), "5ea66bd236a4ab30")
 
     def test_each_check_reviews_only_what_the_latest_answer_changed(self):
         self.say("u1")

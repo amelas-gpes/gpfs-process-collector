@@ -26,6 +26,7 @@ import sys
 import tempfile
 import threading
 import time
+import types
 import unittest
 from unittest.mock import patch
 
@@ -33,6 +34,9 @@ APP = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('parser_process_documents', APP / 'documents.py')
 documents = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(documents)
+launcher_spec = importlib.util.spec_from_file_location('parser_process_launcher', APP / 'launcher.py')
+launcher = importlib.util.module_from_spec(launcher_spec)
+launcher_spec.loader.exec_module(launcher)
 
 AUDIT = APP / 'tests' / 'fixtures' / 'document-audit'
 UPLOADS = APP / 'docs' / 'testing' / 'runs' / '2026-11-16-process-capture' / 'uploads' / 'inputs'
@@ -97,8 +101,7 @@ class Fixture(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.folder = Path(self.temporary.name)
         self.events = []
-        with patch.object(documents.os, 'cpu_count', return_value=8):  # Two slots on any computer.
-            self.store = self.open_store('apart', parser_processes=2)
+        self.store = self.open_store('apart', parser_processes=2)
 
     def open_store(self, name, **options):
         store = documents.DocumentStore(self.folder / name, **options)
@@ -308,6 +311,56 @@ class Errors(Fixture):
         # Retry review reads it again.
         self.assertEqual(self.store.extract(scope, document_id)['status'], 'ready')
 
+    def outdated(self):
+        """A file indexed by the previous version: the free comparison (check_extraction) is owed."""
+        scope = self.store.create_scope()
+        document_id = self.store.add(scope, 'log.csv', CSV)['id']
+        self.assertEqual(self.store.extract(scope, document_id)['status'], 'ready')
+        with self.store._db() as db:
+            saved = json.loads(db.execute('SELECT record FROM documents WHERE id=?', (document_id,)).fetchone()[0])
+            saved['extraction_version'] = documents.EXTRACTION_VERSION - 1
+            db.execute('UPDATE documents SET record=? WHERE id=?', (json.dumps(saved), document_id))
+        self.assertEqual(self.store.get(scope, document_id)['reindex_check'], {'outcome': 'pending'})
+        return scope, document_id
+
+    def check_ended_from_outside(self, scope, document_id):
+        marker = self.folder / 'reading'
+        if marker.exists():
+            marker.unlink()
+        started, popen = self.children()
+        records = []
+        with patch.object(documents, '_PARSER_BOOT', self.waiting(marker)), popen:
+            reading = threading.Thread(target=lambda: records.append(self.store.check_extraction(scope, document_id)))
+            reading.start()
+            self.wait_for(marker)
+            started[0].kill()
+            reading.join(20)
+        return records[0]
+
+    def test_a_reader_ended_from_outside_during_the_free_check_leaves_the_check_owed(self):
+        # Ending the reader says nothing about the file: no paid re-index is asked for, and the
+        # next status poll (DocumentService.list schedules every 'pending' check) compares it again.
+        scope, document_id = self.outdated()
+        record = self.check_ended_from_outside(scope, document_id)
+        self.assertEqual((record['status'], record['reindex_check'], record['extraction_needs_reindex']),
+                         ('partial', {'outcome': 'pending'}, True))
+        self.assertEqual(self.store.get(scope, document_id)['reindex_check'], {'outcome': 'pending'})
+        self.assertEqual([(event, fields['outcome']) for event, fields in self.events], [('document_parser_process', 'ended')])
+        record = self.store.check_extraction(scope, document_id)
+        self.assertEqual((record['status'], record.get('reindex_check'), record['extraction_needs_reindex']),
+                         ('ready', None, False))
+
+    def test_a_free_check_whose_reader_is_ended_again_counts_as_failed_without_looping(self):
+        # A reader the system ends every time (short of memory) is not started on every poll.
+        scope, document_id = self.outdated()
+        self.assertEqual(self.check_ended_from_outside(scope, document_id)['reindex_check'], {'outcome': 'pending'})
+        record = self.check_ended_from_outside(scope, document_id)
+        self.assertEqual(record['reindex_check'], {'extraction_version': documents.EXTRACTION_VERSION, 'outcome': 'failed'})
+        started, popen = self.children()
+        with popen:
+            self.assertEqual(self.store.check_extraction(scope, document_id)['reindex_check']['outcome'], 'failed')
+        self.assertEqual(started, [])
+
 
 class Fallback(Fixture):
     def assert_read_here(self, record):
@@ -419,8 +472,7 @@ class Processes(Fixture):
         self.addCleanup(httpd.server_close)
         self.addCleanup(httpd.documents.close)
         store = httpd.documents_store
-        self.assertEqual(store._parser_slots._initial_value,
-                         min(server.DOCUMENT_REVIEW_WORKERS, max(1, (os.cpu_count() or 2) - 1)))
+        self.assertEqual(store._parser_slots._initial_value, server.DOCUMENT_REVIEW_WORKERS)
         started, real = [], subprocess.Popen
 
         def start(*arguments, **options):
@@ -477,6 +529,29 @@ class Timing(Fixture):
         self.assertEqual((record['status'], record.get('error')), ('ready', None))
         self.assertEqual(self.events, [])
 
+    def test_the_legacy_workbook_reader_says_when_its_workbook_is_open(self):
+        # Opening a large .xls (its shared strings) does not count against its limit either.
+        said = []
+        xlrd = types.ModuleType('xlrd')
+        xlrd.__version__ = '2.0.1'
+
+        class Book:
+            nsheets = 0
+
+            def release_resources(self):
+                said.append('closed')
+
+        def open_workbook(*arguments, **options):
+            said.append('opened')
+            return Book()
+        xlrd.open_workbook = open_workbook
+        path = self.file('ledger.xls', bytes.fromhex('D0CF11E0A1B11AE1') + bytes(504))
+        record = {'id': 'doc_' + 'cd' * 12, 'kind': 'xls', 'name': path.name}
+        with patch.dict(sys.modules, {'xlrd': xlrd}), \
+                patch.object(documents, '_budget_started', side_effect=lambda: said.append('budget')):
+            read_here(path, record)
+        self.assertEqual(said, ['opened', 'budget', 'closed'])
+
     @unittest.skipUnless(READERS, 'pypdf, openpyxl and Pillow are not installed')
     def test_the_pdf_and_workbook_readers_say_when_their_own_budget_starts(self):
         record = {'id': 'doc_' + 'ab' * 12, 'kind': 'xlsx', 'name': 'register.xlsx'}
@@ -487,7 +562,6 @@ class Timing(Fixture):
 
 
 class Lifetime(Fixture):
-    @unittest.skipIf(os.name == 'nt', 'Checks a process by its ID the POSIX way')
     def test_a_reader_ends_when_the_server_process_ends(self):
         # The server is killed (or the desktop window's drain gives up and calls os._exit) while a
         # reader is busy with a file that would keep it busy for a minute.
@@ -513,24 +587,42 @@ class Lifetime(Fixture):
         self.addCleanup(host.stdout.close)
         reader = int(host.stdout.readline())
 
-        def alive():
-            try:
-                os.kill(reader, 0)
-            except ProcessLookupError:
-                return False
-            return True
-
         def end_reader():
-            if alive():
-                os.kill(reader, signal.SIGKILL)
+            if not launcher.exited(reader, .2):
+                os.kill(reader, getattr(signal, 'SIGKILL', signal.SIGTERM))  # TerminateProcess on Windows.
         self.addCleanup(end_reader)
         self.wait_for(marker)
         host.kill()
         host.wait()
-        until = time.monotonic() + 10
-        while alive() and time.monotonic() < until:
-            time.sleep(.05)
-        self.assertFalse(alive(), 'The reader process outlived the server')
+        # By its process ID: OpenProcess and WaitForSingleObject on Windows, signal 0 elsewhere.
+        self.assertTrue(launcher.exited(reader, 10), 'The reader process outlived the server')
+
+    def test_a_reader_still_watches_the_server_when_the_windows_pipe_calls_fail(self):
+        # The watch for the server's end is what ends a reader whose server was killed. If the
+        # Windows pipe calls failed in a way it did not expect, it waits the portable way instead.
+        watcher = self.folder / 'watcher.py'
+        watcher.write_text(
+            'import importlib.util, os, sys, threading, time, types\n'
+            "spec = importlib.util.spec_from_file_location('documents', sys.argv[1])\n"
+            'documents = importlib.util.module_from_spec(spec)\n'
+            'spec.loader.exec_module(documents)\n'
+            "if sys.argv[2] == 'failing':\n"
+            "    sys.modules['_winapi'] = sys.modules['msvcrt'] = None  # Importing either now fails.\n"
+            "    documents.os = types.SimpleNamespace(name='nt', read=os.read, _exit=os._exit)\n"
+            "threading.Thread(target=documents._end_with_server, args=(sys.stdin.fileno(),), daemon=True).start()\n"
+            "print('watching', flush=True)\n"
+            'time.sleep(60)\n', encoding='utf-8')
+        for mode in ('as built', 'failing'):
+            with self.subTest(mode=mode):
+                child = subprocess.Popen([sys.executable, '-I', '-B', str(watcher), str(APP / 'documents.py'), mode],
+                                         stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                self.addCleanup(child.stdout.close)
+                self.addCleanup(lambda child=child: child.poll() is None and child.kill())
+                self.assertEqual(child.stdout.readline().strip(), b'watching')
+                time.sleep(.2)
+                self.assertIsNone(child.poll(), 'The watch ended while the server was still there')
+                child.stdin.close()  # The server has ended.
+                self.assertEqual(child.wait(10), 1)
 
     def test_closing_the_store_ends_its_readers_and_leaves_the_file_to_read_again(self):
         marker = self.folder / 'reading'
@@ -634,11 +726,52 @@ class SameCode(Fixture):
 
 
 class Priority(Fixture):
-    def test_a_store_leaves_one_processor_for_the_server(self):
-        for processors, slots in ((1, 1), (2, 1), (3, 2), (4, 3), (5, 4), (16, 4), (None, 1)):
+    def test_a_store_reads_as_many_files_at_once_as_it_is_given_on_any_computer(self):
+        # A reader runs below normal priority; fewer slots would only keep files waiting.
+        for processors in (1, 2, 4, 16, None):
             with self.subTest(processors=processors), patch.object(documents.os, 'cpu_count', return_value=processors):
-                self.assertEqual(self.open_store(f'cpu{processors}', parser_processes=4)._parser_slots._initial_value, slots)
+                self.assertEqual(self.open_store(f'cpu{processors}', parser_processes=4)._parser_slots._initial_value, 4)
         self.assertIsNone(self.open_store('here')._parser_slots)
+
+    def test_a_small_file_is_not_kept_waiting_behind_large_ones_on_a_two_processor_computer(self):
+        # Three large uploads in one interview, then a small CSV in another (a 2-vCPU virtual desktop).
+        marks = self.folder / 'marks'
+        marks.mkdir()
+        large = boot('import time\n'
+                     'real = module._csv\n'
+                     'def large(path, record, chunks):\n'
+                     "    if record['name'].startswith('large'):\n"
+                     f'        open({str(marks)!r} + "/" + record["name"], "w").close()\n'
+                     '        time.sleep(60)\n'
+                     '    return real(path, record, chunks)\n'
+                     'module._csv = large')
+        with patch.object(documents.os, 'cpu_count', return_value=2):
+            store = self.open_store('two', parser_processes=4)
+        self.addCleanup(store.stop_readers)
+        busy = store.create_scope()
+        names = [f'large-{number}.csv' for number in range(3)]
+        ids = [store.add(busy, name, CSV + name.encode())['id'] for name in names]
+        readings = [threading.Thread(target=self.reading_until_stopped, args=(store, busy, document_id)) for document_id in ids]
+        with patch.object(documents, '_PARSER_BOOT', large):
+            for reading in readings:
+                reading.start()
+            for name in names:
+                self.wait_for(marks / name)
+            began = time.monotonic()
+            small = self.extract('small.csv', b'Step;Owner\nIntake;Operations\n', store)[2]
+            waited = time.monotonic() - began
+            store.stop_readers()
+            for reading in readings:
+                reading.join(10)
+        self.assertEqual(small['status'], 'ready')
+        self.assertLess(waited, 15, 'The small file waited for a large one to finish')
+
+    @staticmethod
+    def reading_until_stopped(store, scope, document_id):
+        try:
+            store.extract(scope, document_id)
+        except documents.ReadingStopped:
+            pass
 
     @unittest.skipUnless(hasattr(os, 'nice'), 'POSIX priority')
     def test_a_reader_runs_below_normal_priority(self):

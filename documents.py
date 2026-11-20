@@ -652,12 +652,14 @@ class DocumentStore:
         self._locks = {}
         self.diagnostic = None  # Set by the server to its bounded local event log.
         # Up to this many files are read at once, each by a separate Python process (_parse_apart);
-        # with none, files are read in this process. The server allows one per review worker, and
-        # never one per processor: one is left for the server's requests and the window.
-        if parser_processes:
-            parser_processes = max(1, min(parser_processes, (os.cpu_count() or 2) - 1))
+        # with none, files are read in this process. The server allows one per review worker, also
+        # on a computer with few processors: a reader runs below normal priority, so the server's
+        # requests and the window come first, and a small file is not kept waiting behind large ones.
         self._parser_slots = threading.BoundedSemaphore(parser_processes) if parser_processes else None
         self._readers = _Readers()
+        # Files whose free comparison (check_extraction) lost its reader to something outside the
+        # app in this run. Each is compared once more before the comparison counts as failed.
+        self._interrupted_checks = set()
         # Before any statement that creates or changes anything in the file.
         probe = sqlite3.connect(_long_path(self.db_path), timeout=30)
         try:
@@ -1237,8 +1239,17 @@ class DocumentStore:
                 inventory, coverage, chunks = self._parse(path, before)
             except ReadingStopped:
                 raise  # The app is closing: the comparison is still owed, at the next start.
+            except ReadingInterrupted:
+                # Its reader was ended from outside (Task Manager, the system short of memory). That
+                # says nothing about the file: the comparison stays owed and the next status poll
+                # runs it again, once. A reader ended again is a file this computer cannot read.
+                if document_id not in self._interrupted_checks:
+                    self._interrupted_checks.add(document_id)
+                    return self.get(scope, document_id)
+                outcome = 'failed'
             except Exception:
                 outcome = 'failed'
+            self._interrupted_checks.discard(document_id)
             with self._db() as db:
                 db.execute('BEGIN IMMEDIATE')
                 digest = self._authorize(db, scope)
@@ -2223,6 +2234,7 @@ def _legacy_xls(path, record, chunks):
             raise ExtractionError('Legacy XLS must be an OLE binary workbook. Save as XLSX or CSV and attach it.')
     book = xlrd.open_workbook(str(path), on_demand=True, ragged_rows=True)
     try:
+        _budget_started()  # As in _workbook: the time it took to open the workbook does not count.
         # As in _workbook: stored cells count, the first MAX_SHEETS sheets are read, and a stop
         # leaves the rows and sheets after it counted but unread.
         limit, sheets, previous = _SheetLimit(), [], ''
@@ -2535,15 +2547,20 @@ def _end_with_server(descriptor):
     result, and the reader must not go on using a processor and holding the file open."""
     try:
         if os.name == 'nt':
-            # The pipe's own handle: os.read would hold the C runtime's lock on stdin while it waits.
-            import _winapi
-            import msvcrt
-            handle = msvcrt.get_osfhandle(descriptor)
-            while _winapi.ReadFile(handle, 4096)[0]:
-                pass
-        else:
-            while os.read(descriptor, 4096):
-                pass
+            try:
+                # The pipe's own handle: os.read would hold the C runtime's lock on stdin while it waits.
+                import _winapi
+                import msvcrt
+                handle = msvcrt.get_osfhandle(descriptor)
+                while _winapi.ReadFile(handle, 4096)[0]:
+                    pass
+                os._exit(1)
+            except OSError:
+                raise
+            except Exception:
+                pass  # Pipe calls that are not what this expects: wait below rather than not at all.
+        while os.read(descriptor, 4096):
+            pass
     except OSError:
         pass  # The pipe is broken: the server has ended.
     os._exit(1)

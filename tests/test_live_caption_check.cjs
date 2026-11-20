@@ -13,7 +13,8 @@
 // caption gets, mute, bounds, the provider's clock and the fallbacks.
 // Part 2 runs web/app.js on the page of web/index.html (tests/fixtures/app_page.cjs) with a stand-in
 // transport and server: the request and its glossary, the targeted correction (on the real captions and
-// readings of that session), stale and failed results, the notes capture and map that wait, the
+// readings of that session and of the merged build's), stale and failed results, the notes captures
+// (also those taken mid-answer) and map that wait and go again, a process lead already offered, the
 // closing sequence and the setting off.
 // No microphone, browser, network or provider.
 const fs=require("node:fs"),vm=require("node:vm"),path=require("node:path"),assert=require("node:assert/strict");
@@ -161,8 +162,29 @@ async function page({caption_check=true}={}){
  h.turn=()=>page.state.turns.filter(turn=>turn.role==="user").at(-1);
  h.outcomes=()=>h.traces.filter(trace=>trace.type==="live.caption_check").map(trace=>trace.payload.outcome+(trace.payload.reason?":"+trace.payload.reason:""));
  h.lastAnswer=capture=>capture.body.turns.filter(turn=>turn.role==="user").at(-1).text;
+ // Page time passes: every timer due within `span` ms fires in turn, whatever it is for.
+ h.clock=async span=>{
+  const end=page.context.Date.now()+span;
+  for(let fired=0;fired<500;fired++){
+   const next=page.waiting().map(([id,timer])=>({id,timer,due:timer.at+timer.ms})).sort((a,b)=>a.due-b.due)[0];
+   if(!next||next.due>end)break;
+   page.advance(Math.max(0,next.due-page.context.Date.now()));page.timers.delete(next.id);
+   // Not waited for: a timer may start a request that stays on its way until the test answers it.
+   try{void Promise.resolve(next.timer.fn()).catch(()=>{});}catch{}
+   await page.flush();
+  }
+  page.advance(Math.max(0,end-page.context.Date.now()));
+ };
  return h;
 }
+// The process lead a notes capture can return (question_candidates), and the line that withdraws one.
+const LEAD={id:"lead_1",source:"t002",quote:"drafts the notice",gap:"who approves the notice before it goes out",anchors:["approve"]};
+const leads=(summary,list)=>({...notes(summary),question_candidates:list});
+const WITHDRAWN="previous process lead is outdated";
+// A real browser session on the merged build (2026-11-20, stress-lab/verify/live-merged.md): the live
+// caption of the jargon passage (A13), and the hinted reading of its audio (near-perfect; "pack" lost).
+const MERGED={caption:"We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation. KYC and AML checks run in Investran and the ACH or SWIFT wire is released only after the callback from Treasury. DI and the DPI go to the LPAC pack, and the K one estimate goes to the CFO",
+ reading:"We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation. KYC and AML checks run in Investran and the ACH or SWIFT wire is released only after the callback from treasury. The IRR and the DPI go to the LPAC, and the K-1 estimate goes to the CFO."};
 
 (async()=>{
  // ---- the transport ----
@@ -868,6 +890,156 @@ async function page({caption_check=true}={}){
   h.page.t.resetLiveFront();await h.page.flush();
   assert.equal(h.transcribe[0].aborted,true);
   assert.deepEqual(h.outcomes(),["sent","discarded:session_changed"]);
+ });
+ await check("a listed mishearing read as the term with common words beside it is corrected: the real session's \"DI\" read as \"The IRR\"",async()=>{
+  // The merged build's session: "K one" was corrected and "DI" missed, because the reading had two
+  // words there ("The IRR"). Now the one caption word the server lists as a mishearing of the term
+  // becomes the term; the common word is not added, and nothing else changes.
+  const used=[
+   ["A13 on the merged build",MERGED.caption,MERGED.reading,
+    "We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation. KYC and AML checks run in Investran and the ACH or SWIFT wire is released only after the callback from Treasury. IRR and the DPI go to the LPAC pack, and the K-1 estimate goes to the CFO",2],
+   ["short","Then DI and the DPI go out today.","Then the IRR and the DPI go out today.","Then IRR and the DPI go out today.",1],
+   ["another word stays","We then send DI figures to the board.","We then send the IRR to the board.","We then send IRR figures to the board.",1],
+   ["a plural","Then DIs go out each quarter.","Then the IRRs go out each quarter.","Then IRRs go out each quarter.",1],
+   ["and a term spelt too","Then DI and the K one go out.","Then the IRR and the K-1 go out.","Then IRR and the K-1 go out.",2]];
+  for(const [name,caption,reading,turn,count] of used){
+   const h=await page();
+   h.say("live_u1",caption);
+   await h.answer(h.transcribe[0],READ(reading));
+   assert.equal(h.turn().text,turn,name);
+   assert.deepEqual(h.outcomes(),["sent","replaced"],name);
+   assert.equal(h.traces.find(trace=>trace.payload.outcome==="replaced").payload.count,count,name+": terms corrected");
+  }
+  assert.equal(errors(used[0][3]),errors(MERGED.caption)-2,"Two errors fewer, none new");
+  const kept=[
+   // Only a mishearing the server lists: "Calc" (rule a would take it alone, not beside "the"), "IR".
+   ["Then Calc and AML checks run.","Then the KYC and AML checks run."],
+   ["So IR and the DPI go out.","So the IRR and the DPI go out."],
+   // A common word is never one: "each side letter" stays.
+   ["The LPA and each side letter set it.","The LPA and the ACH side letter set it."],
+   // Beside the term, a word that is not a common word.
+   ["We send DI and the DPI out.","We send the IRR figure and the DPI out."],
+   // Two terms there.
+   ["We send DI and the DPI out.","We send the IRR DPI and the DPI out."]];
+  for(const [caption,reading] of kept){
+   const h=await page();
+   h.say("live_u1",caption);
+   await h.answer(h.transcribe[0],READ(reading));
+   assert.equal(h.turn().text,caption,JSON.stringify(reading)+" corrects nothing");
+   assert.deepEqual(h.outcomes(),["sent","kept:no_correction"],JSON.stringify(reading));
+  }
+ });
+ await check("a check that settles while the microphone still hears sound sends the held notes once it is quiet",async()=>{
+  // Kept (the most common outcome), refused, or past its hold: the capture that waited for the check
+  // is not left until the next answer ends because the microphone heard a breath or the room.
+  for(const outcome of ["kept","refused","late"]){
+   const h=await page(),live=h.page.t.conversationUI.live;
+   h.say("live_u1",CAPTION);
+   await h.runCapture();assert.equal(h.captures.length,0,outcome+": held for the check");
+   live.participantSpeaking=true;
+   if(outcome==="kept")await h.answer(h.transcribe[0],READ(CAPTION));
+   else if(outcome==="refused")await h.refuse(h.transcribe[0],429,"Several requests are already processing.");
+   else await h.runHold();
+   await h.clock(2000);
+   assert.equal(h.captures.length,0,outcome+": not while the microphone hears sound");
+   live.participantSpeaking=false;
+   await h.clock(1000);
+   assert.equal(h.captures.length,1,outcome+": then the capture goes, without waiting for another answer");
+   assert.equal(h.lastAnswer(h.captures[0]),CAPTION);
+   await h.answer(h.captures[0],notes("Notes"));
+   assert.equal(h.page.t.getCapturedThrough(),h.turn().id+":"+CAPTION,outcome);
+   await h.clock(60000);
+   assert.equal(h.captures.length,1,outcome+": and only once");
+  }
+ });
+ await check("a term the check corrects is not the participant correcting themselves: a lead offered meanwhile stands",async()=>{
+  const W=h=>h.context.filter(text=>text.includes(WITHDRAWN)).length,offers=h=>h.context.filter(text=>text.includes(LEAD.quote)).length;
+  // Two answers, captured; the second's capture returns with a lead while the third is spoken, so the
+  // lead goes when the third ends, with the third's caption as it was; then its check corrects it.
+  const start=async(h,{late=false}={})=>{
+   for(const [index,answer] of ["The notice is drafted from the template on Monday morning.","Then the controller reviews the figures with the team lead."].entries()){
+    h.say("live_u"+(index+1),answer);await h.answer(h.transcribe.at(-1),READ(answer));
+    await h.runCapture();
+    h.interviewer("live_a"+(index+1),index?"What checks run?":"And then?");
+    if(!index)await h.answer(h.captures.at(-1),leads("Notes one",[]));
+   }
+   if(late){
+    // Or the third ends first, and the late capture of the second lands while its check is on its way.
+    h.say("live_u3",CAPTION);
+    await h.answer(h.captures.at(-1),leads("Notes two",[LEAD]));
+   }else{
+    h.say("live_u3",CAPTION,false);
+    await h.answer(h.captures.at(-1),leads("Notes two",[LEAD]));
+    assert.equal(offers(h),0,"The lead waits while the participant speaks");
+    h.say("live_u3",CAPTION);
+   }
+   assert.equal(offers(h),1,"The lead is offered");assert.equal(h.turn().text,CAPTION);
+   await h.answer(h.transcribe.at(-1),READ(RESULT));
+   assert.equal(h.turn().text,CHECKED);
+   await h.runCapture();await h.answer(h.captures.at(-1),leads("Notes three",[LEAD]));
+  };
+  for(const late of [false,true]){
+   const h=await page();
+   await start(h,{late});
+   assert.equal(W(h),0,"No withdrawal: the participant corrected nothing");
+   assert.equal(offers(h),1,"and the lead is not offered again");
+   assert.equal(h.traces.filter(trace=>trace.type==="live.gap_withdrawn").length,0);
+   // A participant who does correct themselves still withdraws it.
+   h.interviewer("live_a3","Who approves it?");
+   h.say("live_u4","Actually, the notice is drafted by the controller, not from the template.");
+   assert.equal(W(h),1,"A correction by the participant withdraws the lead");
+  }
+  // A check that outlasts its hold: the capture reads the caption, and its lead quotes the caption's
+  // words; the later correction keeps the lead too.
+  const h=await page();
+  for(const [index,answer] of ["The notice is drafted from the template on Monday morning.","Then the controller reviews the figures with the team lead."].entries()){
+   h.say("live_u"+(index+1),answer);await h.answer(h.transcribe.at(-1),READ(answer));
+   await h.runCapture();await h.answer(h.captures.at(-1),leads("Notes "+index,[]));
+   h.interviewer("live_a"+(index+1),"And then?");
+  }
+  h.say("live_u3",CAPTION);
+  await h.runCapture();await h.runHold();await h.runCapture();
+  const third=h.turn().id,quoted={id:"lead_2",source:third,quote:"the kite checks before the CPAC meets",gap:"who runs them",anchors:["runs"]};
+  await h.answer(h.captures.at(-1),leads("Notes three",[quoted]));
+  assert.equal(h.context.filter(text=>text.includes(quoted.quote)).length,1,"The lead quoting the caption is offered");
+  await h.answer(h.transcribe.at(-1),READ(RESULT));
+  assert.equal(h.turn().text,CHECKED);
+  await h.runCapture();await h.answer(h.captures.at(-1),leads("Notes three again",[quoted]));
+  assert.equal(W(h),0,"The correction of its quote does not withdraw it");
+ });
+ await check("a capture taken mid-answer waits for the check of the answer it would read, and goes when it settles",async()=>{
+  // The live session on the merged build: the capture at the next answer's start read the last answer
+  // 0.6 s before its check corrected it, and its result was thrown away (17 s of model time).
+  const LONG="We run the kite checks before the CPAC meets and the each wire goes out. After that the controller signs the release, the treasury team books the wire in the bank portal, and the fund accountant posts the entry to the general ledger before the end of the day.";
+  const FIXED=LONG.replace("kite","KYC").replace("CPAC","LPAC");
+  for(const settle of ["replaced","refused","late"]){
+   const h=await page();
+   h.say("live_u1",LONG);
+   await h.runCapture();assert.equal(h.captures.length,0,settle+": the end of the answer is held for the check");
+   h.interviewer("live_a1","Who signs it?");
+   // The next answer begins inside the hold: the last answer is still missing from the notes.
+   h.say("live_u2","The controller",false);
+   h.say("live_u2","The controller signs it",false);
+   assert.equal(h.captures.length,0,settle+": no capture reads the words the check may correct");
+   assert.equal(h.traces.filter(trace=>trace.type==="live.notes_held"&&trace.payload.mid_answer).length,1,settle+": held once");
+   if(settle==="replaced")await h.answer(h.transcribe[0],READ(FIXED.replace("each","ACH")));
+   else if(settle==="refused")await h.refuse(h.transcribe[0],503,"The AI service is unavailable.");
+   else await h.runHold();
+   assert.equal(h.captures.length,1,settle+": the capture goes when the check settles, with no new words");
+   const sent=h.captures[0].body;
+   assert.equal(sent.live_partial,true,"It is the capture of part of the answer");
+   assert.equal(sent.turns.find(turn=>turn.text.startsWith("We run")).text,settle==="replaced"?FIXED:LONG,"It reads the answer as the check left it");
+   assert.equal(h.lastAnswer(h.captures[0]),"The controller signs it");
+   await h.answer(h.captures[0],notes("Notes of the last answer"));
+   assert.equal(h.page.state.summary,"Notes of the last answer",settle+": its notes are used");
+  }
+  // With the check off it goes at the first words, as before.
+  const deferred=await page({caption_check:false});
+  deferred.say("live_u1",LONG);
+  deferred.interviewer("live_a1","Who signs it?");
+  deferred.say("live_u2","The controller",false);
+  assert.equal(deferred.captures.length,1,"The capture of the last answer goes at the next answer's first words");
+  assert.equal(deferred.captures[0].body.live_partial,true);
  });
  console.log(JSON.stringify({checks_passed:passed,checks_failed:failed.length,provider_calls:0,network_calls:0}));
  if(failed.length)process.exitCode=1;

@@ -521,8 +521,11 @@
       // An index from an earlier version counts for nothing until it is confirmed: "0/5 units indexed" beside
       // "1 of 1 sections reviewed" would describe that as two contradicting facts.
       if(this.needsReindex(document))return "Indexed by an earlier version; not counted until it is confirmed.";
-      const indexed=Number(document.coverage?.indexed_units),total=Number(document.coverage?.total_units);
-      if(Number.isFinite(indexed)&&Number.isFinite(total)&&total>0)parts.push(`${indexed}/${total} ${({pdf:"pages",png:"images",xls:"sheets",xlsx:"sheets",xlsm:"sheets",csv:"rows"})[document.kind]||"units"} indexed.`);
+      // A file past a page, row, sheet or cell limit was indexed up to it. That sentence says what was left
+      // out more plainly than the unit count, so it takes the count's place on the card.
+      const indexed=Number(document.coverage?.indexed_units),total=Number(document.coverage?.total_units),readLimit=this.readLimit(document);
+      if(readLimit)parts.push(readLimit);
+      else if(Number.isFinite(indexed)&&Number.isFinite(total)&&total>0)parts.push(`${indexed}/${total} ${({pdf:"pages",png:"images",xls:"sheets",xlsx:"sheets",xlsm:"sheets",csv:"rows"})[document.kind]||"units"} indexed.`);
       const coverage=document.coverage||{};
       if(document.kind==="pdf"&&Number.isFinite(coverage.text_indexed_units)&&coverage.visual_pending_units>0)
         parts.push(coverage.text_indexed_units+" pages with indexed text; "+coverage.visual_pending_units+" pages still have unread visual content.");
@@ -534,6 +537,7 @@
       if(this.leftOut(document))parts.push("Left out of the latest update.");
       return parts.join(" ");
     }
+    readLimit(document) {const value=document.coverage?.read_limit;return typeof value==="string"?value.trim():"";}
     // A background review that is sending, or about to send, this file's text to the provider.
     reviewRunning(document) {return !this.reviewError(document)&&!document.analysis?.review_stopped&&(["pending","indexing"].includes(document.status)||["quick","deep"].includes(document.analysis?.phase));}
     // The first assessment says about how many requests reviewing the whole file takes; this is the share still to come.
@@ -715,7 +719,9 @@
       if(document.coverage){
         const coverage=typeof document.coverage==="string"?document.coverage:document.coverage.summary||document.coverage.note;if(coverage)content.append(this.node("p","documents-progress",coverage));
       }
-      const limitations=[document.coverage?.limitations,analysis.limitations].flatMap(value=>Array.isArray(value)?value:typeof value==="string"?[value]:[]).filter(value=>typeof value==="string"&&value.trim());
+      // What the card's stage line already says about a read limit is not listed again.
+      const readLimit=this.needsReindex(document)?"":this.readLimit(document);
+      const limitations=[document.coverage?.limitations,analysis.limitations].flatMap(value=>Array.isArray(value)?value:typeof value==="string"?[value]:[]).filter(value=>typeof value==="string"&&value.trim()&&!(readLimit&&readLimit.includes(value.trim())));
       if(limitations.length){const section=this.node("div","documents-limitations"),list=this.node("ul");section.append(this.node("h4","","Reading limits"));for(const limitation of new Set(limitations))list.append(this.node("li","",this.reviewNotice(limitation)));section.append(list);content.append(section);}
       if(document.inventory)this.renderInventory(content,document.inventory,document.kind);
       const primary=typeof analysis.question==="string"?analysis.question.trim():"";

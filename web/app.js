@@ -2658,8 +2658,14 @@
       question:["Preparing a follow-up",provisional?"Your notes and workflow will update while you answer.":"Your notes and workflow are ready."],
       error:["File review needs attention",documentIntake.error]};
     const [title,detail]=copy[phase]||copy.reviewing;
-    const progress=phase==="reviewing"?intakeSnapshot().documents.filter(file=>!file.archived&&file.analysis?.disposition!=="parked"&&Number(file.analysis?.total_chunks)>0)
-      .map(file=>file.name+": "+(Number(file.analysis.reviewed_chunks)||0)+" of "+file.analysis.total_chunks+" sections reviewed.").join(" "):"";
+    // A file of this intake read only up to a page, row or cell limit says so here as soon as it is indexed,
+    // before its first review is in.
+    const files=intakeSnapshot().documents,own=new Set(intakeDocuments(files).map(file=>file.id));
+    const progress=phase==="reviewing"?files.filter(file=>!file.archived&&file.analysis?.disposition!=="parked").map(file=>{
+      const total=Number(file.analysis?.total_chunks),limit=own.has(file.id)&&typeof file.coverage?.read_limit==="string"?file.coverage.read_limit.trim():"";
+      const parts=[...(total>0?[(Number(file.analysis.reviewed_chunks)||0)+" of "+total+" sections reviewed."]:[]),...(limit?[limit]:[])];
+      return parts.length?file.name+": "+parts.join(" "):"";
+    }).filter(Boolean).join(" "):"";
     $("document-intake-title").textContent=title;
     const description=[detail,progress,intakeWasLive?"Your microphone is off.":""].filter(Boolean).join(" ");
     $("document-intake-detail").textContent=description;$("document-intake-detail").hidden=!description;

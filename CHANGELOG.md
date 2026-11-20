@@ -22,6 +22,7 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
   - A large image or PDF page under review holds about half the memory it did: the image is no longer copied while source names are shortened, and a PDF page is read from the open file instead of loading the whole file each time.
   - Clearer messages: a recording that cannot be decoded says so, in dictation and in reviewed voice, and is not offered a retry that cannot work, a CSV with a stray null character names its row (UTF-16 without a byte-order mark is still recognised, also in Cyrillic or Arabic text), and an empty file or request says it is empty.
   - The banner over the conversation no longer cuts off its first line, names more than three unread files by count, and at phone width the Menu button stays on screen. Typing stays as fast in a 392-turn interview as in a short one.
+  - A file past a page, sheet, row, column or cell limit is read up to the limit instead of being refused whole, and its card says what was left out: the 2,020-page PDF keeps pages 1 to 500 ("Pages 1 to 500 of 2,020 were read; the rest was not."), the 450,000-row CSV its first 250,000 rows. A file that fills the text index keeps the pages or rows that fit. Safety limits still refuse the whole file, and a file an earlier version refused for its size offers Retry review.
 
 ## 0.34.1 · November 19, 2026
 

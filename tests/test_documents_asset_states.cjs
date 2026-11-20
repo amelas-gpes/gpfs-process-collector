@@ -128,6 +128,24 @@ await check("a current file, a paused review and an index made by a newer versio
  assert.equal(h.card().querySelector(".documents-stage-label").textContent,"Ready to review");assert.equal(h.buttons("Re-index and review").length,0);
  h.api.dispose();
 });
+await check("a file read up to a page or cell limit says what was left out on the card itself, once",async()=>{
+ const cut="Pages 1 to 500 of 2,020 were read; the rest was not.";
+ const big=doc({name:"library.pdf",kind:"pdf",status:"partial",coverage:{indexed_units:496,total_units:2020,text_indexed_units:500,visual_pending_units:4,
+  limitations:[cut,"4 pages contain native text plus graphics; text is preserved separately, but graphics and layout still require native visual review."],read_limit:cut}});
+ const h=setup(async()=>({}));h.api.scope="local-scope";h.api.setDocuments([big],false);
+ const detail=h.card().querySelector(".documents-stage-detail").textContent;
+ assert.ok(detail.startsWith(cut),"The limit is on the card, where a collapsed card still shows it");
+ assert.doesNotMatch(detail,/496\/2020 pages indexed/,"The sentence replaces the unit count");
+ assert.match(detail,/500 pages with indexed text; 4 pages still have unread visual content\./);
+ assert.equal(h.card().textContent.split(cut).length-1,1,"Reading limits do not repeat it");
+ assert.match(h.card().querySelector(".documents-limitations").textContent,/4 pages contain native text plus graphics/);
+ // While an update holds the stage line back, the sentence stays under Reading limits.
+ h.api.setDocuments([{...big,extraction_needs_reindex:true,reindex_check:{outcome:"changed"}}],false);
+ assert.match(h.card().querySelector(".documents-limitations").textContent,/Pages 1 to 500 of 2,020 were read; the rest was not\./);
+ // Without the sentence the card keeps the unit count.
+ h.api.setDocuments([doc()],false);assert.match(h.card().querySelector(".documents-stage-detail").textContent,/^5\/5 rows indexed\./);
+ h.api.dispose();
+});
 await check("the notice after opening a saved interview names files that are being checked or need attention",async()=>{
  const h=setup(async()=>({}));h.api.scope="local-scope";
  h.api.setDocuments([outdated(),outdated({id:"doc_2"}),doc({id:"doc_3"})],false);

@@ -1176,7 +1176,8 @@ context_coverage fields govern coverage claims. Keep four facts about a file apa
 its own indexed text (native_text_units of total_units), the excerpts in this session,
 the progress of the AI review (reviewed_chunks of total_chunks, review_stopped) and
 graphics or scans not yet read (unread_visual_units). An unread graphic or a paused
-review does not make indexed text incomplete. A live voice digest holds selected
+review does not make indexed text incomplete; a read_limit says where the reading of a
+file stopped, and what follows it was not indexed. A live voice digest holds selected
 excerpts only; never say or imply that a whole file was read from it. Retained-only
 evidence from parked or removed files is solely provenance for existing cited capture;
 do not use it to extract new facts or reopen that document.

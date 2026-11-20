@@ -41,7 +41,7 @@ launcher_spec.loader.exec_module(launcher)
 AUDIT = APP / 'tests' / 'fixtures' / 'document-audit'
 UPLOADS = APP / 'docs' / 'testing' / 'runs' / '2026-11-16-process-capture' / 'uploads' / 'inputs'
 GENERIC = 'The document could not be safely decoded. Its original is retained.'
-STORAGE = 'Local storage could not publish the index. Check free disk space and access, then select Retry review.'
+STORAGE = documents.STORAGE_UNAVAILABLE_MESSAGE
 READERS = all(importlib.util.find_spec(name) for name in ('pypdf', 'openpyxl', 'PIL'))
 
 
@@ -240,22 +240,49 @@ class Errors(Fixture):
         sleeping = boot('import time\n'
                         'def sleeping(*arguments):\n'
                         '    time.sleep(60)\n'
-                        'module._csv = module._workbook = sleeping')
+                        'module._csv = module._workbook = module._png = sleeping')
         started, popen = self.children()
-        limits = {**documents.PARSER_SECONDS, 'csv': .3, 'xlsx': .3}
+        limits = {**documents.PARSER_SECONDS, 'csv': .3, 'xlsx': .3, 'png': .3}
         with patch.object(documents, '_PARSER_BOOT', sleeping), popen, \
                 patch.object(documents, 'PARSER_SECONDS', limits), patch.object(documents, 'PARSER_MARGIN_SECONDS', .5):
             began = time.monotonic()
             workbook = self.extract('register.xlsx', b'PK\x03\x04 not read')[2]
             table = self.extract('log.csv', CSV)[2]
-        self.assertLess(time.monotonic() - began, 20)
+            image = self.extract('chart.png', b'\x89PNG\r\n\x1a\n not read')[2]
+        self.assertLess(time.monotonic() - began, 30)
         self.assertEqual(workbook['error'], documents.WORKBOOK_TIME_MESSAGE)
-        self.assertEqual(table['error'], GENERIC)
-        self.assertEqual([child.poll() is None for child in started], [False, False], 'Both processes were ended')
-        self.assertEqual([fields['outcome'] for event, fields in self.events], ['time_limit', 'time_limit'])
+        # A large CSV or image that is still being read is not called damaged: it took too long.
+        self.assertEqual(table['error'], 'This CSV took too long to read. Split it into smaller files and add those.')
+        self.assertEqual(image['error'], 'This image took too long to read. Export a smaller copy as PNG and add that.')
+        for record in (workbook, table, image):
+            self.assertEqual((record['status'], record['error_code'], record['retryable']), ('error', 'invalid_file', False))
+        self.assertEqual(set(documents.PARSER_TIME_MESSAGES), set(documents.PARSER_SECONDS), 'Every kind has its own message')
+        self.assertEqual([child.poll() is None for child in started], [False, False, False], 'Every process was ended')
+        self.assertEqual([fields['outcome'] for event, fields in self.events], ['time_limit'] * 3)
         # Each limit leaves a reader its own budget plus the time to start.
         self.assertEqual(documents.PARSER_SECONDS['pdf'], 45 + documents.PDF_DRAWING_SECONDS)
         self.assertEqual(documents.PARSER_SECONDS['xlsx'], 90)
+
+    @unittest.skipUnless(READERS, 'Pillow required')
+    def test_a_damaged_image_is_an_invalid_file_and_not_a_storage_failure(self):
+        # Pillow raises an OSError for a cut-off image, which was read as a disk failure: "Check free disk
+        # space", and a Retry review that fails the same way every time.
+        from PIL import Image
+        output = io.BytesIO()
+        Image.effect_noise((200, 150), 64).convert('RGB').save(output, 'PNG')
+        damaged = {'cut.png': output.getvalue()[:len(output.getvalue()) // 2], 'zeros.png': b'\x89PNG\r\n\x1a\n' + b'\x00' * 400}
+        for store in (self.store, self.open_store('here')):
+            for name, data in damaged.items():
+                with self.subTest(name=name, apart=store is self.store):
+                    record = self.extract(name, data, store)[2]
+                    self.assertEqual([record[key] for key in ('status', 'error', 'error_code', 'retryable')],
+                                     ['error', documents.DAMAGED_IMAGE_MESSAGE, 'invalid_file', False])
+        self.assertEqual(self.events, [], 'Not logged as a storage failure')
+        # An error from the disk itself is still one.
+        path = self.file('chart.png', png_bytes())
+        with patch.object(documents, 'open', side_effect=PermissionError(13, 'denied'), create=True):
+            with self.assertRaises(PermissionError):
+                read_here(path, {'id': 'doc_' + 'ef' * 12, 'name': 'chart.png', 'kind': 'png'})
 
     def test_a_reader_process_that_dies_leaves_the_file_to_retry_and_a_working_store(self):
         ways = ['os._exit(3)']
@@ -305,7 +332,7 @@ class Errors(Fixture):
             reading.join(20)
         record = records[0]
         self.assertEqual([record[key] for key in ('status', 'error', 'error_code', 'retryable')],
-                         ['error', 'Reading this file stopped before it finished. Select Retry review.', 'reading_stopped', True])
+                         ['error', 'Reading this file stopped before it finished. It can be read again.', 'reading_stopped', True])
         self.assertEqual(self.store.get(scope, document_id)['retryable'], True)
         self.assertEqual([(event, fields['outcome']) for event, fields in self.events], [('document_parser_process', 'ended')])
         # Retry review reads it again.

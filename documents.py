@@ -293,8 +293,18 @@ INVENTORY_LIMIT_MESSAGE = ('This file has more pages or sheets than its 50 KiB i
                            'Split it into smaller files and add those. Nothing was indexed, and no unit or source content was silently omitted.')
 TRANSCRIPTION_LIMIT_MESSAGE = ('The visual readings of this file no longer fit its 64 MiB text or 50,000-section index, so this reading was not stored. '
                                'Split the file into smaller files and add those; retrying the review will stop at the same place.')
-PDF_BUDGET_MESSAGE = 'PDF content expands beyond the extraction budget; no partial index was published.'
-WORKBOOK_TIME_MESSAGE = 'Workbook processing exceeded 90 seconds. Split the workbook and attach smaller copies.'
+PDF_BUDGET_MESSAGE = 'This PDF is too complex to read in time. Split it into smaller files and add those.'
+WORKBOOK_TIME_MESSAGE = 'This workbook took too long to read. Split it into smaller files and add those.'
+# Two failures that reading the file again can get past. Neither names a button: a file indexed by an
+# earlier version offers Re-index and review in place of Retry review, and its card says so on its own line.
+# READING_STOPPED_MESSAGE: its reader process was ended by something other than this app (Task Manager,
+# a log-off, the system short of memory). Nothing says the file is at fault.
+READING_STOPPED_MESSAGE = 'Reading this file stopped before it finished. It can be read again.'
+STORAGE_UNAVAILABLE_MESSAGE = 'Local storage could not publish the index. Check free disk space and access, then read the file again.'
+# Earlier builds stored these failures with wording that named Retry review; a read gives the current wording.
+RETRYABLE_MESSAGES = {'reading_stopped': READING_STOPPED_MESSAGE, 'storage_unavailable': STORAGE_UNAVAILABLE_MESSAGE}
+# A PNG that Pillow cannot decode: cut off, or not an image at all. Reading it again fails the same way.
+DAMAGED_IMAGE_MESSAGE = 'The image could not be read. Export it again as PNG and add that copy.'
 SAMPLES_SHORTENED ='Preview samples were shortened to keep inventory under 50 KiB. All unit names/counts and full indexed content are retained.'
 SAMPLES_OMITTED = 'Preview samples were left out to keep inventory under 50 KiB. All unit names/counts and full indexed content are retained.'
 
@@ -627,6 +637,8 @@ class DocumentStore:
         # was indexed and name a button the card does not show. That holds after a retry by this
         # version fails too, since a failed read leaves extraction_version as it was.
         unindexed = record.get('status') == 'error' and not record.get('chunk_count')
+        if record.get('status') == 'error' and record.get('error_code') in RETRYABLE_MESSAGES:
+            record['error'] = RETRYABLE_MESSAGES[record['error_code']]
         if unindexed and (record.get('error') in COUNT_LIMIT_REFUSALS or record.get('error') == COUNT_LIMIT_RETRY):
             # Refused whole by an earlier version for passing a count limit. Its original is kept,
             # and this version reads it up to the limit, so it is offered Retry review again.
@@ -1197,7 +1209,7 @@ class DocumentStore:
                 self._diagnose('document_storage_unavailable', stage='publish',
                                error_type=getattr(error, 'reported_type', None) or type(error).__name__)
                 return self.update(scope, document_id, {'status':'error', 'error_code':'storage_unavailable', 'retryable':True,
-                    'error':'Local storage could not publish the index. Check free disk space and access, then select Retry review.'})
+                    'error':STORAGE_UNAVAILABLE_MESSAGE})
             except Exception as error:
                 # Parser messages can contain source text; publish only controlled diagnostics.
                 message = str(error) if isinstance(error, DocumentError) else 'The document could not be safely decoded. Its original is retained.'
@@ -1688,15 +1700,25 @@ def _pdf(path, record, chunks):
 
 def _png(path, record, chunks):
     from PIL import Image
-    with warnings.catch_warnings():
+    # Opened here, so that a missing or unreadable original is still a storage failure (OSError).
+    with open(path, 'rb') as handle, warnings.catch_warnings():
         warnings.simplefilter('error', Image.DecompressionBombWarning)
-        with Image.open(path) as image:
-            if image.format != 'PNG' or image.width * image.height > MAX_IMAGE_PIXELS:
-                raise ExtractionError('The image is not PNG or exceeds 40 million pixels.')
-            width, height = image.size
-            image.verify()
-        with Image.open(path) as image:
-            image.load()
+        try:
+            with Image.open(handle) as image:
+                if image.format != 'PNG' or image.width * image.height > MAX_IMAGE_PIXELS:
+                    raise ExtractionError('The image is not PNG or exceeds 40 million pixels.')
+                width, height = image.size
+                image.verify()
+            handle.seek(0)
+            with Image.open(handle) as image:
+                image.load()
+        except (OSError, SyntaxError) as error:
+            # Pillow reports a damaged or cut-off image as an OSError without an error number
+            # (UnidentifiedImageError, "image file is truncated") or, for a broken checksum, a
+            # SyntaxError; an error from the disk has a number and stays a storage failure.
+            if isinstance(error, OSError) and error.errno is not None:
+                raise
+            raise ExtractionError(DAMAGED_IMAGE_MESSAGE) from None
     chunks.add('image', f'{record["name"]} · image',
                f'PNG image {width} by {height} pixels. Image contents require native visual review; no OCR was performed.',
                {'image': True, 'requires_vision': True, 'origin': 'visual_placeholder'})
@@ -2191,11 +2213,14 @@ def _workbook(path, record, chunks):
         # A sheet counts as indexed when all of it is: no chart-only tab, no unread graphics, no stop.
         indexed = sum(item.get('kind') != 'chart_sheet' and not item.get('unread_visual_parts') and 'read_to_row' not in item
                       for item in inventory)
+        # Sheets whose own cell text is indexed, whatever else they hold, as for a PDF's pages: a sheet read up
+        # to a limit has its rows up to there, and the read limit says where it stops.
+        text_indexed = sum(item.get('kind') != 'chart_sheet' for item in inventory)
         return ({'sheets': inventory, 'sheet_count': len(names), **({'sheets_read': len(inventory)} if len(inventory) < len(names) else {}),
                  'rows': sum(item['rows'] for item in inventory),
                  'formula_cells': sum(item['formula_cells'] for item in inventory), 'macros_executed': False,
                  'formula_policy': 'Formula text and saved cached values only; no recalculation.'},
-                {'indexed_units': indexed, 'total_units': len(names), 'limitations': limitations,
+                {'indexed_units': indexed, 'total_units': len(names), 'text_indexed_units': text_indexed, 'limitations': limitations,
                  **({'read_limit': read_limit} if read_limit else {})})
 
 
@@ -2287,7 +2312,7 @@ def _csv(path, record, chunks):
         item.update(read_to_row=read, rows=total)
     return ({'sheets': [item], 'sheet_count': 1, 'rows': total, 'delimiter': delimiter,
              'formula_policy': 'CSV cells are literal text; formulas are never executed.'},
-            {'indexed_units': read - len(limit.wide), 'total_units': total, 'limitations': notes,
+            {'indexed_units': read - len(limit.wide), 'total_units': total, 'text_indexed_units': read, 'limitations': notes,
              **({'read_limit': ' '.join(notes)} if notes else {})})
 
 
@@ -2334,6 +2359,7 @@ def _legacy_xls(path, record, chunks):
                  'rows': sum(item['rows'] for item in sheets),
                  'formula_policy': 'Saved legacy cell results only; formula provenance may be unavailable.'},
                 {'indexed_units': sum('read_to_row' not in item for item in sheets), 'total_units': book.nsheets,
+                 'text_indexed_units': len(sheets),
                  'limitations': [*notes, 'Legacy XLS exposes saved cell results. Formula counts, chart and image contents, and macros are unavailable.'],
                  **({'read_limit': ' '.join(notes)} if notes else {})})
     finally:
@@ -2360,13 +2386,14 @@ PARSER_MARGIN_SECONDS = 15
 # limit above: an antivirus scan of python.exe or a cold disk must not use up the reading's
 # time. A reader not ready by then is ended and the file is read in the server instead.
 PARSER_START_SECONDS = 30
-# What a file says when its reader was ended at that limit. A kind without a budget of its
-# own says that the file could not be read.
+# What a file says when its reader was ended at that limit: that it took too long, with what to do
+# instead, never that it is damaged.
 PARSER_TIME_MESSAGES = {'pdf': PDF_BUDGET_MESSAGE, 'xlsx': WORKBOOK_TIME_MESSAGE, 'xlsm': WORKBOOK_TIME_MESSAGE,
-                        'xls': WORKBOOK_TIME_MESSAGE}
-# What a file says when its reader process was ended by something other than this app (Task
-# Manager, a log-off, the system short of memory). Nothing says the file is at fault.
-READING_STOPPED_MESSAGE = 'Reading this file stopped before it finished. Select Retry review.'
+                        'xls': WORKBOOK_TIME_MESSAGE,
+                        # Neither has a budget of its own: only this limit stops them. Saying that the file could
+                        # not be read would call a large, sound file damaged.
+                        'csv': 'This CSV took too long to read. Split it into smaller files and add those.',
+                        'png': 'This image took too long to read. Export a smaller copy as PNG and add that.'}
 # The process loads this file by its path. Python starts isolated (-I), which puts neither the
 # app's folder nor the working directory on sys.path, in a checkout and a desktop release alike.
 _PARSER_BOOT = ('import importlib.util, sys\n'

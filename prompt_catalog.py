@@ -103,8 +103,8 @@ def agent_prompts(api):
         _agent("live_interviewer", "Live voice interviewer",
                "Hears participant responses, asks questions aloud and can delegate detailed checks.", [
             _prompt("voice_interview", "Conduct the live conversation",
-                    "The app inserts the current process and selected document context into these placeholders.",
-                    api.live_instructions("{process_context_json}") + "{document_context_json}"),
+                    "The app inserts the current process, a spelling glossary of fund terms and selected document context into these placeholders.",
+                    api.live_instructions("{process_context_json}", "{term_glossary_json}") + "{document_context_json}"),
             _prompt("delegate", "Answer a delegated question",
                     "The voice model can ask the interview model for a more detailed answer.",
                     api.live_delegate_instructions("{document_context_json}")),

@@ -35,7 +35,7 @@ class SourceHash(unittest.TestCase):
     def tree(self, root, ending):
         files = {"server.py": "import os\nprint('x')\n", "FOUNDATION.md": "# Rules\n\ntext\n",
                  "web/index.html": "<!doctype html>\n<title>x</title>\n", "web/app.js": "(() => {\n  run();\n})();\n",
-                 "web/style.css": "body {\n  margin: 0;\n}\n", "web/assets/mark.svg": "<svg>\n</svg>\n"}
+                 "web/style.css": "body {\n  margin: 0;\n}\n", "web/assets/gpfs-logo.svg": "<svg>\n</svg>\n"}
         for name, content in files.items():
             path = Path(root) / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -69,8 +69,29 @@ class SourceHash(unittest.TestCase):
                     self.assertNotEqual(runtime_build.build_id(tree), identity)
                     (tree / name).write_bytes(original)
                     self.assertEqual(runtime_build.build_id(tree), identity)
-            (tree / "web" / "new.js").write_bytes(b"added\n")
+            # A served file going missing is a different source.
+            original = (tree / "web" / "app.js").read_bytes()
+            (tree / "web" / "app.js").unlink()
             self.assertNotEqual(runtime_build.build_id(tree), identity)
+            (tree / "web" / "app.js").write_bytes(original)
+            self.assertEqual(runtime_build.build_id(tree), identity)
+
+    def test_files_the_server_does_not_serve_leave_the_identity_alone(self):
+        # iCloud drops conflict copies ("app 2.js") into a synced folder, macOS leaves "._" files on some
+        # drives, and drafts lie around. None is ever served, so none may change the build or make a
+        # running server report that its files have changed.
+        with tempfile.TemporaryDirectory() as root:
+            tree = self.tree(root, "\n")
+            identity = runtime_build.build_id(tree)
+            for name in ("web/app 2.js", "web/assets/gpfs-logo 2.svg", "web/._app.js", "web/app copy.js", "web/new.js"):
+                with self.subTest(file=name):
+                    (tree / name).parent.mkdir(parents=True, exist_ok=True)
+                    (tree / name).write_bytes(b"stray\n")
+                    self.assertEqual(runtime_build.build_id(tree), identity)
+                    (tree / name).unlink()
+
+    def test_the_hashed_page_files_are_exactly_the_files_the_server_serves(self):
+        self.assertEqual(set(runtime_build.WEB_FILES), {name for name, _ in server.STATIC_FILES.values()})
 
 
 class ReleaseIdentity(unittest.TestCase):

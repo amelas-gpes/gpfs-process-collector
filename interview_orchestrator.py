@@ -1379,6 +1379,12 @@ class Coordinator:
             # Allow time for setup as well as generation in both the seed and incremental cases.
             output_tokens, timeout = (12000, 180) if large_capture else (6500, 120)
             instructions = capture_instructions(api, notes_only, action == "document_followup")
+            # Live captions take no spelling hints and mishear fund acronyms ("kite" for KYC); the notes
+            # use the glossary for their own wording and keep every quoted passage as captioned.
+            glossary = (api.term_glossary(getattr(self.client, "transcription_keywords", ()), context)
+                        if run.live_notes else None)
+            if glossary:
+                instructions += "\n" + api.LIVE_NOTES_GLOSSARY_POLICY
             sparse = bool(live_memory and prior_facts and not baseline_seed and notes_only)
             if sparse:
                 instructions = instructions.replace("Return all sixteen topic_states.",
@@ -1399,10 +1405,13 @@ class Coordinator:
                     "self-contained participant clause with its actor, negation, scope and conditions. Keep distinct routes and checks. "
                     "When corrections, ambiguity, dependencies on earlier words, or conflicting facts need reconciliation, set "
                     "needs_full_capture. For open_relationship, name one missing material relationship using the participant's "
-                    "specific terms and put its turn in gap_source_id. Use empty strings if there is no useful lead.",
+                    "specific terms and put its turn in gap_source_id. Use empty strings if there is no useful lead."
+                    + (" If a clause you would copy likely contains a misheard term_glossary term, set needs_full_capture."
+                       if glossary else ""),
                     {"context":context, "previous_exchange":turns[max(0,len(baseline)-2):len(baseline)],
                      "new_exchange":suffix, "new_answers":[t["id"] for t in additions],
-                     "known_facts":[f["text"] for f in extra["fact_state"]["facts"]][-28:]},
+                     "known_facts":[f["text"] for f in extra["fact_state"]["facts"]][-28:],
+                     **({"term_glossary": glossary} if glossary else {})},
                     capture_facts.LIVE_EXCERPT_SCHEMA, "team_interview_capture", 1600, reasoning_effort="low",
                     request_timeout=timeout, model_override=lead_model)
                 api.check_schema(fast_reply, capture_facts.LIVE_EXCERPT_SCHEMA)
@@ -1415,7 +1424,8 @@ class Coordinator:
                 transaction = self.client.structured(
                     instructions,
                     {"context": context, "turns": model_turns, "action": action,
-                     "supporting_documents": supporting, **extra}, request_schema,
+                     "supporting_documents": supporting, **extra, **({"term_glossary": glossary} if glossary else {})},
+                    request_schema,
                     "team_interview_capture", output_tokens, reasoning_effort="low", request_timeout=timeout,
                     model_override=lead_model,
                     on_text=observe if not notes_only else watch_states if new_document_baseline or live_memory else None,

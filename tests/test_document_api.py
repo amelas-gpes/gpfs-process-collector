@@ -182,7 +182,7 @@ class DocumentHTTPTests(unittest.TestCase):
         scope = self.session()
         cases = [('/api/documents/upload', b'x', {'X-Document-Scope': scope, 'X-Document-Filename': 'x.csv',
                                                  'Content-Length': str(server.documents.MAX_FILE_BYTES + 1)}, 413),
-                 ('/api/documents/upload', b'', {'X-Document-Scope': scope, 'X-Document-Filename': 'x.csv'}, 413),
+                 ('/api/documents/upload', b'', {'X-Document-Scope': scope, 'X-Document-Filename': 'x.csv'}, 400),
                  ('/api/documents/upload', b'code', {'X-Document-Scope': scope, 'X-Document-Filename': 'run.exe'}, 400),
                  ('/api/documents/status', b'{broken', {'Content-Type': 'application/json'}, 400),
                  ('/api/documents/status', {}, {'Content-Type': 'text/plain'}, 415)]

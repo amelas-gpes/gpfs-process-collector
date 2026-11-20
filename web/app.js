@@ -122,13 +122,20 @@
       const body=JSON.stringify({...snapshot(),previous_capture:captureForFollowup(),prepare_only:true});
       const key=draftPreparationKey(body);
       if(key===draftAhead.body)return;
-      draftAhead.body=key;draftAhead.flight=true;
+      // The head start can be cancelled like any interview request (Start over, another interview,
+      // Continue talking): it holds one of the server's four AI request places for the whole draft.
+      const flight=new AbortController();draftAhead.body=key;draftAhead.flight=flight;interviewRequests.add(flight);
       const generation=state.generation;
-      fetch("/api/draft",{method:"POST",credentials:"same-origin",headers:{...usageHeaders(),"X-CSRF-Token":state.config?.csrf_token||"","Content-Type":"application/json"},body})
-        .then(response=>response.ok?response.json():null).then(result=>{if(result?.prepared===true&&key===draftAhead.body&&generation===state.generation){draftAhead.ready=key;draftAhead.readyAt=Date.now();}}).catch(()=>{})
-        .finally(()=>{draftAhead.flight=false;if(generation===state.generation)prepareDraftAhead();});
+      fetch("/api/draft",{method:"POST",credentials:"same-origin",signal:flight.signal,headers:{...usageHeaders(),"X-CSRF-Token":state.config?.csrf_token||"","Content-Type":"application/json"},body})
+        .then(response=>response.ok?response.json():null).then(result=>{if(!flight.signal.aborted&&result?.prepared===true&&key===draftAhead.body&&generation===state.generation){draftAhead.ready=key;draftAhead.readyAt=Date.now();}}).catch(()=>{})
+        .finally(()=>{interviewRequests.delete(flight);if(draftAhead.flight!==flight)return;draftAhead.flight=false;
+          if(flight.signal.aborted){if(draftAhead.body===key)draftAhead.body="";return;}
+          if(generation===state.generation)prepareDraftAhead();});
     }catch{/* A head start only. */}
   }
+  // Stops a running head start. When the account changed (disarm) it stays stopped until Wrap up or the
+  // final check arms it again; otherwise the next map update may start it again for the same account.
+  function cancelDraftAhead(disarm=true){if(disarm)draftAhead.turns=-1;draftAhead.flight?.abort?.();}
   // True only for the account as it stands now and a first half the server still holds.
   function draftAheadReady(){
     try{
@@ -532,6 +539,16 @@
   // CJK character is one character on both sides, not two here and one there.
   const charCount = value => {let count = 0; for (const _ of value) count++; return count;};
   const exceeds = (value, limit) => value.length > limit && charCount(value) > limit;
+  // A turn's text as the server will see it. The server trims with Python's whitespace set, which also
+  // strips U+001C–U+001F and U+0085; JavaScript's trim keeps them, so an answer of only those would be
+  // added here and then refused on every later request. A lone surrogate half (from a broken paste) is
+  // refused by the server as well, so it becomes U+FFFD here, the way any UTF-8 encoder would write it.
+  const SERVER_SPACE = /^[\s\x1c-\x1f\x85]+|[\s\x1c-\x1f\x85]+$/g;
+  const wellFormed = value => typeof value.toWellFormed === "function" ? value.toWellFormed()
+    : value.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "�");
+  // Files named in a one-line message: up to three by name, more by count, so the line stays readable.
+  const fileNames = files => files.length > 3 ? `${files.length} files` : files.map(file => file.name || "File").join(", ");
+  const turnText = value => typeof value === "string" ? wellFormed(value).replace(SERVER_SPACE, "") : "";
   const text = (value, limit = 18000) => {
     if (typeof value !== "string") return "";
     if (exceeds(value, limit)) throw new Error(`A text field exceeds the supported ${limit.toLocaleString("en-US")} characters. No content was truncated.`);
@@ -624,8 +641,13 @@
   // available while one closing sequence still fits. The reply to the final
   // check is the one answer accepted inside that reserve.
   const CLOSING_TURNS=4,CLOSING_TEXT=1200;
+  // Every keystroke checks the transcript limit, at least twice. Counting each turn's characters once
+  // and remembering the count until its text changes keeps typing as fast at 392 turns as at 2.
+  const turnSizes=new WeakMap();
+  const turnSize=turn=>{const held=turnSizes.get(turn);if(held&&held.text===turn.text)return held.size;
+    const size=charCount(turn.text);turnSizes.set(turn,{text:turn.text,size});return size;};
   function transcriptLimit() {
-    const turns=state.turns.length,size=state.turns.reduce((total,turn)=>total+charCount(turn.text),0);
+    const turns=state.turns.length,size=state.turns.reduce((total,turn)=>total+turnSize(turn),0);
     const finalReply=state.closure.asked===true&&!state.closure.confirmed&&turns+2<=400&&size<400000;
     const answersFull=turns>=400-2*CLOSING_TURNS||size>=394000;
     return {turns,size,finalReply,answersFull,answersBlocked:answersFull&&!finalReply,
@@ -819,12 +841,14 @@
     updatePresence();
     if (focus) focusWorkspace(name);
   }
+  // A broken character from a paste (half an emoji) is repaired here as in answers: the server refuses
+  // it, and once the interview has started these fields can no longer be edited.
   function readContext() {
     return {
-      process_name: $("process-name").value.trim(),
-      process_owner: $("process-owner").value.trim(),
-      objective: $("objective").value.trim(),
-      background: $("background").value.trim()
+      process_name: wellFormed($("process-name").value).trim(),
+      process_owner: wellFormed($("process-owner").value).trim(),
+      objective: wellFormed($("objective").value).trim(),
+      background: wellFormed($("background").value).trim()
     };
   }
   function fillContext(context) {
@@ -1179,7 +1203,7 @@
     }
     if($("process-name"))$("process-name").title=$("process-name").value.trim()||"Rename this process";
     const replyTooLong = Boolean(showFieldLimit(REPLY_FIELD));
-    $("send-answer").disabled = working || recording || !ready || limit.answersBlocked || !$("answer-text").value.trim() || replyTooLong;
+    $("send-answer").disabled = working || recording || !ready || limit.answersBlocked || !turnText($("answer-text").value) || replyTooLong;
     $("record-answer").disabled = working || !ready || limit.answersBlocked || (!recording && charCount(replyBox.value.trim())>=REPLY_FIELD.limit);
     $("skip-question").disabled = !state.started || working || recording || !ready || limit.answersFull;
     const finalReviewReady=state.config?.concurrent_interview?.enabled||!state.config?.agent_team?.enabled||state.completion?.ready_for_final_check===true;
@@ -2743,7 +2767,7 @@
         if(typeof result.question!=="string"||!result.question.trim())throw new Error("The file was read, but the follow-up did not load. Try again.");
         // What the request read from the new files; the notes that cite them follow in the background.
         const read=new Set((result.document_reading?.documents||[]).filter(file=>Number(file.included_chunks)>0).map(file=>file.id));
-        const unread=own.filter(file=>!read.has(file.id)&&!documentWasRead(file.id)),names=unread.map(file=>file.name||"File").join(", ");
+        const unread=own.filter(file=>!read.has(file.id)&&!documentWasRead(file.id)),names=fileNames(unread);
         if(unread.length&&result.document_reading)notice(`The interviewer did not receive readable text from ${names} for this question. In Assets, ${unread.length===1?"the file is":"the files are"} marked “Not yet read in this interview”.`,true);
         return {...result,question:text(result.question,6000)};
       },
@@ -2754,7 +2778,7 @@
         const own=intakeDocuments(documents);
         if(!await refreshWorkflow({documentIntake:true,signal,requiredDocuments:own.map(file=>file.id)}))throw new Error("The notes and workflow could not be updated. Your earlier notes and workflow are still here. Try again.");
         // The baseline is only this intake's update if its files were in it.
-        const unread=own.filter(file=>!documentWasRead(file.id)),names=unread.map(file=>file.name||"File").join(", ");
+        const unread=own.filter(file=>!documentWasRead(file.id)),names=fileNames(unread);
         if(unread.length&&unread.length===own.length)throw new Error(`The interviewer did not receive readable text from ${names} in this update, usually because the excerpts already in use fill the limit for one request. Your notes and workflow are otherwise up to date. In Assets, ${unread.length===1?"the file is":"the files are"} marked “Not yet read in this interview”.`);
         if(unread.length)notice(`The interviewer did not receive readable text from ${names} in this update. In Assets, ${unread.length===1?"the file is":"the files are"} marked “Not yet read in this interview”.`,true);
         return captureForFollowup();
@@ -2890,6 +2914,9 @@
     if(!ensureConversation())return;
     // Retry recording belongs to the voice session from here on.
     discardFailedDictation();
+    // A running draft head start holds one of the server's AI request places, which voice needs to
+    // connect. It is paused, not dropped: voice may end without a word, and the account is then the same.
+    cancelDraftAhead(false);
     stopSpeaking(); voiceEnded=false; conversationUI.typing=false; conversationUI.muted=false;
     if(state.config?.agent_team?.voice_mode==="live_front")concurrentInterview?.reset({handoff:true});
     if(!conversationUI.live) {
@@ -3025,7 +3052,9 @@
   // receiveLiveCaption). Both belong to one interview and are emptied with its captions.
   const liveLeads=new Map(),liveAbsorbed=new Set();
   function receiveLiveCaption(caption) {
-    if(!caption.text||!["user","assistant"].includes(caption.role))return;
+    // A caption the server would read as empty is not a turn (see turnText).
+    if(!turnText(caption.text)||!["user","assistant"].includes(caption.role))return;
+    caption={...caption,text:wellFormed(caption.text)};
     const key=`${caption.role}:${caption.id}`;
     // An application-authorized line is already the assistant's turn. The
     // transport gives its reading a caption of its own and tags it `authorized`;
@@ -4769,13 +4798,15 @@
   const NOTHING_TO_ADD="No, nothing to add.";
   function confirmNothingToAdd() {
     if(!state.closure.asked||state.closure.confirmed||state.coverageNeedsReview)return;
-    if($("answer-text").value.trim()){notice("Send or clear the answer you have typed first.");return;}
+    if(turnText($("answer-text").value)){notice("Send or clear the answer you have typed first.");return;}
     return sendAnswer(null,NOTHING_TO_ADD);
   }
   async function sendAnswer(event,preset) {
     event?.preventDefault();
     if(exampleIsReadOnly())return;
-    const answer = (typeof preset==="string"?preset:$("answer-text").value).trim();
+    const answer = turnText(typeof preset==="string"?preset:$("answer-text").value);
+    // Only invisible separators in the box: there is nothing to send, so the box is cleared.
+    if(!answer&&typeof preset!=="string"&&$("answer-text").value){$("answer-text").value="";updateControls();return;}
     if (intakeActive() || !answer || state.busy || state.recording || state.transcribing || state.requestingMic || conversationUI.live?.active || conversationUI.status==="closing") return;
     // The Send button is disabled at the limit; the keyboard shortcut arrives here all the same.
     if (transcriptLimit().answersBlocked) {notice(limitReason(transcriptLimit()), true); return;}
@@ -4786,11 +4817,14 @@
     const generation = state.generation,pauseSequence=reviewPauseSequence;
     clearSourceReturn();
     const turn = {id: nextTurnId(), role: "user", text: answer};
+    // What sending changes before the reply, so that an answer the server refuses can be taken back whole.
+    const unsent={completion:state.completion,pendingFinalCheck,closure:state.closure,coverageVerified:state.coverageVerified,
+      savedOwnerFollowups:state.savedOwnerFollowups,evidenceVersion:state.evidenceVersion,completionHeld,dictatedAnswer:state.dictatedAnswer};
     state.turns.push(rememberTurn(turn,state.dictatedAnswer===answer?"dictated":"typed"));state.dictatedAnswer=null;
     // After the completion line the reply to this message decides whether the
     // account changed; until then nothing is revoked (see completionHeld).
     if(completionStands())completionHeld=true;
-    else{conversationUI.revision++;suppressWorkflowReadiness();participantEvidenceChanged();}
+    else{conversationUI.revision++;suppressWorkflowReadiness();participantEvidenceChanged();cancelDraftAhead();}
     state.version++;
     state.dirty = true;
     $("answer-text").value = "";
@@ -4807,6 +4841,18 @@
         // The final check has been answered and the account is complete: its draft can be started.
         if(state.closure?.confirmed)armDraftAhead();}
     } catch (error) {
+      // The server refused the request itself, so the interview never received this answer. It goes
+      // back to the box and the interview returns to where it was; left in the transcript it would be
+      // sent, and refused, with every later request.
+      if(error.status===400&&!preset&&generation===state.generation&&state.turns.at(-1)===turn){
+        state.turns.pop();if(state.turnMetadata)delete state.turnMetadata[turn.id];state.version++;
+        ({completion:state.completion,pendingFinalCheck,closure:state.closure,coverageVerified:state.coverageVerified,
+          savedOwnerFollowups:state.savedOwnerFollowups,evidenceVersion:state.evidenceVersion,completionHeld,dictatedAnswer:state.dictatedAnswer}=unsent);
+        if(!$("answer-text").value)$("answer-text").value=answer;
+        renderTranscript();
+        notice((error.message||"That answer could not be sent.")+" Your answer is back in the box.",true,"question");
+        return;
+      }
       // The message was not judged: a completion is no longer shown as standing.
       if (generation === state.generation) accountChangedAfterCompletion();
       if (generation !== state.generation || intakeActive() || error.name==="AbortError") return;
@@ -4900,7 +4946,7 @@
   async function skipQuestion() {
     if(exampleIsReadOnly())return;
     if (intakeActive() || !state.started || state.busy || state.recording || state.transcribing || state.requestingMic) return;
-    if ($("answer-text").value.trim() && !confirm("Skip this question? Your unsent answer will stay in the answer box.")) return;
+    if (turnText($("answer-text").value) && !confirm("Skip this question? Your unsent answer will stay in the answer box.")) return;
     stopSpeaking();
     const generation = state.generation,pauseSequence=reviewPauseSequence;
     setBusy(true, "Finding another topic to explore…");
@@ -4915,7 +4961,7 @@
   async function finalCheck() {
     if(exampleIsReadOnly())return;
     if (intakeActive() || !state.started || state.busy || state.recording || state.transcribing || state.requestingMic) return;
-    if ($("answer-text").value.trim()) {notice("Send your answer first, then wrap up."); return;}
+    if (turnText($("answer-text").value)) {notice("Send your answer first, then wrap up."); return;}
     stopSpeaking();
     const generation = state.generation,pauseSequence=reviewPauseSequence,origin=document.activeElement;
     setBusy(true,"Checking for omissions, contradictions, and unresolved questions…");
@@ -5111,7 +5157,11 @@
         notice(fieldLimitProblem(REPLY_FIELD),true,"limit");
         return;
       }
-      notice(intakeActive()?"Your dictated text is in the reply box. Send it after the file has been read.":"Check the text, then choose Send.");
+      // Transcription can merge a spoken amount (a wire of $4,250,000.17 came back as $4,250,017), so
+      // when the text holds one the reminder names it.
+      const figures=/[$€£¥]\s?\d|\d[\d,]*\.\d|\d{1,3}(?:,\d{3})+|%|\b(?:dollars?|cents?|euros?|pounds?|percent|hundred|thousand|million|billion|USD|EUR|GBP|CHF|JPY)\b/i.test(answer);
+      notice(intakeActive()?"Your dictated text is in the reply box. Send it after the file has been read.":
+        figures?"Check the text and every amount, then choose Send.":"Check the text, then choose Send.");
     } catch (error) {
       if (generation !== state.generation) return;
       const retryable = error.transient === true || [408, 429].includes(error.status) || error.status >= 500;
@@ -5444,7 +5494,7 @@
     if (conversationUI.live?.active) {notice("Stop talking before you create a draft.");return;}
     if (state.busy || state.recording || state.transcribing || state.requestingMic || (!state.turns.some(t => t.role === "user")&&!hasDocumentEvidence())) return;
     if ((state.draftEdited||draftComponentDesigns.size) && state.draft && !confirm("Update the draft from the interview? Your edits to the current draft will be replaced.")) return;
-    if ($("answer-text").value.trim() && !confirm("You have an unsent answer. Create the draft from your sent answers only? Your unsent text stays in the box.")) return;
+    if (turnText($("answer-text").value) && !confirm("You have an unsent answer. Create the draft from your sent answers only? Your unsent text stays in the box.")) return;
     stopSpeaking();
     const generation = state.generation;
     const version = state.version;
@@ -7368,7 +7418,8 @@
       if (saved?.schema_version !== 1 || !saved.context || typeof saved.context!=="object" || Array.isArray(saved.context) || !Array.isArray(saved.turns)) throw new Error("Choose an interview file saved from this app.");
       if (saved.turns.length > 400 || exceeds(text(saved.context.objective),500) || exceeds(text(saved.context.background),8000) || (typeof saved.unsent_answer === "string" && saved.unsent_answer.length > 18000)) throw new Error("This interview is too long to open.");
       const context = {
-        process_name:text(saved.context.process_name,500),process_owner:text(saved.context.process_owner,500),objective:text(saved.context.objective,500),background:text(saved.context.background,8000)
+        process_name:wellFormed(text(saved.context.process_name,500)),process_owner:wellFormed(text(saved.context.process_owner,500)),
+        objective:wellFormed(text(saved.context.objective,500)),background:wellFormed(text(saved.context.background,8000))
       };
       if(saved.derived_process_title!==undefined&&(typeof saved.derived_process_title!=="string"||saved.derived_process_title.length>180))throw new Error("The saved process title is invalid.");
       const derivedTitle=text(saved.derived_process_title,180);
@@ -7379,8 +7430,12 @@
         if (!turn || !["user","assistant"].includes(turn.role) || typeof turn.text !== "string" || typeof turn.id !== "string" || turn.id === "context" || !/^[a-zA-Z0-9_-]{1,40}$/.test(turn.id) || ids.has(turn.id)) throw new Error(`The session has an invalid, reserved, or duplicate turn ID at position ${i+1}.`);
         if(!turn.text.trim())throw new Error("A saved conversation turn was empty. Open a complete interview file.");
         if (exceeds(turn.text,6000)) throw new Error(`Turn ${turn.id} exceeds the 6,000-character limit.`);
-        ids.add(turn.id); return {id:turn.id,role:turn.role,text:turn.text,...(turn.role==="assistant"&&turn.delivery==="text"?{delivery:"text"}:{}),...(turn.document_event===true?{document_event:true}:{}),...(typeof turn.document_id==="string"&&/^doc_[a-zA-Z0-9_]+$/.test(turn.document_id)?{document_id:turn.document_id}:{})};
-      });
+        ids.add(turn.id);
+        // An answer the server would read as empty (only control characters that JavaScript's trim keeps)
+        // was saved by an older page; it carries nothing and would refuse every request, so it is left out.
+        if(turn.role==="user"&&!turnText(turn.text))return null;
+        return {id:turn.id,role:turn.role,text:wellFormed(turn.text),...(turn.role==="assistant"&&turn.delivery==="text"?{delivery:"text"}:{}),...(turn.document_event===true?{document_event:true}:{}),...(typeof turn.document_id==="string"&&/^doc_[a-zA-Z0-9_]+$/.test(turn.document_id)?{document_id:turn.document_id}:{})};
+      }).filter(Boolean);
       if (turns.reduce((n,t) => n+charCount(t.text),0) > 400000) throw new Error("This interview is too long to open.");
       const documentEvidence=normalizeDocumentEvidence(saved.document_evidence);
       const fileTopicReviews = savedFileTopicReviews(saved.file_topic_reviews);

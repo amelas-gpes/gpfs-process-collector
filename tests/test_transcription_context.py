@@ -21,11 +21,13 @@ class TranscriptionContextTests(unittest.TestCase):
         self.assertIn(b'transcribe only what is spoken', body)
         self.assertIn(b'synthetic-audio', body)
 
-    def test_empty_configuration_disables_hints(self):
+    def test_empty_configuration_disables_hints_but_keeps_the_instructions(self):
+        # The instructions (amounts in words) go with every recording; the service accepts them alone.
         client = self.client(TRANSCRIPTION_KEYWORDS='')
         client.transcribe(b'x' * 200, 'audio/wav')
         self.assertNotIn(b'keywords', client.request.call_args.args[1])
-        self.assertNotIn(b'name="prompt"', client.request.call_args.args[1])
+        self.assertIn(b'name="prompt"', client.request.call_args.args[1])
+        self.assertIn(b'money amounts in words', client.request.call_args.args[1])
 
     def test_other_model_contract_is_not_given_unsupported_keyword_fields(self):
         client = self.client(TRANSCRIPTION_MODEL='other-compatible-transcriber')

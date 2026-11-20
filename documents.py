@@ -1194,14 +1194,18 @@ class DocumentStore:
         record = self.get(scope, document_id)
         if record['kind'] != 'pdf' or not isinstance(page_number, int) or isinstance(page_number, bool):
             raise DocumentError('Choose a PDF page by its one-based number.')
-        reader = PdfReader(_long_path(self.original_path(scope, document_id)))
-        _open_pdf(reader)
-        if not 1 <= page_number <= min(len(reader.pages), MAX_PDF_PAGES):
-            raise DocumentError('That PDF page is unavailable.')
-        writer = PdfWriter()
-        writer.add_page(reader.pages[page_number - 1])
-        output = io.BytesIO()
-        writer.write(output)
+        # Read through an open file: given a path, pypdf loads the whole file into memory for every page
+        # (69 MiB for one page of a 63 MiB PDF, sixteen pages at a time in an in-depth wave). pypdf reads
+        # objects lazily while writing, so the page is written before the file is closed.
+        with open(_long_path(self.original_path(scope, document_id)), 'rb', buffering=1 << 20) as stream:
+            reader = PdfReader(stream)
+            _open_pdf(reader)
+            if not 1 <= page_number <= min(len(reader.pages), MAX_PDF_PAGES):
+                raise DocumentError('That PDF page is unavailable.')
+            writer = PdfWriter()
+            writer.add_page(reader.pages[page_number - 1])
+            output = io.BytesIO()
+            writer.write(output)
         if output.tell() > MAX_PDF_PAGE_BYTES:
             raise DocumentError('This single PDF page exceeds the 16 MiB review limit. Export the page separately and attach it.')
         return output.getvalue()
@@ -1843,6 +1847,18 @@ def _workbook(path, record, chunks):
                 {'indexed_units': len(inventory) - chart_sheets - mixed_sheets, 'total_units': len(inventory), 'limitations': limitations})
 
 
+def _looks_utf16_or_32(head):
+    """Null bytes the way UTF-16/32 without a byte-order mark has them: many, or nearly all on one byte
+    parity (every ASCII character of UTF-16-LE text is followed by a null, also in Cyrillic or Arabic text)."""
+    nulls = [index for index, byte in enumerate(head) if byte == 0]
+    if not nulls:
+        return False
+    if len(nulls) * 4 >= len(head):
+        return True
+    odd = sum(index % 2 for index in nulls)
+    return len(nulls) >= 8 and max(odd, len(nulls) - odd) >= 0.9 * len(nulls)
+
+
 def _csv(path, record, chunks):
     error = ('CSV must be UTF-8 or BOM-marked UTF-16/32. In Excel, choose Save As > CSV UTF-8 '
              '(Comma delimited), or attach an XLSX copy.')
@@ -1852,7 +1868,9 @@ def _csv(path, record, chunks):
         encoding = 'utf-32'
     elif head.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
         encoding = 'utf-16'
-    elif b'\x00' in head:
+    elif _looks_utf16_or_32(head):
+        # UTF-16/32 text saved without a byte-order mark. A stray null in an otherwise UTF-8
+        # export is reported by its row below instead of as an encoding problem.
         raise ExtractionError(error)
     else:
         encoding = 'utf-8-sig'
@@ -1868,7 +1886,9 @@ def _csv(path, record, chunks):
             def rows():
                 for number, row in enumerate(reader, 1):
                     if any('\x00' in value for value in row):
-                        raise ExtractionError(error)
+                        raise ExtractionError(f'Row {number:,} of this CSV contains a null character, which a CSV cell '
+                                              'cannot hold. In Excel, choose Save As > CSV UTF-8 (Comma delimited), '
+                                              'or attach an XLSX copy.')
                     yield number, [(column, value, None, None) for column, value in enumerate(row, 1) if value]
             item = _row_chunks(record, chunks, 1, 'CSV', rows())
     except UnicodeError:

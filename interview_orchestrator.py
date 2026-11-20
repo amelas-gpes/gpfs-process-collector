@@ -258,7 +258,9 @@ class Coordinator:
             findings, assessment = self.client.assess_coverage(
                 capture["memo_findings"], context, turns, supporting,
                 force=True, model_override=self.client.agent_models["coverage_reviewer"], allow_capture_repair=True,
-                split=True, **({"no_repair_topics": tuple(no_repair)} if no_repair else {}))
+                split=True, **({"no_repair_topics": tuple(no_repair)} if no_repair else {}),
+                **({"glossary": self.api.term_glossary(getattr(self.client, "transcription_keywords", ()), context)}
+                   if run.live_notes else {}))
             box["findings"] = findings
             if not assessment or assessment.get("review_available") is False:
                 raise self.api.APIError("Coverage review did not finish. Your account is retained; retry the review.",
@@ -1834,7 +1836,9 @@ class Coordinator:
         if changed:
             _, assessment = self.client.assess_coverage(
                 findings, context, state["turns"], supporting, force=True,
-                model_override=self.client.agent_models["coverage_reviewer"], topics=changed)
+                model_override=self.client.agent_models["coverage_reviewer"], topics=changed,
+                **({"glossary": self.api.term_glossary(getattr(self.client, "transcription_keywords", ()), context)}
+                   if state["run"].live_notes else {}))
             received = {} if not assessment or assessment.get("review_available") is False else {
                 topic["key"]: {"key": topic["key"], "complete": topic["complete"],
                                "gaps": topic["gaps"][:6], "next_question": topic["next_question"],

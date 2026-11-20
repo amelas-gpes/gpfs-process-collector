@@ -2190,6 +2190,12 @@ LIVE_NOTES_GLOSSARY_POLICY = ("The turns are live speech captions, which can mis
                               "stays as said).")
 
 
+LIVE_COVERAGE_GLOSSARY_POLICY = ("The turns are live speech captions, which can mishear names and acronyms. A finding that "
+                                 "writes a term_glossary term where its quoted caption has the misheard form (for example KYC "
+                                 "where the caption says \"kite\") is not an unsupported substitution when the context plainly "
+                                 "shows the term was meant.")
+
+
 def live_instructions(context_json, glossary_json=""):
     glossary = LIVE_GLOSSARY_HEADING + LIVE_GLOSSARY_POLICY + glossary_json if glossary_json else ""
     return LIVE_INSTRUCTIONS + LIVE_CONTEXT_HEADING + context_json + glossary + LIVE_DOCUMENT_HEADING
@@ -3089,7 +3095,7 @@ def load_settings():
     allowed = {"OPENAI_API_KEY", "INTERVIEW_MODEL", "DRAFT_MODEL", "DRAFT_AUDIT_MODEL", "DRAFT_COVERAGE_MODEL", "WORKFLOW_AUDIT_MODEL", "TRANSCRIPTION_MODEL", "TRANSCRIPTION_KEYWORDS",
                "COLLECTOR_DEPLOYMENT_MODE", "KNOWLEDGE_LOCAL_OWNER", "AGENT_INTERVIEW_MODEL", "COLLECTOR_MODEL_REASONING", "TRANSCRIPTION_LANGUAGE", "INTERVIEW_TOKEN_CAP", "DAILY_TOKEN_CAP",
                "AGENT_COVERAGE_MODEL", "AGENT_PROCESS_MODEL", "AGENT_DOCUMENT_MODEL", "VOICE_MODE", "VOICE_PAUSE_MS", "RAW_TRACE_MODE",
-               "COLLECTOR_PROVIDER_SLOTS", "COLLECTOR_MAP_WORKERS", "DRAFT_PREPARE", "COLLECTOR_FAST_TIER", "INTERVIEW_MEMORY_ENABLED"}
+               "COLLECTOR_PROVIDER_SLOTS", "COLLECTOR_MAP_WORKERS", "COLLECTOR_NOTES_WORKERS", "DRAFT_PREPARE", "COLLECTOR_FAST_TIER", "INTERVIEW_MEMORY_ENABLED"}
     for path in (APP_DIR / ".env.local",):
         if path.is_file() and not path.is_symlink():
             for number, line in enumerate(read_settings_text(path).splitlines(), 1):
@@ -5320,6 +5326,9 @@ class OpenAIClient:
         # background could hold every slot.
         self.provider_slots = whole_setting(settings, "COLLECTOR_PROVIDER_SLOTS", 24, 2, 32)
         self.map_workers = whole_setting(settings, "COLLECTOR_MAP_WORKERS", 2, 1, 8)
+        # Notes are written for one interview at a time per worker; a server shared by several people
+        # needs more (with six interviews answering every 20 s, notes never caught up with two).
+        self.notes_workers = whole_setting(settings, "COLLECTOR_NOTES_WORKERS", 2, 1, 8)
         self._provider_slots = threading.BoundedSemaphore(self.provider_slots)
         self._background_slots = threading.BoundedSemaphore(max(1, self.provider_slots - PROVIDER_FOREGROUND_RESERVE))
         self._draft_lock = threading.Lock()
@@ -6257,7 +6266,7 @@ class OpenAIClient:
                 **({"document_context": condensed_documents} if condensed_documents else {})}
 
     def assess_coverage(self, findings, context, turns, supporting, force=False, model_override=None,
-                        allow_capture_repair=False, topics=None, split=False, no_repair_topics=()):
+                        allow_capture_repair=False, topics=None, split=False, no_repair_topics=(), glossary=None):
         """No full circle without an independent, dimension-by-dimension explanation.
 
         split runs the sixteen topics as concurrent topic groups: the same transcript
@@ -6300,7 +6309,9 @@ class OpenAIClient:
                     instructions = interview_coverage.REPAIR_AUDIT_INSTRUCTIONS if repair else interview_coverage.AUDIT_INSTRUCTIONS
                 payload = {"context": context, "turns": turns, "candidate_findings": findings,
                            **({"assess_topics": list(group)} if scoped else {}),
-                           "supporting_documents": supporting}
+                           "supporting_documents": supporting, **({"term_glossary": glossary} if glossary else {})}
+                if glossary:
+                    instructions += "\n" + LIVE_COVERAGE_GLOSSARY_POLICY
                 signature = hashlib.sha256(json.dumps([instructions, model, payload], sort_keys=True).encode()).hexdigest()
                 with self._draft_lock:
                     used_signatures.append(signature)

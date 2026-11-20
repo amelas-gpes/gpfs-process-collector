@@ -21,6 +21,8 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
   - The check for changed app files runs in the background, reads only the files the server serves, and reads them again only when one of them changes. A page reload no longer waits for it (1 to 24 seconds while a large file was read or iCloud was syncing), and stray copies such as `app 2.js` no longer change the build or ask for a restart.
   - A large image or PDF page under review holds about half the memory it did: the image is no longer copied while source names are shortened, and a PDF page is read from the open file instead of loading the whole file each time.
   - Clearer messages: a recording that cannot be decoded says so, in dictation and in reviewed voice, and is not offered a retry that cannot work, a CSV with a stray null character names its row (UTF-16 without a byte-order mark is still recognised, also in Cyrillic or Arabic text), and an empty file or request says it is empty.
+  - The coverage review of a live-voice interview gets the same glossary, so a note that writes KYC where the caption says "kite" is not treated as an unsupported substitution.
+  - `COLLECTOR_NOTES_WORKERS` (1 to 8, default 2) sets how many notes are written at once. On a server shared by several people, two workers never caught up with six interviews answering every 20 seconds. `.env.example` also gave the wrong default for `COLLECTOR_PROVIDER_SLOTS` (24, not 6).
   - The banner over the conversation no longer cuts off its first line, names more than three unread files by count, and at phone width the Menu button stays on screen. Typing stays as fast in a 392-turn interview as in a short one.
 
 ## 0.34.1 · November 19, 2026

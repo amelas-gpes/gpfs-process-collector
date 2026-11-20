@@ -237,7 +237,7 @@ class ConcurrentInterview:
     # never holds the notes back (a queued or failed map used to block Wrap up for five minutes).
     MAP_WAIT_SECONDS = 2.0
 
-    def __init__(self, client, api, validate_sources=None, max_sessions=32, workers=2, map_workers=None):
+    def __init__(self, client, api, validate_sources=None, max_sessions=32, workers=None, map_workers=None):
         self.client, self.api = client, api
         self.validate_sources = validate_sources
         self.max_sessions = max_sessions
@@ -249,6 +249,8 @@ class ConcurrentInterview:
         # another: notes, the map as it is drawn, and the source check of that map. One map
         # worker used to serve every interview on the server and each map was a draw followed
         # by its check, so a check that took minutes held up every other map.
+        if workers is None:
+            workers = getattr(client, "notes_workers", 2)
         if map_workers is None:
             map_workers = getattr(client, "map_workers", 2)
         self._notes = _Pool("collector-analysis", workers, self._lock)

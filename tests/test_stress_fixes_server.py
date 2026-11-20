@@ -380,3 +380,38 @@ class AmountsInWords(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NotesWorkersSetting(unittest.TestCase):
+    def test_notes_workers_follow_the_setting_and_default_to_two(self):
+        self.assertEqual(server.OpenAIClient({"OPENAI_API_KEY": KEY}).notes_workers, 2)
+        client = server.OpenAIClient({"OPENAI_API_KEY": KEY, "COLLECTOR_NOTES_WORKERS": "6"})
+        self.assertEqual(client.notes_workers, 6)
+        service = server.concurrent_interview.ConcurrentInterview(client, server)
+        self.addCleanup(service.close)
+        self.assertEqual(service._notes.size, 6)
+        with self.assertRaises(server.SettingsError):
+            server.OpenAIClient({"OPENAI_API_KEY": KEY, "COLLECTOR_NOTES_WORKERS": "9"})
+
+
+class LiveCoverageGlossary(unittest.TestCase):
+    def test_the_coverage_review_of_a_live_interview_gets_the_glossary(self):
+        client = server.OpenAIClient({"OPENAI_API_KEY": KEY})
+        sent = []
+
+        def structured(instructions, payload, *args, **kwargs):
+            sent.append((instructions, payload))
+            raise server.APIError("stop here", category="test")
+        client.structured = structured
+        glossary = server.term_glossary([], {"process_name": "Capital call"})
+        for with_glossary in (True, False):
+            sent.clear()
+            try:
+                client.assess_coverage([], interview_payload()["context"], interview_payload()["turns"], {}, force=True,
+                                       **({"glossary": glossary} if with_glossary else {}))
+            except Exception:
+                pass
+            self.assertTrue(sent, "the review reached the model")
+            for instructions, payload in sent:
+                self.assertEqual("term_glossary" in payload, with_glossary)
+                self.assertEqual(server.LIVE_COVERAGE_GLOSSARY_POLICY in instructions, with_glossary)

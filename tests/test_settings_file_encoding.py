@@ -110,6 +110,38 @@ class SettingsEncodingTests(SettingsFileTests):
         self.assertNotIn("synthetic", str(refused.exception))
 
 
+class EmptySpellingHintsTests(SettingsFileTests):
+    """README and .env.example: an empty TRANSCRIPTION_KEYWORDS lists no names; leaving it out uses the built-in four."""
+    BUILT_IN = ["GPFS", "GP Fund Solutions", "Entrilia", "Allvue"]
+
+    def keywords(self, raw, **environment):
+        with patch.dict(os.environ, environment):
+            settings = self.load(raw)
+        return server.OpenAIClient({**settings, "OPENAI_API_KEY": "fictional-sentinel-value"}).transcription_keywords
+
+    def test_an_empty_list_lists_no_names_and_the_fund_terms_stay(self):
+        for name, line in (("bare", b"TRANSCRIPTION_KEYWORDS=\n"), ("spaces", b"TRANSCRIPTION_KEYWORDS=   \n"),
+                           ("quoted", b'TRANSCRIPTION_KEYWORDS=""\n'), ("quoted, then a comment", b'TRANSCRIPTION_KEYWORDS="" # none\n'),
+                           ("one comma", b"TRANSCRIPTION_KEYWORDS=,\n")):
+            with self.subTest(line=name):
+                self.assertEqual(self.keywords(LINES.encode() + line), [])
+        with self.subTest("an empty environment variable"):
+            self.assertEqual(self.keywords(LINES.encode() + b"TRANSCRIPTION_KEYWORDS=Investran\n", TRANSCRIPTION_KEYWORDS=""), [])
+        # Live voice still has the fund terms, and only them.
+        terms = server.caption_check_terms(self.keywords(LINES.encode() + b"TRANSCRIPTION_KEYWORDS=\n"), [])
+        self.assertEqual(terms, list(server.SPOKEN_FUND_TERMS)[:server.MAX_TRANSCRIPTION_KEYWORDS])
+        self.assertFalse({"GP Fund Solutions", "Entrilia", "Allvue"} & set(terms))
+
+    def test_a_setting_left_out_uses_the_built_in_names(self):
+        self.assertEqual(self.keywords(LINES.encode()), self.BUILT_IN)
+        self.assertEqual(self.keywords(LINES.encode() + b"# TRANSCRIPTION_KEYWORDS=\n"), self.BUILT_IN)
+        self.assertEqual(self.keywords(LINES.encode() + b"TRANSCRIPTION_KEYWORDS=Investran\n"), ["Investran"])
+        # Other settings left empty are still missing ones, as before.
+        self.assertNotIn("INTERVIEW_MODEL", self.load(b"INTERVIEW_MODEL=\n"))
+        with patch.dict(os.environ, {"INTERVIEW_MODEL": ""}):
+            self.assertNotIn("INTERVIEW_MODEL", self.load(b""))
+
+
 class ServerStartMessageTests(SettingsFileTests):
     def start(self, **patches):
         output = io.StringIO()

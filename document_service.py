@@ -1747,8 +1747,9 @@ class DocumentService:
                            '(review.native_text_units of review.total_units), the sections supplied with this request '
                            '(context_coverage), the progress of the AI review (review.reviewed_chunks of review.total_chunks, '
                            'review.phase, review.review_stopped), and graphics or scans not yet read (review.unread_visual_units). '
-                           'When every unit has indexed text and all indexed sections were supplied, do not call the text coverage '
-                           'incomplete: name an unread graphic or a paused review as its own limitation. '
+                           'When every unit has indexed text, all indexed sections were supplied and context_coverage has no '
+                           'read_limit, do not call the text coverage incomplete: name an unread graphic or a paused review as its '
+                           'own limitation. A read_limit says where the reading of a file stopped; what follows it was not indexed. '
                            'Retained-only evidence from parked or removed files is solely provenance for existing cited capture; '
                            'do not use it to extract new facts or reopen that document.'),
                 'omitted_documents': max(0, len(records) - len(identities)),

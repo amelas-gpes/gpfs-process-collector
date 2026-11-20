@@ -292,7 +292,7 @@ class LocalComparison(Case):
         self.assertEqual((analysis['phase'], analysis['error'], analysis['review_complete'], analysis['disposition']),
                          ('complete', None, True, 'parked'))
         self.assertEqual(analysis['limitations'], ['A limit the review recorded.'])
-        self.assertEqual(current['coverage'], {'indexed_units': 2, 'total_units': 2, 'limitations': []})
+        self.assertEqual(current['coverage'], {'indexed_units': 2, 'total_units': 2, 'text_indexed_units': 2, 'limitations': []})
 
     def test_storage_failure_during_the_comparison_is_not_recorded_as_a_failed_review(self):
         record = self.indexed()

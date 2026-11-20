@@ -378,10 +378,6 @@ class AmountsInWords(unittest.TestCase):
         self.assertIn(server.TRANSCRIPTION_INSTRUCTIONS.encode(), client.request.call_args.args[1])
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class NotesWorkersSetting(unittest.TestCase):
     def test_notes_workers_follow_the_setting_and_default_to_two(self):
         self.assertEqual(server.OpenAIClient({"OPENAI_API_KEY": KEY}).notes_workers, 2)
@@ -415,3 +411,71 @@ class LiveCoverageGlossary(unittest.TestCase):
             for instructions, payload in sent:
                 self.assertEqual("term_glossary" in payload, with_glossary)
                 self.assertEqual(server.LIVE_COVERAGE_GLOSSARY_POLICY in instructions, with_glossary)
+
+
+class EmptyBodiesOnEveryRoute(Loopback):
+    """An empty POST is a bad request (400) everywhere, not one that is too large (413)."""
+
+    def test_an_empty_body_is_called_empty_on_the_document_knowledge_and_recovery_routes(self):
+        for path in ("/api/documents/session", "/api/documents/status", "/api/documents/action", "/api/documents/source",
+                     "/api/documents/context", "/api/knowledge/status", "/api/knowledge/submit", "/api/recovery/status",
+                     "/api/recovery/save", "/api/interview", "/api/trace/events"):
+            with self.subTest(path=path):
+                status, _, body, failure = exchange(self.port, self.head(path, 0, "application/json"))
+                self.assertEqual((status, failure, body), (400, None, {"error": "The request was empty. Nothing was changed; try again."}))
+        # A body over the limit is still too large.
+        for path, message in (("/api/documents/status", "Document request is too large."),
+                              ("/api/knowledge/status", "Knowledge request is too large.")):
+            with self.subTest(path=path):
+                body = b"{" + b" " * server.MAX_JSON + b"}"
+                status, _, answer, failure = exchange(self.port, self.head(path, len(body), "application/json"), body)
+                self.assertEqual((status, failure, answer), (413, None, {"error": message}))
+        status, _, answer, failure = exchange(self.port, self.head("/api/trace/events", 262145, "application/json"))
+        self.assertEqual((status, failure, answer), (413, None, {"error": "Trace batch exceeds its limit."}))
+
+
+class LiveStartTimeBudget(unittest.TestCase):
+    """The page waits for a voice start at least as long as the server can take to answer it."""
+
+    def test_the_page_outwaits_a_wait_for_a_place_and_the_provider_allowance(self):
+        self.assertEqual(server.InterviewServer.api_slot_wait, server.API_SLOT_WAIT_SECONDS)
+        # Live voice: the wait for a place, the provider's allowance and 10 s to read the files before and after.
+        for key, provider in (("live_session", server.LIVE_SESSION_TIMEOUT), ("voice_session", server.VOICE_SESSION_TIMEOUT)):
+            with self.subTest(key=key):
+                self.assertGreaterEqual(server.REQUEST_TIMEOUTS_MS[key], (provider + server.API_SLOT_WAIT_SECONDS + 10) * 1000)
+        client = server.OpenAIClient({"OPENAI_API_KEY": KEY, "VOICE_MODE": "live"})
+        seen = []
+
+        def request(path, body, *args, timeout=None, **kwargs):
+            seen.append((path, timeout))
+            raise server.APIError("stop here", category="test")
+        client.request = request
+        with self.assertRaises(server.APIError):
+            client.live_session(live_payload())
+        self.assertEqual(seen, [("live/sessions", server.LIVE_SESSION_TIMEOUT)])
+
+
+class LiveNotesTraceFields(unittest.TestCase):
+    """The default (metadata) trace keeps the names of the live-notes counts (web/app.js captureMidAnswer)."""
+
+    def test_the_metadata_trace_keeps_the_live_notes_fields(self):
+        import importlib.util
+        path = Path(__file__).resolve().parents[1] / "raw_trace.py"
+        spec = importlib.util.spec_from_file_location("live_notes_trace_under_test", path)
+        raw_trace = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(raw_trace)
+        payloads = [
+            {"on_its_way_ms": 4200, "expected_ms": 9000},
+            {"through_turn": "t012", "on_its_way_ms": 4200},
+            {"through_turn": None, "on_its_way_ms": 300},
+            {"through_turn": "t012", "unnoted_chars": 1520, "count": 1},
+            {"through_turn": "t012", "answer_count": 3, "mid_answer": True},
+            {"count": 2},
+        ]
+        for payload in payloads:
+            recorded = raw_trace._Snapshot(False, ()).copy(payload)
+            self.assertEqual(recorded, payload, "Each field keeps its name and value; a turn id is shown like turn_id")
+
+
+if __name__ == "__main__":
+    unittest.main()

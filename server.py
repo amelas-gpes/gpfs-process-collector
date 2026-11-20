@@ -274,11 +274,18 @@ DRAFT_AUDIT_TOKENS_PER_SECOND = 60
 # A generated candidate is kept for a retry of its audit. It has to outlive the longest audit by
 # the time a person takes to choose Try again, or the retry writes the whole draft a second time.
 DRAFT_CANDIDATE_SECONDS = DRAFT_AUDIT_TIMEOUT_MAX + 600
-# Browser wait includes all sequential provider calls plus delivery of the response.
+# A request to the AI service waits up to this long for one of the four places (InterviewServer.api_slot_wait).
+API_SLOT_WAIT_SECONDS = 8
+# The provider's allowance for a live voice start (live/sessions) and a voice credential (realtime/client_secrets).
+LIVE_SESSION_TIMEOUT = 45
+VOICE_SESSION_TIMEOUT = 30
+# Browser wait includes all sequential provider calls plus delivery of the response. A voice start can
+# first wait for a place while notes, the map and caption checks hold all four, then reads its files
+# before and after the provider call: 10 seconds are left for those on top of both waits.
 REQUEST_TIMEOUTS_MS = {
     "default": 150000, "capture": 330000, "workflow": 330000, "workflow_with_files": 510000,
     "draft": (DRAFT_GENERATION_TIMEOUT_LARGE + DRAFT_AUDIT_TIMEOUT_MAX + 120 + 30) * 1000,
-    "live_session": 55000, "voice_session": 60000,
+    "live_session": (LIVE_SESSION_TIMEOUT + API_SLOT_WAIT_SECONDS + 10) * 1000, "voice_session": 60000,
 }
 DRAFT_OUTPUT_TOKENS = 22000
 # The second and last request for a map update whose first reply was cut off at its allowance.
@@ -1176,7 +1183,8 @@ context_coverage fields govern coverage claims. Keep four facts about a file apa
 its own indexed text (native_text_units of total_units), the excerpts in this session,
 the progress of the AI review (reviewed_chunks of total_chunks, review_stopped) and
 graphics or scans not yet read (unread_visual_units). An unread graphic or a paused
-review does not make indexed text incomplete. A live voice digest holds selected
+review does not make indexed text incomplete; a read_limit says where the reading of a
+file stopped, and what follows it was not indexed. A live voice digest holds selected
 excerpts only; never say or imply that a whole file was read from it. Retained-only
 evidence from parked or removed files is solely provenance for existing cited capture;
 do not use it to extract new facts or reopen that document.
@@ -3149,6 +3157,11 @@ def read_settings_text(path):
                             "then start the app again.") from None
 
 
+# Settings whose empty value is a choice, not a missing one: an empty TRANSCRIPTION_KEYWORDS lists no
+# names of your own, where leaving it out uses the built-in ones.
+EMPTY_MEANS_NONE = {"TRANSCRIPTION_KEYWORDS"}
+
+
 def load_settings():
     # Only explicit task-local settings are read; no credential store scanning.
     settings = {}
@@ -3177,13 +3190,14 @@ def load_settings():
                         value = value[1:close]
                     else:
                         value = re.split(r"\s+#", value, 1)[0].strip()
-                    if value:
+                    if value or key in EMPTY_MEANS_NONE:
                         settings[key] = value
                 else:
                     print(f"Ignored unsupported setting on .env.local line {number}.", file=sys.stderr)
     for key in allowed:
-        value = os.environ.get(key, "").strip().strip("\"'“”‘’").strip()
-        if value:
+        raw = os.environ.get(key)
+        value = (raw or "").strip().strip("\"'“”‘’").strip()
+        if value or (raw is not None and key in EMPTY_MEANS_NONE):
             settings[key] = value
     return settings
 
@@ -3250,6 +3264,8 @@ def strip_knowledge_capabilities(value):
 # the character check below with its own message. MAX_JSON stays the limit wherever a
 # small body is expected, and for a body that is read before a request is authorized.
 MAX_SNAPSHOT_JSON = 2 * 1024 * 1024
+# A POST with no body (Content-Length: 0) is a bad request (400), not one that is too large (413).
+EMPTY_REQUEST_MESSAGE = "The request was empty. Nothing was changed; try again."
 SNAPSHOT_ROUTES = frozenset({
     "/api/interview", "/api/draft", "/api/workflow", "/api/live-session",
     "/api/agent-team/interview", "/api/agent-team/workflow", "/api/agent-team/review", "/api/agent-team/coverage",
@@ -6266,7 +6282,7 @@ class OpenAIClient:
                 "tools": [], "max_output_tokens": 2048,
             },
         }
-        result = self.request("realtime/client_secrets", body, timeout=30)
+        result = self.request("realtime/client_secrets", body, timeout=VOICE_SESSION_TIMEOUT)
         token = result.get("value") if isinstance(result, dict) else None
         expires_at = result.get("expires_at") if isinstance(result, dict) else None
         if (not isinstance(token, str) or not token or len(token) > 4096 or token == self.key
@@ -6378,7 +6394,7 @@ class OpenAIClient:
                 }},
             },
             "transport": {"type": "webrtc", "sdp": sdp},
-        }, timeout=45)
+        }, timeout=LIVE_SESSION_TIMEOUT)
         transport = result.get("transport") if isinstance(result, dict) else None
         session = result.get("session") if isinstance(result, dict) else None
         answer = transport.get("sdp") if isinstance(transport, dict) else None
@@ -7268,7 +7284,7 @@ class InterviewServer(ThreadingHTTPServer):
     # Several browser contexts can each open six asset connections. Provider work has its own limits.
     max_connections = 32
     header_timeout = 15
-    api_slot_wait = 8
+    api_slot_wait = API_SLOT_WAIT_SECONDS
     body_timeout = 30
     upload_timeout = 125
     # A response written before the request body was read (413, 403, 429, the busy 503) is
@@ -8129,7 +8145,7 @@ class Handler(BaseHTTPRequestHandler):
                             "Choose Save copy to keep it.")}, 413)
                 if size <= 0:
                     return self._json({"error": "The recording is empty or too short. Please record your answer again."
-                                       if path == "/api/transcribe" else "The request was empty. Nothing was changed; try again."}, 400)
+                                       if path == "/api/transcribe" else EMPTY_REQUEST_MESSAGE}, 400)
                 return self._json({"error": f"This recording is too large to send (the limit is {MAX_AUDIO // (1024 * 1024)} MiB). Record a shorter answer, or type it."
                                    if path == "/api/transcribe" else "This request is too large to send. Nothing was changed."}, 413)
             media_type = self.headers.get("Content-Type", "")
@@ -8402,6 +8418,8 @@ class Handler(BaseHTTPRequestHandler):
             self._failed_request("interview_request", error, "The request could not be completed. Your browser session is retained.")
 
     def _browser_trace(self, size):
+        if size <= 0 and not self.headers.get("Transfer-Encoding"):
+            return self._json({"error": EMPTY_REQUEST_MESSAGE}, 400)
         if self.headers.get("Transfer-Encoding") or not 0 < size <= 262144:
             return self._json({"error":"Trace batch exceeds its limit."}, 413)
         if self.headers.get("Content-Type", "").split(";", 1)[0].strip() != "application/json":
@@ -8461,8 +8479,10 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": f"This submission is too large for company knowledge: it is {size:,} bytes "
                                             f"and the limit is {limit:,}. Nothing was saved.",
                                    "code": "submission_too_large", "limit": limit, "not_saved": True}, 413)
-            if not 0 < size <= limit:
-                return self._json({"error": "Knowledge request is empty or too large."}, 413)
+            if size <= 0:
+                return self._json({"error": EMPTY_REQUEST_MESSAGE}, 400)
+            if size > limit:
+                return self._json({"error": "Knowledge request is too large."}, 413)
             if self.headers.get("Content-Type", "").split(";", 1)[0].strip() != "application/json":
                 return self._json({"error": "This endpoint requires JSON."}, 415)
             raw = self._read_body(size, self.server.body_timeout)
@@ -8643,8 +8663,10 @@ class Handler(BaseHTTPRequestHandler):
             if self.headers.get("Transfer-Encoding"):
                 raise ValueError("Chunked request bodies are not supported.")
             size = int(self.headers.get("Content-Length", "0"))
-            if not 0 < size <= (MAX_RECOVERY if path.endswith("/save") else MAX_JSON):
-                return self._json({"error": "The recovery copy is empty or larger than 16 MB, the largest interview "
+            if size <= 0:
+                return self._json({"error": EMPTY_REQUEST_MESSAGE}, 400)
+            if size > (MAX_RECOVERY if path.endswith("/save") else MAX_JSON):
+                return self._json({"error": "The recovery copy is larger than 16 MB, the largest interview "
                                             "this app opens. Nothing was stored."}, 413)
             if self.headers.get("Content-Type", "").split(";", 1)[0].strip() != "application/json":
                 return self._json({"error": "This endpoint requires JSON."}, 415)
@@ -8707,10 +8729,10 @@ class Handler(BaseHTTPRequestHandler):
                 raise ValueError("Chunked request bodies are not supported.")
             size = int(self.headers.get("Content-Length", "0"))
             upload = path == "/api/documents/upload"
-            if upload and size <= 0:
-                return self._json({"error": "This file is empty. Choose a file that has content."}, 400)
-            if not 0 < size <= (documents.MAX_FILE_BYTES if upload else MAX_JSON):
-                return self._json({"error": "Each upload must be no larger than 64 MiB." if upload else "Document request is empty or too large."}, 413)
+            if size <= 0:
+                return self._json({"error": "This file is empty. Choose a file that has content." if upload else EMPTY_REQUEST_MESSAGE}, 400)
+            if size > (documents.MAX_FILE_BYTES if upload else MAX_JSON):
+                return self._json({"error": "Each upload must be no larger than 64 MiB." if upload else "Document request is too large."}, 413)
             if not upload and self.headers.get("Content-Type", "").split(";", 1)[0] != "application/json":
                 return self._json({"error": "This endpoint requires JSON."}, 415)
             upload_slot = self.server.upload_slots if upload else None

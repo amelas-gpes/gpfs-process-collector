@@ -6,7 +6,7 @@
 // is transcribed again through /api/transcribe, marked as a caption check so that the server hints it
 // with its glossary alone, and only a glossary term read in the place of a misheard caption word
 // replaces that word. A whole reading is never used: in a real browser session (2026-11-20,
-// stress-lab/verify/live-captions.md) it fixed some terms and broke words the caption had right.
+// stress-lab/verify/live-captions.md) it fixed "K one" (K-1) and broke words the caption had right.
 //
 // Part 1 runs web/live-voice.js with the fake WebRTC and audio of tests/test_live_voice.cjs and a fake
 // audio worklet (tests/test_live_voice_tap.cjs runs the real one): what the tap records, which audio a
@@ -83,7 +83,7 @@ function readWav(bytes){
 }
 
 // ---- Part 2: the page -----------------------------------------------------------------------
-const EXPOSE="request,captionFix,captionTokens,captionGlossary,receiveCheckedCaption,receiveLiveCaption,receiveLiveStatus,getCapturedThrough,askFinalCheck,startLiveConversation,generateDraft,finalCheck,resetLiveFront,liveNotesStatus";
+const EXPOSE="request,correctCaption,captionFixes,captionTokens,captionGlossary,receiveCheckedCaption,receiveLiveCaption,receiveLiveStatus,getCapturedThrough,askFinalCheck,startLiveConversation,generateDraft,finalCheck,resetLiveFront,liveNotesStatus";
 const HOOK="const getCapturedThrough=()=>liveCapturedThrough,askFinalCheck=line=>{pendingFinalCheck={line};};"+
  "window.__notices=[];const __notice=notice;notice=(message,...rest)=>{window.__notices.push(String(message));return __notice(message,...rest);};";
 const CONFIG=(caption_check=true)=>({agent_team:{enabled:true,voice_mode:"live_front",interview_memory:true,stop_intent_patterns:["^(?:i need to stop)$"]},
@@ -94,9 +94,11 @@ const CAPTION="We run the kite checks before the CPAC meets and the each wire go
 const RESULT="We run the KYC checks before the LPAC meets and the ACH wire goes out.";
 const CHECKED="We run the KYC checks before the LPAC meets and the each wire goes out.";
 // The glossary the server names with a check's reading (server.py caption_check_terms, default settings,
-// process name "Capital calls"), and an answer of the transcription route to a check.
+// process name "Capital calls"), the mishearings it lists for them (caption_check_misheard), and an
+// answer of the transcription route to a check.
 const TERMS=["KYC","AML","ACH","IRR","LPAC","K-1","NAV","LPA","GL","DPI","SWIFT","PEP","Capital calls","GPFS","GP Fund Solutions","Entrilia","Allvue"];
-const READ=(text,terms=TERMS)=>({text,terms});
+const MISHEARD={KYC:["kite"],IRR:["DI"],LPAC:["CPAC"],"K-1":["K one"]};
+const READ=(text,terms=TERMS)=>({text,terms,misheard:MISHEARD});
 // A real browser session (2026-11-20, stress-lab/verify/live-captions.md): the jargon passage read by an
 // accented voice (A13) and a clear one (A10). The captions of its first run (the tap then sent no audio)
 // and the readings gpt-transcribe gave of the same clips in its second run.
@@ -477,10 +479,12 @@ async function page({caption_check=true}={}){
   }
  });
  await check("on the real session's captions only glossary terms are corrected, and every word the caption had right stays (A13, A10)",async()=>{
-  // The readings fixed some terms and broke words the captions had right ("Instruct" for "We reconcile",
-  // "Investron", "HRSWIFT" for "ACH or SWIFT", "IR" for "IRR", "pack" lost). Only their glossary terms
-  // in the place of misheard caption words are used: "Calc" (KYC), "LP AC" (LPAC, "pack" kept) and
-  // "K one" (K-1). "DI" stays: the reading has "the IR" there, not a term.
+  // Against their own (second run's) captions the readings fixed "K one" and broke words those captions
+  // had right ("Instruct" or "I reconcile" for "We reconcile", "Investron" or "Investor" for "Investran",
+  // "pack" lost); their "HRSWIFT" and "IR" stood where those captions were wrong too ("H or SWIFT", "DI").
+  // Paired with the first run's captions, which had "Calc" (KYC) and "LP AC" (LPAC) as well, only their
+  // glossary terms in the place of misheard caption words are used: "Calc", "LP AC" ("pack" kept) and
+  // "K one". "DI" stays: the reading has "the IR" there, not a term.
   const cases=[
    ["A13, first run's caption",REAL.A13.caption,REAL.A13.reading,
     "We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation. KYC and AML checks run in Investran and the ACH or SWIFT wire is released only after the callback from Treasury. DI and the DPI go to the LPAC pack, and the K-1 estimate goes to the CFO",3],
@@ -544,9 +548,10 @@ async function page({caption_check=true}={}){
    ["We approve the wire after the review.","approve the wire after the review.","no_correction"],
    ["Treasury releases the wire after two approvals.","What changed? Treasury releases the wire after","no_correction"],
    ["Treasury releases the wire after two approvals.","releases the wire after two approvals. Thanks, and who","no_correction"],
-   // Other differences: more than one word read for one, or two words for one that they do not spell.
+   // Other differences: more than one word read for one, or two words for one that they do not spell
+   // and neither of which is a mishearing the server lists for the term.
    ["We run the kite checks first.","We run the KYC AML checks first.","no_correction"],
-   ["We run the kite list checks first.","We run the KYC checks first.","no_correction"],
+   ["We run the Calc list checks first.","We run the KYC checks first.","no_correction"],
    ["We approve it and the kite team signs.","We approve it and team signs.","no_correction"],
    // A window that fell on other speech: too few of the caption's words, whatever terms it holds.
    ["We run the kite checks before the CPAC meets.","The LPAC pack goes to the investors with the KYC file on Friday.","misaligned"],
@@ -562,13 +567,88 @@ async function page({caption_check=true}={}){
   // A stretch whose caption words already hold the term is left alone. (The alignment always matches
   // such a word, so this guards a stretch made otherwise.)
   const t=(await page()).page.t,was=t.captionTokens("the LPAC meets"),now=t.captionTokens("the LPAC meets");
-  assert.equal(t.captionFix("the LPAC meets",was,now,[{i:1,j:1,kind:"sub"}],t.captionGlossary(TERMS)),null);
+  assert.equal(t.captionFixes("the LPAC meets","the LPAC meets",was,now,[{i:1,j:1,kind:"sub"}],t.captionGlossary(TERMS,MISHEARD)).length,0);
   // A server that names no glossary (an older one, or another provider) corrects nothing.
   for(const answer of [{text:RESULT},{text:RESULT,terms:[]},{text:RESULT,terms:"KYC"}]){
    const h=await page();
    h.say("live_u1",CAPTION);
    await h.answer(h.transcribe[0],answer);
    assert.equal(h.turn().text,CAPTION);assert.deepEqual(h.outcomes(),["sent","kept:no_terms"]);
+  }
+ });
+ await check("a word the caption had right stays: a term, its plural, another acronym, and words a break or a filler separates",async()=>{
+  // The reading is hinted with every glossary term, so it can hear a term the caption had right as
+  // another one (LPA and LPAC sound alike, and both are in the real jargon passage), a plural as a
+  // singular, and an acronym it was not hinted with as one it was.
+  const kept=[
+   // A glossary term in the caption is a term it heard, not a mishearing.
+   ["Then the LPA and each side letter set the allocation.","Then the LPAC and each side letter set the allocation."],
+   ["We send it to the LPAC pack today.","We send it to the LPA pack today."],
+   ["We reconcile the NAV to the GL before the close.","We reconcile the LPA to the GL before the close."],
+   // Nor is another acronym: only a mishearing the server lists for the term ("CPAC", "DI") is replaced.
+   ["Then the GP signs the notice.","Then the GL signs the notice."],
+   ["We report the TVPI every quarter.","We report the DPI every quarter."],
+   ["The IR and the DPI go out today.","The IRR and the DPI go out today."],
+   // A plural or a possessive read as the term, or the reverse: the caption's number stays.
+   ["We strike the NAVs before the close.","We strike the NAV before the close."],
+   ["Then the K-1s go to the investors.","Then the K-1 go to the investors."],
+   ["We read the LPAs every year.","We read the LPA every year."],
+   ["We check the NAV's history first.","We check the NAV history first."],
+   ["We send the capital-call notice every month.","We send the capital calls notice every month."],
+   // A term with lower case letters (a process name, a configured name) is written by the reading
+   // as the glossary writes it, or it is a word: a capital appears only where a sentence begins.
+   ["We approve the distribution every month here.","We approve the distributions every month here.",[...TERMS,"Distributions"]],
+   ["We approve the distributions every month here.","We approve the distribution every month here.",[...TERMS,"Distribution"]],
+   ["We book it in Entralia every month.","We book it in entrilia every month."],
+   // Words that spell a term across a sentence break, a comma, a filler or a sign are not one term.
+   ["We send it to the LP. AC members then review it.","We send it to the LPAC members then review it."],
+   ["We send it to the LP, uh, AC members then.","We send it to the LPAC members then."],
+   ["We send it to the LP & AC members then.","We send it to the LPAC members then."],
+   ["Then the L. P. A. C. signs it off.","Then the LPAC signs it off."],
+   // Read word for word beside another word, a word that is part of the term may be spelt with its
+   // neighbour: "K one" read as "K-1 form", "LP AC" as "LPAC pack".
+   ["Then the K one goes out now.","Then the K-1 form goes out now."],
+   ["We send it to the LP AC meets today.","We send it to the LPAC pack meets today."]];
+  for(const [caption,reading,terms] of kept){
+   const h=await page();
+   h.say("live_u1",caption);
+   await h.answer(h.transcribe[0],READ(reading,terms));
+   assert.equal(h.turn().text,caption,JSON.stringify(reading)+" corrects nothing");
+   assert.deepEqual(h.outcomes(),["sent","kept:no_correction"],JSON.stringify(reading));
+  }
+  // An acronym is replaced only when the server lists it: a server that names no mishearings
+  // corrects "kite" but not "CPAC".
+  const h=await page();
+  h.say("live_u1",CAPTION);
+  await h.answer(h.transcribe[0],{text:RESULT,terms:TERMS});
+  assert.equal(h.turn().text,"We run the KYC checks before the CPAC meets and the each wire goes out.");
+  const t=h.page.t;
+  for(const misheard of [undefined,null,[],"CPAC",{LPAC:"CPAC"},{LPAC:[7]}])
+   assert.equal(t.correctCaption("Then the CPAC signs it off.","Then the LPAC signs it off.",TERMS,misheard).reason,"no_correction",JSON.stringify(misheard));
+ });
+ await check("terms side by side, a plural and a word the reading lost beside a term are corrected",async()=>{
+  const used=[
+   // Two terms misheard side by side, each read as one word: each is judged by itself.
+   ["We send the kite CPAC pack to treasury today.","We send the KYC LPAC pack to treasury today.","We send the KYC LPAC pack to treasury today.",2],
+   // A plural read as the term's plural, from a plural caption word.
+   ["And the K ones go to the investors.","And the K-1s go to the investors.","And the K-1s go to the investors.",1],
+   ["We file the kites by Friday.","We file the KYCs by Friday.","We file the KYCs by Friday.",1],
+   // The reading lost a word beside the term: the caption word the server lists as its mishearing is
+   // replaced and the lost word stays. Both real readings of the jargon passage wrote "go to the LPAC, and".
+   ["DI and the DPI go to the CPAC pack, and the K one estimate goes to the CFO","The IR and the DPI go to the LPAC, and the K-1 estimate goes to the CFO.",
+    "DI and the DPI go to the LPAC pack, and the K-1 estimate goes to the CFO",2],
+   ["We run the kite checks before the wire goes out.","We run the KYC before the wire goes out.","We run the KYC checks before the wire goes out.",1],
+   ["We run the kite list checks first.","We run the KYC checks first.","We run the KYC list checks first.",1],
+   // The real A13 reading against a caption of the passage with "kite" and "CPAC pack".
+   [REAL.A13.caption.replace("Calc","Kite").replace("LP AC pack","CPAC pack"),REAL.A13.reading,
+    "We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation. KYC and AML checks run in Investran and the ACH or SWIFT wire is released only after the callback from Treasury. DI and the DPI go to the LPAC pack, and the K-1 estimate goes to the CFO",3]];
+  for(const [caption,reading,turn,count] of used){
+   const h=await page();
+   h.say("live_u1",caption);
+   await h.answer(h.transcribe[0],READ(reading));
+   assert.equal(h.turn().text,turn,JSON.stringify(reading));
+   assert.deepEqual(h.outcomes(),["sent","replaced"],JSON.stringify(reading));
+   assert.equal(h.traces.find(trace=>trace.payload.outcome==="replaced").payload.count,count,JSON.stringify(reading)+": terms corrected");
   }
  });
  await check("a check that takes too long holds the notes six seconds; its later result is a correction applied once",async()=>{

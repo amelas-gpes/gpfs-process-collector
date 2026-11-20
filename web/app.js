@@ -3105,19 +3105,19 @@
   // transcribed again through /api/transcribe, marked as a caption check: the server hints that
   // transcription with its glossary alone (the fund terms, the process name and the configured
   // keywords; never terms from the transcript, which may be the mishearings) and names those
-  // terms in its answer. The turn keeps the caption's own words everywhere except where the
-  // reading has one of those terms in the place of a misheard caption word (correctCaption). A
-  // whole reading is never used: in a real session it fixed "Calc" (KYC) and "K one" (K-1) but
-  // wrote "Investron", "HRSWIFT" and "IR" for words the caption had right, and lost the first
-  // words where its audio began late. The notes capture and the map wait for the check, at most
-  // CAPTION_CHECK_HOLD ms from when the check began, so that they read the corrected wording; a
-  // result after that, while voice is on, is a correction like any other (the capture that
-  // read the caption is not used and the capture is redone). Once voice has ended a result is
-  // used only within that time: the catch-up, Wrap up or a draft then read the transcript as it
-  // stands. Whenever anything is uncertain (no audio, a failed or refused request, a reading
-  // that corrects no term, a caption that changed meanwhile, the closing sequence) the caption
-  // stays exactly as the live transcriber sent it. Nothing is said to the participant about a
-  // check; the raw trace records each outcome without any text.
+  // terms, with the mishearings it lists for them, in its answer. The turn keeps the caption's own
+  // words everywhere except where the reading has one of those terms in the place of a misheard
+  // caption word (correctCaption). A whole reading is never used: in a real session it fixed "K
+  // one" (K-1), but for words the caption had right it wrote "Investron" for "Investran", lost
+  // "pack" after "LPAC" and lost the first words where its audio began late. The notes capture
+  // and the map wait for the check, at most CAPTION_CHECK_HOLD ms from when the check began, so
+  // that they read the corrected wording; a result after that, while voice is on, is a
+  // correction like any other (the capture that read the caption is not used and the capture is
+  // redone). Once voice has ended a result is used only within that time: the catch-up, Wrap up
+  // or a draft then read the transcript as it stands. Whenever anything is uncertain (no audio, a
+  // failed or refused request, a reading that corrects no term, a caption that changed meanwhile,
+  // the closing sequence) the caption stays exactly as the live transcriber sent it. Nothing is
+  // said to the participant about a check; the raw trace records each outcome without any text.
   // At most CAPTION_CHECK_FLIGHT requests at once and CAPTION_CHECK_QUEUE waiting; none is
   // repeated. A caption of fewer than CAPTION_CHECK_WORDS words is left as it is. A caption
   // that goes on after a quiet checkpoint keeps the checked wording of its words so far, and
@@ -3139,8 +3139,9 @@
   // word as written, from its first letter or digit to its last (its punctuation around it is
   // left out), with its place in the text, and its key: NFKC, lower case, its letters and digits
   // only, so that case, punctuation and hyphens do not count ("K-1" and "K1" are one word). "one"
-  // to "ten" are read as digits and "okay" as "ok". Fillers are not words a reading can add or lose.
-  const CAPTION_SAME=new Map([["okay","ok"],..."one two three four five six seven eight nine ten".split(" ").map((word,index)=>[word,String(index+1)])]);
+  // to "ten" are read as digits, "ones" as "1s" ("K ones" for K-1s) and "okay" as "ok". Fillers
+  // are not words a reading can add or lose.
+  const CAPTION_SAME=new Map([["okay","ok"],["ones","1s"],..."one two three four five six seven eight nine ten".split(" ").map((word,index)=>[word,String(index+1)])]);
   const CAPTION_FILLERS=new Set("um umm uh uhm er erm ah eh hm hmm mm mmm mhm".split(" "));
   const captionKey=value=>(value.normalize("NFKC").toLowerCase().match(/[\p{L}\p{N}]+/gu)||[]).map(run=>CAPTION_SAME.get(run)??run).join("");
   function captionTokens(value){
@@ -3295,19 +3296,32 @@
     return {pairs:pairs.reverse(),start:j,end};
   }
   // The terms a check may write: the server's glossary, named in its answer (server.py
-  // caption_check_terms), each with its key and its letters and digits as the glossary writes it.
-  function captionGlossary(terms){
-    const glossary=[];
+  // caption_check_terms), each with its key, its letters and digits as the glossary writes it, and
+  // the keys of the forms the server lists as its mishearings (caption_check_misheard: "CPAC" for
+  // LPAC, "kite" for KYC, "DI" for IRR).
+  function captionGlossary(terms,misheard){
+    const glossary=[],listed=misheard&&typeof misheard==="object"&&!Array.isArray(misheard)?misheard:{};
     for(const term of Array.isArray(terms)?terms.slice(0,60):[]){
       if(typeof term!=="string"||term.length>100)continue;
-      const text=term.normalize("NFKC").trim(),key=captionKey(text);
-      if(key.length>=2&&!glossary.some(entry=>entry.key===key))glossary.push({text,key,letters:captionLetters(text)});
+      const text=term.normalize("NFKC").trim(),key=captionKey(text),forms=Object.prototype.hasOwnProperty.call(listed,term)?listed[term]:null;
+      if(key.length<2||glossary.some(entry=>entry.key===key))continue;
+      const aliases=Array.isArray(forms)?forms.slice(0,10).filter(form=>typeof form==="string"&&form.length<=100).map(captionKey).filter(Boolean):[];
+      glossary.push({text,key,letters:captionLetters(text),aliases});
     }
     return glossary;
   }
   const captionLetters=value=>(value.normalize("NFKC").match(/[\p{L}\p{N}]+/gu)||[]).join("");
   // The same writing, a capital first letter aside: "PEP" and "Pep" are not, "Investran" and "investran" are.
   const sameWriting=(one,other)=>{const a=[...one],b=[...other];return a.length===b.length&&a.length>0&&a[0].toLowerCase()===b[0].toLowerCase()&&a.slice(1).join("")===b.slice(1).join("");};
+  // Whether the word at `at` begins a sentence of `text` (nothing but an opening quote or bracket
+  // since the end of the last sentence).
+  const captionSentenceStart=(text,at)=>/(?:^|[.!?…]["'”’)\]]*)\s*["'“‘(\[]*$/u.test(text.slice(0,at));
+  // Two keys of one word, or of a word and its plural or possessive ("NAVs", "NAV's", "LPAs",
+  // "distribution" and "distributions"): such a difference is the number, not a mishearing.
+  const captionForms=(one,other)=>one===other||one===other+"s"||one===other+"es"||other===one+"s"||other===one+"es";
+  // A word written as an acronym (two capitals or more, then at most a plural s: "GP", "TVPI",
+  // "CPACs"): the live transcriber heard an acronym there.
+  const captionAcronym=token=>/^\p{Lu}{2,}s?$/u.test(captionLetters(token.text).replace(/\p{N}/gu,""));
   // Common words that a check never replaces with a term on its own (rule a of correctCaption).
   // A transcriber hinted with a term can hear a common word that sounds like it as that term, and
   // the participant may well have said the word: "each side letter" read as "ACH side letter".
@@ -3322,20 +3336,32 @@
   // the caption's cost nothing, they come from the padding of the audio). Unless at least
   // CAPTION_CHECK_ALIGNED of the caption's words (by letters) are matched, nothing is used.
   // Between two matched words, a stretch where the two differ (caption words C, reading words R)
-  // is corrected only when R is exactly one glossary term T, written as the glossary writes it (a
-  // capital first letter aside: "pep" is a word, "PEP" the term), T is not already in C, and
-  //  (a) C is one word, and not a common one (CAPTION_COMMON): "kite" or "Calc" becomes KYC; or
-  //  (b) words of C next to each other spell T, in one place only: "LP AC" becomes LPAC, "K one"
-  //      K-1, and the rest of C stays ("LP AC pack" becomes "LPAC pack").
+  // is corrected only when R is exactly one glossary term T or its plural ("K-1s"), written as the
+  // glossary writes it (the first letter may be a capital only where the reading begins a
+  // sentence: "pep" and "distributions" are words, "PEP" and "Distributions" the terms), C does
+  // not have T or a form of it already, and
+  //  (a) C is one word that may become T (captionFix): "kite" or "Calc" becomes KYC; or
+  //  (b) words of C next to each other spell T, in one place only, with nothing but spaces or
+  //      hyphens between them, and none of them a term: "LP AC" becomes LPAC, "K one" K-1, and the
+  //      rest of C stays ("LP AC pack" becomes "LPAC pack"); or
+  //  (c) the reading lost a word beside the term, and just one word of C, one that may become T,
+  //      is a mishearing the server lists for T: "CPAC pack" read as "LPAC" becomes "LPAC pack".
+  // A caption word may become T when it is not a common word (CAPTION_COMMON), not a glossary term
+  // or a form of one (the caption heard a term: "LPA" never becomes LPAC, nor "NAVs" NAV), not
+  // written as an acronym unless it is a mishearing listed for T ("GP", "TVPI" and "IR" stay;
+  // "CPAC" and "DI" do not), and, for a plural, a plural itself. Where each caption word of the
+  // stretch is read as one other word ("kite CPAC" as "KYC LPAC"), and the stretch as a whole is no
+  // term, each word is judged by itself, except one that is part of the term it is read as ("K
+  // one" read as "K-1 form": "K" stays).
   // T replaces just those words, written as the glossary writes it, inside the caption word's own
   // punctuation, with a capital where it begins a sentence. Every other difference keeps the
   // caption's words: other words read differently, words added or lost, and any difference before
   // the caption's first matched word or after its last, where the reading may be cut short by the
   // window or run into other speech.
-  function correctCaption(caption,reading,terms){
+  function correctCaption(caption,reading,terms,misheard){
     const was=captionTokens(caption),now=captionTokens(reading),counts={words_before:was.length,words_after:now.length};
     if(!now.length)return {reason:"empty",counts};
-    const glossary=captionGlossary(terms);
+    const glossary=captionGlossary(terms,misheard);
     if(!glossary.length)return {reason:"no_terms",counts};
     const aligned=alignCaption(was.map(token=>token.key),now.map(token=>token.key));
     if(!aligned)return {reason:"too_long",counts};
@@ -3345,7 +3371,7 @@
     const fixes=[];let anchor=-1;
     pairs.forEach((pair,index)=>{
       if(pair.kind!=="match")return;
-      if(anchor>=0&&index>anchor+1){const fix=captionFix(caption,was,now,pairs.slice(anchor+1,index),glossary);if(fix)fixes.push(fix);}
+      if(anchor>=0&&index>anchor+1)fixes.push(...captionFixes(caption,reading,was,now,pairs.slice(anchor+1,index),glossary));
       anchor=index;
     });
     if(!fixes.length)return {reason:"no_correction",counts};
@@ -3353,28 +3379,56 @@
     for(const fix of fixes.reverse())text=text.slice(0,fix.start)+fix.text+text.slice(fix.end);
     return {text,count:fixes.length,counts};
   }
-  // One stretch between two matched words (see correctCaption): {start, end, text} of the caption
-  // to replace, or null.
-  function captionFix(caption,was,now,stretch,glossary){
+  // The corrections of one stretch between two matched words (see correctCaption): a list of
+  // {start, end, text} of the caption to replace, in the caption's order.
+  function captionFixes(caption,reading,was,now,stretch,glossary){
     const said=stretch.filter(pair=>pair.i>=0).map(pair=>was[pair.i]),read=stretch.filter(pair=>pair.j>=0).map(pair=>now[pair.j]);
-    if(!said.length||!read.length)return null;
-    const term=glossary.find(entry=>entry.key===read.map(token=>token.key).join(""));
-    if(!term||said.some(token=>token.key===term.key)||!sameWriting(read.map(token=>captionLetters(token.text)).join(""),term.letters))return null;
+    if(!said.length||!read.length)return [];
+    const whole=captionFix(caption,reading,said,read,glossary,false);
+    if(whole)return [whole];
+    // Each caption word read as one other word: each pair is a stretch of its own.
+    if(said.length<2||!stretch.every(pair=>pair.kind==="sub"))return [];
+    return stretch.map(pair=>captionFix(caption,reading,[was[pair.i]],[now[pair.j]],glossary,true)).filter(Boolean);
+  }
+  // The caption words `said` read as the words `read` (see correctCaption): {start, end, text} of
+  // the caption to replace, or null. `paired`: one word of a stretch read word for word.
+  function captionFix(caption,reading,said,read,glossary,paired){
+    const key=read.map(token=>token.key).join("");
+    let term=glossary.find(entry=>entry.key===key),plural="";
+    if(!term&&key.endsWith("s")){term=glossary.find(entry=>entry.key+"s"===key);plural="s";}
+    if(!term)return null;
+    const writing=read.map(token=>captionLetters(token.text)).join(""),want=term.letters+plural;
+    if(writing!==want&&!(sameWriting(writing,want)&&captionSentenceStart(reading,read[0].start)))return null;
+    if(said.some(token=>captionForms(token.key,term.key)))return null;
+    const isTerm=token=>glossary.some(entry=>captionForms(token.key,entry.key));
+    const listed=token=>term.aliases.some(alias=>token.key===alias+plural);
+    const may=token=>!CAPTION_COMMON.has(token.key)&&!isTerm(token)&&(!captionAcronym(token)||listed(token))&&(!plural||token.key.endsWith("s"));
     let from=0,to=0;
-    if(said.length===1){if(CAPTION_COMMON.has(said[0].key))return null;}
-    else{
-      const spelt=[];
+    if(said.length===1){
+      if(!may(said[0])||paired&&(term.key.startsWith(said[0].key)||term.key.endsWith(said[0].key)))return null;
+    }else{
+      const target=term.key+plural,spelt=[];
       for(let first=0;first<said.length;first++){
-        let key="";
-        for(let last=first;last<said.length&&key.length<term.key.length;last++){key+=said[last].key;if(key===term.key&&last>first)spelt.push([first,last]);}
+        let joined="";
+        for(let last=first;last<said.length&&joined.length<target.length;last++){joined+=said[last].key;if(joined===target&&last>first)spelt.push([first,last]);}
       }
-      if(spelt.length!==1)return null;
-      [from,to]=spelt[0];
+      if(spelt.length>1)return null;
+      if(spelt.length===1){
+        [from,to]=spelt[0];
+        if(said.slice(from,to+1).some(isTerm))return null;
+        // Only spaces or hyphens between the words: a sentence break, a comma, a dot, a filler or a
+        // sign between them ("the LP. AC members", "LP, uh, AC") is not one term.
+        for(let at=from;at<to;at++)if(!/^[\s\-‐‑–]*$/u.test(caption.slice(said[at].end,said[at+1].start)))return null;
+      }else{
+        const named=said.flatMap((token,index)=>listed(token)&&may(token)?[index]:[]);
+        if(named.length!==1)return null;
+        from=to=named[0];
+      }
     }
-    let text=term.text;
+    let text=term.text+plural;
     // A term in lower case that begins a sentence begins with a capital, as the caption's word did
     // ("waterfall"; a name written in mixed case, such as "eFront", keeps its writing).
-    if(text===text.toLowerCase()&&/^\p{Ll}/u.test(text)&&/^\p{Lu}/u.test(said[from].text)&&/(?:^|[.!?…]["'”’)\]]*)\s*["'“‘(\[]*$/u.test(caption.slice(0,said[from].start)))
+    if(text===text.toLowerCase()&&/^\p{Ll}/u.test(text)&&/^\p{Lu}/u.test(said[from].text)&&captionSentenceStart(caption,said[from].start))
       text=text[0].toUpperCase()+text.slice(1);
     return {start:said[from].start,end:said[to].end,text};
   }
@@ -3389,7 +3443,7 @@
     // After voice a result counts only while the notes still wait for it (see expireCaptionCheck).
     if(!conversationUI.live?.active&&Date.now()-check.started>=CAPTION_CHECK_HOLD)return traceCaptionCheck(check,"discarded",{reason:"late"});
     // The words not yet checked, with the terms the reading corrects (correctCaption).
-    const reading=correctCaption(check.part,typeof result?.text==="string"?result.text:"",result?.terms);
+    const reading=correctCaption(check.part,typeof result?.text==="string"?result.text:"",result?.terms,result?.misheard);
     const candidate=reading.text===undefined?null:check.prefix+reading.text;
     let reason=reading.reason;
     if(!reason){

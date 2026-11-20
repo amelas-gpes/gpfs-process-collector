@@ -3237,9 +3237,9 @@ SPOKEN_FUND_TERMS = {"KYC": ("kite",), "AML": (), "ACH": (), "IRR": ("DI",), "LP
                      "NAV": (), "LPA": (), "GL": (), "DPI": (), "SWIFT": (), "PEP": ()}
 
 
-def term_glossary(configured, context, limit=40, max_chars=900):
-    """Spelling reference for live voice: the fund terms above first, the process name, then the configured
-    keywords. Terms from the participant's captions are left out: they may be the mishearings themselves."""
+def glossary_terms(configured, context):
+    """The fund terms above first, the process name, then the configured keywords, each once. Terms from the
+    participant's captions are left out: they may be the mishearings themselves."""
     name = " ".join(str((context or {}).get("process_name") or "").split())
     # Listed only when it is a short plain term, as dictation hints are (server-side transcription_hints).
     named = [name] if 2 <= len(name) <= 60 and re.fullmatch(r"\w[\w &./'’+-]*", name) else []
@@ -3249,6 +3249,12 @@ def term_glossary(configured, context, limit=40, max_chars=900):
         if key not in seen:
             seen.add(key)
             terms.append(term)
+    return terms
+
+
+def term_glossary(configured, context, limit=40, max_chars=900):
+    """Spelling reference for live voice (glossary_terms), with the misheard forms, within max_chars of JSON."""
+    terms = glossary_terms(configured, context)
     glossary = {"terms": terms[:limit], "often_misheard_as": {term: list(aliases) for term, aliases in SPOKEN_FUND_TERMS.items() if aliases}}
     while glossary["terms"] and len(json.dumps(glossary, ensure_ascii=False)) > max_chars:
         glossary["terms"].pop()
@@ -3274,12 +3280,20 @@ def transcription_purpose(values):
 def caption_check_terms(configured, hints):
     """The spelling hints of a live caption check, which are also the only terms it may correct.
 
-    The glossary of live voice (term_glossary): the fund terms, the process name and the configured
+    The terms of the live glossary (glossary_terms): the fund terms, the process name and the configured
     keywords, never terms from the transcript (a caption, or another check's reading, may hold the
     mishearing). The page sends the process name as its only hint; its first hint is read as that name,
-    under term_glossary's own short-plain-term rule, and nothing else it sends is used."""
+    under the glossary's own short-plain-term rule, and nothing else it sends is used. As many are sent as
+    dictation sends at most (MAX_TRANSCRIPTION_KEYWORDS), with no other limit: with the twelve fund terms and
+    a process name, the first seventeen configured keywords (eighteen without a process name)."""
     named = {"process_name": hints[0]} if hints else None
-    return term_glossary(configured, named, limit=MAX_TRANSCRIPTION_KEYWORDS)["terms"]
+    return glossary_terms(configured, named)[:MAX_TRANSCRIPTION_KEYWORDS]
+
+
+def caption_check_misheard(terms):
+    """The misheard forms SPOKEN_FUND_TERMS lists for the terms of a check ("CPAC" for LPAC), named with its
+    answer: a caption word written as an acronym is replaced only by the term it is listed for."""
+    return {term: list(aliases) for term, aliases in SPOKEN_FUND_TERMS.items() if aliases and term in terms}
 
 
 def _fingerprint(value):
@@ -5438,7 +5452,7 @@ class OpenAIClient:
         """Public capabilities only; configuration is not a live health check."""
         microphone_notice = (
             "Live voice streams microphone audio to the AI service until you mute or stop. "
-            + ("Each finished answer's audio is also sent once more, to correct fund terms and configured names in its caption. "
+            + ("Each finished answer's audio is also sent again, to correct fund terms and configured names in its caption. "
                if self.live_caption_check else "")
             if self.voice_mode == "live" else
             "Reviewed voice records your answer, waits for a pause, then sends the recording to the AI service for transcription. "
@@ -6725,7 +6739,8 @@ class OpenAIClient:
         """Transcribe one recording. hints are names and terms this interview has already used.
 
         glossary: a live caption check's terms (caption_check_terms), which are then the only hints, and
-        which the result names so that the page corrects only those terms. Without it, as dictation."""
+        which the result names, with their listed misheard forms (caption_check_misheard), so that the page
+        corrects only those terms. Without it, as dictation."""
         if glossary is None:
             keywords = list(dict.fromkeys([*self.transcription_keywords, *hints]))[:MAX_TRANSCRIPTION_KEYWORDS]
         else:
@@ -6777,7 +6792,7 @@ class OpenAIClient:
             report('rejected', 'text_limit')
             raise APIError("The transcription exceeds 6,000 characters. Dictate a shorter section or type your answer.", 400) from None
         report('accepted', 'none')
-        return {"text": recognized, **({"terms": glossary} if glossary is not None else {})}
+        return {"text": recognized, **({"terms": glossary, "misheard": caption_check_misheard(glossary)} if glossary is not None else {})}
 
 
 def validated_browser_connect_sources(sources):

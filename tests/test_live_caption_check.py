@@ -49,8 +49,9 @@ class Setting(unittest.TestCase):
         self.assertIs(off["live"]["caption_check"], False)
         reviewed = server.OpenAIClient({"OPENAI_API_KEY": KEY, "VOICE_MODE": "reviewed"}).public_config()
         self.assertNotIn("caption_check", reviewed["live"])
-        # The data notice says the audio of each answer is sent once more; off, it is as before.
-        said = "Each finished answer's audio is also sent once more, to correct fund terms and configured names in its caption."
+        # The data notice says the audio of each answer is sent again; off, it is as before. ("Once more" was
+        # not true: a check given up when its caption changed, and the padding of a grown caption, resend audio.)
+        said = "Each finished answer's audio is also sent again, to correct fund terms and configured names in its caption."
         self.assertIn(said, server.OpenAIClient({"OPENAI_API_KEY": KEY}).public_config()["data_notice"])
         self.assertNotIn(said, off["data_notice"])
         self.assertNotIn(said, reviewed["data_notice"])
@@ -136,8 +137,10 @@ class RecordingRoute(unittest.TestCase):
         self.assertIn("TAP_MAX_MS = 150000", page)
         self.assertLess(44 + (150 + 2 + 1) * 16000 * 2, server.request_body_limit("/api/transcribe"))
 
-    # The glossary of a check with the default fund terms, the process name and the configured "GPFS".
+    # The glossary of a check with the default fund terms, the process name and the configured "GPFS", and the
+    # mishearings SPOKEN_FUND_TERMS lists for them (the only acronyms in a caption a check may replace).
     GLOSSARY = ["KYC", "AML", "ACH", "IRR", "LPAC", "K-1", "NAV", "LPA", "GL", "DPI", "SWIFT", "PEP", "Capital calls", "GPFS"]
+    MISHEARD = {"KYC": ["kite"], "IRR": ["DI"], "LPAC": ["CPAC"], "K-1": ["K one"]}
 
     def test_a_caption_check_is_hinted_with_the_glossary_alone_and_names_it(self):
         audio = page_wav([(n * 37) % 2000 - 1000 for n in range(32000)])
@@ -146,7 +149,7 @@ class RecordingRoute(unittest.TestCase):
         status, _, body, failure = self.post(audio, quote("Capital calls,CPAC,kite,HRSWIFT"), ["live-caption-check"])
         self.assertEqual((status, failure), (200, None), body)
         self.assertEqual(self.keywords(), self.GLOSSARY)
-        self.assertEqual(body, {"text": "We run the KYC checks before the LPAC meets.", "terms": self.GLOSSARY})
+        self.assertEqual(body, {"text": "We run the KYC checks before the LPAC meets.", "terms": self.GLOSSARY, "misheard": self.MISHEARD})
         sent = self.client.request.call_args.args[1]
         self.assertIn(b'filename="answer.wav"\r\nContent-Type: audio/wav\r\n\r\n' + audio + b"\r\n", sent)
         self.assertNotIn(b"CPAC", sent)
@@ -206,6 +209,27 @@ class Glossary(unittest.TestCase):
         # No term taken from what was misheard: the aliases are never terms.
         self.assertNotIn("CPAC", terms)
         self.assertNotIn("kite", terms)
+
+    def test_as_many_configured_keywords_as_the_count_allows(self):
+        # Only the count limits a check, as it limits dictation: not the size of the live glossary's
+        # instructions. With 45-character names only 14 of them fitted that size.
+        for size in (8, 45, 100):
+            many = [f"System {number:02d} " + "x" * (size - 10) for number in range(30)]
+            terms = server.caption_check_terms(many, ["Capital calls"])
+            self.assertEqual(terms, [*server.SPOKEN_FUND_TERMS, "Capital calls", *many[:17]], size)
+            self.assertEqual(server.caption_check_terms(many, []), [*server.SPOKEN_FUND_TERMS, *many[:18]], size)
+        # The live glossary itself is as it was.
+        long = [f"System {number:02d} " + "x" * 35 for number in range(30)]
+        glossary = server.term_glossary(long, {"process_name": "Capital calls"})
+        self.assertLessEqual(len(json.dumps(glossary, ensure_ascii=False)), 900)
+        self.assertEqual(glossary["terms"][:13], [*server.SPOKEN_FUND_TERMS, "Capital calls"])
+        self.assertEqual(glossary["often_misheard_as"], {"KYC": ["kite"], "IRR": ["DI"], "LPAC": ["CPAC"], "K-1": ["K one"]})
+
+    def test_the_misheard_forms_are_named_for_the_terms_sent(self):
+        self.assertEqual(server.caption_check_misheard(server.caption_check_terms((), [])),
+                         {"KYC": ["kite"], "IRR": ["DI"], "LPAC": ["CPAC"], "K-1": ["K one"]})
+        self.assertEqual(server.caption_check_misheard(["KYC", "NAV"]), {"KYC": ["kite"]})
+        self.assertEqual(server.caption_check_misheard([]), {})
 
     def test_the_mark_itself(self):
         self.assertIsNone(server.transcription_purpose(None))

@@ -39,7 +39,8 @@
   // the interviewer's first word cannot be a reply to it: it has not been
   // heard yet. Once one speaker is going on over the other, a pause shorter
   // than TALK_OVER_MS does not end their turn (the interviewer paused 1.6 s
-  // inside one talked-over line in the November 19 stress test).
+  // inside one talked-over line in the November 19 stress test), unless the
+  // participant let the interviewer's line end first: then they reply to it.
   const ANSWER_MS = 1000, TALK_OVER_MS = 2000;
   // Match the trusted startup developer message configured by the server.
   const OPENING_GREETING = 'Greet the participant now in English. Say: "Hi, I\'m here to help you capture how your work gets done. What work would you like to walk through together?" Then pause and listen. Ask only this one question.';
@@ -599,13 +600,18 @@
       // answer, and the participant goes on. Those words are the rest of the
       // answer, not a reply to the line, when the participant paused for less
       // than TALK_OVER_MS and did not stop at all, or began again before the
-      // line could be heard (ANSWER_MS), or is already going on over this line.
+      // line could be heard (ANSWER_MS), or is already going on over this line
+      // and was still speaking when the line, as heard so far, ended. Once the
+      // line has been heard to its end with the participant silent, what they
+      // say next is a reply below it ("Who signs it off?" "The manager."), even
+      // if they had talked over its first words.
       // Without a timeline this cannot be told, and the line ends the answer.
       // An application line always ends it (see below).
       const overLine = role === "user" && words && caption && reply && !reply.line && reply.userCaptionId === caption.id &&
         start !== null && caption.end_ms !== null && reply.start_ms !== null && since(reply.start_ms) &&
         start - caption.end_ms < TALK_OVER_MS &&
-        (caption.over === reply.id || !paused(caption.end_ms,start) || start - reply.start_ms < ANSWER_MS);
+        (caption.over === reply.id && caption.end_ms >= (reply.end_ms ?? reply.start_ms) ||
+          !paused(caption.end_ms,start) || start - reply.start_ms < ANSWER_MS);
       const afterReply = role === "user" && words && caption && reply && !listeningCue(reply.text) && hasWords(reply.text) &&
         reply.userCaptionId === caption.id && since(reply.start_ms) && !overLine;
       const afterLine = role === "user" && words && caption && op.said?.userCaptionId === caption.id && since(op.said.at);
@@ -621,14 +627,24 @@
       const turned = role === "assistant" && caption && (speakerChanged && !overAnswer ||
         (reading ? reading.fresh || caption.line !== reading.line : Boolean(caption.line) && words));
       const newAnswer=role==="user" && words && caption && start!==null && caption.end_ms!==null && start-caption.end_ms>=10000;
-      const newCaption = !caption || turned || afterReply || afterLine || newAnswer ||
-        caption.text.length + delta.length + 1 > 6000; // one more for a joining space (below)
-      if (newCaption) {
+      const ended = !caption || turned || afterReply || afterLine || newAnswer;
+      const full = caption && caption.text.length + delta.length + 1 > 6000; // one more for a joining space (below)
+      if (ended || full) {
+        const previous = caption;
         if (caption) this.caption(op,caption,true);
         if (this.operation !== op) return;
         caption = op.captions[role] = {id:`live_${op.id}_${role}_${++this.sequence}`,role,text:"",start_ms:start,end_ms:end,fragments:[],timer:null,
           userCaptionId:role === "assistant" ? op.captions.user?.id : null,
           authorized:reading ? reading.line.event_id : null,line:reading?.line ?? null,lead:reading?.lead ?? "",whole:false,done:false};
+        // Only the length limit ended the answer: its next caption is the same
+        // answer, still going on over the same line, and the line still
+        // follows it. Otherwise the line would break at the limit too.
+        if (!ended && role === "user") {
+          const over = overLine ? reply.id : previous.over;
+          if (over) caption.over = over;
+          if (reply?.userCaptionId === previous.id) reply.userCaptionId = caption.id;
+          if (op.said?.userCaptionId === previous.id) op.said.userCaptionId = caption.id;
+        }
       } else if (overLine) caption.over = reply.id; // the interviewer caption this answer is going on over
       caption.text = joined(caption.text,delta,paused(caption.end_ms,start));
       op.lastCaptionRole = role;

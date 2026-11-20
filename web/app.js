@@ -314,7 +314,12 @@
   // The command stays in the transcript. A final request for process evidence reads only the account before it.
   let liveStopTurn=null,liveDelivery=null;
   function voiceStopPrefix(value){
-    const last=[...value.matchAll(/[^.!?]+/gu)].filter(match=>match[0].trim()).at(-1);
+    const sentences=[...value.matchAll(/[^.!?]+/gu)].filter(match=>match[0].trim());
+    // A courtesy after the request ("I need to stop now. Thanks.") leaves it standing;
+    // the server sends which sentences are only a courtesy.
+    const signOff=state.config?.agent_team?.stop_sign_off_pattern;
+    if(signOff){const courtesy=new RegExp(signOff,"u");while(sentences.length>1&&courtesy.test(sentences.at(-1)[0].trim().toLowerCase()))sentences.pop();}
+    const last=sentences.at(-1);
     if(!last)return null;
     const end=last[0].trim().toLowerCase().replace(/,?\s+please$/u,"");
     const patterns=state.config?.agent_team?.stop_intent_patterns||[];

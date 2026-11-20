@@ -2500,6 +2500,20 @@ _STOP_RECORDING = re.compile(
 # The browser's immediate microphone cutoff is conservative: it checks a final sentence.
 # The server also recognizes multipart farewells and decides which prior testimony to keep.
 STOP_INTENT_PATTERNS = tuple("^(?:" + pattern.pattern + ")$" for pattern in (_STOP_FIRM, _STOP_SOFT, _STOP_RECORDING))
+# A sentence that is only a courtesy or a goodbye: 'Thanks.', 'Thank you very much!',
+# 'Okay, bye.', 'Cheers.' Said after a request to stop, it leaves the request standing,
+# so the request is read in the sentence before it. The browser skips the same
+# sentences (it is sent this pattern with the stop patterns), so it is written in
+# lower case and in syntax JavaScript reads the same way.
+_STOP_SIGN_OFF_GAP = r"[\s,;:…—–-]"
+_STOP_SIGN_OFF_WORD = (r"(?:okay|ok|alright|all right|great|cheers|sorry|take care|see you(?: (?:later|soon))?"
+                       r"|bye(?:[ -]bye| now| for now)?|goodbye"
+                       r"|(?:thanks|thank you)(?: (?:again|(?:very|so) much|a lot"
+                       r"|for (?:your|the|all (?:your|the)) (?:help|time|patience))){0,2})")
+STOP_SIGN_OFF_PATTERN = (r"^" + _STOP_SIGN_OFF_GAP + r"*" + _STOP_SIGN_OFF_WORD
+                         + r"(?:" + _STOP_SIGN_OFF_GAP + r"+(?:and )?" + _STOP_SIGN_OFF_WORD + r"){0,3}"
+                         + _STOP_SIGN_OFF_GAP + r"*$")
+_STOP_SIGN_OFF = re.compile(STOP_SIGN_OFF_PATTERN, re.IGNORECASE)
 _STOP_SENTENCE_BREAK = re.compile(r"[.!?…;\n]+")
 _STOP_CLAUSE_BREAK = re.compile(r"[,()]|:(?!\d)|\s[—–-]+\s")
 
@@ -2549,8 +2563,16 @@ def stop_request_prefix(text):
         return ""
     # Keep preceding sentences intact when the participant both reports work and asks to stop.
     # Only the final sentence can take this shortcut, so "Stop. Then check the file" stays intact.
+    # A courtesy after it ("... I need to stop now. Thanks.") is passed over: it is
+    # neither testimony nor a new request.
     body = text.rstrip(".!?…;\n ")
-    final = next(reversed(list(_STOP_SENTENCE_BREAK.finditer(body))), None)
+    breaks = list(_STOP_SENTENCE_BREAK.finditer(body))
+    signed_off = False
+    while breaks and _STOP_SIGN_OFF.fullmatch(body[breaks[-1].end():].strip()):
+        body, signed_off = body[:breaks.pop().start()], True
+    if signed_off and stop_request_text(body):
+        return ""
+    final = breaks[-1] if breaks else None
     if final and stop_request_text(body[final.end():]):
         return text[:final.end()].strip()
     return None
@@ -5410,6 +5432,7 @@ class OpenAIClient:
                            "voice_mode": "live_front" if self.voice_mode == "live" else "reviewed_turns",
                            "one_interviewer_voice": True, "review_mode": "on_completion",
                            "stop_intent_patterns": list(STOP_INTENT_PATTERNS),
+                           "stop_sign_off_pattern": STOP_SIGN_OFF_PATTERN,
                            **({"turn_pause_ms": self.voice_pause_ms} if self.voice_mode != "live" else {})},
             "speech": {"enabled": bool(self.key), "model": SPEECH_MODEL,
                        "default_voice": "marin", "voices": AI_VOICES,

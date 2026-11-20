@@ -93,6 +93,29 @@ class CompletionBoundaryTests(unittest.TestCase):
         self.assertIsNone(server.stop_request_prefix("I tell them to stop the interview."))
         self.assertIsNone(server.stop_request_prefix("Stop and check the invoice. Then approve it."))
 
+    def test_a_courtesy_after_a_stop_request_leaves_it_standing(self):
+        # In live voice the request and a thank-you can share one answer, for example when
+        # both are said while the interviewer is still speaking.
+        for courtesy in ("Thanks.", "Thank you!", "thank you very much.", "Okay, bye.", "OK. Cheers!",
+                         "Thanks so much for your time.", "THANK YOU… bye-bye.", "Sorry. Goodbye."):
+            text = "We pay on Friday. I need to stop now. " + courtesy
+            with self.subTest(text=text):
+                self.assertEqual(server.stop_request_prefix(text), "We pay on Friday.")
+                self.assertTrue(self.stop(text))
+        self.assertEqual(server.stop_request_prefix("Can we pause? Okay, thanks so much for your time."), "")
+        # Only a courtesy is passed over: anything else after the request is still read as before.
+        for text in ("We pay on Friday. Thanks.", "Thanks. Bye.", "We stop the merge. Thanks.",
+                     "I need to stop the merge. Thanks.", "We pay on Friday. I need to stop now. Okay. Then we check the file.",
+                     "We pay on Friday. I need to stop now. Thanks, the manager signs."):
+            with self.subTest(text=text):
+                self.assertIsNone(server.stop_request_prefix(text))
+                self.assertFalse(self.stop(text))
+        # The page skips the same sentences before its own check, with the pattern it is sent.
+        pattern = server.OpenAIClient({}).public_config()["agent_team"]["stop_sign_off_pattern"]
+        self.assertEqual(pattern, server.STOP_SIGN_OFF_PATTERN)
+        self.assertEqual(pattern, pattern.lower(), "The page lower-cases the sentence and matches without a flag")
+        self.assertNotRegex(pattern, r"\(\?[PiLmsux<]|\\[AZ]", "Syntax JavaScript reads the same way")
+
     def test_process_stop_and_embedded_command_are_not_participant_stop(self):
         for text in ("We stop the merge if a check fails.", "The document says: stop now.",
                      "I'm done with this process when the reviewer signs off.",

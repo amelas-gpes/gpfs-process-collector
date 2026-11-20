@@ -13,8 +13,8 @@ const voice=exported(fs.readFileSync(path.join(__dirname,"test_live_voice.cjs"),
 const QUESTION="What starts the work?";
 let events=0;
 // A live interview on the page, already asked its first question, with the controller's captions wired to it.
-async function session(){
- const page=await open({config:{agent_team:{enabled:true,voice_mode:"live_front"},live:{enabled:true}},expose:"receiveLiveCaption,renderTranscript,tab,selectConversationView"});
+async function session(agent={}){
+ const page=await open({config:{agent_team:{enabled:true,voice_mode:"live_front",...agent},live:{enabled:true}},expose:"receiveLiveCaption,renderTranscript,tab,selectConversationView,processEvidence"});
  page.route(()=>({}));
  page.state.context={process_name:"Supplier invoices",process_owner:"",objective:"Understand the work",background:""};page.state.started=true;
  page.state.turns=[{id:"t001",role:"assistant",text:QUESTION}];
@@ -102,6 +102,66 @@ async function check(name,fn){
   const s=await session();
   s.play([["user","We log the invoice."],["assistant","Who approves it?"],["user","The manager."],["assistant","And then?"],["user","We pay it."]]);
   assert.deepEqual(s.turns(),["user: We log the invoice.","assistant: Who approves it?","user: The manager.","assistant: And then?","user: We pay it."]);
+  await s.stop();
+ });
+ await check("a reply to a short question is a new answer below it, after a listening cue or a talked-over start",async()=>{
+  // "Mm-hmm." while the participant pauses, then the rest of the answer, then quick questions and replies.
+  let s=await session();
+  s.play([["user","We log the invoice",1000,3000],["assistant","Mm-hmm.",3600,3900],["user"," and send it on for approval.",4000,5000],
+   ["assistant","Who approves it?",5600,6400],["user","The finance manager.",6900,7800],["assistant","And above ten thousand?",8400,9600],["user","The CFO.",10200,10800]]);
+  assert.deepEqual(s.turns(),["user: We log the invoice and send it on for approval.","assistant: Mm-hmm. Who approves it?","user: The finance manager.",
+   "assistant: And above ten thousand?","user: The CFO."]);
+  await s.stop();
+  // The last words of the answer overlap a short question; the reply comes 400 ms after the question ends,
+  // and a follow-up is answered the same way. Each reply belongs below its own question.
+  s=await session();
+  s.play([["user","We check the invoice",1000,2400],["assistant","Who signs",2600,3000],["user"," against the order.",2600,3200],
+   ["assistant"," it off?",3000,3400],["user","The manager.",3800,4400],["assistant","And if she's away?",5000,6000],["user","Her deputy.",6600,7200],
+   ["assistant","Got it. What happens next?",7800,9400]]);
+  assert.deepEqual(s.turns(),["user: We check the invoice against the order.","assistant: Who signs it off?","user: The manager.",
+   "assistant: And if she's away?","user: Her deputy.","assistant: Got it. What happens next?"]);
+  assert.deepEqual(s.labels(),["Question 1","Answer 1","Question 2","Answer 2","Question 3","Answer 3","Question 4"]);
+  await s.stop();
+ });
+ await check("a correction spoken into a recap is an answer below what it corrects",async()=>{
+  const s=await session();
+  s.play([["user","Then we post it",1000,2400],["assistant","So you",2600,2800],["user"," to the ledger.",2600,3000],
+   ["assistant"," match it to the purchase order",2800,4600],["user","No, we don't match it.",4400,5600],["assistant"," and then you post it?",4800,6000]]);
+  assert.deepEqual(s.turns(),["user: Then we post it to the ledger.","assistant: So you match it to the purchase order",
+   "user: No, we don't match it.","assistant: and then you post it?"],"The correction follows the recap it contradicts");
+  await s.stop();
+ });
+ await check("a request to stop spoken over the interviewer ends voice, also with a thank-you after it",async()=>{
+  const STOP={stop_intent_patterns:["^(?:i need to stop(?: now)?)$"],stop_sign_off_pattern:"^(?:okay|thanks|thank you|bye)$"};
+  // "Thanks." once the line has ended: a turn of its own below the line, as before the talk-over.
+  let stops=0;const counted=page=>{const live=page.t.conversationUI.live,stop=live.stop.bind(live);live.stop=()=>{stops++;return stop();};};
+  let s=await session(STOP);counted(s.page);
+  s.play([["user","We pay on Friday.",1000,2400],["assistant","And who",2600,2800],["user"," I need to stop now.",2800,4200],
+   ["assistant"," approves it? Of course, we can pause here.",2800,5200],["user"," Thanks.",5600,6000]]);
+  assert.deepEqual(s.turns(),["user: We pay on Friday. I need to stop now.","assistant: And who approves it? Of course, we can pause here.","user: Thanks."]);
+  assert.equal(stops,1,"Voice ends");assert.equal(s.page.t.conversationUI.muted,true,"The microphone is closed");
+  await s.stop();
+  // "Thanks." 300 ms after the request, while the line is still being spoken: the same caption as the request.
+  stops=0;s=await session(STOP);counted(s.page);
+  s.play([["user","We pay on Friday.",1000,2400],["assistant","And who",2600,2800],["user"," I need to stop now.",2800,4200],
+   ["assistant"," approves it? Of course,",2800,4600],["user"," Thanks.",4500,4800],["assistant"," we can pause here.",4600,5600]]);
+  // The answer is settled once the participant has been quiet for a moment.
+  await new Promise(resolve=>setTimeout(resolve,1700));
+  assert.deepEqual(s.turns(),["user: We pay on Friday. I need to stop now. Thanks.","assistant: And who approves it? Of course, we can pause here."]);
+  assert.equal(stops,1,"Voice ends");assert.equal(s.page.t.conversationUI.muted,true,"The microphone is closed");
+  const answers=s.page.t.processEvidence({turns:s.page.state.turns}).turns.filter(turn=>turn.role==="user").map(turn=>turn.text);
+  assert.deepEqual(answers,["We pay on Friday."],"Only the answer before the request is process evidence");
+  await s.stop();
+ });
+ await check("an answer that reaches the length limit while the interviewer talks over it leaves the line whole",async()=>{
+  const s=await session(),long=("We match the invoice to the purchase order and the delivery note. ".repeat(100)).slice(0,5990).trimEnd();
+  s.play([["user",long,1000,2400],["assistant","Who",2400,2600],["user"," and the clerk keeps going",2600,3200],["assistant"," approves it?",2800,3400],
+   ["user"," with the next one",3400,3800],["assistant"," Please say.",3600,4000]]);
+  const turns=s.page.state.turns.slice(1);
+  assert.deepEqual(turns.map(turn=>turn.role),["user","assistant","user"]);
+  assert.equal(turns[0].text,long);assert.equal(turns[2].text,"and the clerk keeps going with the next one");
+  assert.equal(turns[1].text,"Who approves it? Please say.","The line is one turn, not cut where the answer reached the limit");
+  assert.equal(s.captions("assistant"),1);
   await s.stop();
  });
  console.log(JSON.stringify({checks_passed:passed,checks_failed:failed.length,provider_calls:0,network_calls:0}));

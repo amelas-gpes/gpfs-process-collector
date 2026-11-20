@@ -35,6 +35,12 @@
   // The start of interviewer speech that may be the reading of an application
   // line is held back at most this long while it is too short to tell.
   const READING_HOLD_MS = 1000;
+  // Talk-over (see append). Participant words that begin within ANSWER_MS of
+  // the interviewer's first word cannot be a reply to it: it has not been
+  // heard yet. Once one speaker is going on over the other, a pause shorter
+  // than TALK_OVER_MS does not end their turn (the interviewer paused 1.6 s
+  // inside one talked-over line in the November 19 stress test).
+  const ANSWER_MS = 1000, TALK_OVER_MS = 2000;
   // Match the trusted startup developer message configured by the server.
   const OPENING_GREETING = 'Greet the participant now in English. Say: "Hi, I\'m here to help you capture how your work gets done. What work would you like to walk through together?" Then pause and listen. Ask only this one question.';
   // The same line with the name of the work, when the participant has typed one that is plain words
@@ -589,14 +595,30 @@
       // line still attach to the answer they belong to, and so does a fragment
       // without letters or digits (late punctuation), whatever its timing.
       const since = position => start === null || position === null || start >= position;
+      // Talk-over: the interviewer starts while the participant is still in an
+      // answer, and the participant goes on. Those words are the rest of the
+      // answer, not a reply to the line, when the participant paused for less
+      // than TALK_OVER_MS and did not stop at all, or began again before the
+      // line could be heard (ANSWER_MS), or is already going on over this line.
+      // Without a timeline this cannot be told, and the line ends the answer.
+      // An application line always ends it (see below).
+      const overLine = role === "user" && words && caption && reply && !reply.line && reply.userCaptionId === caption.id &&
+        start !== null && caption.end_ms !== null && reply.start_ms !== null && since(reply.start_ms) &&
+        start - caption.end_ms < TALK_OVER_MS &&
+        (caption.over === reply.id || !paused(caption.end_ms,start) || start - reply.start_ms < ANSWER_MS);
       const afterReply = role === "user" && words && caption && reply && !listeningCue(reply.text) && hasWords(reply.text) &&
-        reply.userCaptionId === caption.id && since(reply.start_ms);
+        reply.userCaptionId === caption.id && since(reply.start_ms) && !overLine;
       const afterLine = role === "user" && words && caption && op.said?.userCaptionId === caption.id && since(op.said.at);
-      // The reading of an application line (see interviewer) has captions of
+      // The line the participant is going on over goes on in its caption too,
+      // unless the interviewer paused for TALK_OVER_MS: what it says is one turn
+      // below the answer, not a turn for each of its words in between. The
+      // reading of an application line (see interviewer) has captions of
       // its own, tagged with the line's event id on every emission. It never
       // extends an earlier interviewer caption, and the interviewer's own words
       // never extend it.
-      const turned = role === "assistant" && caption && (speakerChanged ||
+      const overAnswer = role === "assistant" && caption && !reading && !caption.line && op.captions.user?.over === caption.id &&
+        start !== null && caption.end_ms !== null && start - caption.end_ms < TALK_OVER_MS;
+      const turned = role === "assistant" && caption && (speakerChanged && !overAnswer ||
         (reading ? reading.fresh || caption.line !== reading.line : Boolean(caption.line) && words));
       const newAnswer=role==="user" && words && caption && start!==null && caption.end_ms!==null && start-caption.end_ms>=10000;
       const newCaption = !caption || turned || afterReply || afterLine || newAnswer ||
@@ -607,7 +629,7 @@
         caption = op.captions[role] = {id:`live_${op.id}_${role}_${++this.sequence}`,role,text:"",start_ms:start,end_ms:end,fragments:[],timer:null,
           userCaptionId:role === "assistant" ? op.captions.user?.id : null,
           authorized:reading ? reading.line.event_id : null,line:reading?.line ?? null,lead:reading?.lead ?? "",whole:false,done:false};
-      }
+      } else if (overLine) caption.over = reply.id; // the interviewer caption this answer is going on over
       caption.text = joined(caption.text,delta,paused(caption.end_ms,start));
       op.lastCaptionRole = role;
       caption.end_ms = end; caption.lastDelta=window.performance?.now?.()??Date.now();

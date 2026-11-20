@@ -111,6 +111,31 @@
   const contextContent = (id, kind, text, part, total, replaceKey) =>
     referenceUpdate(JSON.stringify({source_id:id,kind,part,total,...(replaceKey?{document_key:replaceKey}:{}),text}));
 
+  // Caption check (see tapAudio and captionAudio), on only when the application
+  // asks for it. The live transcriber takes no spelling hints, so the page has a
+  // final participant caption transcribed again from the participant's own
+  // microphone audio. The tap keeps the microphone the session already opened
+  // (echo-cancelled) as 16 kHz 16-bit mono for the last TAP_KEEP_MS. A caption's
+  // window is padded by TAP_BEFORE_MS and TAP_AFTER_MS and clamped to what the
+  // buffer holds; inside the caption itself a gap longer than TAP_GAP_MS (muted,
+  // suspended or dropped audio) means the audio cannot be the caption's, and a
+  // caption longer than TAP_MAX_MS is not checked (4.8 MB of audio, well below
+  // the 12 MiB transcription limit). TAP_DRIFT: how fast the audio clock may fall
+  // behind the page clock, 1 ms a second.
+  const TAP_RATE = 16000, TAP_KEEP_MS = 240000, TAP_BEFORE_MS = 400, TAP_AFTER_MS = 600, TAP_GAP_MS = 250, TAP_MAX_MS = 150000;
+  const TAP_MODULE = "/live-voice-tap.js", TAP_DRIFT = .001;
+  // A 16 kHz 16-bit mono PCM WAV file of the samples.
+  function wav(samples) {
+    const bytes = new ArrayBuffer(44 + samples.length * 2), view = new DataView(bytes);
+    const ascii = (offset, value) => {for (let i = 0; i < value.length; i++) view.setUint8(offset + i, value.charCodeAt(i));};
+    ascii(0,"RIFF");view.setUint32(4,36 + samples.length * 2,true);ascii(8,"WAVE");
+    ascii(12,"fmt ");view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);
+    view.setUint32(24,TAP_RATE,true);view.setUint32(28,TAP_RATE * 2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);
+    ascii(36,"data");view.setUint32(40,samples.length * 2,true);
+    for (let i = 0; i < samples.length; i++) view.setInt16(44 + i * 2,samples[i],true);
+    return bytes;
+  }
+
   class CollectorLiveVoice {
     static promptTemplates() {
       return [
@@ -125,6 +150,7 @@
       if (typeof options.request !== "function") throw new TypeError("A same-origin request function is required.");
       this.options = options;
       this.operation = null;
+      this.ending = null;
       this.sequence = 0;
       this.status = "idle";
       this.hide = () => this.stop({immediate:true});
@@ -182,7 +208,7 @@
           playing:false,buffering:false,lastSample:null,lastInput:-Infinity,lastOutput:-Infinity},
         timers:new Set(), finalized:false, stopResolve:null, commentary:new Map(), said:null, lines:[], held:null,
         recalled:new Set(),lookupRequests:new Map(),lookupResponses:new Map(),
-        gate:null, speech:[], metered:[], inputClockLead:0, withheld:[], withheldFragments:0,
+        gate:null, speech:[], metered:[], inputClockLead:0, withheld:[], withheldFragments:0, tap:null, userCaptions:new Map(),
         greeting:Array.isArray(turns) && turns.length === 0 ? {status:"queued",event_id:null,name:spokenProcessName(context)} : null,
         context:{records:new Map(),history:new Map(),pending:new Map(),bytes:0,events:0}};
       this.operation = op;
@@ -653,6 +679,11 @@
     }
     caption(op, caption, final) {
       if (caption.timer && final) {clearTimeout(caption.timer);op.timers.delete(caption.timer);caption.timer=null;}
+      // Caption check: the participant's recent captions, for captionAudio.
+      if (caption.role === "user" && this.options.captionAudio && !op.userCaptions.has(caption.id)) {
+        op.userCaptions.set(caption.id,caption);
+        if (op.userCaptions.size > 16) op.userCaptions.delete(op.userCaptions.keys().next().value);
+      }
       this.notify("onTranscript",{id:caption.id,role:caption.role,text:caption.text,final,
         start_ms:caption.start_ms,end_ms:caption.end_ms,fragments:caption.fragments.slice(),
         ...(caption.authorized ? {authorized:caption.authorized} : {})});
@@ -1072,8 +1103,120 @@
         const float = typeof analyser.getFloatTimeDomainData === "function";
         op.meters.push({source,analyser,role,float,buffer:float ? new Float32Array(analyser.fftSize) : new Uint8Array(analyser.fftSize)});
         if (role === "input") this.gateMeter(op,source);
+        if (role === "input" && this.options.captionAudio) void this.tapAudio(op,source);
         this.scheduleAudioFrame(op);
       } catch { /* Metering is decorative; microphone and voice remain usable. */ }
+    }
+    async tapAudio(op, source) {
+      // The caption check's microphone tap (see captionAudio): an audio worklet
+      // from this origin (web/live-voice-tap.js), else a script processor. It
+      // feeds a muted gain node so that the browser runs it; nothing is heard.
+      // Without either, or below 16 kHz, captions are simply not checked.
+      const context = op.audioContext, rate = context?.sampleRate;
+      const current = () => this.operation === op && !op.closing;
+      let silent = null, node = null, kind = null;
+      try {
+        if (!(rate >= TAP_RATE) || typeof context.createGain !== "function") throw new Error("unavailable");
+        silent = context.createGain();silent.gain.value = 0;silent.connect(context.destination);
+        if (context.audioWorklet?.addModule && typeof window.AudioWorkletNode === "function") {
+          try {
+            await context.audioWorklet.addModule(TAP_MODULE);
+            if (current()) {
+              node = new window.AudioWorkletNode(context,"live-voice-tap",{numberOfInputs:1,numberOfOutputs:1,
+                outputChannelCount:[1],channelCount:1,channelCountMode:"explicit"});
+              node.port.onmessage = event => this.receiveTap(op,event.data?.samples,event.data?.end);
+              kind = "worklet";
+            }
+          } catch {node = null;}
+        }
+        if (!node && current() && typeof context.createScriptProcessor === "function") {
+          node = context.createScriptProcessor(4096,1,1);
+          node.onaudioprocess = event => this.receiveTap(op,event.inputBuffer.getChannelData(0),context.currentTime);
+          kind = "script";
+        }
+        if (!node || !current()) throw new Error("unavailable");
+        source.connect(node);node.connect(silent);
+        op.tap = {node,silent,kind,chunks:[],length:0,offset:null,end:0,step:rate / TAP_RATE,phase:0,sum:0,count:0};
+        const tap = op.tap;
+        // A suspended audio clock stops while the page clock runs on: the next
+        // block sets the clock offset afresh, and no block joins across the pause.
+        this.listenAudio(op,context,"statechange",() => {if (op.tap === tap && context.state !== "running") Object.assign(tap,{offset:null,phase:0,sum:0,count:0});});
+        trace("live.caption_tap",{state:"ready",kind});
+      } catch {
+        try {node?.disconnect();silent?.disconnect();} catch { /* Already disconnected. */ }
+        if (this.operation === op) trace("live.caption_tap",{state:"unavailable"});
+      }
+    }
+    releaseTap(op) {
+      const tap = op.tap;
+      if (!tap) return;
+      op.tap = null;
+      try {
+        if (tap.node.port) tap.node.port.onmessage = null;
+        tap.node.onaudioprocess = null;tap.node.disconnect();tap.silent.disconnect();
+      } catch { /* The audio context is closing. */ }
+    }
+    receiveTap(op, samples, end) {
+      // One block of microphone audio from the tap. Nothing is kept while the
+      // participant has muted the microphone, or once voice is stopping.
+      const tap = op.tap;
+      if (!tap || this.operation !== op || !ArrayBuffer.isView(samples) || !samples.length || !Number.isFinite(end)) return;
+      if (op.muted || op.inputClosed || op.closing) {Object.assign(tap,{phase:0,sum:0,count:0});return;}
+      // The audio clock (end, seconds) against the page clock: a block reaches
+      // the page some time after its end, never before it, so the smallest
+      // difference seen is the offset. It may grow by TAP_DRIFT.
+      const now = window.performance?.now?.() ?? Date.now(), endMs = end * 1000, seen = now - endMs;
+      tap.offset = tap.offset === null ? seen : Math.min(seen,tap.offset + Math.max(0,endMs - tap.end) * TAP_DRIFT);
+      tap.end = endMs;
+      // Down to 16 kHz by averaging the samples of each output period.
+      const out = new Int16Array(Math.ceil(samples.length / tap.step) + 1);
+      let count = 0;
+      for (let i = 0; i < samples.length; i++) {
+        tap.sum += samples[i];tap.count++;tap.phase++;
+        if (tap.phase >= tap.step) {
+          tap.phase -= tap.step;
+          out[count++] = Math.round(Math.max(-1,Math.min(1,tap.sum / tap.count)) * 32767);
+          tap.sum = 0;tap.count = 0;
+        }
+      }
+      if (!count) return;
+      const to = endMs + tap.offset, chunk = {from:to - count * 1000 / TAP_RATE,to,samples:out.slice(0,count)};
+      tap.chunks.push(chunk);tap.length += count;
+      // Bounded: the last TAP_KEEP_MS, by time and by size.
+      while (tap.chunks.length > 1 && (to - tap.chunks[0].to > TAP_KEEP_MS || tap.length > TAP_KEEP_MS * TAP_RATE / 1000))
+        tap.length -= tap.chunks.shift().samples.length;
+    }
+    captionAudio(id) {
+      // The participant's own microphone audio of one participant caption, as
+      // a 16 kHz 16-bit mono WAV ({wav, duration_ms}), so that the application
+      // can have it transcribed again with spelling hints. The caption's
+      // session-timeline window is mapped to the page clock as the speech gate
+      // maps it (see heardSpeech). null whenever the audio cannot be trusted to
+      // be that caption's: no tap, no timestamps, a window the buffer does not
+      // hold, audio missing inside it, or a caption too long. Also answers while
+      // voice is ending, for the captions finalized then (see cleanup).
+      const op = this.operation || this.ending, tap = op?.tap, caption = op?.userCaptions.get(id);
+      if (!tap?.chunks.length || !caption || !Number.isFinite(op.sessionStartedAt)) return null;
+      const start = caption.start_ms, end = caption.end_ms;
+      if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end < start || end - start > TAP_MAX_MS) return null;
+      const first = op.sessionStartedAt + start - op.inputClockLead, last = op.sessionStartedAt + end - op.inputClockLead;
+      // A caption cannot describe audio heard after its last words arrived.
+      if (!Number.isFinite(caption.lastDelta) || last > caption.lastDelta) return null;
+      const from = first - TAP_BEFORE_MS, to = last + TAP_AFTER_MS, parts = [];
+      let reach = null, length = 0;
+      for (const chunk of tap.chunks) {
+        if (chunk.to <= from || chunk.from >= to) continue;
+        if (reach === null ? chunk.from > first + TAP_GAP_MS : chunk.from - reach > TAP_GAP_MS && reach < last && chunk.from > first) return null;
+        const skip = Math.max(0,Math.round((from - chunk.from) * TAP_RATE / 1000));
+        const keep = Math.min(chunk.samples.length,Math.round((to - chunk.from) * TAP_RATE / 1000));
+        if (keep > skip) {parts.push(chunk.samples.subarray(skip,keep));length += keep - skip;}
+        reach = Math.max(reach ?? chunk.to,chunk.to);
+      }
+      if (reach === null || reach < last - TAP_GAP_MS || !length) return null;
+      const samples = new Int16Array(length);
+      let at = 0;
+      for (const part of parts) {samples.set(part,at);at += part.length;}
+      return {wav:wav(samples),duration_ms:Math.round(length * 1000 / TAP_RATE)};
     }
     gateMeter(op, source) {
       // A second, long analyser on the microphone, for the speech gate alone
@@ -1129,7 +1272,10 @@
       for (const spoken of op.commentary.values()) spoken.resolve({status:"cancelled",reason:"session_closed"});
       op.commentary.clear();
       op.readyReject?.(new DOMException("Cancelled","AbortError"));
-      for (const caption of Object.values(op.captions)) this.caption(op,caption,true);
+      // The audio of a caption finalized here can still be asked for (captionAudio).
+      this.ending = op;
+      try {for (const caption of Object.values(op.captions)) this.caption(op,caption,true);}
+      finally {this.ending = null;this.releaseTap(op);}
       op.timers.forEach(clearTimeout);op.timers.clear();
       this.cancelAudioFrame(op);
       op.audioHandlers.forEach(remove=>remove());op.audioHandlers = [];

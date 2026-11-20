@@ -3095,7 +3095,8 @@ def load_settings():
     allowed = {"OPENAI_API_KEY", "INTERVIEW_MODEL", "DRAFT_MODEL", "DRAFT_AUDIT_MODEL", "DRAFT_COVERAGE_MODEL", "WORKFLOW_AUDIT_MODEL", "TRANSCRIPTION_MODEL", "TRANSCRIPTION_KEYWORDS",
                "COLLECTOR_DEPLOYMENT_MODE", "KNOWLEDGE_LOCAL_OWNER", "AGENT_INTERVIEW_MODEL", "COLLECTOR_MODEL_REASONING", "TRANSCRIPTION_LANGUAGE", "INTERVIEW_TOKEN_CAP", "DAILY_TOKEN_CAP",
                "AGENT_COVERAGE_MODEL", "AGENT_PROCESS_MODEL", "AGENT_DOCUMENT_MODEL", "VOICE_MODE", "VOICE_PAUSE_MS", "RAW_TRACE_MODE",
-               "COLLECTOR_PROVIDER_SLOTS", "COLLECTOR_MAP_WORKERS", "COLLECTOR_NOTES_WORKERS", "DRAFT_PREPARE", "COLLECTOR_FAST_TIER", "INTERVIEW_MEMORY_ENABLED"}
+               "COLLECTOR_PROVIDER_SLOTS", "COLLECTOR_MAP_WORKERS", "COLLECTOR_NOTES_WORKERS", "DRAFT_PREPARE", "COLLECTOR_FAST_TIER", "INTERVIEW_MEMORY_ENABLED",
+               "LIVE_CAPTION_CHECK"}
     for path in (APP_DIR / ".env.local",):
         if path.is_file() and not path.is_symlink():
             for number, line in enumerate(read_settings_text(path).splitlines(), 1):
@@ -3138,6 +3139,22 @@ def reviewed_pause_ms(value):
     except (TypeError, ValueError):
         return REVIEWED_PAUSE_MS
     return min(max(number, REVIEWED_PAUSE_RANGE_MS[0]), REVIEWED_PAUSE_RANGE_MS[1])
+
+
+def live_caption_check(value):
+    """LIVE_CAPTION_CHECK: on (the default) or off.
+
+    The live transcriber takes no spelling hints ("KYC" was captioned "kite"). With the check on, the
+    page sends the participant's own microphone audio of each final caption to /api/transcribe with the
+    spelling hints dictation sends, and a plausible result replaces the caption's text. Off keeps the
+    live captions exactly as the provider sends them.
+    """
+    setting = str(value or "on").strip().lower()
+    if setting in ("on", "1", "true", "yes"):
+        return True
+    if setting in ("off", "0", "false", "no"):
+        return False
+    raise SettingsError("LIVE_CAPTION_CHECK must be on or off.")
 
 
 def bounded_text(value, name, limit=6000, required=False):
@@ -5382,6 +5399,7 @@ class OpenAIClient:
         self.interview_memory_enabled = str(settings.get("INTERVIEW_MEMORY_ENABLED", "1")).strip().lower() not in ("0","false","off")
         self.voice_mode = "reviewed" if mode in ("reviewed", "reviewed_turns", "controlled") else "live"
         self.voice_pause_ms = reviewed_pause_ms(settings.get("VOICE_PAUSE_MS"))
+        self.live_caption_check = live_caption_check(settings.get("LIVE_CAPTION_CHECK"))
         self.coordinator = interview_orchestrator.Coordinator(self, sys.modules[__name__])
         # Only a running server or an explicit test supplies a diagnostic sink.
         # Standalone clients must not write into the user's live workspace.
@@ -5391,6 +5409,8 @@ class OpenAIClient:
         """Public capabilities only; configuration is not a live health check."""
         microphone_notice = (
             "Live voice streams microphone audio to the AI service until you mute or stop. "
+            + ("Each finished answer's audio is also sent once more for transcription with spelling hints. "
+               if self.live_caption_check else "")
             if self.voice_mode == "live" else
             "Reviewed voice records your answer, waits for a pause, then sends the recording to the AI service for transcription. "
         )
@@ -5419,7 +5439,10 @@ class OpenAIClient:
                      "voice": "marin", "provider": "openai",
                      "transport": "gpt-live-webrtc" if self.voice_mode == "live" else "reviewed-turns",
                      # Lets the page say before the click that voice will resume with condensed history.
-                     **({"history_limit": {"messages": LIVE_HISTORY_MESSAGES, "bytes": LIVE_HISTORY_BYTES}}
+                     **({"history_limit": {"messages": LIVE_HISTORY_MESSAGES, "bytes": LIVE_HISTORY_BYTES},
+                         # LIVE_CAPTION_CHECK: the page has each final participant caption transcribed
+                         # again from its own audio, with the dictation hints (web/app.js checkLiveCaption).
+                         "caption_check": self.live_caption_check}
                         if self.voice_mode == "live" else {})},
             "data_notice": (
                 "Submitted interview text and recorded answer audio are sent to the AI service. "
@@ -7516,6 +7539,7 @@ STATIC_FILES = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/workflow-walkthrough.css": ("workflow-walkthrough.css", "text/css; charset=utf-8"),
                  "/vendor/elk.bundled.js": ("vendor/elk.bundled.js", "text/javascript; charset=utf-8"),
                  "/live-voice.js": ("live-voice.js", "text/javascript; charset=utf-8"),
+                 "/live-voice-tap.js": ("live-voice-tap.js", "text/javascript; charset=utf-8"),
                  "/controlled-voice.js": ("controlled-voice.js", "text/javascript; charset=utf-8"),
                  "/concurrent-interview.js": ("concurrent-interview.js", "text/javascript; charset=utf-8"),
                  "/agent-team.js": ("agent-team.js", "text/javascript; charset=utf-8"),

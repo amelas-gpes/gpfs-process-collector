@@ -15,8 +15,8 @@ WEB_FILES = (
     'assets/gpfs-logo.svg', 'assets/gpfs-symbol.svg', 'component-library.css', 'component-library.js',
     'concurrent-interview.js', 'context-help.js', 'controlled-voice.js', 'document-intake.js', 'documents.css',
     'documents.js', 'gpfs-presence.css', 'gpfs-presence.js', 'index.html', 'knowledge-ui.css', 'knowledge-ui.js',
-    'live-voice.js', 'log-viewer.js', 'raw-trace.js', 'settings-ui.js', 'settings.css', 'style.css', 'theme.js',
-    'vendor/elk.bundled.js', 'workflow-component-art.js', 'workflow-components.js', 'workflow-exports.js',
+    'live-voice-tap.js', 'live-voice.js', 'log-viewer.js', 'raw-trace.js', 'settings-ui.js', 'settings.css', 'style.css',
+    'theme.js', 'vendor/elk.bundled.js', 'workflow-component-art.js', 'workflow-components.js', 'workflow-exports.js',
     'workflow-graph.js', 'workflow-layout-worker.js', 'workflow-stage.css', 'workflow-stage.js',
     'workflow-walkthrough.css', 'workflow-walkthrough.js',
 )

@@ -407,6 +407,21 @@
     </section>
   </main>
   <section id="printed-workflow" aria-label="Printed workflow"></section>
+  <dialog id="voice-start-dialog" class="voice-start-dialog" aria-labelledby="voice-start-title" aria-describedby="voice-start-description">
+    <div class="voice-start-intro">
+      <div class="voice-start-art" aria-hidden="true">
+        <span class="voice-start-paper" data-icon="lines"></span><span class="voice-start-clock"></span>
+      </div>
+      <button type="button" id="voice-start-close" class="dialog-close" aria-label="Close"></button>
+      <h2 id="voice-start-title">Save time on your interview</h2>
+      <p id="voice-start-description">Have a checklist, spreadsheet, or screenshot? Share it first so we can skip the questions it already answers.</p>
+    </div>
+    <div class="voice-start-actions">
+      <button type="button" id="voice-start-documents" class="button primary" data-icon="upload" aria-description="Choose files. Voice starts when the interviewer has read them." autofocus>I have documents</button>
+      <button type="button" id="voice-start-interview" class="text-button" data-icon-end="arrow-right" aria-description="Start talking without adding files.">Go to interview</button>
+    </div>
+    <input type="file" id="voice-start-files" multiple hidden>
+  </dialog>
   <dialog id="connection-editor" class="connection-dialog" aria-labelledby="connection-editor-title">
     <form id="connection-form">
       <h2 id="connection-editor-title">Add connection</h2>

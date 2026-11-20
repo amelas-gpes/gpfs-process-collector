@@ -1255,7 +1255,24 @@ dialog.inspector:not([open]) { pointer-events: none; }
 .connection-row { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: 4px 12px; margin: 0; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .connection-description { display: grid; gap: 2px; overflow-wrap: anywhere; }
 .connection-description span { color: var(--muted); font-size:var(--text-md); }
-.connection-dialog { width: min(480px,calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow: auto; padding: 22px; border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--shadow-lg); }
+.connection-dialog, .voice-start-dialog { width: min(480px,calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow: auto; padding: 22px; border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--shadow-lg); }
+.voice-start-dialog { --inset: clamp(22px, 5vw, 32px); width: min(490px, calc(100vw - 28px)); padding: 0; }
+.voice-start-intro { position: relative; padding: 26px var(--inset) 24px; }
+.voice-start-intro .dialog-close { position: absolute; top: 14px; right: 14px; background: transparent; }
+.voice-start-intro .dialog-close:hover { background: var(--surface-3); }
+.voice-start-art { position: relative; width: 53px; height: 48px; margin-bottom: 17px; }
+.voice-start-paper { position: absolute; inset: 2px auto auto 5px; display: grid; place-items: center; width: 29px; height: 36px; rotate: -9deg; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--muted); box-shadow: -4px 3px 0 var(--warm-soft), -5px 4px 0 var(--warm-line); --icon-size: 15px; }
+.voice-start-clock { position: absolute; right: 3px; bottom: 1px; width: 28px; height: 28px; border: 2px solid var(--copper); border-radius: 50%; background: var(--surface); }
+.voice-start-clock::after { content: ""; position: absolute; left: 10px; top: 4px; width: 7px; height: 9px; border: solid var(--ink); border-width: 0 0 2px 2px; border-radius: 0 0 0 2px; }
+.voice-start-dialog h2 { margin: 0; font-size: clamp(27px, 4vw, 32px); line-height: 1.15; letter-spacing: -.025em; }
+.voice-start-dialog p { margin: 10px 0 0; color: var(--ink-2); font-size: 16px; line-height: 1.55; }
+.voice-start-actions { display: flex; align-items: center; gap: 20px; padding: 16px var(--inset); border-top: 1px solid var(--line); background: var(--surface-2); }
+.voice-start-actions button { min-height: 44px; }
+.voice-start-actions .text-button { color: var(--ink-2); }
+@media (max-width: 440px) {
+  .voice-start-actions { flex-direction: column; align-items: stretch; gap: 2px; padding-block: 14px 8px; }
+  .voice-start-actions .text-button { justify-content: center; }
+}
 .connection-dialog h2 { margin: 0 0 14px; }
 .connection-dialog #connection-source-choice { display: flex; align-items: baseline; gap: 8px; }
 .connection-dialog-actions { display: flex; justify-content: end; gap: 10px; margin-top: 20px; }

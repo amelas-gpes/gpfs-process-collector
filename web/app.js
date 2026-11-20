@@ -626,6 +626,7 @@
     return request("/api/voice-session",{voice:voice.id},{signal,timeout:requestTimeout("voice_session",60000)});
   }
   let documentIntake=null,intakeWasLive=false,lastDiscussedFile=null,intakeAnnouncement=null;
+  let pendingFileVoiceStart=null;
   const documentReading={generation:-1,omitted:0,sent:null,carried:0,evidence:null,phase:undefined};
   const intakeActive=()=>Boolean(documentIntake?.active);
   let documentEvidenceDialog=null;
@@ -927,6 +928,7 @@
     if(name==="review"&&(state.recording||state.requestingMic)){notice("Finish or discard the dictation before opening Review.");return;}
     if(name==="review"&&(conversationUI.live?.active||conversationUI.status==="closing")){notice("Stop talking before you open Review.");return;}
     if(name==="review"&&sourceOrigin?.review)clearSourceReturn();
+    if(name!=="interview")cancelFileVoiceStart();
     if(name!=="interview")setTranscriptExport(false,false);
     $("interview-view").hidden = name !== "interview";
     $("review-view").hidden = name !== "review";
@@ -2541,6 +2543,7 @@
   }
   function selectConversationView(view, focus=false) {
     if (!["voice","transcript","workflow"].includes(view)) return;
+    if(view!=="voice")cancelFileVoiceStart();
     if(sourceOrigin&&!sourceOrigin.review&&view!=="transcript"&&view===sourceOrigin.view)clearSourceReturn();
     if(view!=="transcript")setTranscriptExport(false,false);
     const dockFocus=!focus&&$("conversation-dock")?.contains(document.activeElement)?document.activeElement:null;
@@ -2642,13 +2645,17 @@
     if(intakeActive())for(const id of ["start-live","type-instead","send-answer","record-answer","skip-question","final-check","generate-draft","regenerate-draft","retry-question","preview-voice"])if($(id))$(id).disabled=true;
     if(returnFromVoice)$(transcript?"answer-text":"start-live").focus({preventScroll:true});
   }
-  function ensureConversation() {
-    if(state.started)return true;
+  function validStartingContext() {
     if(!$("objective").value.trim()) {revealContext();$("objective").reportValidity();$("objective").focus();return false;}
     // The goal and the background go with every request and are locked once the interview starts,
     // so an over-long one stops the start here, with the field opened and the reason beside it.
     const tooLong=CONTEXT_FIELDS.find(fieldLimitProblem);
     if(tooLong){revealContext();showFieldLimit(tooLong);$(tooLong.id).focus();notice(fieldLimitProblem(tooLong),true,"limit");return false;}
+    return true;
+  }
+  function ensureConversation() {
+    if(state.started)return true;
+    if(!validStartingContext())return false;
     state.context=readContext();state.started=true;state.example=false;
     rawTrace("interview.started", {}, () => ({context:state.context}));
     recordInput();updateControls();return true;
@@ -2779,7 +2786,8 @@
       return parts.length?file.name+": "+parts.join(" "):"";
     }).filter(Boolean).join(" "):"";
     $("document-intake-title").textContent=title;
-    const description=[detail,progress,intakeWasLive?"Your microphone is off.":""].filter(Boolean).join(" ");
+    const voiceHint=pendingFileVoiceStart&&phase!=="error"?"Voice will start when your files are ready.":intakeWasLive?"Your microphone is off.":"";
+    const description=[detail,progress,voiceHint].filter(Boolean).join(" ");
     $("document-intake-detail").textContent=description;$("document-intake-detail").hidden=!description;
     const stages=["uploading","reviewing","baseline","question"],index=stages.indexOf(phase);
     ["upload","review","baseline","question"].forEach((name,i)=>{const step=$("intake-step-"+name);step?.classList.toggle("complete",i<index);if(step){if(i===index)step.setAttribute("aria-current","step");else step.removeAttribute("aria-current");}});
@@ -2830,8 +2838,14 @@
     if(!window.CollectorDocumentIntake)return null;
     return new window.CollectorDocumentIntake({
       onStatus:intake=>{
+        if(intake.phase==="idle")pendingFileVoiceStart=null;
         updateControls();if(!intakeActive())$("current-question").hidden=!state.turns.some(turn=>turn.role==="assistant"&&!turn.document_event);
         if(intake?.phase==="ready")backgroundTitle("File review ready");
+        if(intake.phase==="ready"&&pendingFileVoiceStart){
+          const {question}=pendingFileVoiceStart;
+          pendingFileVoiceStart=null;
+          if(question)startVoiceFromFiles(question);
+        }
         if(intake?.phase==="ready"&&conversationUI.view==="transcript")requestAnimationFrame(()=>{
           scrollConversation();
           const focus=document.activeElement;
@@ -2920,7 +2934,8 @@
         if(!$("review-view").hidden)notice("File review finished. Open Interview for the follow-up, or update the draft here.",false,"files",true);
         const cue=intakeWasLive?" Your microphone is off. Select Continue talking to answer.":"";
         if(cue)notice(cue.trim(),false,"voice",true);
-        announceQuestion(result.question,(intakeWasLive||$("speak-questions").checked)&&canSpeakChoice()&&speak(result.question+cue,true,state.turns.at(-1)?.id));
+        if(pendingFileVoiceStart)pendingFileVoiceStart.question=result;
+        announceQuestion(result.question,!pendingFileVoiceStart&&(intakeWasLive||$("speak-questions").checked)&&canSpeakChoice()&&speak(result.question+cue,true,state.turns.at(-1)?.id));
       },
       onEmpty:({reason}={})=>{stopSpeaking();const messages={empty:"No new file was added. Your notes and workflow are unchanged.",parked:"The new files are saved for later. Your notes and workflow are unchanged.",paused:"File review is paused. Continue it in Assets when you want to read more."};appendDocumentMessage(messages[reason]||"There is no new readable process evidence to add. Check Assets for the status of each file.",{id:"doc_intake"});}
     });
@@ -3026,7 +3041,27 @@
     if(!state.example)return false;
     notice("This is a fictional example. Choose Start your own to describe your process.");return true;
   }
-  async function startLiveConversation() {
+  function cancelFileVoiceStart() {
+    if(!pendingFileVoiceStart)return;
+    pendingFileVoiceStart=null;
+    updateDocumentIntakeUI();
+  }
+  function startVoiceFromFiles(fileQuestion) {
+    if(document.hidden||$("interview-view").hidden||conversationUI.view!=="voice"||topModal()||$("start-live").disabled){
+      notice("Your microphone is off. Return to Voice to start talking when you’re ready.",false,"voice",true);
+      return;
+    }
+    void startLiveConversation(fileQuestion);
+  }
+  function requestVoiceStart() {
+    if(state.started||state.turns.length||conversationUI.typing||conversationUI.view!=="voice"||
+       !documentController||!documentIntake||state.config?.documents?.enabled===false||$("welcome-upload").disabled||currentDocumentState()?.documents?.length){
+      void startLiveConversation();
+      return;
+    }
+    if(validStartingContext())$("voice-start-dialog").showModal();
+  }
+  async function startLiveConversation(fileQuestion) {
     if(exampleIsReadOnly())return;
     if(intakeActive()||state.busy||state.recording||state.transcribing||state.requestingMic||conversationUI.live?.active)return;
     if(!ensureConversation())return;
@@ -3036,7 +3071,9 @@
     // connect. It is paused, not dropped: voice may end without a word, and the account is then the same.
     cancelDraftAhead(false);
     stopSpeaking(); voiceEnded=false; conversationUI.typing=false; conversationUI.muted=false;
-    if(state.config?.agent_team?.voice_mode==="live_front")concurrentInterview?.reset({handoff:true});
+    // A file's question can arrive before its notes and map. Keep that work running
+    // while voice connects; the participant's first spoken answer takes over below.
+    if(state.config?.agent_team?.voice_mode==="live_front"&&!fileQuestion)concurrentInterview?.reset({handoff:true});
     if(!conversationUI.live) {
       if(state.config?.agent_team?.enabled&&state.config.agent_team.voice_mode!=="live_front"){
         if(!window.CollectorControlledVoice){notice("Voice couldn’t start. Refresh the page, or type instead.",true);return;}
@@ -3122,11 +3159,14 @@
     conversationUI.liveCoverageKey=null;conversationUI.liveCondensed=false;conversationUI.liveDocumentsCondensed=false;
     const chosen=selectedNaturalVoice();
     const topicReviews = fileTopicReviewContext();
+    if(fileQuestion)live.rememberUnplayed?.(fileQuestion);
     await live.start({...(chosen&&state.config?.agent_team?.voice_mode==="live_front"?{voice:chosen.id}:{}),context:clone(state.context),turns:clone(state.turns.filter(turn=>!turn.document_event)),document_scope:currentDocumentState()?.scope,notes:liveResumeNotes(),...(topicReviews.length ? {file_topic_reviews:topicReviews} : {})});
     if(generation===state.generation&&conversationUI.live===live){
       syncLiveCoverage();
       if(live.connected && live.say && state.closure.asked && !state.closure.confirmed && coverageVerified() && pendingFinalCheck?.line){
         authorizeLiveUtterance(pendingFinalCheck.line,{repeat:true});
+      }else if(live.connected&&live.say&&fileQuestion&&state.turns.at(-1)?.text===fileQuestion.question){
+        authorizeLiveUtterance(fileQuestion.question,{repeat:true});
       }
     }
     // The new session is seeded once with the finalized document scope on the
@@ -3691,6 +3731,7 @@
     conversationUI.captions.set(key,ids);state.version++;state.dirty=true;
     renderTranscript(true);
     if(caption.role==="user"){
+      if(concurrentInterview?.token)concurrentInterview.reset({handoff:true});
       previewVoiceTopics(state.turns.find(t=>t.id===ids.at(-1)));
       // No notes update is sent for caption fragments: a speech model fed a
       // stream of silent context mid-answer drifts into voicing the
@@ -8081,6 +8122,7 @@
     if (!response.ok) throw Error("Couldn’t stop background work. Try Start over again.");
   }
   function clearState(context = null) {
+    if($("voice-start-dialog")?.open)$("voice-start-dialog").close();
     rawTrace("interview.clearing", {turn_count:state.turns.length, generation:state.generation});
     state.historicalDraft=false;owedFiles=null;renderOwedFiles();state.draftUndo=[];state.draftRedo=[];
     state.savedClosure=null;state.resumedReviewAck=null;state.resumeFileIntake=null;state.previousMap=null;state.mapCorrections=[];state.dictatedAnswer=null;
@@ -8453,7 +8495,13 @@
     $("document-intake-assets").addEventListener("click",()=>openDocumentAssets());
     $("document-intake-retry").addEventListener("click",()=>{documentIntake?.retry();documentController?.refresh();});
     $("resume-file-followup")?.addEventListener("click",resumeFileFollowup);
-    $("document-intake-continue").addEventListener("click",()=>{stopSpeaking();for(const file of intakeSnapshot().documents)documentQuestionsHandled.add(`${file.id}_${file.analysis?.intent_version||0}`);documentIntake?.reset();renderTranscript();notice("Continuing with the current capture. Files remain in Assets for review.");});
+    $("document-intake-continue").addEventListener("click",()=>{
+      const startVoice=Boolean(pendingFileVoiceStart);
+      stopSpeaking();
+      for(const file of intakeSnapshot().documents)documentQuestionsHandled.add(`${file.id}_${file.analysis?.intent_version||0}`);
+      documentIntake?.reset();renderTranscript();notice("Continuing with the current capture. Files remain in Assets for review.");
+      if(startVoice)startVoiceFromFiles();
+    });
     initTranscriptTools();
     for(const kind of ["transcript","report"]){
       $(kind+"-search").addEventListener("input",()=>{readingUI[kind].index=0;refreshReadingSearch(kind);});
@@ -8498,7 +8546,21 @@
     $("memo-sheet").addEventListener("close",()=>{if($("memo-sheet-body")?.contains($("foundation-dialog"))&&$("foundation-dialog").open)closeFoundationTopic(false);if(memoRestoreFocus)$("open-memo").focus({preventScroll:true});});
     $("jump-latest").addEventListener("click",()=>{scrollConversation();$("jump-latest").hidden=true;});
     $("conversation-scroll").addEventListener("scroll",updateConversationScroll);
-    $("start-live").addEventListener("click",startLiveConversation);
+    const voiceStartDialog=$("voice-start-dialog"),voiceStartFiles=$("voice-start-files");
+    $("start-live").addEventListener("click",requestVoiceStart);
+    $("voice-start-close").addEventListener("click",()=>voiceStartDialog.close());
+    $("voice-start-interview").addEventListener("click",()=>{
+      voiceStartDialog.close();
+      if(!$("start-live").disabled)void startLiveConversation();
+    });
+    $("voice-start-documents").addEventListener("click",()=>documentController.attach(voiceStartFiles));
+    voiceStartFiles.addEventListener("change",()=>{
+      const files=Array.from(voiceStartFiles.files||[]);
+      voiceStartFiles.value="";
+      if(!files.length||!voiceStartDialog.open)return;
+      voiceStartDialog.close();
+      void documentController.addFiles(files,{onAccepted:()=>{pendingFileVoiceStart={question:null};}});
+    });
     $("stop-live").addEventListener("click",async()=>{voiceEnded=true;clearTimeout(liveCompleteTimer);liveCompleteTimer=null;const wasConnected=conversationUI.live?.connected;const result=await conversationUI.live?.stop({immediate:conversationUI.status==="closing"});updatePresence();if(wasConnected&&!result?.finalized)notice("Voice stopped early. The last few lines of the transcript may be missing.",false,"voice",true);});
     $("mute-live").addEventListener("click",()=>{conversationUI.muted=!conversationUI.muted;conversationUI.live?.setMuted(conversationUI.muted);updateControls();});
     $("type-instead").addEventListener("click",typeInstead);
@@ -8721,7 +8783,7 @@
       canUpload:()=>Boolean(state.config?.api_configured)&&!state.example&&!state.importing&&!draftInFlight,
       uploadBlockedReason:()=>state.example?"Choose Start your own before adding a real file.":draftInFlight?"Wait for the draft to finish, then add the file.":state.importing?"Wait for the interview to finish opening.":!state.config?.api_configured?"File review needs a configured AI service.":"File uploads are temporarily unavailable.",
       canDiscuss:()=>conversationUI.live?.active&&!liveFrontActive()?"Stop talking to discuss this file question. It is still available in Assets.":!intakeActive()&&!state.busy&&!state.recording&&!state.transcribing&&!state.requestingMic,
-      revealUploads:()=>!($("memo-rail")?.parentElement===$("memo-sheet-body")),onOpen:openDocumentAssets,onCountChange:updateAssetCount,onDiscuss:()=>{setMemoSheet(false,false);focusWorkspace("interview");},
+      revealUploads:()=>!pendingFileVoiceStart&&!($("memo-rail")?.parentElement===$("memo-sheet-body")),onOpen:openDocumentAssets,onCountChange:updateAssetCount,onDiscuss:()=>{setMemoSheet(false,false);focusWorkspace("interview");},
       // The file intake waits on file status in these two stages; the file list keeps polling for it.
       reviewAwaited:()=>intakeActive()&&["uploading","reviewing"].includes(documentIntake.phase),
       onEvent:onDocumentEvent,notice,onDirty:()=>{state.dirty=true;updateSaveHint();}});

@@ -211,7 +211,11 @@
       footer.append(noticeSummary,this.node("p","",FILE_NOTICE),this.node("p","",EXTRACTION_LIMITS));
       this.assets.replaceChildren(header,this.liveStatus,this.body,footer);
     }
-    attach() {if(!this.allowed())return;this.input.click();}
+    attach(input=this.input) {
+      if(!this.allowed()||this.full())return;
+      input.accept=this.input.accept;
+      input.click();
+    }
     open(documentId) {
       if(this.disposed)return;this.returnFocus=this.doc.activeElement;this.restoreFocus=true;
       if(this.assets){if(documentId){this.expandedAssets.set(documentId,true);this.render();}this.options.onOpen?.();}
@@ -235,7 +239,7 @@
       this.sessionPromise=task;
       try{return await task;}finally{if(this.sessionPromise===task)this.sessionPromise=null;}
     }
-    async addFiles(files,{reveal=true}={}) {
+    async addFiles(files,{reveal=true,onAccepted}={}) {
       if(!this.allowed()||!files.length)return;
       const generation=this.generation;
       const available=Math.max(0,this.maximum()-this.used()),accepted=[],unreadable=this.unavailable();
@@ -249,6 +253,7 @@
       const batchId=`upload_${++this.batchSequence}`;
       const queued=accepted.map(file=>({key:++this.sequence,name:file.name,status:"Waiting to upload",file}));
       this.uploads.push(...queued);this.mutating++;this.revision++;
+      onAccepted?.();
       this.emit({type:"upload_started",batchId,names:accepted.map(file=>file.name)});
       this.options.onDirty?.();this.render();this.changed();
       if(this.assets&&reveal&&this.options.revealUploads?.()!==false)this.open();

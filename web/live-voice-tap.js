@@ -8,7 +8,8 @@
 class LiveVoiceTap extends AudioWorkletProcessor {
   constructor() {
     super();
-    this.block = new Float32Array(Math.max(128, Math.round(sampleRate / 10)));
+    this.size = Math.max(128, Math.round(sampleRate / 10));
+    this.block = new Float32Array(this.size);
     this.length = 0;
   }
   process(inputs) {
@@ -17,11 +18,14 @@ class LiveVoiceTap extends AudioWorkletProcessor {
     if (!channel) {this.length = 0;return true;}
     for (let i = 0; i < channel.length; i++) {
       this.block[this.length++] = channel[i];
-      if (this.length === this.block.length) {
+      if (this.length === this.size) {
+        // The block's buffer is handed over (transferred), which empties it
+        // here: the next block is a new one of the same size, never one sized
+        // from the block just sent.
         const samples = this.block;
-        this.port.postMessage({samples, end:currentTime + (i + 1) / sampleRate}, [samples.buffer]);
-        this.block = new Float32Array(samples.length);
+        this.block = new Float32Array(this.size);
         this.length = 0;
+        this.port.postMessage({samples, end:currentTime + (i + 1) / sampleRate}, [samples.buffer]);
       }
     }
     return true;

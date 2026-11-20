@@ -112,9 +112,9 @@
     referenceUpdate(JSON.stringify({source_id:id,kind,part,total,...(replaceKey?{document_key:replaceKey}:{}),text}));
 
   // Caption check (see tapAudio and captionAudio), on only when the application
-  // asks for it. The live transcriber takes no spelling hints, so the page has a
-  // final participant caption transcribed again from the participant's own
-  // microphone audio. The tap keeps the microphone the session already opened
+  // asks for it. The live transcriber takes no spelling hints, so the page has
+  // fund terms and configured names in a final participant caption corrected
+  // using the participant's own microphone audio. The tap keeps the microphone the session already opened
   // (echo-cancelled) as 16 kHz 16-bit mono for the last TAP_KEEP_MS. A caption's
   // window is padded by TAP_BEFORE_MS and TAP_AFTER_MS and clamped to what the
   // buffer holds; inside the caption itself a gap longer than TAP_GAP_MS (muted,
@@ -124,10 +124,12 @@
   // behind the page clock, 1 ms a second.
   // The session timeline is mapped to the page clock no better than the time
   // the transcriber takes to deliver its words (see tapLead): the window falls
-  // late by up to that delay, so it begins a second and a half before the
-  // caption's first word. Words of the padding that the transcription adds are
-  // left out by the application (it aligns the result with the caption).
-  const TAP_RATE = 16000, TAP_KEEP_MS = 240000, TAP_BEFORE_MS = 1500, TAP_AFTER_MS = 600, TAP_GAP_MS = 250, TAP_MAX_MS = 150000;
+  // late by about that delay (0.7 to 0.9 s in a real session, which cut the
+  // first words with 0.4 s of padding), so it begins two seconds before the
+  // caption's first word and ends a second after its last. Padding costs
+  // nothing: the application uses only terms read between words that the
+  // transcription and the caption share (correctCaption in app.js).
+  const TAP_RATE = 16000, TAP_KEEP_MS = 240000, TAP_BEFORE_MS = 2000, TAP_AFTER_MS = 1000, TAP_GAP_MS = 250, TAP_MAX_MS = 150000;
   const TAP_MODULE = "/live-voice-tap.js", TAP_DRIFT = .001;
   // The clock lead of the tap (see tapLead) is read from the participant's
   // words of the last TAP_LEAD_MS, at most TAP_LEADS of them.
@@ -1274,7 +1276,7 @@
     captionAudio(id, since = null) {
       // The participant's own microphone audio of one participant caption, as
       // a 16 kHz 16-bit mono WAV ({wav, duration_ms}), so that the application
-      // can have it transcribed again with spelling hints. since (session
+      // can have it transcribed again with the glossary as hints. since (session
       // timeline ms, optional): only the caption's words from there on, for a
       // caption that grew after an earlier part was checked. The window is
       // mapped to the page clock with tapLead. null whenever the audio cannot
@@ -1286,9 +1288,12 @@
       if (!tap?.chunks.length || !caption || !Number.isFinite(op.sessionStartedAt) || !Number.isFinite(caption.lastDelta)) return null;
       const start = Number.isFinite(since) && since >= caption.start_ms ? since : caption.start_ms, end = caption.end_ms;
       if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end < start || end - start > TAP_MAX_MS) return null;
+      // The lead is never less than the caption's own last word requires
+      // (tapLead), however far the provider's clock runs ahead (3.4 s at two
+      // minutes in a real session, beyond what the speech gate believes): the
+      // window is moved back to the audio heard before the words arrived,
+      // never refused for it.
       const lead = this.tapLead(op,caption), first = op.sessionStartedAt + start - lead, last = op.sessionStartedAt + end - lead;
-      // A caption cannot describe audio heard after its last words arrived.
-      if (last > caption.lastDelta + 1) return null;
       const from = first - TAP_BEFORE_MS, to = last + TAP_AFTER_MS, parts = [];
       let reach = null, length = 0;
       for (const chunk of tap.chunks) {

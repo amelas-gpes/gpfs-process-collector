@@ -1,15 +1,20 @@
 "use strict";
 // Live voice caption check (LIVE_CAPTION_CHECK). The live transcriber takes no spelling hints: in the
 // November 19 stress test a 20-second accented answer came back with every acronym wrong ("KYC" as
-// "kite", "LPAC" as "CPAC"), and notes must quote the caption as it is. Now the participant's own
-// microphone audio of each final caption is transcribed again through /api/transcribe with the hints
-// dictation sends, and a plausible result replaces the turn's text before the notes read it.
+// "kite", "LPAC" as "CPAC"), and notes must quote the caption as it is. Now fund terms and configured
+// names in live captions are corrected using the participant's own audio: each final caption's audio
+// is transcribed again through /api/transcribe, marked as a caption check so that the server hints it
+// with its glossary alone, and only a glossary term read in the place of a misheard caption word
+// replaces that word. A whole reading is never used: in a real browser session (2026-11-20,
+// stress-lab/verify/live-captions.md) it fixed some terms and broke words the caption had right.
 //
 // Part 1 runs web/live-voice.js with the fake WebRTC and audio of tests/test_live_voice.cjs and a fake
-// audio worklet: what the tap records, which audio a caption gets, mute, bounds and the fallbacks.
+// audio worklet (tests/test_live_voice_tap.cjs runs the real one): what the tap records, which audio a
+// caption gets, mute, bounds, the provider's clock and the fallbacks.
 // Part 2 runs web/app.js on the page of web/index.html (tests/fixtures/app_page.cjs) with a stand-in
-// transport and server: the request, the replacement, stale and failed results, the plausibility
-// guard, the notes capture that waits, the closing sequence and the setting off.
+// transport and server: the request and its glossary, the targeted correction (on the real captions and
+// readings of that session), stale and failed results, the notes capture and map that wait, the
+// closing sequence and the setting off.
 // No microphone, browser, network or provider.
 const fs=require("node:fs"),vm=require("node:vm"),path=require("node:path"),assert=require("node:assert/strict");
 const {open}=require("./fixtures/app_page.cjs");
@@ -78,13 +83,38 @@ function readWav(bytes){
 }
 
 // ---- Part 2: the page -----------------------------------------------------------------------
-const EXPOSE="receiveCheckedCaption,receiveLiveCaption,receiveLiveStatus,getCapturedThrough,askFinalCheck,startLiveConversation,generateDraft,finalCheck,resetLiveFront,liveNotesStatus";
+const EXPOSE="request,captionFix,captionTokens,captionGlossary,receiveCheckedCaption,receiveLiveCaption,receiveLiveStatus,getCapturedThrough,askFinalCheck,startLiveConversation,generateDraft,finalCheck,resetLiveFront,liveNotesStatus";
 const HOOK="const getCapturedThrough=()=>liveCapturedThrough,askFinalCheck=line=>{pendingFinalCheck={line};};"+
  "window.__notices=[];const __notice=notice;notice=(message,...rest)=>{window.__notices.push(String(message));return __notice(message,...rest);};";
 const CONFIG=(caption_check=true)=>({agent_team:{enabled:true,voice_mode:"live_front",interview_memory:true,stop_intent_patterns:["^(?:i need to stop)$"]},
  live:{enabled:true,caption_check},concurrent_interview:{enabled:true}});
 const CAPTION="We run the kite checks before the CPAC meets and the each wire goes out.";
-const CHECKED="We run the KYC checks before the LPAC meets and the ACH wire goes out.";
+// The check's reading of that audio, and the turn then: "kite" and "CPAC" are corrected to the glossary's
+// KYC and LPAC; "each" is a common word, which a check never turns into a term by itself, so it stays.
+const RESULT="We run the KYC checks before the LPAC meets and the ACH wire goes out.";
+const CHECKED="We run the KYC checks before the LPAC meets and the each wire goes out.";
+// The glossary the server names with a check's reading (server.py caption_check_terms, default settings,
+// process name "Capital calls"), and an answer of the transcription route to a check.
+const TERMS=["KYC","AML","ACH","IRR","LPAC","K-1","NAV","LPA","GL","DPI","SWIFT","PEP","Capital calls","GPFS","GP Fund Solutions","Entrilia","Allvue"];
+const READ=(text,terms=TERMS)=>({text,terms});
+// A real browser session (2026-11-20, stress-lab/verify/live-captions.md): the jargon passage read by an
+// accented voice (A13) and a clear one (A10). The captions of its first run (the tap then sent no audio)
+// and the readings gpt-transcribe gave of the same clips in its second run.
+const TRUTH="We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation; KYC and AML checks run in Investran and the ACH or SWIFT wire is released only after the callback from treasury. The IRR and the DPI go to the LPAC pack, and the K-1 estimate goes to the CFO.";
+const REAL={
+ A13:{caption:"We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation. Calc and AML checks run in Investran and the ACH or SWIFT wire is released only after the callback from Treasury. DI and the DPI go to the LP AC pack, and the K one estimate goes to the CFO",
+  reading:"Instruct the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation, KYC and AML checks run in Investron and the HRSWIFT wire is released only after the call back from treasury, the IR and the DPI go to the LPAC, and the K-1 estimate goes to the CFO."},
+ A10:{caption:"We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation. KYC and AML checks run in Investran and the ACH or SWIFT wire is released only after the callback from Treasury. DI and the DPI go to the LP AC pack, and the K one estimate goes to the CFO",
+  reading:"I reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation, KYC and AML checks run in Investor and the ACH or SWIFT wire is released only after the callback from treasury. The IR and the DPI go to the LPAC, and the K-1 estimate goes to the CFO."},
+ // The second run's own captions of the same clips, which its readings were made from.
+ A13b:"We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation. KYC and AML checks run in Investran and the H or SWIFT wire is released only after the callback from Treasury. DI and the DPI go to the LPAC pack, and the K one estimate goes to the CFO",
+ A10b:"We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation. KYC and AML checks run in Investran and the ACH or SWIFT wire is released only after the callback from Treasury. The IR and the DPI go to the LPAC pack, and the K one estimate goes to the CFO"};
+// Words of a text as compared (case, punctuation and hyphens aside), and how many of them differ from the truth.
+const words=text=>text.toLowerCase().replace(/[^a-z0-9 ]+/g," ").split(/\s+/).filter(Boolean);
+const errors=text=>{const a=words(text),b=words(TRUTH),d=Array.from({length:a.length+1},(_,i)=>[i,...Array(b.length).fill(0)]);
+ for(let j=1;j<=b.length;j++)d[0][j]=j;
+ for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+ return d[a.length][b.length];};
 const notes=summary=>({question:"What happens next?",summary,focus:"",parking_lot:[],coverage:[],coverage_verified:false,
  capture_token:"token-"+summary.replace(/\W+/g,"-").toLowerCase(),memo_findings:[],completion:{ready_for_final_check:false,complete:false},
  speech_authorization:{approved:true,kind:"question",text:"What happens next?",revision:"r1",completion_allowed:false}});
@@ -152,32 +182,32 @@ async function page({caption_check=true}={}){
   assert.equal(node.connected[0],h.gains[0]);assert.equal(h.gains[0].gain.value,0,"Through a muted gain: nothing is heard");
   assert.equal(h.gains[0].connected[0].destination,true);
   assert.equal(h.tap().kind,"worklet");assert.equal(JSON.stringify(h.traces.find(trace=>trace.type==="live.caption_tap").payload),JSON.stringify({state:"ready",kind:"worklet"}));
-  h.run(6000,[{at:4100,fire:()=>h.user("We run the kite checks before the CPAC meets.",2000,4000)}]);
+  h.run(7000,[{at:5100,fire:()=>h.user("We run the kite checks before the CPAC meets.",3000,5000)}]);
   const caption=h.captions.at(-1);assert.equal(caption.text,"We run the kite checks before the CPAC meets.");
   const audio=h.api.captionAudio(caption.id),file=readWav(audio.wav);
   assert.deepEqual([file.riff,file.wave,file.fmt,file.data],["RIFF","WAVE","fmt ","data"]);
   assert.deepEqual([file.fmtSize,file.format,file.channels,file.rate,file.byteRate,file.align,file.bits],[16,1,1,16000,32000,2,16],"16 kHz 16-bit mono PCM");
   assert.equal(file.dataSize,file.samples.length*2);assert.equal(file.size,36+file.dataSize);assert.equal(audio.wav.byteLength,44+file.dataSize);
-  // 2.0 to 4.0 s on the session timeline, 1.5 s before (the mapping can fall late by the time the
-  // transcriber takes to deliver its words) and 600 ms after: 4.1 seconds.
-  assert.ok(Math.abs(file.samples.length-65600)<=8,`4.1 s of audio (${file.samples.length} samples)`);assert.equal(audio.duration_ms,4100);
-  assert.equal(file.samples[0],sample(500),"It starts 1.5 s before the caption");
-  assert.equal(file.samples[file.samples.length-20],sample(4600),"and ends 600 ms after it");
-  assert.equal(file.samples[32800],sample(2600),"the middle is the middle");
+  // 3.0 to 5.0 s on the session timeline, 2 s before (the mapping falls late by the time the
+  // transcriber takes to deliver its words: 0.7 to 0.9 s in a real session) and 1 s after: 5 seconds.
+  assert.ok(Math.abs(file.samples.length-80000)<=8,`5 s of audio (${file.samples.length} samples)`);assert.equal(audio.duration_ms,5000);
+  assert.equal(file.samples[0],sample(1000),"It starts 2 s before the caption");
+  assert.equal(file.samples[file.samples.length-20],sample(6000),"and ends 1 s after it");
+  assert.equal(file.samples[40800],sample(3600),"the middle is the middle");
   const values=new Set(file.samples);
-  for(let end=500;end<=4600;end+=BLOCK)assert.ok(values.has(sample(end)),"block ending at "+end+" is there");
-  assert.ok(!values.has(sample(400))&&!values.has(sample(4700)),"Nothing from outside the window");
+  for(let end=1000;end<=6000;end+=BLOCK)assert.ok(values.has(sample(end)),"block ending at "+end+" is there");
+  assert.ok(!values.has(sample(900))&&!values.has(sample(6100)),"Nothing from outside the window");
   // No timestamps, a caption longer than 150 s, a window ahead of what was heard: no audio.
-  h.run(9000,[{at:8000,fire:()=>h.event({type:"session.output_transcript.delta",event_id:"a1",delta:"Which checks?",start_ms:7000,end_ms:7800})},
-   {at:8500,fire:()=>h.event({type:"session.input_transcript.delta",event_id:"u2",delta:"No timestamps here."})}]);
+  h.run(10000,[{at:9000,fire:()=>h.event({type:"session.output_transcript.delta",event_id:"a1",delta:"Which checks?",start_ms:8000,end_ms:8800})},
+   {at:9500,fire:()=>h.event({type:"session.input_transcript.delta",event_id:"u2",delta:"No timestamps here."})}]);
   assert.equal(h.captions.at(-1).text,"No timestamps here.");assert.ok(h.api.captionAudio(h.captions.at(-1).id)===null,"No timestamps, no audio");
-  h.api.operation.userCaptions.get(caption.id).end_ms=2000+150001;
+  h.api.operation.userCaptions.get(caption.id).end_ms=3000+150001;
   assert.ok(h.api.captionAudio(caption.id)===null,"Over 150 seconds: the caption keeps its text");
-  h.api.operation.userCaptions.get(caption.id).end_ms=4000;
-  const dropped=h.tap().chunks.splice(0,25);
+  h.api.operation.userCaptions.get(caption.id).end_ms=5000;
+  const dropped=h.tap().chunks.splice(0,33);
   assert.ok(h.api.captionAudio(caption.id)===null,"Its start is no longer in the buffer: audio is missing");
   h.tap().chunks.unshift(...dropped);
-  h.tap().chunks.splice(28,3);
+  h.tap().chunks.splice(38,3);
   assert.ok(h.api.captionAudio(caption.id)===null,"Audio is missing in the middle of the caption");
   assert.equal(h.api.captionAudio("live_unknown"),null);
   await h.api.stop({immediate:true});
@@ -230,8 +260,8 @@ async function page({caption_check=true}={}){
    const h=await transport(options);
    assert.equal(h.tap()?.kind,"script",JSON.stringify(options));
    assert.equal(h.nodes[0].size,4096);assert.equal(h.nodes[0].stream,h.streams[0]);assert.equal(h.nodes[0].connected[0],h.gains[0]);
-   h.run(6000,[{at:4100,fire:()=>h.user("We run the kite checks.",2000,4000)}]);
-   assert.ok(Math.abs(readWav(h.api.captionAudio(h.captions.at(-1).id).wav).samples.length-65600)<=8);
+   h.run(7000,[{at:5100,fire:()=>h.user("We run the kite checks.",3000,5000)}]);
+   assert.ok(Math.abs(readWav(h.api.captionAudio(h.captions.at(-1).id).wav).samples.length-80000)<=8);
    await h.api.stop({immediate:true});
   }
   const h=await transport({worklet:false,script:false});
@@ -274,6 +304,27 @@ async function page({caption_check=true}={}){
   assert.ok(h.api.operation.inputClockLead>3000,"The speech gate kept the late timestamp");
   const {before,after}=covers(h,caption,P0+20000,P0+23000);
   assert.ok(before>=250&&after>=250,`The next answer's audio holds it whole (${before} ms before, ${after} ms after)`);
+  await h.api.stop({immediate:true});
+ });
+ await check("a provider clock 3.4 s ahead two minutes in, beyond what the speech gate believes, moves the window back: the audio covers the answer and is never refused",async()=>{
+  // Real session (2026-11-20): at 122 s into the call a caption ending at end_ms 125600 arrived when
+  // 122231 ms had passed, a lead of 3369 ms; the speech gate takes no lead above 500 ms and 1% of the
+  // time so early, and its words came some 0.8 s after they were said. A window mapped with the gate's
+  // lead lay after the words had arrived, and the check got no audio.
+  const decode=value=>Math.round(value/32767*100000-100);
+  const h=await transport(),S=h.api.operation.sessionStartedAt,late=800,P0=118550,ms=t=>t-S+3400+late;
+  h.run(P0+3000+late+1600,[
+   {at:P0+1500+late,fire:()=>h.user("We approve the kite checks",ms(P0),ms(P0+1500))},
+   {at:P0+3000+late,fire:()=>h.user(" before the wire goes out.",ms(P0+1500),ms(P0+3000))}]);
+  const caption=h.captions.filter(item=>item.role==="user").at(-1),held=h.api.operation.userCaptions.get(caption.id);
+  assert.equal(caption.text,"We approve the kite checks before the wire goes out.");
+  assert.ok(held.end_ms-(held.lastDelta-S)>=3300,`Its last word is ${held.end_ms-(held.lastDelta-S)} ms ahead of its arrival`);
+  assert.ok(h.api.operation.inputClockLead<1000,`The speech gate did not take that lead (${h.api.operation.inputClockLead})`);
+  const audio=h.api.captionAudio(caption.id);
+  assert.ok(audio,"The caption gets its audio");
+  const file=readWav(audio.wav),before=P0%50000-decode(file.samples[0]),after=decode(file.samples.at(-1))-100-(P0+3000)%50000;
+  assert.ok(before>=1000,`It begins ${before} ms before the first word, though the words came ${late} ms after they were said`);
+  assert.ok(after>=250,`and ends ${after} ms after the last`);
   await h.api.stop({immediate:true});
  });
  await check("the tap filters before it takes 16 kHz: speech-band tones pass clean and 9 to 12 kHz do not fold into them",async()=>{
@@ -326,7 +377,7 @@ async function page({caption_check=true}={}){
  });
 
  // ---- the page ----
- await check("a final caption is transcribed again with the dictation hints and the better wording replaces it before the notes read it",async()=>{
+ await check("a final caption's audio is read again with the glossary as its only hints, and the terms it corrects reach the turn before the notes read it",async()=>{
   const h=await page(),page_=h.page;
   h.say("live_u1","We run the kite checks",false);
   assert.deepEqual(h.audio,[],"Nothing while the caption is still open");
@@ -335,15 +386,16 @@ async function page({caption_check=true}={}){
   assert.equal(h.transcribe.length,1,"One transcription request");
   const sent=h.transcribe[0];
   assert.equal(sent.init.headers["Content-Type"],"audio/wav");assert.equal(sent.body.type,"audio/wav");assert.equal(sent.body.size,44+64000);
-  const hints=decodeURIComponent(sent.init.headers["X-Transcription-Hints"]).split(",");
-  assert.ok(hints.includes("Capital calls")&&hints.includes("NAV")&&hints.includes("GP Fund Solutions"),"The hints dictation sends: "+hints);
-  assert.ok(!hints.includes("CPAC"),"The caption's own terms (the mishearings) are not hints");
+  // Marked as a check, so that the server hints it with its glossary; the page adds only the process
+  // name, never a term of the transcript (the typed answer's "NAV" and "GP Fund Solutions" included).
+  assert.equal(sent.init.headers["X-Transcription-Purpose"],"live-caption-check");
+  assert.equal(decodeURIComponent(sent.init.headers["X-Transcription-Hints"]),"Capital calls","The process name alone");
   // The notes capture waits for the check.
   await h.runCapture();
   assert.equal(h.captures.length,0,"The capture waits for the caption check");
   assert.equal(h.turn().text,CAPTION);
-  await h.answer(sent,{text:CHECKED});
-  assert.equal(h.turn().text,CHECKED,"The turn holds the better wording");
+  await h.answer(sent,READ(RESULT));
+  assert.equal(h.turn().text,CHECKED,"The turn holds the corrected terms, and the caption's own words elsewhere");
   assert.equal(page_.text("transcript").includes(CHECKED),true,"The transcript shows it");
   await h.runCapture();
   assert.equal(h.captures.length,1,"Then the capture runs");
@@ -354,6 +406,7 @@ async function page({caption_check=true}={}){
   h.say("live_u1",CAPTION);h.interviewer("live_a1","Who signs the wire?");
   assert.equal(h.turn().text,CHECKED);assert.equal(h.transcribe.length,1);assert.deepEqual(h.audio,["live_u1"]);
   assert.deepEqual(h.outcomes(),["sent","replaced"]);
+  assert.equal(h.traces.find(trace=>trace.payload.outcome==="replaced").payload.count,2,"Two terms corrected");
   assert.ok(h.traces.filter(trace=>trace.type==="live.caption_check").every(trace=>!JSON.stringify(trace.payload).includes("kite")&&!JSON.stringify(trace.payload).includes("KYC")),"No text in the trace");
   assert.equal(page_.window.__notices.length,0,"Nothing is said to the participant");
  });
@@ -368,7 +421,7 @@ async function page({caption_check=true}={}){
   assert.equal(h.transcribe.length,1,"Nothing new while the caption is open");
   h.say("live_u1",CAPTION);
   assert.equal(h.transcribe.length,2,"The whole caption is checked once it is final again");assert.deepEqual(h.audio,["live_u1","live_u1"]);
-  await h.answer(h.transcribe[1],{text:CHECKED});
+  await h.answer(h.transcribe[1],READ(RESULT));
   assert.equal(h.turn().text,CHECKED);
   assert.deepEqual(h.outcomes(),["sent","discarded:caption_changed","sent","replaced"]);
  });
@@ -376,7 +429,8 @@ async function page({caption_check=true}={}){
   // One answer with three pauses: the transport marks the caption final at each, and it goes on.
   const parts=["After the kite review the CPAC meets."," Then the kite file goes to the CPAC chair.",
    " The each wire is released after the DI is signed off."," And the K one goes out with the kite pack."];
-  const fix=value=>value.replace(/kite/g,"KYC").replace(/CPAC/g,"LPAC").replace(/each/g,"ACH").replace(/\bDI\b/g,"IRR").replace(/K one/g,"K-1");
+  // ("each" is a common word and stays: see the targeted correction.)
+  const fix=value=>value.replace(/kite/g,"KYC").replace(/CPAC/g,"LPAC").replace(/\bDI\b/g,"IRR").replace(/K one/g,"K-1");
   const h=await page(),fragments=[];let text="";
   for(const [index,part] of parts.entries()){
    text+=part;fragments.push({delta:part,start_ms:1000+index*10000,end_ms:5000+index*10000});
@@ -388,7 +442,7 @@ async function page({caption_check=true}={}){
    assert.equal(h.transcribe.length,index+1);
    assert.equal(h.since.at(-1),index?1000+index*10000:undefined,"Only the audio of the words added since is sent");
    // The transcription of that audio, with a word of the part before it from the padding.
-   await h.answer(h.transcribe.at(-1),{text:(index?"meets. ":"")+fix(part.trim())});
+   await h.answer(h.transcribe.at(-1),READ((index?"meets. ":"")+fix(part.trim()).replace(/The each/,"The ACH")));
    assert.equal(h.turn().text,fix(text));
   }
   // The last part's check is refused under load: the corrections before it stay.
@@ -404,7 +458,7 @@ async function page({caption_check=true}={}){
   text+=more;fragments.push({delta:more,start_ms:46000,end_ms:48000});
   h.say("live_u1",text,false,fragments.slice());h.say("live_u1",text,true,fragments.slice());
   assert.equal(h.transcribe.length,6);assert.equal(h.since.at(-1),41000);
-  await h.answer(h.transcribe.at(-1),{text:fix((last+more).trim())});
+  await h.answer(h.transcribe.at(-1),READ(fix((last+more).trim())));
   assert.equal(h.turn().text,fix(text));
  });
  await check("a refused or failed check keeps the caption, is not repeated or announced, and frees the notes at once",async()=>{
@@ -422,68 +476,99 @@ async function page({caption_check=true}={}){
    assert.equal(h.page.window.__notices.length,0,"Nothing is said to the participant");
   }
  });
- await check("the plausibility guard keeps the caption when the result is not a reading of the same words",async()=>{
-  const cases={
-   "": "empty",
-   "Thanks for watching.":"word_count",
-   "Kite.":"word_count",
-   "Please subscribe to the channel for more videos about payments and wires and things.":"different_words",
-   [CAPTION]:"same",
-   // Punctuation, capitals, fillers and "OK" for "okay" are not corrections.
-   [CAPTION.toLowerCase().replace(/[.,]/g,"")]:"same",["Um, "+CAPTION.replace("the kite","uh, the kite")]:"same",
-   // The caption word for word with words from the padding around it corrects nothing, and a
-   // replacement is never an append: a capture that read the caption always reads a changed answer.
-   [CAPTION+" Okay."]:"no_correction",["Right. "+CAPTION]:"no_correction",[CAPTION.slice(0,-1)+", thank you."]:"no_correction"};
-  for(const [result,reason] of Object.entries(cases)){
+ await check("on the real session's captions only glossary terms are corrected, and every word the caption had right stays (A13, A10)",async()=>{
+  // The readings fixed some terms and broke words the captions had right ("Instruct" for "We reconcile",
+  // "Investron", "HRSWIFT" for "ACH or SWIFT", "IR" for "IRR", "pack" lost). Only their glossary terms
+  // in the place of misheard caption words are used: "Calc" (KYC), "LP AC" (LPAC, "pack" kept) and
+  // "K one" (K-1). "DI" stays: the reading has "the IR" there, not a term.
+  const cases=[
+   ["A13, first run's caption",REAL.A13.caption,REAL.A13.reading,
+    "We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation. KYC and AML checks run in Investran and the ACH or SWIFT wire is released only after the callback from Treasury. DI and the DPI go to the LPAC pack, and the K-1 estimate goes to the CFO",3],
+   ["A10, first run's caption",REAL.A10.caption,REAL.A10.reading,
+    "We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation. KYC and AML checks run in Investran and the ACH or SWIFT wire is released only after the callback from Treasury. DI and the DPI go to the LPAC pack, and the K-1 estimate goes to the CFO",2],
+   // The second run's own captions: "H or SWIFT" stays (the reading's "HRSWIFT" is no term), K-1 is corrected.
+   ["A13, second run's caption",REAL.A13b,REAL.A13.reading,
+    "We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation. KYC and AML checks run in Investran and the H or SWIFT wire is released only after the callback from Treasury. DI and the DPI go to the LPAC pack, and the K-1 estimate goes to the CFO",1],
+   ["A10, second run's caption",REAL.A10b,REAL.A10.reading,
+    "We reconcile the NAV to the GL before the capital call notice goes out. The LPA and each side letter set the allocation. KYC and AML checks run in Investran and the ACH or SWIFT wire is released only after the callback from Treasury. The IR and the DPI go to the LPAC pack, and the K-1 estimate goes to the CFO",1]];
+  for(const [name,caption,reading,turn,count] of cases){
+   const h=await page();
+   h.say("live_u1",caption);
+   await h.answer(h.transcribe[0],READ(reading));
+   assert.equal(h.turn().text,turn,name);
+   assert.deepEqual(h.outcomes(),["sent","replaced"],name);
+   assert.equal(h.traces.find(trace=>trace.payload.outcome==="replaced").payload.count,count,name+": terms corrected");
+   // No new error: the turn is the caption less the errors it corrected, and better than the whole reading.
+   assert.equal(errors(turn),errors(caption)-(caption.includes("LP AC")?count+1:count),name+": errors "+errors(caption)+" then "+errors(turn));
+   assert.ok(errors(turn)<errors(reading),name+": the turn ("+errors(turn)+" errors) beats the reading ("+errors(reading)+")");
+  }
+ });
+ await check("a check corrects only a glossary term read in the place of a misheard word; everything else keeps the caption's words",async()=>{
+  const used=[
+   // (a) one caption word, read as a term: the caption's own punctuation and the rest stay.
+   ["We run the kite checks first.","We run the KYC checks first.","We run the KYC checks first."],
+   ["We do the kite check, then the wire goes out.","We do the KYC check. Then the wire goes out.","We do the KYC check, then the wire goes out."],
+   ["The checks (kite, mostly) run first.","The checks (KYC, mostly) run first.","The checks (KYC, mostly) run first."],
+   ["We run, um, the kite checks first.","We run the KYC checks first.","We run, um, the KYC checks first."],
+   ["Then the CPAC signs it off.","Then the L P A C signs it off.","Then the LPAC signs it off."],
+   ["We send the K one and the DI report.","We send the K-1 and the IRR report.","We send the K-1 and the IRR report."],
+   ["We run the pet screening first.","We run the PEP screening first.","We run the PEP screening first."],
+   // A configured name is a term too.
+   ["We book it in Entralia every month.","We book it in Entrilia every month.","We book it in Entrilia every month."],
+   // (b) caption words that spell the term: only they are replaced.
+   ["The approvals go to the LP AC pack and then on.","The approvals go to the LPAC and then on.","The approvals go to the LPAC pack and then on."],
+   ["Then the L P A C signs it off.","Then the LPAC signs it off.","Then the LPAC signs it off."],
+   ["Then the K one goes out.","Then the K-1 goes out.","Then the K-1 goes out."],
+   // A term in lower case that begins a sentence takes the caption word's capital.
+   ["The NAV is struck. Water fall runs next.","The NAV is struck. waterfall runs next.","The NAV is struck. Waterfall runs next.",[...TERMS,"waterfall"]],
+   // "each" is a common word: it stays though the reading has ACH there, and the rest is still corrected.
+   ["We run the kite checks and the each wire goes out.","We run the KYC checks and the ACH wire goes out.","We run the KYC checks and the each wire goes out."]];
+  for(const [caption,reading,turn,terms] of used){
+   const h=await page();
+   h.say("live_u1",caption);
+   await h.answer(h.transcribe[0],READ(reading,terms));
+   assert.equal(h.turn().text,turn,JSON.stringify(reading));
+   assert.deepEqual(h.outcomes(),["sent","replaced"],JSON.stringify(reading));
+  }
+  const kept=[
+   // The residual risk of rule (a): a common word read as a term. "each side letter" stays.
+   ["The LPA and each side letter set it.","The LPA and ACH side letter set it.","no_correction"],
+   // A word, not the term as the glossary writes it.
+   ["We give the team a pet talk first.","We give the team a pep talk first.","no_correction"],
+   // The term is already right; the reading lost a word, or wrote the same words.
+   ["We send it to the LPAC pack today.","We send it to the LPAC today.","no_correction"],
+   ["We run the KYC checks before the LPAC meets.","we run the KYC checks, before the LPAC meets!","same"],
+   // Differences at the edges, where the window cuts the reading or runs into other speech.
+   ["We send it to the CPAC.","So we send it to the LPAC. Thanks.","no_correction"],
+   ["Kite checks run first.","Okay. KYC checks run first.","no_correction"],
+   ["We approve the wire after the review.","approve the wire after the review.","no_correction"],
+   ["Treasury releases the wire after two approvals.","What changed? Treasury releases the wire after","no_correction"],
+   ["Treasury releases the wire after two approvals.","releases the wire after two approvals. Thanks, and who","no_correction"],
+   // Other differences: more than one word read for one, or two words for one that they do not spell.
+   ["We run the kite checks first.","We run the KYC AML checks first.","no_correction"],
+   ["We run the kite list checks first.","We run the KYC checks first.","no_correction"],
+   ["We approve it and the kite team signs.","We approve it and team signs.","no_correction"],
+   // A window that fell on other speech: too few of the caption's words, whatever terms it holds.
+   ["We run the kite checks before the CPAC meets.","The LPAC pack goes to the investors with the KYC file on Friday.","misaligned"],
+   ["We run the kite checks before the CPAC meets.","","empty"],
+   ["We run the kite checks before the CPAC meets.","…","empty"]];
+  for(const [caption,reading,reason] of kept){
+   const h=await page();
+   h.say("live_u1",caption);
+   await h.answer(h.transcribe[0],READ(reading));
+   assert.equal(h.turn().text,caption,JSON.stringify(reading)+" corrects nothing");
+   assert.deepEqual(h.outcomes(),["sent","kept:"+reason],JSON.stringify(reading));
+  }
+  // A stretch whose caption words already hold the term is left alone. (The alignment always matches
+  // such a word, so this guards a stretch made otherwise.)
+  const t=(await page()).page.t,was=t.captionTokens("the LPAC meets"),now=t.captionTokens("the LPAC meets");
+  assert.equal(t.captionFix("the LPAC meets",was,now,[{i:1,j:1,kind:"sub"}],t.captionGlossary(TERMS)),null);
+  // A server that names no glossary (an older one, or another provider) corrects nothing.
+  for(const answer of [{text:RESULT},{text:RESULT,terms:[]},{text:RESULT,terms:"KYC"}]){
    const h=await page();
    h.say("live_u1",CAPTION);
-   await h.answer(h.transcribe[0],{text:result});
-   assert.equal(h.turn().text,CAPTION,JSON.stringify(result)+" is not used");
-   assert.deepEqual(h.outcomes(),["sent","kept:"+reason]);
-  }
-  // A window that fell early or late cuts words at an edge: such a reading is never used, even when
-  // it corrects the words it kept, nor one that lost a word near an edge or several inside.
-  const cut=[
-   ["We approve the wire after the review.","approve the wire after the review.","edge_start"],
-   ["Fund accounting runs the kite checks before the each wire goes out.","accounting runs the KYC checks before the ACH wire goes out.","edge_start"],
-   ["No we never send it before the LPAC signs it off.","never send it before the LPAC signs it off.","edge_start"],
-   ["Treasury releases the wire after two approvals.","releases the wire after two approvals. Thanks, and who","edge_start"],
-   ["Treasury releases the wire after two approvals.","Treasury releases the wire after","edge_end"],
-   ["Treasury releases the wire after two approvals.","What changed? Treasury releases the wire after","edge_end"],
-   ["Treasury releases the wire after two approvals.","Treasury releases the wire after two thanks","edge_end"],
-   ["We run the kite checks and then the wire goes out to the bank on Friday.","We run the KYC checks and then the wire","edge_end"],
-   // A term read differently at an edge stands only where the reading ends with it.
-   ["We send it to the CPAC.","We send it to the LPAC. Thanks.","edge_end"],
-   ["Kite checks run first.","Okay. KYC checks run first.","edge_start"],
-   ["The approvals go to the kite team and then on to treasury for release and booking.","The approvals go to the KYC team for release and booking.","word_count"],
-   ["We approve it and the kite team signs.","We approve it and team signs.","word_count"],
-   // A request to stop is decided on the caption, never on a transcription.
-   ["We run the kite checks and. I need to top","We run the KYC checks and. I need to stop","edge_end"],
-   ["We run the kite checks and I need to stop","We run the KYC checks and. I need to stop.","stop_phrase"]];
-  for(const [caption,result,reason] of cut){
-   const h=await page();
-   h.say("live_u1",caption);
-   await h.answer(h.transcribe[0],{text:result});
-   assert.equal(h.turn().text,caption,JSON.stringify(result)+" is not used");
-   assert.deepEqual(h.outcomes(),["sent","kept:"+reason],JSON.stringify(result));
-  }
-  // Readings of the same words that correct them are used; words from the padding before or after
-  // the caption's own are left out, and the wording starts and ends as a sentence.
-  const used=[
-   ["Then the K one goes out.","Then the K-1 goes out.","Then the K-1 goes out."],
-   ["Yes, kite.","Yes, KYC.","Yes, KYC."],
-   ["We send the K one and the DI report.","We send the K-1 and the IRR report.","We send the K-1 and the IRR report."],
-   ["We do the kite check, then each transfer goes to custodian bank.","We do the KYC check, then ACH transfer goes to the custodian bank.","We do the KYC check, then ACH transfer goes to the custodian bank."],
-   ["We wire it after the CPAC signs.","We wire it after the LPAC signs. Okay, and who signs","We wire it after the LPAC signs."],
-   ["We wire it after the CPAC signs.","got it, we wire it after the LPAC signs, okay and","We wire it after the LPAC signs."],
-   ["We run, um, the kite checks first.","We run the KYC checks first.","We run the KYC checks first."],
-   ["The approvals go to the kite team and then on to treasury for release and booking.","The approvals go to the KYC team and on to treasury for release and booking.","The approvals go to the KYC team and on to treasury for release and booking."]];
-  for(const [caption,result,turn] of used){
-   const h=await page();
-   h.say("live_u1",caption);
-   await h.answer(h.transcribe[0],{text:result});
-   assert.equal(h.turn().text,turn,JSON.stringify(result));
-   assert.deepEqual(h.outcomes(),["sent","replaced"]);
+   await h.answer(h.transcribe[0],answer);
+   assert.equal(h.turn().text,CAPTION);assert.deepEqual(h.outcomes(),["sent","kept:no_terms"]);
   }
  });
  await check("a check that takes too long holds the notes six seconds; its later result is a correction applied once",async()=>{
@@ -494,7 +579,7 @@ async function page({caption_check=true}={}){
   await h.runCapture();
   assert.equal(h.captures.length,1,"After six seconds the capture reads the caption as it is");
   assert.equal(h.lastAnswer(h.captures[0]),CAPTION);
-  await h.answer(h.transcribe[0],{text:CHECKED});
+  await h.answer(h.transcribe[0],READ(RESULT));
   assert.equal(h.turn().text,CHECKED,"The later result still corrects the turn");
   await h.answer(h.captures[0],notes("Notes from the caption"));
   assert.notEqual(h.page.state.summary,"Notes from the caption","A capture that read the corrected answer is not used");
@@ -510,15 +595,15 @@ async function page({caption_check=true}={}){
   const h=await page();
   h.say("live_u1","We run the kite checks before it goes.");h.interviewer("live_a1","And then?");
   h.say("live_u2","The CPAC meets on Tuesday morning.");h.interviewer("live_a2","Who attends?");
-  h.say("live_u3","The each team and the GP attend.");
+  h.say("live_u3","Then the K one goes to the GP after that.");
   assert.equal(h.transcribe.length,2,"Two on their way");
   assert.deepEqual(h.audio,["live_u1","live_u2","live_u3"],"The third caption's audio is taken now, while it is held");
-  await h.answer(h.transcribe[0],{text:"We run the KYC checks before it goes."});
+  await h.answer(h.transcribe[0],READ("We run the KYC checks before it goes."));
   assert.equal(h.transcribe.length,3,"The third goes when one finishes");
-  await h.answer(h.transcribe[1],{text:"The LPAC meets on Tuesday morning."});
-  await h.answer(h.transcribe[2],{text:"The ACH team and the GP attend."});
+  await h.answer(h.transcribe[1],READ("The LPAC meets on Tuesday morning."));
+  await h.answer(h.transcribe[2],READ("Then the K-1 goes to the GP after that."));
   assert.deepEqual(h.page.state.turns.filter(turn=>turn.role==="user").slice(1).map(turn=>turn.text),
-   ["We run the KYC checks before it goes.","The LPAC meets on Tuesday morning.","The ACH team and the GP attend."]);
+   ["We run the KYC checks before it goes.","The LPAC meets on Tuesday morning.","Then the K-1 goes to the GP after that."]);
  });
  await check("the closing sequence and a request to stop decide on the caption: no check",async()=>{
   const h=await page();
@@ -532,7 +617,7 @@ async function page({caption_check=true}={}){
   const late=await page();
   late.say("live_u1",CAPTION);
   late.page.t.askFinalCheck("Have I missed anything?");late.page.state.closure={asked:true,confirmed:false};
-  await late.answer(late.transcribe[0],{text:CHECKED});
+  await late.answer(late.transcribe[0],READ(RESULT));
   assert.equal(late.turn().text,CAPTION);assert.deepEqual(late.outcomes(),["sent","discarded:closing"]);
   // A one-word caption is left as it is.
   const short=await page();short.say("live_u1","Kite.");assert.equal(short.transcribe.length,0);
@@ -545,7 +630,7 @@ async function page({caption_check=true}={}){
   assert.equal(h.transcribe.length,1,"The caption finalized by the stop is checked");
   assert.equal(h.captures.length,0,"The catch-up waits for it");
   assert.equal(h.page.state.busy,true);assert.equal(h.page.text("analysis-through"),"Updating notes from your last answer…");
-  await h.answer(h.transcribe[0],{text:CHECKED});
+  await h.answer(h.transcribe[0],READ(RESULT));
   assert.equal(h.captures.length,1,"Then the catch-up runs");assert.equal(h.lastAnswer(h.captures[0]),CHECKED);
   await h.answer(h.captures[0],notes("Notes after voice"));
   assert.equal(h.page.state.summary,"Notes after voice");assert.equal(h.page.state.busy,false);
@@ -574,7 +659,7 @@ async function page({caption_check=true}={}){
   h.say("live_u1",CAPTION);
   // The map would start a second after the final caption, while the check is on its way.
   assert.equal(await h.runMap(),true);assert.equal(h.maps.length,0,"The map waits for the check");
-  await h.answer(h.transcribe[0],{text:CHECKED});
+  await h.answer(h.transcribe[0],READ(RESULT));
   assert.equal(await h.runMap(),true);
   assert.equal(h.maps.length,1,"Then one map");assert.equal(h.lastAnswer(h.maps[0]),CHECKED,"of the checked wording");
   await h.answer(h.maps[0],MAP);
@@ -588,7 +673,7 @@ async function page({caption_check=true}={}){
    p.say("live_u1",CAPTION);
    p.page.t.receiveLiveStatus("idle");await p.page.flush();
    if(!early){assert.equal(await p.runMap(),true);assert.equal(p.maps.length,0);}
-   await p.answer(p.transcribe[0],{text:CHECKED});
+   await p.answer(p.transcribe[0],READ(RESULT));
    for(const capture of p.captures)await p.answer(capture,notes("Notes after voice"));
    assert.equal(await p.runMap(),true,"The map is started");
    assert.equal(p.maps.length,1);assert.equal(p.lastAnswer(p.maps[0]),CHECKED);
@@ -598,28 +683,36 @@ async function page({caption_check=true}={}){
    assert.equal(await p.runMap(),false);
   }
  });
- await check("spelling hints never come from a live caption that no check has confirmed",async()=>{
-  const h=await page();
-  const hints=entry=>decodeURIComponent(entry.init.headers["X-Transcription-Hints"]||"").split(",");
+ await check("a check's only hints are the server's glossary: the page marks the request and adds the process name, never a term of the transcript; dictation is as before",async()=>{
+  const h=await page(),header=(entry,name)=>entry.init.headers[name];
   h.say("live_u1","After the kite review the CPAC meets and approves the DI number.");
   h.interviewer("live_a1","And then?");
+  // A reading corrects the turn's terms, and its own words never become hints: they may be wrong
+  // (the real session's "HRSWIFT" and "IR" were the hints of the next check).
+  await h.answer(h.transcribe[0],READ("After the KYC review the LPAC meets and approves the IR number."));
+  assert.equal(h.turn().text,"After the KYC review the LPAC meets and approves the DI number.");
   h.say("live_u2","Then the CPAC signs and the kite file is closed.");
   assert.equal(h.transcribe.length,2);
-  for(const entry of h.transcribe)assert.ok(!hints(entry).includes("CPAC")&&!hints(entry).includes("DI"),"No mishearing is a hint: "+hints(entry));
-  // Once a check confirms a caption's wording, its terms are hints like a typed answer's.
-  await h.answer(h.transcribe[0],{text:"After the KYC review the LPAC meets and approves the IRR number."});
-  await h.answer(h.transcribe[1],{text:"Then the LPAC signs and the kite file is closed.",status:"ok"});
-  h.interviewer("live_a2","Who files it?");
-  h.say("live_u3","The ops team files it with the bank.");
-  const third=hints(h.transcribe[2]);
-  assert.ok(third.includes("LPAC")&&third.includes("KYC")&&third.includes("IRR")&&third.includes("NAV"),"Confirmed and typed terms: "+third);
-  assert.ok(!third.includes("CPAC")&&!third.includes("DI"));
-  // A caption whose check was refused lends none.
-  const r=await page();
-  r.say("live_u1","After the kite review the CPAC meets.");
-  await r.refuse(r.transcribe[0],429,"Several requests are already processing.");
-  r.interviewer("live_a1","And then?");r.say("live_u2","The ops team files it with the bank.");
-  assert.ok(!hints(r.transcribe[1]).includes("CPAC"));
+  for(const entry of h.transcribe){
+   assert.equal(header(entry,"X-Transcription-Purpose"),"live-caption-check","Marked as a caption check");
+   assert.equal(decodeURIComponent(header(entry,"X-Transcription-Hints")),"Capital calls","The process name, nothing from the transcript");
+  }
+  // A process name that is not a short plain term is not sent: the server's glossary is enough.
+  const unnamed=await page();
+  unnamed.page.state.context.process_name="Capital calls, NAV and fees";
+  unnamed.say("live_u1",CAPTION);
+  assert.equal(header(unnamed.transcribe[0],"X-Transcription-Hints"),undefined);
+  assert.equal(header(unnamed.transcribe[0],"X-Transcription-Purpose"),"live-caption-check");
+  // Dictation and reviewed voice send what they always sent: the interview's terms, and no mark.
+  const d=await page();
+  void d.page.t.request("/api/transcribe",new Blob([new Uint8Array(200)],{type:"audio/webm"}));
+  void d.page.t.request("/api/transcribe",new Blob([new Uint8Array(200)],{type:"audio/webm"}),{purpose:"anything-else"});
+  await d.page.flush();
+  for(const dictated of d.transcribe){
+   assert.equal(header(dictated,"X-Transcription-Purpose"),undefined,"Not marked");
+   const hints=decodeURIComponent(header(dictated,"X-Transcription-Hints")).split(",");
+   assert.ok(hints.includes("Capital calls")&&hints.includes("NAV")&&hints.includes("GP Fund Solutions"),"The interview's terms: "+hints);
+  }
  });
  await check("after voice a result that comes too late is not used: the catch-up, a draft and Wrap up read the transcript as it stands",async()=>{
   const stopped=async()=>{
@@ -661,7 +754,7 @@ async function page({caption_check=true}={}){
    h.page.t.conversationUI.live.active=false;
    void h.page.t[start]();await h.page.flush();
    assert.equal(h.transcribe[0].aborted,true,start+" gives the check up");
-   await h.answer(h.transcribe[0],{text:CHECKED});
+   await h.answer(h.transcribe[0],READ(RESULT));
    assert.equal(h.turn().text,CAPTION);
    assert.deepEqual(h.outcomes(),["sent","discarded:closing"]);
   }

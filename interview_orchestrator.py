@@ -733,6 +733,36 @@ class Coordinator:
             families = {value[0] for value in self._run_families.values()}
             self._family_generations = {key: value for key, value in self._family_generations.items() if key in families}
 
+    @staticmethod
+    def _live_partial(payload, action, continued):
+        """Whether this is a live notes capture of an answer still being spoken.
+
+        Live voice notes a long answer while it is spoken (web/app.js captureMidAnswer) and
+        sends live_partial: true. Such a capture is notes for display only: it does not
+        invalidate the capture the page holds, does not claim the capture family, issues no
+        capability and publishes no ledger (see interview). It is meaningful only on the live
+        front's own notes capture of an answer; anything else that carries it is refused.
+        """
+        if "live_partial" not in payload or payload["live_partial"] is False:
+            return False
+        if payload["live_partial"] is not True:
+            raise ValueError("live_partial must be true or false.")
+        if payload.get("live_notes") is not True or action != "answer" or continued:
+            raise ValueError("Only a live notes capture of an answer can be partial.")
+        return True
+
+    def _join_family(self, payload, run):
+        """Run a partial capture beside the held capture's family without claiming it.
+
+        Its generation is the family's current one, so the next capture that claims the
+        family (the capture of the whole answer) retires it like any earlier run.
+        """
+        with self._lock:
+            capability = payload.get("capture_token")
+            old = self._captures.get(capability) if isinstance(capability, str) else None
+            if old:
+                self._run_families[run.run_id] = (old["family"], self._family_generations.get(old["family"], old["generation"]))
+
     def _invalidate_capture(self, state):
         with self._lock:
             state["valid"] = False
@@ -1196,6 +1226,7 @@ class Coordinator:
         # the session's own as _ledger_token (see _fact_record). Either way the ledger is one
         # the server chose to continue: if it cannot be read back, the account is recaptured.
         continued = facts_only or isinstance(payload.get("_ledger_token"), str)
+        partial = self._live_partial(payload, action, continued)
         fact_state = self._fact_base(payload, context, turns, evidence, supporting, required=not continued)
         # Facts kept although this request could not carry their excerpt; the notes may still cite them.
         carried = capture_facts.carried_sources(fact_state, evidence)
@@ -1216,6 +1247,12 @@ class Coordinator:
         # A reply that adds nothing to the account is answered from the capture it
         # follows: a confirmation, a courtesy, anything said after the completion line.
         step = self._reply_step(prior, extension, turns, stopped, supporting) if prior else None
+        if partial and (stopped or step):
+            # Part of an answer decides nothing: words that read as a request to stop, or as
+            # a reply the held capture would answer, are decided when the answer has ended.
+            # Refused before any run or model call, and the held capture stays valid.
+            raw_trace.emit("coordinator.interview.route", {"route": "live_partial_refused", "action": action})
+            raise api.APIError("This answer is still being given. Its notes follow when it ends.", 409)
         # A request to stop in reply to a final check that passed pauses like any other
         # ("held") and confirms nothing, but the review stays: Wrap up asks the same
         # check again, and an explicit "no" then completes the account without new calls.
@@ -1229,7 +1266,9 @@ class Coordinator:
             cached["no_new_run"] = True
             raw_trace.emit("coordinator.interview.route", {"route": "cached_capture", "action": action})
             return cached
-        if prior and not held:
+        # A partial capture leaves the held capture valid: the capture of the whole answer
+        # continues from it (its previous_capture context, the excerpt and incremental paths).
+        if prior and not held and not partial:
             self._invalidate_capture(prior)
         active_facts = [fact for fact in fact_state["facts"] if fact["state"] == "active"]
         has_noncontext_facts = any(any(source["authority"] != "context" for source in fact["sources"].values())
@@ -1251,7 +1290,10 @@ class Coordinator:
             "new_document_baseline": new_document_baseline, "facts_only": facts_only,
             "continued": continued, "held": held, "stopped": stopped})
         run.defer_roles(("coverage_reviewer", "process_reviewer"))
-        if not held:
+        if partial:
+            # Beside the family, not in place of its last capture: the next whole capture retires it.
+            self._join_family(payload, run)
+        elif not held:
             # Claiming the family retires its earlier runs, the held review among them.
             self._claim_family(payload, run)
         # Remembered on the run: its completion review and final check come later.
@@ -1508,7 +1550,7 @@ class Coordinator:
         ticket_id = None
         if action == "close" and not (candidate_full or candidate_partial):
             self._partial_close(capture, run, supporting)
-        elif candidate_full or candidate_partial:
+        elif (candidate_full or candidate_partial) and not partial:
             ticket_id = uuid.uuid4().hex + uuid.uuid4().hex
             acknowledgement = PARTIAL_REVIEW_ACKNOWLEDGEMENT if candidate_partial else REVIEW_ACKNOWLEDGEMENT
             self._authorize(capture, run, acknowledgement, "review_pending")
@@ -1540,6 +1582,17 @@ class Coordinator:
             capture["document_evidence"] = evidence
         if changed_review:
             capture["review_invalidated"] = "The interview details or reference files changed. The updated account needs a new review."
+        if partial:
+            # Notes of part of an answer are shown and never continued from: no capability is
+            # issued and the ledger is not published, so no later request can take them as its
+            # baseline. Their facts quote a caption that is still growing; capture_facts.rebase
+            # would retire every one of them once it grows, and the capture of the whole answer
+            # reads it again from the last whole-answer ledger in any case.
+            provider_usage.stamp_generation(capture, api.VERSION)
+            self._attach_provenance(capture, fact_state)
+            capture["live_partial"] = True
+            raw_trace.emit("coordinator.interview.route", {"route": "live_partial", "revision": run.ledger.revision})
+            return capture
         return self._remember(capture, context, turns, supporting, token, run, ticket_id, fact_state)
 
     def _file_reading(self, payload, supporting):

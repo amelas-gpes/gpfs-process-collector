@@ -252,14 +252,23 @@
   // Live front, managed back: GPT-Live speaks; the lead captures each spoken
   // answer in the background and the application still owns completion.
   let liveCapture=null,liveCaptureQueued=false,liveCaptureTimer=null,liveCapturedThrough=null,liveCompleteTimer=null;
-  // A long answer is noted while it is still being spoken (see captureMidAnswer)
-  // once the notes are this many characters behind the participant's words
-  // (about 100 words, some 40 seconds of ordinary speech: enough to change the
-  // notes), and at most once in this many milliseconds, so a fast speaker adds
-  // at most two captures a minute. liveNotesChars: how much participant speech
-  // the notes on screen read; liveMidAnswerAt: when the last such capture went.
-  const LIVE_MID_ANSWER_CHARS=600,LIVE_MID_ANSWER_INTERVAL=30000;
-  let liveNotesChars=0,liveMidAnswerAt=null;
+  // A long answer is noted while it is still being spoken (see captureMidAnswer).
+  // LIVE_MID_ANSWER_CHARS: the answer being spoken is longer than this (the
+  //   server's limit for its quick excerpt capture, interview_orchestrator.py),
+  //   about 95 seconds of ordinary speech; LIVE_MID_ANSWER_MS: or has gone on
+  //   this long. An ordinary answer is captured once, at its end, as before.
+  // LIVE_DEFERRED_CHARS: answers that already ended hold this many characters
+  //   the notes lack (their capture waited because the participant went on).
+  // LIVE_MID_ANSWER_GAPS: before the first, second and third capture of one
+  //   answer, at least this long since the previous capture returned (the
+  //   first for answers that already ended goes at once); no more than three
+  //   per answer. The end-of-answer capture is never held by them.
+  // liveNotesChars: how much participant speech the notes on screen read;
+  // liveMidAnswer: the answer being noted ({key,count}); liveCaptureReturned:
+  // when the last notes capture came back; liveAnswerStarts: when each open
+  // participant caption, by caption key, began.
+  const LIVE_MID_ANSWER_CHARS=1400,LIVE_MID_ANSWER_MS=100000,LIVE_DEFERRED_CHARS=200,LIVE_MID_ANSWER_GAPS=[30000,60000,120000];
+  let liveNotesChars=0,liveMidAnswer=null,liveCaptureReturned=null;const liveAnswerStarts=new Map();
   const LIVE_NOTES_RETRY_DELAYS=[3000,10000];
   let liveRetryTimer=null,liveRetryCount=0,liveMapEndRevision=null;
   // Captions in which GPT-Live read an application-authorized line, by caption
@@ -292,21 +301,36 @@
   // spoken) only follow them. Its notes are used for those answers; it decides
   // nothing about completion (see applyLiveCapture). A capture that read an
   // answer which has since been corrected, extended or removed is not usable,
-  // except that an answer still being spoken when it was read (openAnswers, see
-  // liveSnapshot) may since have grown by the words that followed.
+  // except that an answer a live caption wrote may since have grown by the words
+  // that followed: one still being spoken when it was read, or one that a
+  // pause finished and that went on (a caption that resumes keeps its turn).
+  // Its notes are then applied as notes only; only a capture that read the
+  // answers exactly as they stand marks them as captured (liveSourceMatches).
   function liveSourceUsable(captured){
     if(!captured||captured.generation!==state.generation||captured.liveSession!==liveSession||captured.live!==conversationUI.live||
       captured.document_revision!==activeDocumentSignature()||JSON.stringify(captured.context)!==JSON.stringify(state.context))return false;
-    return answersStand(participantCoverageBasis(captured.turns),participantCoverageBasis(),captured.openAnswers);
+    return answersStand(participantCoverageBasis(captured.turns),participantCoverageBasis(),liveCaptionAnswers());
   }
   // Every answer read is still in the transcript, unchanged and in the same
-  // order; an answer named in `growing` may only have had words added at its end.
+  // order; an answer named in `growing` may only have had words added at its
+  // end (its text then begins with every character that was read).
   function answersStand(read,now,growing=[]){
     return read.length<=now.length&&read.every(([id,answer],index)=>now[index][0]===id&&(now[index][1]===answer||growing.includes(id)&&now[index][1].startsWith(answer)));
   }
   // The participant's turns whose captions are still open: words are still being added to them.
   function openParticipantTurns(){
     return [...conversationUI.pendingParticipantCaptions].flatMap(key=>conversationUI.captions.get(key)||[]);
+  }
+  // The participant's turns that live captions wrote. A caption only ever has
+  // words added at its end, also when it resumes after a pause.
+  function liveCaptionAnswers(){
+    return [...conversationUI.captions].flatMap(([key,ids])=>key.startsWith("user:")?ids:[]);
+  }
+  // A capture read part of an answer: one still open when it was read, or one
+  // that has grown since (see liveSourceUsable).
+  function readPartOfAnswer(captured){
+    const now=new Map(participantCoverageBasis());
+    return Boolean(captured.openAnswers?.length)||participantCoverageBasis(captured.turns).some(([id,answer])=>now.has(id)&&now.get(id)!==answer);
   }
   function participantChars(turns=state.turns){
     return participantCoverageBasis(turns).reduce((sum,[,answer])=>sum+answer.length,0);
@@ -337,7 +361,7 @@
     liveCapture?.controller.abort();liveCapture=null;liveCaptureQueued=false;liveCapturedThrough=null;liveReadings.clear();liveFinalReply=null;liveSession++;liveWithheldMoments=0;liveWithheldRepeatSaid=false;
     clearTimeout(liveCaptureTimer);liveCaptureTimer=null;clearTimeout(liveCompleteTimer);liveCompleteTimer=null;state.liveSuggestedQuestion="";
     clearTimeout(liveRetryTimer);liveRetryTimer=null;liveRetryCount=0;liveMapEndRevision=null;
-    liveNotesChars=participantChars();liveMidAnswerAt=null;
+    liveNotesChars=participantChars();liveMidAnswer=null;liveCaptureReturned=null;liveAnswerStarts.clear();
     liveCatchUpDue=false;liveOpen=false;completionHeld=false;
   }
   // Voice can end (Stop talking, a dropped session, the transcript limit) while
@@ -1612,14 +1636,17 @@
     // After a pause the notes are as old as the last real capture: say through
     // which answer they go, never that they include every saved answer.
     const through=analysisCheckpoint?.kept?analysisCheckpoint.through:analysisCheckpoint?.count;
-    // Notes taken while the latest answer was being spoken read part of it; those of the whole answer follow.
+    // Notes taken while the latest answer was being spoken read part of it; those of the whole answer
+    // follow. Busy only while a notes capture is on its way (after a failed one the notes stay as they are).
     const partOfLatest=!current&&analysisCheckpoint&&!analysisCheckpoint.kept&&analysisCheckpoint.count===count&&
-      analysisCheckpoint.documents===activeDocumentSignature()&&answersStand(JSON.parse(analysisCheckpoint.basis),basis,[basis.at(-1)[0]]);
+      analysisCheckpoint.documents===activeDocumentSignature()&&answersStand(JSON.parse(analysisCheckpoint.basis),basis,liveCaptionAnswers());
+    const partNoted=partOfLatest&&!liveCapture;
     node.textContent=current?(analysisCheckpoint.kept?`${through?`Notes kept through answer ${through}`:'Notes kept as they were'} · paused at your request`:`Notes include all ${count} saved answers`):
+      partNoted?`Notes include part of answer ${count}`:
       !analysisCheckpoint||partOfLatest||analysisCheckpoint.kept&&!through?`Updating notes for answer ${count}`:
       analysisCheckpoint.count<count?(through?`Notes through answer ${through} of ${count}`:`Updating notes for answer ${count}`):
       'Notes are updating for the revised conversation or files';
-    setLevel(node,current?(analysisCheckpoint.kept?"info":""):"busy");
+    setLevel(node,current?(analysisCheckpoint.kept?"info":""):partNoted?"":"busy");
   }
   function captureProgressMark(turns=state.turns){
     const basis=participantCoverageBasis(turns);
@@ -3184,27 +3211,76 @@
     if(caption.role==="user"&&!caption.final)captureMidAnswer();
   }
   // Notes wait for the participant to pause (runLiveCapture), so one who talks
-  // for minutes would see none of it noted until the end. Once enough of their
-  // words are missing from the notes, the transcript as it stands is captured
-  // while they keep talking. Its notes are applied as a lagging capture's are
-  // (applyLiveCapture): nothing is said or sent to the live interviewer for it,
-  // and the capture of the whole answer still follows when the answer ends and
-  // alone marks the answer as captured. The closing sequence judges whole
-  // replies (see completionHeld), so nothing is captured mid-answer there.
+  // for minutes would see none of it noted until the end. When the answer being
+  // spoken is long (LIVE_MID_ANSWER_CHARS, LIVE_MID_ANSWER_MS), or an answer
+  // that already ended is still missing from the notes because the participant
+  // went straight on (LIVE_DEFERRED_CHARS), the transcript as it stands is
+  // captured while they keep talking: at most three times per answer, spaced
+  // from when the previous capture returned (LIVE_MID_ANSWER_GAPS). The server
+  // is told it is partial (live_partial): it keeps the capture the page holds
+  // and does not continue from this one. Its notes are applied as a lagging
+  // capture's are (applyLiveCapture): nothing is said or sent to the live
+  // interviewer for it, and the capture of the whole answer still follows when
+  // the answer ends and alone marks the answer as captured (scheduleLiveCapture
+  // gives this one up then). The closing sequence judges whole replies (see
+  // completionHeld), so nothing is captured mid-answer there.
   function captureMidAnswer(){
-    const live=conversationUI.live;
-    if(!liveFrontActive()||state.example||intakeActive()||liveCapture||liveRetryTimer!==null||!conversationUI.pendingParticipantCaptions.size)return;
+    const live=conversationUI.live,now=Date.now(),open=[...conversationUI.pendingParticipantCaptions];
+    for(const key of open)if(!liveAnswerStarts.has(key))liveAnswerStarts.set(key,now);
+    if(!liveFrontActive()||state.example||intakeActive()||liveCapture||liveRetryTimer!==null||!open.length)return;
     if(voiceEnded||liveLimitStops.has(live)||liveFinalReply||liveStopTurn||completionHeld||completionStands()||pendingCompletionReview||pendingFinalCheck||state.closure.asked)return;
-    if(liveMidAnswerAt!==null&&Date.now()-liveMidAnswerAt<LIVE_MID_ANSWER_INTERVAL)return;
-    if(participantChars()-liveNotesChars<LIVE_MID_ANSWER_CHARS)return;
-    // Words that end like a request to stop ("I need to stop" before "the run")
-    // are left to the end of the answer, where a request to stop is decided.
-    const latest=state.turns.findLast(turn=>turn.role==="user"&&!turn.document_event);
-    if(latest&&voiceStopPrefix(latest.text)!==null)return;
+    // The answer being spoken is the newest open caption; a caption that resumes after a pause is the same answer.
+    const key=open.at(-1);
+    if(liveMidAnswer?.key!==key)liveMidAnswer={key,count:0};
+    const gap=LIVE_MID_ANSWER_GAPS[liveMidAnswer.count];
+    if(gap===undefined)return;
+    const rested=liveCaptureReturned===null||now-liveCaptureReturned>=gap;
+    const spoken=new Set(openParticipantTurns()),basis=participantCoverageBasis();
+    const length=answers=>answers.reduce((sum,[,answer])=>sum+answer.length,0);
+    const speaking=length(basis.filter(([id])=>spoken.has(id))),ended=length(basis.filter(([id])=>!spoken.has(id)));
+    const long=speaking>LIVE_MID_ANSWER_CHARS||now-Math.min(...open.map(entry=>liveAnswerStarts.get(entry)))>=LIVE_MID_ANSWER_MS;
+    // An answer that ended goes at once: its own capture only waited because this one began.
+    const waiting=ended-liveNotesChars>=LIVE_DEFERRED_CHARS;
+    if(!(rested&&(long||waiting)||waiting&&!liveMidAnswer.count))return;
+    // Words that could be read as a request to stop are left to the end of the
+    // answer, where a request to stop is decided (see liveStopInWords).
+    if(openParticipantTurns().some(id=>liveStopInWords(state.turns.find(turn=>turn.id===id)?.text||"")))return;
+    liveMidAnswer.count++;
     void runLiveCapture(false,true);
+  }
+  // Whether the words so far could be read by the server as a request to stop
+  // (server.py stop_request_prefix). The server splits at . ! ? … ; and line
+  // breaks, then at commas, colons, brackets and dashes, so fillers, courtesies
+  // and reasons are clauses of their own ("…noon. Okay, I need to stop",
+  // "Sorry, I need to stop", "I need to stop now, my boss is calling"). It
+  // reads a request to stop among the first clauses of the words, after such
+  // asides, or in their last sentence. This check is broader, so that it never
+  // lets one through: a clause that is a request to stop on its own (the
+  // patterns the server gives the page), among the first nine clauses or in
+  // the last three sentences (room for a goodbye after it). At worst a capture
+  // waits for a few more words, or one answer is noted only at its end; the
+  // server refuses part of an answer that reads as a stop in any case (it
+  // decides a stop when the answer ends). Separate from voiceStopPrefix, which
+  // ends voice and so reads only how the words end.
+  function liveStopInWords(value,patterns=state.config?.agent_team?.stop_intent_patterns||[]){
+    const expressions=patterns.flatMap(pattern=>{try{return [new RegExp(pattern,"u")];}catch{return [];}});
+    const stop=clause=>expressions.some(expression=>expression.test(clause));
+    const sentences=value.split(/[.!?…;\n]+/u).filter(sentence=>sentence.trim());
+    const clauses=list=>list.flatMap(sentence=>sentence.split(/[,()]|:(?!\d)|\s[—–-]+\s/u))
+      .map(clause=>clause.trim().split(/\s+/u).join(" ").toLowerCase()).filter(Boolean);
+    return clauses(sentences).slice(0,9).some(stop)||clauses(sentences.slice(-3)).some(stop);
   }
   function scheduleLiveCapture() {
     if(!liveFrontActive()||state.example||intakeActive()||liveRetryTimer!==null)return;
+    // The answer has ended while a capture of part of it is on its way. That
+    // capture can never mark the answer as captured, and the server keeps
+    // nothing of it (see captureMidAnswer), so it is given up and the capture
+    // of the whole answer goes now instead of after it.
+    if(liveCapture?.midAnswer&&!liveAnswerPending()){
+      const check=liveCapture;liveCapture=null;liveCaptureQueued=true;check.controller.abort();
+      if(voiceStreamTopics?.check===check){voiceStreamTopics=null;renderCoverage();}
+      rawTrace("live.notes_mid_answer_superseded",{through_turn:check.captured.turns.findLast(turn=>turn.role==="user")?.id||null});
+    }
     if(liveCapture){liveCaptureQueued=true;return;}
     clearTimeout(liveCaptureTimer);
     liveCaptureTimer=setTimeout(()=>{liveCaptureTimer=null;void runLiveCapture();},400);
@@ -3236,14 +3312,15 @@
     const through=`${latest.id}:${latest.text}`;
     const generation=state.generation,controller=new AbortController(),check={controller,generation,captured,midAnswer};
     // A capture taken mid-answer leaves the capture of the whole answer owed.
-    liveCapture=check;liveCaptureQueued=midAnswer;
-    if(midAnswer){liveMidAnswerAt=Date.now();rawTrace("live.notes_mid_answer",{through_turn:latest.id,unnoted_chars:participantChars(captured.turns)-liveNotesChars});}
+    liveCapture=check;liveCaptureQueued=midAnswer;renderAnalysisThrough();
+    if(midAnswer)rawTrace("live.notes_mid_answer",{through_turn:latest.id,unnoted_chars:participantChars(captured.turns)-liveNotesChars,count:liveMidAnswer?.count||0});
     try{
       const {live:_,liveSession:sessionId,generation:__,revision:___,openAnswers:____,...payload}=captured;
       // concurrentBypass: with voice off this is still the live front's notes
       // capture, never a typed interviewer turn that asks a new question.
       // liveNotes: the lead's proposed question is never shown for this capture.
-      const result=await request("/api/interview",{...payload,action:"answer",live_notes:true,interview_memory:liveMemoryEnabled()},{signal:controller.signal,concurrentBypass:true,liveNotes:true,...(afterVoice?{timeout:LIVE_NOTES_WAIT}:{})});
+      // live_partial: the server keeps nothing of a capture taken mid-answer (see captureMidAnswer).
+      const result=await request("/api/interview",{...payload,action:"answer",live_notes:true,interview_memory:liveMemoryEnabled(),...(midAnswer?{live_partial:true}:{})},{signal:controller.signal,concurrentBypass:true,liveNotes:true,...(afterVoice?{timeout:LIVE_NOTES_WAIT}:{})});
       if(liveCapture!==check||generation!==state.generation)return;
       liveRetryCount=0;
       if(liveFrontActive()){
@@ -3281,7 +3358,8 @@
       clearTimeout(check.deadline);check.deadline=null;
       if(liveCapture===check){
         if(voiceStreamTopics?.check===check){voiceStreamTopics=null;renderCoverage();}
-        liveCapture=null;
+        // Captures taken mid-answer are spaced from this moment (captureMidAnswer).
+        liveCapture=null;liveCaptureReturned=Date.now();renderAnalysisThrough();
         if(liveFrontActive()){if(liveCaptureQueued&&!liveAnswerPending())scheduleLiveCapture();}
         else if(generation===state.generation)settleLiveNotes();
       }
@@ -3365,7 +3443,7 @@
     if(memo){
       Object.assign(state,memo);notesProgress=captureProgressMark(captured.turns);keepMapProgress(result,captured.turns);liveNotesChars=participantChars(captured.turns);
       if(voiceTopicPreview&&captured.turns.some(t=>t.id===voiceTopicPreview.id&&t.text===voiceTopicPreview.text))voiceTopicPreview=null;
-      const midAnswer=lagging&&captured.openAnswers?.length>0;
+      const midAnswer=lagging&&readPartOfAnswer(captured);
       rawTrace("live.notes_checkpoint",{through_turn:notesProgress.through,answer_count:notesProgress.count,...(midAnswer?{mid_answer:true}:{})});
       // Leads from part of an answer are not kept: offered to the interviewer
       // when the answer ends, they would take the place of those from the

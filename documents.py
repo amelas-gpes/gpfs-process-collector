@@ -19,6 +19,7 @@ from pathlib import PurePosixPath
 import re
 import secrets
 import sqlite3
+import subprocess
 import sys
 import threading
 import time
@@ -235,6 +236,8 @@ INVENTORY_LIMIT_MESSAGE = ('This file has more pages or sheets than its 50 KiB i
                            'Split it into smaller files and add those. Nothing was indexed, and no unit or source content was silently omitted.')
 TRANSCRIPTION_LIMIT_MESSAGE = ('The visual readings of this file no longer fit its 64 MiB text or 50,000-section index, so this reading was not stored. '
                                'Split the file into smaller files and add those; retrying the review will stop at the same place.')
+PDF_BUDGET_MESSAGE = 'PDF content expands beyond the extraction budget; no partial index was published.'
+WORKBOOK_TIME_MESSAGE = 'Workbook processing exceeded 90 seconds. Split the workbook and attach smaller copies.'
 SAMPLES_SHORTENED ='Preview samples were shortened to keep inventory under 50 KiB. All unit names/counts and full indexed content are retained.'
 SAMPLES_OMITTED = 'Preview samples were left out to keep inventory under 50 KiB. All unit names/counts and full indexed content are retained.'
 
@@ -573,7 +576,7 @@ class DocumentStore:
                                   **({'error': None} if analysis.get('error') in REINDEX_NOTICES else {})}
         return record
 
-    def __init__(self, root):
+    def __init__(self, root, parser_processes=0):
         self.root = _private_dir(root).resolve()
         self.db_path = self.root / 'documents.sqlite3'
         if self.db_path.is_symlink():
@@ -582,6 +585,9 @@ class DocumentStore:
         self._locks_guard = threading.Lock()
         self._locks = {}
         self.diagnostic = None  # Set by the server to its bounded local event log.
+        # Up to this many files are read at once, each by a separate Python process (_parse_apart);
+        # with none, files are read in this process. The server allows one per review worker.
+        self._parser_slots = threading.BoundedSemaphore(parser_processes) if parser_processes else None
         # Before any statement that creates or changes anything in the file.
         probe = sqlite3.connect(_long_path(self.db_path), timeout=30)
         try:
@@ -1039,12 +1045,9 @@ class DocumentStore:
             if record['archived'] or (record['status'] in ('ready', 'partial') and self.extraction_current(record)):
                 return record
             self.update(scope, document_id, {'status': 'indexing', 'error': None})
-            chunks = _Chunks(record)
             try:
                 path = _long_path(self.original_path(scope, document_id))
-                extractor = {'pdf': _pdf, 'png': _png, 'xlsx': _workbook, 'xlsm': _workbook,
-                             'csv': _csv, 'xls': _legacy_xls}[record['kind']]
-                inventory, coverage = extractor(path, record, chunks)
+                inventory, coverage, chunks = self._parse(path, record)
                 with self._db() as db:
                     db.execute('BEGIN IMMEDIATE')
                     digest, current = self._record(db, scope, document_id)
@@ -1087,13 +1090,30 @@ class DocumentStore:
                 return self.update(scope, document_id, {'status': 'error', 'error_code':'dependency_missing', 'retryable':False,
                                                       'error': missing_reader_message(record['kind'], module)})
             except (OSError, sqlite3.Error) as error:
-                self._diagnose('document_storage_unavailable', stage='publish', error_type=type(error).__name__)
+                # A reader in its own process (_parse_apart) reports the class of its OSError by name.
+                self._diagnose('document_storage_unavailable', stage='publish',
+                               error_type=getattr(error, 'reported_type', None) or type(error).__name__)
                 return self.update(scope, document_id, {'status':'error', 'error_code':'storage_unavailable', 'retryable':True,
                     'error':'Local storage could not publish the index. Check free disk space and access, then select Retry review.'})
             except Exception as error:
                 # Parser messages can contain source text; publish only controlled diagnostics.
                 message = str(error) if isinstance(error, DocumentError) else 'The document could not be safely decoded. Its original is retained.'
                 return self.update(scope, document_id, {'status': 'error', 'error_code':'invalid_file', 'retryable':False, 'error': message})
+
+    def _parse(self, path, record):
+        """The file's (inventory, coverage, chunks), from the reader for its kind.
+
+        With parser processes the reader runs in a separate Python process. When none
+        can be started on this computer, the file is read here as before, so an upload
+        never depends on one.
+        """
+        if self._parser_slots is not None:
+            parsed = _parse_apart(path, record, self._parser_slots, self._diagnose)
+            if parsed is not None:
+                return parsed
+        chunks = _Chunks(record)
+        inventory, coverage = globals()[PARSERS[record['kind']]](path, record, chunks)
+        return inventory, coverage, chunks
 
     def _diagnose(self, event, **fields):
         """Report an operational fact (never file content) to whoever started the store, if anyone listens."""
@@ -1125,12 +1145,10 @@ class DocumentStore:
             if (before['archived'] or not before.get('extraction_needs_reindex')
                     or (before.get('reindex_check') or {}).get('outcome') != 'pending'):
                 return before
-            chunks, outcome = _Chunks(before), 'changed'
+            outcome = 'changed'
             try:
                 path = _long_path(self.original_path(scope, document_id))
-                extractor = {'pdf': _pdf, 'png': _png, 'xlsx': _workbook, 'xlsm': _workbook,
-                             'csv': _csv, 'xls': _legacy_xls}[before['kind']]
-                inventory, coverage = extractor(path, before, chunks)
+                inventory, coverage, chunks = self._parse(path, before)
             except Exception:
                 outcome = 'failed'
             with self._db() as db:
@@ -1428,7 +1446,7 @@ def _pdf(path, record, chunks):
         operations += 1
         if exhausted or operations > 2_000_000 or (operations % 128 == 0 and time.monotonic() > deadline):
             exhausted = True
-            raise ExtractionError('PDF content expands beyond the extraction budget; no partial index was published.')
+            raise ExtractionError(PDF_BUDGET_MESSAGE)
     count = len(reader.pages)
     if not 1 <= count <= MAX_PDF_PAGES:
         raise ExtractionError('PDF page count exceeds the 500-page limit or is empty; no partial index was published.')
@@ -1444,7 +1462,7 @@ def _pdf(path, record, chunks):
                 raise ExtractionError('PDF decoded content exceeds 16 MiB per page or 128 MiB total; no partial index was published.')
             text = page.extract_text(visitor_operand_before=bound) or ''
             if exhausted or time.monotonic() > deadline:
-                raise ExtractionError('PDF content expands beyond the extraction budget; no partial index was published.')
+                raise ExtractionError(PDF_BUDGET_MESSAGE)
             annotations, unread_annotations = _pdf_annotation_text(page)
             text = '\n'.join([text, *annotations]) if annotations else text
             suspect = sum(char == '\ufffd' or unicodedata.category(char) in ('Cs', 'Co') or
@@ -1728,7 +1746,7 @@ def _workbook(path, record, chunks):
             def parse_row(self, element):
                 nonlocal remaining
                 if time.monotonic() > deadline:
-                    raise ExtractionError('Workbook processing exceeded 90 seconds. Split the workbook and attach smaller copies.')
+                    raise ExtractionError(WORKBOOK_TIME_MESSAGE)
                 remaining -= len(element)
                 if remaining < 0:
                     raise ExtractionError('Workbook exceeds two million stored cells; no partial index was published.')
@@ -1938,3 +1956,182 @@ def _legacy_xls(path, record, chunks):
                  'limitations': ['Legacy XLS exposes saved cell results. Formula counts, chart and image contents, and macros are unavailable.']})
     finally:
         book.release_resources()
+
+
+# Reading a file in a separate process. A 300-page PDF or a 200,000-row workbook is 4 to 20
+# seconds of pure-Python work. Inside the server it held the interpreter lock that every
+# request thread needs, so everyone else waited: a typed interview's next question took 2.02 s
+# instead of 1.86 s while five large files were read in another interview, and status polls up
+# to 175 ms. The server's store therefore has each file read by a separate Python, which runs
+# the same reader and sends back exactly what it produced. Publishing stays in the server.
+PARSERS = {'pdf': '_pdf', 'png': '_png', 'xlsx': '_workbook', 'xlsm': '_workbook', 'csv': '_csv', 'xls': '_legacy_xls'}
+# How long a reader may run in its own process, by kind. The PDF and workbook readers stop
+# themselves at their 45 s and 90 s budgets, with their own message (time spent telling
+# drawings from page furniture extends a PDF's budget by up to PDF_DRAWING_SECONDS). This
+# limit also ends what their checks cannot interrupt, such as opening the file or one long
+# library call, and a reader that hangs, so no review worker waits forever. The margin covers
+# starting Python and lets a reader's own message come first.
+PARSER_SECONDS = {'pdf': 45 + PDF_DRAWING_SECONDS, 'png': 45, 'xlsx': 90, 'xlsm': 90, 'xls': 90, 'csv': 90}
+PARSER_MARGIN_SECONDS = 15
+# What a file says when its reader was ended at that limit. A kind without a budget of its
+# own says that the file could not be read.
+PARSER_TIME_MESSAGES = {'pdf': PDF_BUDGET_MESSAGE, 'xlsx': WORKBOOK_TIME_MESSAGE, 'xlsm': WORKBOOK_TIME_MESSAGE,
+                        'xls': WORKBOOK_TIME_MESSAGE}
+# The process loads this file by its path. Python starts isolated (-I), which puts neither the
+# app's folder nor the working directory on sys.path, in a checkout and a desktop release alike.
+_PARSER_BOOT = ('import importlib.util, sys\n'
+                "spec = importlib.util.spec_from_file_location('documents', sys.argv[1])\n"
+                'module = importlib.util.module_from_spec(spec)\n'
+                "sys.modules['documents'] = module\n"
+                'spec.loader.exec_module(module)\n'
+                'module._parse_apart_main()\n')
+
+
+class ParserProcessError(Exception):
+    """A reader in its own process failed in a way that must not be described here: the
+    process ended without a result, or the reader raised an error whose message could
+    quote the file. The file then shows the usual message for a file that cannot be read."""
+
+
+def _line(value):
+    """One line of the exchange with a reader process. Text keeps every character the reader produced."""
+    return json.dumps(value, ensure_ascii=False, separators=(',', ':')).encode('utf-8', 'surrogatepass') + b'\n'
+
+
+def _end_process(child):
+    try:
+        child.kill()
+    except OSError:
+        pass  # It had already ended.
+
+
+def _parse_apart(path, record, slots, diagnose):
+    """Read a file with its reader in a separate Python process: (inventory, coverage, chunks).
+
+    The result equals what the reader returns in this process, and its errors are raised
+    again here: a DocumentError with its own message, an ImportError naming the missing
+    module, an OSError, or ParserProcessError for any other error, without its message. A
+    reader still running at its limit is ended and raises its time-limit error. One that
+    ends without a result (a crash, or the system ending it for using too much memory)
+    raises ParserProcessError. Returns None when no reader process can run on this
+    computer; the caller then reads the file itself.
+    """
+    kind = record['kind']
+    limit = PARSER_SECONDS[kind] + PARSER_MARGIN_SECONDS  # An unsupported kind fails as it does in-process.
+    if not sys.executable or getattr(sys, 'frozen', False):
+        return None  # This Python is part of another program and cannot be started on its own.
+    command = [sys.executable, '-I', '-B', '-c', _PARSER_BOOT, os.fspath(_long_path(Path(__file__).resolve()))]
+    # The reader process looks for packages where this process does: a desktop release, a launcher
+    # or a Python started without -I can have put them on sys.path.
+    request = _line({'path': os.fspath(path), 'record': record,
+                     'sys_path': [entry for entry in sys.path if isinstance(entry, str)]})
+    with slots:
+        try:
+            # No console window on Windows. What the reader prints is discarded: it can quote the file.
+            # Its own session: Ctrl+C in the terminal that runs the server stops the server, which
+            # leaves the file to be read again, instead of failing this reader and the file with it.
+            child = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                     creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0), start_new_session=True)
+        except (OSError, ValueError) as error:
+            diagnose('document_parser_process', stage=kind, outcome='unavailable', error_type=type(error).__name__)
+            return None
+        ended = threading.Event()
+
+        def end():
+            ended.set()
+            _end_process(child)
+        timer = threading.Timer(limit, end)
+        timer.daemon = True
+        started, items, outcome = False, [], None
+        timer.start()
+        try:
+            try:
+                child.stdin.write(request)
+                child.stdin.close()
+            except OSError:
+                pass  # It ended before reading the request; its exit says why.
+            try:
+                # 'ready' once the reader is loaded, then one line per section, then the result.
+                for line in child.stdout:
+                    value = json.loads(line.decode('utf-8', 'surrogatepass'))
+                    if not started:
+                        if value != 'ready':
+                            raise ValueError('not a reader process')
+                        started = True
+                    elif type(value) is list:
+                        items.append({'id': value[0], 'label': value[1], 'text': value[2], 'location': value[3]})
+                    else:
+                        outcome = value
+            except (ValueError, IndexError):
+                outcome = None  # A line cut short or out of place: nothing it sent is used.
+                _end_process(child)
+            code = child.wait()  # Bounded: at its limit the timer ends the process.
+        finally:
+            timer.cancel()
+            if child.poll() is None:
+                _end_process(child)
+                child.wait()
+            for stream in (child.stdin, child.stdout):
+                try:
+                    stream.close()
+                except OSError:
+                    pass
+    if isinstance(outcome, dict):
+        # A whole result counts, even when the limit arrived as it was written.
+        error = outcome.get('error')
+        if error == 'document':
+            raise (ExtractionError if outcome.get('extraction') else DocumentError)(str(outcome.get('message')))
+        if error == 'import':
+            raise ImportError(name=outcome.get('module'))
+        if error == 'os':
+            failure = OSError()
+            failure.reported_type = outcome.get('type')
+            raise failure
+        if error is None and outcome.get('sections') == len(items):
+            chunks = _Chunks(record)
+            chunks.items, chunks.characters = items, outcome['characters']
+            return outcome['inventory'], outcome['coverage'], chunks
+        raise ParserProcessError()
+    if ended.is_set():
+        diagnose('document_parser_process', stage=kind, outcome='time_limit', timeout_seconds=int(limit))
+        if kind in PARSER_TIME_MESSAGES:
+            raise ExtractionError(PARSER_TIME_MESSAGES[kind])
+        raise ParserProcessError()
+    if not started:
+        # Python started but could not load the reader (a locked-down or damaged installation).
+        diagnose('document_parser_process', stage=kind, outcome='unavailable', reason=f'exit_{code}')
+        return None
+    diagnose('document_parser_process', stage=kind, outcome='ended', reason=f'exit_{code}')
+    raise ParserProcessError()
+
+
+def _parse_apart_main():
+    """The reader process of _parse_apart. Reads the request (the file's path and record, and the
+    server's sys.path) from stdin and writes 'ready', each section and then the result to stdout,
+    one JSON value a line."""
+    protocol = sys.stdout.buffer
+    sys.stdout = sys.stderr  # Whatever a library prints must not land among the result's lines.
+    protocol.write(_line('ready'))
+    protocol.flush()
+    request = json.loads(sys.stdin.buffer.read().decode('utf-8', 'surrogatepass'))
+    sys.path[:] = request['sys_path']
+    record = request['record']
+    chunks = _Chunks(record)
+    try:
+        inventory, coverage = globals()[PARSERS[record['kind']]](Path(request['path']), record, chunks)
+        for item in chunks.items:
+            protocol.write(_line([item['id'], item['label'], item['text'], item['location']]))
+        result = _line({'inventory': inventory, 'coverage': coverage, 'characters': chunks.characters,
+                        'sections': len(chunks.items)})
+    except DocumentError as error:
+        result = _line({'error': 'document', 'extraction': isinstance(error, ExtractionError), 'message': str(error)})
+    except ImportError as error:
+        result = _line({'error': 'import', 'module': getattr(error, 'name', None)})
+    except OSError as error:
+        result = _line({'error': 'os', 'type': type(error).__name__})
+    except Exception:
+        # Its message can quote the file: the server shows its own. A result that is not
+        # JSON lands here too; the server could not have stored it either.
+        result = _line({'error': 'other'})
+    protocol.write(result)
+    protocol.flush()

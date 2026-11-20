@@ -22,6 +22,7 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
   - A large image or PDF page under review holds about half the memory it did: the image is no longer copied while source names are shortened, and a PDF page is read from the open file instead of loading the whole file each time.
   - Clearer messages: a recording that cannot be decoded says so, in dictation and in reviewed voice, and is not offered a retry that cannot work, a CSV with a stray null character names its row (UTF-16 without a byte-order mark is still recognised, also in Cyrillic or Arabic text), and an empty file or request says it is empty.
   - The banner over the conversation no longer cuts off its first line, names more than three unread files by count, and at phone width the Menu button stays on screen. Typing stays as fast in a 392-turn interview as in a short one.
+  - Files are read in a separate process, so a large PDF or workbook no longer slows other interviews. While five large files were read, a typed interview's next question took 1.85 s, as when idle (1.97 s median and up to 2.27 s before), and status requests took at most 11 ms, also as when idle (up to 0.41 s before). Each file's index is unchanged. A reader that crashes, or runs past the 45-second PDF or 90-second workbook limit, is ended and the file shows the usual message; where a separate process cannot start, the file is read as before.
 
 ## 0.34.1 · November 19, 2026
 

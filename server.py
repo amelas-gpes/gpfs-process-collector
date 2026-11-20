@@ -7193,8 +7193,11 @@ class InterviewServer(ThreadingHTTPServer):
         self.storage_problems = {}
         try:
             files_root = Path(documents_root or APP_DIR / "work" / "documents")
+            # Each review worker reads its file in a separate Python process (documents._parse_apart), so
+            # parsing a large file does not slow the requests of other interviews.
             self.documents_store = self._open_store("documents", files_root / "documents.sqlite3",
-                                                    lambda: documents.DocumentStore(files_root))
+                                                    lambda: documents.DocumentStore(files_root,
+                                                                                    parser_processes=DOCUMENT_REVIEW_WORKERS))
             self.documents_unavailable = documents.unavailable_readers()
             for kind in self.documents_unavailable:
                 self.record_event("dependency_missing", reason=documents.READERS[kind][1], stage=kind)

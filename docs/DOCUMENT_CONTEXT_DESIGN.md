@@ -17,7 +17,7 @@ The selected design combines persistent local originals, a complete bounded text
 
 ## Ingestion and source coverage
 
-`documents.py` stores the original before parsing, with a SHA-256 digest, immutable upload context and a scope-bound document ID. Extraction runs separately from upload. SQLite FTS5 holds text chunks and source locations; a transaction publishes the extraction result. Limit failures do not silently publish a truncated text index.
+`documents.py` stores the original before parsing, with a SHA-256 digest, immutable upload context and a scope-bound document ID. Extraction runs separately from upload. SQLite FTS5 holds text chunks and source locations; a transaction publishes the extraction result. A file past a count limit (pages, sheets, CSV rows or columns, cells, or the text index) is indexed up to the limit, whole pages and whole rows only, and its coverage names what was left out (`coverage.read_limit`, also the first of `coverage.limitations`); it counts fewer `indexed_units` than `total_units`, so its review is never complete. A safety limit still publishes nothing.
 
 One full-text table serves every interview, and FTS5 can find rows only by `MATCH` or by rowid. Store format 2 therefore keeps `chunk_map(scope, document_id, id, chunk_rowid)`, an ordinary table written in the same transactions as the full-text rows: paging through a file's sections, counting them, opening a source, resolving earlier citations and replacing a file's index all find their rowids there. A search by words is matched inside the interview (`scope` is an indexed full-text column, and the expression is `scope : "<digest>" AND {label text} : (...)`), so its cost follows the interview's own files, not everything ever uploaded. A store of format 0 or 1 is rebuilt once, in one transaction, when this build first opens it (same rows, same rowids); builds that know only format 1 then refuse it, as `docs/DESKTOP.md` describes. `DocumentService.supporting_context` remembers its last eight selections for as long as no record of the interview's files has changed, so the several identical retrievals of one turn or status poll are computed once.
 
@@ -89,9 +89,9 @@ On parser or provider failure, retain the original, current indexed sources and 
 | Bound | Current value or policy |
 | --- | --- |
 | Original size and files per interview | 1 byte–64 MiB per original; 20 originals including archives |
-| PDF pages | 500; encrypted PDFs require an unlocked copy |
-| Workbook sheets, rows and populated cells | 100 sheets; 1,048,576 rows per sheet; 2,000,000 populated cells per workbook |
-| Text index | 64 MiB per document; 50,000 chunks; 6,000 characters per chunk |
+| PDF pages | 500 read; later pages are counted and named as unread; encrypted PDFs require an unlocked copy |
+| Workbook sheets, rows and cells | 100 sheets read; 2,000,000 cells per file (stored cells of an XLSX, populated cells of a CSV), read to the row before the one that would pass it, the rest counted; a CSV reads 1,048,576 rows of 16,384 columns |
+| Text index | 64 MiB per document; 50,000 chunks; 6,000 characters per chunk; a file that does not fit is indexed up to the last whole page or row that does |
 | AI sweep batch | Eight chunks; 24,000 text characters; one visual source per request |
 | Retained AI notes | 40 questions; 200 observations; 200 KiB metadata per document, with explicit limit indicators |
 | Individual spreadsheet cell | 100,000 characters |

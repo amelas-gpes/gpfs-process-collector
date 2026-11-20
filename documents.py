@@ -12,6 +12,7 @@ from contextlib import contextmanager, ExitStack
 import hashlib
 import importlib.util
 import io
+import itertools
 import json
 import os
 from pathlib import Path
@@ -30,10 +31,19 @@ from xml.etree import ElementTree
 
 MAX_FILE_BYTES = 64 * 1024 * 1024
 MAX_FILES_PER_SCOPE = 20
+# Count limits. A file past one is indexed up to it and the rest is named in its coverage, the way
+# unread pages and hidden sheets are: pages and sheets after the limit, a CSV's rows after the limit,
+# a CSV row's columns after the limit, and every row after the one that would pass MAX_CELLS (stored
+# cells of an XLSX, populated cells of a CSV) or no longer fits in the index (MAX_INDEX_BYTES and
+# MAX_CHUNKS below). The safety limits that follow them still refuse the whole file.
 MAX_PDF_PAGES = 500
 MAX_SHEETS = 100
 MAX_ROWS = 1_048_576
+MAX_COLUMNS = 16_384
 MAX_CELLS = 2_000_000
+# Not a count limit. A longer cell is not something Excel writes (its own limit is 32,767
+# characters); in a CSV it is most often a stray quote that swallowed the rows after it. Cutting the
+# cell would index a mangled value as if it had been read, so this one still refuses the file.
 MAX_CELL_CHARS = 100_000
 MAX_INDEX_BYTES = 64 * 1024 * 1024
 MAX_CHUNKS = 50_000
@@ -119,6 +129,37 @@ class UnknownDocumentScope(PermissionError):
 
 class ExtractionError(DocumentError):
     pass
+
+
+INDEX_FULL_MESSAGE = 'The text of this file does not fit in the 64 MiB, 50,000-section index; nothing of it was indexed.'
+
+
+class _IndexFull(ExtractionError):
+    """The index has no room for another section (MAX_INDEX_BYTES or MAX_CHUNKS).
+
+    A reader catches it where one page or group of rows begins, takes that unit's sections back
+    out (_Chunks.rollback) and stops there, so the index holds whole units only. Uncaught, it
+    refuses the file with INDEX_FULL_MESSAGE.
+    """
+    def __init__(self):
+        super().__init__(INDEX_FULL_MESSAGE)
+
+
+# What earlier versions said when they refused a file over a count limit. This version reads such
+# a file up to the limit, so a saved record refused with one of these can be retried (Retry review)
+# instead of having to be added again. Every refusal this version still gives has other wording.
+COUNT_LIMIT_REFUSALS = frozenset((
+    'PDF page count exceeds the 500-page limit or is empty; no partial index was published.',
+    'A sheet exceeds 1,048,576 rows; no partial index was published.',
+    'A sheet exceeds two million populated cells; no partial index was published.',
+    'A sheet exceeds 16,384 columns.',
+    'Workbook exceeds two million stored cells; no partial index was published.',
+    'Workbook exceeds two million populated cells; no partial index was published.',
+    'Workbook exceeds 100 sheets; no partial index was published.',
+    'Workbook exceeds two million stored cells.',
+    'Workbook exceeds 100 sheets.',
+))
+COUNT_LIMIT_RETRY = 'An earlier version refused this file for its size. Retry review reads it up to the limits.'
 
 
 class StoreFormatError(RuntimeError):
@@ -318,9 +359,17 @@ class _Chunks:
                 continue
             self.characters += len(part.encode('utf-8'))
             if self.characters > MAX_INDEX_BYTES or len(self.items) >= MAX_CHUNKS:
-                raise ExtractionError('Document exceeds the 64 MiB text or 50,000-chunk indexing limit; no partial index was published.')
+                raise _IndexFull()
             chunk_id = f'{self.document["id"]}_{source}_c{index}'
             self.items.append({'id': chunk_id, 'label': label, 'text': part, 'location': location})
+
+    def mark(self):
+        """Where the index stands before a unit is added; rollback() returns to it."""
+        return len(self.items), self.characters
+
+    def rollback(self, mark):
+        del self.items[mark[0]:]
+        self.characters = mark[1]
 
 
 def _transcribed_coverage(inventory, coverage):
@@ -551,6 +600,10 @@ class DocumentStore:
         # authorize full coverage. check_extraction compares the saved index
         # with what the current parser reads, on this computer and at no cost;
         # only when they differ does Revisit have to re-index the original.
+        if record.get('status') == 'error' and record.get('error') in COUNT_LIMIT_REFUSALS:
+            # Refused whole by an earlier version for passing a count limit. Its original is kept,
+            # and this version reads it up to the limit, so it is offered Retry review again.
+            record.update(error=COUNT_LIMIT_RETRY, retryable=True)
         version = record.get('extraction_version')
         # Stated on every read, never trusted from a saved copy of this projection.
         record.pop('indexed_by_newer_build', None)
@@ -1448,10 +1501,15 @@ def _pdf(path, record, chunks):
             exhausted = True
             raise ExtractionError(PDF_BUDGET_MESSAGE)
     count = len(reader.pages)
-    if not 1 <= count <= MAX_PDF_PAGES:
-        raise ExtractionError('PDF page count exceeds the 500-page limit or is empty; no partial index was published.')
+    if not count:
+        raise ExtractionError('This PDF has no pages.')
+    # Pages after MAX_PDF_PAGES are not opened. Their number is known from the page tree, so the
+    # coverage can say exactly what was left out.
+    read = min(count, MAX_PDF_PAGES)
+    index_full = False
     missing, failures, mixed, content_bytes, indexed, page_inventory = [], [], [], 0, 0, []
-    for number, page in enumerate(reader.pages, 1):
+    for number, page in enumerate(itertools.islice(reader.pages, read), 1):
+        failed = False
         try:
             contents = page.get_contents()
             # ContentStream is a dictionary-like object and can be false even
@@ -1498,39 +1556,62 @@ def _pdf(path, record, chunks):
         except DocumentError:
             raise
         except Exception:
+            failed = True
+        label = f'{record["name"]} · page {number}'
+        mark = chunks.mark()
+        try:
+            if failed:
+                chunks.add(f'p{number}', label,
+                           'PDF page text decoding failed. Native visual review is required; page contents have not been read.',
+                           {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder', 'text_decode_failed': True})
+            elif not text.strip():
+                chunks.add(f'p{number}', label,
+                           'PDF page contains no extractable text. Native visual review is required; page contents have not been read.',
+                           {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder'})
+            else:
+                chunks.add(f'p{number}', label, text, {'page': number})
+                if visual:
+                    chunks.add(f'p{number}_visual', f'{label} · visual content',
+                               'This PDF page also contains visual graphics. Its native text is indexed separately; graphic contents and layout require native visual review and have not been read.',
+                               {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder', 'native_text_preserved': True})
+        except _IndexFull:
+            # No room for this page: it and the pages after it are left out, as pages past
+            # MAX_PDF_PAGES are. The index keeps whole pages only.
+            chunks.rollback(mark)
+            read, index_full = number - 1, True
+            break
+        if failed:
             failures.append(number)
             page_inventory.append({'page': number, 'text_chars': 0, 'sample': '', 'requires_vision': True})
-            chunks.add(f'p{number}', f'{record["name"]} · page {number}',
-                       'PDF page text decoding failed. Native visual review is required; page contents have not been read.',
-                       {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder', 'text_decode_failed': True})
-            continue
-        if not text.strip():
+        elif not text.strip():
             missing.append(number)
             page_inventory.append({'page': number, 'text_chars': 0, 'sample': '', 'requires_vision': True})
-            chunks.add(f'p{number}', f'{record["name"]} · page {number}',
-                       'PDF page contains no extractable text. Native visual review is required; page contents have not been read.',
-                       {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder'})
-            continue
-        chunks.add(f'p{number}', f'{record["name"]} · page {number}', text, {'page': number})
-        if visual:
-            mixed.append(number)
-            chunks.add(f'p{number}_visual', f'{record["name"]} · page {number} · visual content',
-                       'This PDF page also contains visual graphics. Its native text is indexed separately; graphic contents and layout require native visual review and have not been read.',
-                       {'page': number, 'requires_vision': True, 'origin': 'visual_placeholder', 'native_text_preserved': True})
-        page_inventory.append({'page': number, 'text_chars': len(text), 'sample': re.sub(r'\s+', ' ', text).strip()[:180],
-                               'requires_vision': visual})
-        indexed += 1
+        else:
+            if visual:
+                mixed.append(number)
+            page_inventory.append({'page': number, 'text_chars': len(text), 'sample': re.sub(r'\s+', ' ', text).strip()[:180],
+                                   'requires_vision': visual})
+            indexed += 1
+    if not read:
+        raise ExtractionError(INDEX_FULL_MESSAGE)
     limitations = []
+    # Stated first: it is the largest limit on what the index can answer.
+    cut = (f'Pages 1 to {read:,} of {count:,} were read; the rest '
+           + ('did not fit in the text index.' if index_full else 'was not.')) if read < count else ''
+    if cut:
+        limitations.append(cut)
     if missing:
         limitations.append(f'{len(missing)} pages contain no extractable text and require native visual review; they were not treated as read.')
     if failures:
         limitations.append(f'{len(failures)} pages could not be decoded and require review.')
     if mixed:
         limitations.append(f'{len(mixed)} pages contain native text plus graphics; text is preserved separately, but graphics and layout still require native visual review.')
-    return ({'pages': count, 'page_inventory': page_inventory, 'text_pages': indexed, 'text_only_pages': indexed - len(mixed),
-             'mixed_visual_pages': mixed, 'vision_pages': sorted(missing + failures + mixed), 'failed_pages': failures,
-             'requires_vision': bool(missing or failures or mixed)}, {'indexed_units': indexed - len(mixed), 'total_units': count, 'text_indexed_units': indexed,
-              'visual_pending_units': len(missing)+len(failures)+len(mixed), 'unit':'pages', 'limitations': limitations})
+    return ({'pages': count, **({'pages_read': read} if cut else {}), 'page_inventory': page_inventory, 'text_pages': indexed,
+             'text_only_pages': indexed - len(mixed), 'mixed_visual_pages': mixed, 'vision_pages': sorted(missing + failures + mixed),
+             'failed_pages': failures, 'requires_vision': bool(missing or failures or mixed)},
+            {'indexed_units': indexed - len(mixed), 'total_units': count, 'text_indexed_units': indexed,
+             'visual_pending_units': len(missing)+len(failures)+len(mixed), 'unit':'pages', 'limitations': limitations,
+             **({'read_limit': cut} if cut else {})})
 
 
 def _png(path, record, chunks):
@@ -1609,102 +1690,185 @@ def _formula_text(value):
 HIDDEN_SHEET_LABEL = ' · hidden sheet'
 
 
-def _row_chunks(record, chunks, sheet_index, sheet_name, rows):
+class _SheetLimit:
+    """How far a spreadsheet is read, and what a count limit left out.
+
+    One allowance of MAX_CELLS covers the whole file. Each reader's rows() takes a row's cells from
+    it (take) before it yields the row; a row that does not fit stops the reading there. So does a
+    CSV row past MAX_ROWS, and a group of rows that no longer fits in the index (_row_chunks). That
+    row and every row after it, in this sheet and the sheets after it, are then only counted (skip):
+    never rendered, chunked or indexed. Counting is cheap, but it gives up rather than fail the file
+    (counted False) when the rest cannot be read or the parser's time runs out.
+    """
+
+    def __init__(self):
+        self.left = MAX_CELLS
+        self.reason = None    # 'cells', 'rows' or 'index' once reading has stopped
+        self.read = 0         # cells taken before the stop
+        self.unread = 0       # cells counted after it
+        self.counted = True
+        self.rows = 0         # the highest row number the current sheet has shown, read or counted
+        self.place = ''       # where reading stopped, e.g. 'to row 250,000 of Data'
+        self.wide = []        # (row number, last populated column) of each CSV row cut at MAX_COLUMNS
+
+    def take(self, cells, number):
+        """True when this row is read; False when it is past a limit and only counted."""
+        if self.reason is None and cells > self.left:
+            self.stop('cells')
+        if self.reason is not None:
+            self.skip(cells, number)
+            return False
+        self.rows = max(self.rows, number)
+        self.left -= cells
+        return True
+
+    def skip(self, cells, number):
+        self.rows = max(self.rows, number)
+        self.unread += cells
+
+    def stop(self, reason):
+        if self.reason is None:
+            self.reason, self.read = reason, MAX_CELLS - self.left
+
+    def notes(self, rows=None):
+        """The sentences that say what was left out; rows is a CSV's row count."""
+        notes = []
+        if self.wide:
+            notes.append(f'Columns 1 to {MAX_COLUMNS:,} of {max(column for _, column in self.wide):,} were read; the rest was not.')
+        if self.reason == 'cells':
+            notes.append(f'The first {self.read:,} cells were read, {self.place}; '
+                         + (f'{self.unread:,} more were not.' if self.counted else 'the rest was not.'))
+        elif self.reason == 'rows':
+            notes.append(f'Rows 1 to {MAX_ROWS:,}' + (f' of {rows:,}' if self.counted and rows else '') + ' were read; the rest was not.')
+        elif self.reason == 'index':
+            notes.append(f'Cells were read {self.place}; the rest did not fit in the text index.')
+        return notes
+
+
+NOTHING_READ_MESSAGE = 'The first row of this file is already past the reading limits, so nothing of it was indexed.'
+
+
+def _row_chunks(record, chunks, sheet_index, sheet_name, rows, limit):
     def get_column_letter(number):
         result = ''
         while number:
             number, remainder = divmod(number - 1, 26)
             result = chr(65 + remainder) + result
         return result
-    buffer, start, end, high_col, count, cells, formulas, uncached = [], None, None, 0, 0, 0, 0, 0
-    columns, header_sample, header_truncated = 0, '', False
+    buffer, start, end, high_col = [], None, None, 0
+    header_sample, header_truncated = '', False
     serial = 0
     buffer_chars = 0
     buffer_lengths = []
+    # What the rows read so far hold, and the same for those whose sections are in the index. The
+    # two differ only while rows wait in the buffer; when the index fills, the committed counts stand.
+    totals = {'rows': 0, 'columns': 0, 'populated_cells': 0, 'formula_cells': 0, 'formulas_without_cached_values': 0}
+    committed = dict(totals)
 
     def flush():
         nonlocal buffer, buffer_chars, start, end, high_col, serial
         if buffer:
             serial += 1
             area = f'A{start}:{get_column_letter(max(1, high_col))}{end}'
-            chunks.add(f's{sheet_index}_r{start}_{end}_b{serial}', f'{record["name"]} · {sheet_name}!{area}',
-                       '\n'.join(buffer), {'sheet': sheet_name, 'sheet_index': sheet_index, 'range': area,
-                                            'row_start': start, 'row_end': end, 'header_sample': header_sample,
-                                            'cell_lengths': list(buffer_lengths)})
+            mark = chunks.mark()
+            try:
+                chunks.add(f's{sheet_index}_r{start}_{end}_b{serial}', f'{record["name"]} · {sheet_name}!{area}',
+                           '\n'.join(buffer), {'sheet': sheet_name, 'sheet_index': sheet_index, 'range': area,
+                                                'row_start': start, 'row_end': end, 'header_sample': header_sample,
+                                                'cell_lengths': list(buffer_lengths)})
+            except _IndexFull:
+                chunks.rollback(mark)
+                raise
             buffer, buffer_chars, start, end, high_col = [], 0, None, None, 0
             buffer_lengths.clear()
+        committed.update(totals)
 
-    for row_number, row in rows:
-        if row_number > MAX_ROWS:
-            raise ExtractionError('A sheet exceeds 1,048,576 rows; no partial index was published.')
-        count = max(count, row_number)
-        values = []
-        for column, value, formula, cached in row:
-            cells += 1
-            if cells > MAX_CELLS:
-                raise ExtractionError('A sheet exceeds two million populated cells; no partial index was published.')
-            if column > 16384:
-                raise ExtractionError('A sheet exceeds 16,384 columns.')
-            if formula:
-                formulas += 1
-                uncached += cached is None
-                rendered = f'FORMULA (not executed) {_formula_text(formula)}; cached value (not recalculated): {_cell_text(cached) if cached is not None else "UNAVAILABLE"}'
-            else:
-                rendered = _cell_text(value)
-            values.append(f'{get_column_letter(column)}{row_number}={rendered}')
-        if not values:
-            continue
-        line = ' | '.join(values)
-        columns = max(columns, max(item[0] for item in row))
-        if not header_sample:
-            header_sample, header_truncated = line[:180], len(line) > 180
-        if len(line) > MAX_CHUNK_CHARS:
-            flush()
-            group, group_length = [], 0
-            def emit_cells():
-                nonlocal serial
-                if not group:
-                    return
-                first, last = group[0][0], group[-1][0]
-                area = f'{first}:{last}' if first != last else first
-                serial += 1
-                source = f's{sheet_index}_wide_{first}_{last}_b{serial}'
-                body = ' | '.join(rendered for _, rendered in group)
-                caption = f'{record["name"]} · {sheet_name}!{area}'
-                location = {'sheet': sheet_name, 'sheet_index': sheet_index, 'range': area,
-                            'row_start': row_number, 'row_end': row_number, 'header_sample': header_sample,
-                            'cell_lengths': [len(rendered) for _, rendered in group]}
-                if len(group) == 1 and len(body) > MAX_CHUNK_CHARS:
-                    # Keep the address on every continuation of a single oversized cell.
-                    prefix = first + '='
-                    value = body[len(prefix):]
-                    width = MAX_CHUNK_CHARS - len(prefix)
-                    for part, offset in enumerate(range(0, len(value), width), 1):
-                        chunks.add(f'{source}_part{part}', f'{caption} · part {part}',
-                                   prefix + value[offset:offset+width],
-                                   {**location, 'cell_part': part, 'cell_lengths': [len(prefix) + len(value[offset:offset+width])]})
+    def add(row_number, row, formulas, uncached):
+        totals.update(rows=max(totals['rows'], row_number), populated_cells=totals['populated_cells'] + len(row),
+                      formula_cells=totals['formula_cells'] + formulas,
+                      formulas_without_cached_values=totals['formulas_without_cached_values'] + uncached)
+        if row:
+            totals['columns'] = max(totals['columns'], max(item[0] for item in row))
+
+    try:
+        for row_number, row in rows:
+            values, formulas, uncached = [], 0, 0
+            for column, value, formula, cached in row:
+                if formula:
+                    formulas += 1
+                    uncached += cached is None
+                    rendered = f'FORMULA (not executed) {_formula_text(formula)}; cached value (not recalculated): {_cell_text(cached) if cached is not None else "UNAVAILABLE"}'
                 else:
-                    chunks.add(source, caption, body, location)
-            for rendered in values:
-                address = rendered.split('=', 1)[0]
-                if group and group_length + 3 + len(rendered) > MAX_CHUNK_CHARS:
+                    rendered = _cell_text(value)
+                values.append(f'{get_column_letter(column)}{row_number}={rendered}')
+            if not values:
+                add(row_number, row, formulas, uncached)
+                continue
+            line = ' | '.join(values)
+            if not header_sample:
+                header_sample, header_truncated = line[:180], len(line) > 180
+            if len(line) > MAX_CHUNK_CHARS:
+                flush()
+                mark = chunks.mark()
+                group, group_length = [], 0
+                def emit_cells():
+                    nonlocal serial
+                    if not group:
+                        return
+                    first, last = group[0][0], group[-1][0]
+                    area = f'{first}:{last}' if first != last else first
+                    serial += 1
+                    source = f's{sheet_index}_wide_{first}_{last}_b{serial}'
+                    body = ' | '.join(rendered for _, rendered in group)
+                    caption = f'{record["name"]} · {sheet_name}!{area}'
+                    location = {'sheet': sheet_name, 'sheet_index': sheet_index, 'range': area,
+                                'row_start': row_number, 'row_end': row_number, 'header_sample': header_sample,
+                                'cell_lengths': [len(rendered) for _, rendered in group]}
+                    if len(group) == 1 and len(body) > MAX_CHUNK_CHARS:
+                        # Keep the address on every continuation of a single oversized cell.
+                        prefix = first + '='
+                        value = body[len(prefix):]
+                        width = MAX_CHUNK_CHARS - len(prefix)
+                        for part, offset in enumerate(range(0, len(value), width), 1):
+                            chunks.add(f'{source}_part{part}', f'{caption} · part {part}',
+                                       prefix + value[offset:offset+width],
+                                       {**location, 'cell_part': part, 'cell_lengths': [len(prefix) + len(value[offset:offset+width])]})
+                    else:
+                        chunks.add(source, caption, body, location)
+                try:
+                    for rendered in values:
+                        address = rendered.split('=', 1)[0]
+                        if group and group_length + 3 + len(rendered) > MAX_CHUNK_CHARS:
+                            emit_cells()
+                            group, group_length = [], 0
+                        group_length += (3 if group else 0) + len(rendered)
+                        group.append((address, rendered))
                     emit_cells()
-                    group, group_length = [], 0
-                group_length += (3 if group else 0) + len(rendered)
-                group.append((address, rendered))
-            emit_cells()
-            continue
-        if buffer and (buffer_chars + 1 + len(line) > MAX_CHUNK_CHARS or row_number - start >= 50):
-            flush()
-        start = row_number if start is None else start
-        end, high_col = row_number, max(high_col, max(item[0] for item in row))
-        buffer_chars += len(line) + (1 if buffer else 0)
-        buffer.append(line)
-        buffer_lengths.extend(len(rendered) for rendered in values)
-    flush()
-    return {'name': sheet_name, 'index': sheet_index, 'rows': count, 'columns': columns,
-            'header_sample': header_sample, 'header_sample_truncated': header_truncated, 'populated_cells': cells,
-            'formula_cells': formulas, 'formulas_without_cached_values': uncached}
+                except _IndexFull:
+                    chunks.rollback(mark)  # A row is indexed whole or not at all.
+                    raise
+                add(row_number, row, formulas, uncached)
+                committed.update(totals)
+                continue
+            if buffer and (buffer_chars + 1 + len(line) > MAX_CHUNK_CHARS or row_number - start >= 50):
+                flush()
+            start = row_number if start is None else start
+            end, high_col = row_number, max(high_col, max(item[0] for item in row))
+            buffer_chars += len(line) + (1 if buffer else 0)
+            buffer.append(line)
+            buffer_lengths.extend(len(rendered) for rendered in values)
+            add(row_number, row, formulas, uncached)
+        flush()
+    except _IndexFull:
+        # The sections of the rows that did not fit were taken back out: the index ends with the
+        # last committed rows. The rows after them, read or not, are left out.
+        limit.stop('index')
+        for _ in rows:
+            pass
+    return {'name': sheet_name, 'index': sheet_index, 'rows': committed['rows'], 'columns': committed['columns'],
+            'header_sample': header_sample if committed['rows'] else '', 'header_sample_truncated': header_truncated and bool(committed['rows']),
+            'populated_cells': committed['populated_cells'], 'formula_cells': committed['formula_cells'],
+            'formulas_without_cached_values': committed['formulas_without_cached_values']}
 
 
 def _vml_only_notes(archive, source_path, relations):
@@ -1730,6 +1894,10 @@ def _vml_only_notes(archive, source_path, relations):
     return found
 
 
+class _CountCut(Exception):
+    """The parser's time ran out while it was only counting what a limit left out."""
+
+
 def _workbook(path, record, chunks):
     from openpyxl import load_workbook
     from openpyxl.worksheet._reader import WorkSheetParser, FORMULA_TAG
@@ -1739,17 +1907,24 @@ def _workbook(path, record, chunks):
         archive = cleanup.enter_context(zipfile.ZipFile(path))
         book = load_workbook(path, read_only=True, data_only=False, keep_links=False, keep_vba=False)
         cleanup.callback(book.close)
-        remaining = MAX_CELLS
+        # Stored cells count here, as each row's XML holds them, and before the row is parsed: an
+        # empty but formatted cell costs the parser as much as a filled one.
+        limit = _SheetLimit()
         deadline = time.monotonic() + 90
 
         class SparseParser(WorkSheetParser):
             def parse_row(self, element):
-                nonlocal remaining
                 if time.monotonic() > deadline:
-                    raise ExtractionError(WORKBOOK_TIME_MESSAGE)
-                remaining -= len(element)
-                if remaining < 0:
-                    raise ExtractionError('Workbook exceeds two million stored cells; no partial index was published.')
+                    if limit.reason is None:
+                        raise ExtractionError(WORKBOOK_TIME_MESSAGE)
+                    raise _CountCut()
+                try:
+                    number = int(element.get('r') or self.row_counter + 1)
+                except ValueError:
+                    number = self.row_counter + 1
+                if not limit.take(len(element), number):
+                    self.row_counter = number
+                    return None  # Past a limit: counted, not parsed.
                 return super().parse_row(element)
 
             def parse_cell(self, element):
@@ -1763,29 +1938,24 @@ def _workbook(path, record, chunks):
                 return cell
         if not book.sheetnames:
             raise ExtractionError('No worksheets could be read. Save a copy as Excel Workbook (.xlsx) and attach it.')
-        if len(book.sheetnames) > MAX_SHEETS:
-            raise ExtractionError('Workbook exceeds 100 sheets; no partial index was published.')
-        inventory = []
-        for index, name in enumerate(book.sheetnames, 1):
-            sheet = book[name]
-            if not hasattr(sheet, 'iter_rows'):
-                inventory.append({'name': name, 'index': index, 'kind': 'chart_sheet', 'rows': 0,
-                                  'columns': 0, 'header_sample': '',
-                                  'populated_cells': 0, 'formula_cells': 0, 'formulas_without_cached_values': 0,
-                                  'requires_vision': True, 'visibility': sheet.sheet_state})
-                continue
-            def rows():
-                with sheet._get_source() as stream:
-                    parser = SparseParser(stream, sheet._shared_strings, False, book.epoch, book._date_formats, book._timedelta_formats)
-                    last_row = 0
-                    for number, cells in parser.parse():
+        names = book.sheetnames
+
+        def rows(sheet):
+            with sheet._get_source() as stream:
+                parser = SparseParser(stream, sheet._shared_strings, False, book.epoch, book._date_formats, book._timedelta_formats)
+                last_row = 0
+                try:
+                    for parsed in parser.parse():
+                        if parsed is None:
+                            continue
+                        number, cells = parsed
                         if number <= last_row or not 1 <= number <= MAX_ROWS:
                             raise ExtractionError('Worksheet rows repeat or are out of order. Save a repaired copy and attach it.')
                         last_row = number
                         row, last_col = [], 0
                         for cell in cells:
                             col, raw = cell['column'], cell['value']
-                            if cell['row'] != number or col <= last_col or col > 16384:
+                            if cell['row'] != number or col <= last_col or col > MAX_COLUMNS:
                                 raise ExtractionError('Worksheet cells repeat or are out of order. Save a repaired copy and attach it.')
                             last_col = col
                             if raw is None: continue
@@ -1797,8 +1967,34 @@ def _workbook(path, record, chunks):
                                 if fmt and fmt != 'General': raw = f'{raw} [Excel format: {fmt[:100]}]'
                             row.append((col, raw, formula, cell.get('cached')))
                         yield number, row
-            first_chunk = len(chunks.items)
-            item = _row_chunks(record, chunks, index, sheet.title, rows())
+                except _CountCut:
+                    limit.counted = False
+
+        def count(sheet):
+            """Count the cells of a sheet after the one where reading stopped; nothing of it is read."""
+            if limit.counted and limit.reason == 'cells' and hasattr(sheet, 'iter_rows'):
+                for _ in rows(sheet):
+                    pass
+
+        inventory, previous = [], ''
+        for index, name in enumerate(names[:MAX_SHEETS], 1):
+            sheet = book[name]
+            if limit.reason is not None:
+                count(sheet)
+                continue
+            if not hasattr(sheet, 'iter_rows'):
+                inventory.append({'name': name, 'index': index, 'kind': 'chart_sheet', 'rows': 0,
+                                  'columns': 0, 'header_sample': '',
+                                  'populated_cells': 0, 'formula_cells': 0, 'formulas_without_cached_values': 0,
+                                  'requires_vision': True, 'visibility': sheet.sheet_state})
+                continue
+            first_chunk, limit.rows = len(chunks.items), 0
+            item = _row_chunks(record, chunks, index, sheet.title, rows(sheet), limit)
+            if limit.reason is not None:
+                # Reading stopped in this sheet. Its rows after the stop were counted, not read.
+                item.update(read_to_row=item['rows'], rows=max(item['rows'], limit.rows))
+                limit.place = (f'to row {item["read_to_row"]:,} of {sheet.title}' if item['read_to_row'] or not previous
+                               else f'to the end of {previous}')
             item['visibility'] = sheet.sheet_state
             for chunk in chunks.items[first_chunk:]:
                 chunk['location']['visibility'] = sheet.sheet_state
@@ -1820,23 +2016,35 @@ def _workbook(path, record, chunks):
                                    if relation.get('Type', '').rsplit('/', 1)[-1] in
                                    {'drawing', 'vmlDrawing', 'image', 'chart', 'oleObject', 'control', 'ctrlProp', 'diagramData', 'diagramLayout'}})
                 comments = 0
-                for relation in relations:
-                    if relation.get('Type','').rsplit('/',1)[-1] != 'comments' or relation.get('TargetMode') == 'External': continue
-                    import posixpath
-                    target = relation.get('Target','')
-                    path_name = posixpath.normpath(target.lstrip('/') if target.startswith('/') else posixpath.join(str(source_path.parent),target))
-                    if path_name.startswith('../') or path_name not in archive.namelist(): continue
-                    with archive.open(path_name) as notes:
-                        for _, note in ElementTree.iterparse(notes,events=('end',)):
-                            if note.tag.rsplit('}',1)[-1]!='comment': continue
-                            address = note.get('ref','')
-                            if not re.fullmatch(r'[A-Z]{1,3}[1-9]\d{0,6}',address): continue
-                            value = ''.join(part.text or '' for part in note.iter() if part.tag.rsplit('}',1)[-1]=='t')
-                            if value.strip():
-                                comments += 1
-                                chunks.add(f's{index}_comment{comments}',f'{record["name"]} · {sheet.title}!{address} comment',value,
-                                           {'sheet':sheet.title,'sheet_index':index,'cell':address,'visibility':sheet.sheet_state,'origin':'cell_comment'})
-                            note.clear()
+                try:
+                    for relation in relations:
+                        if relation.get('Type','').rsplit('/',1)[-1] != 'comments' or relation.get('TargetMode') == 'External': continue
+                        import posixpath
+                        target = relation.get('Target','')
+                        path_name = posixpath.normpath(target.lstrip('/') if target.startswith('/') else posixpath.join(str(source_path.parent),target))
+                        if path_name.startswith('../') or path_name not in archive.namelist(): continue
+                        with archive.open(path_name) as notes:
+                            for _, note in ElementTree.iterparse(notes,events=('end',)):
+                                if note.tag.rsplit('}',1)[-1]!='comment': continue
+                                address = note.get('ref','')
+                                if not re.fullmatch(r'[A-Z]{1,3}[1-9]\d{0,6}',address): continue
+                                value = ''.join(part.text or '' for part in note.iter() if part.tag.rsplit('}',1)[-1]=='t')
+                                if value.strip():
+                                    mark = chunks.mark()
+                                    try:
+                                        chunks.add(f's{index}_comment{comments + 1}',f'{record["name"]} · {sheet.title}!{address} comment',value,
+                                                   {'sheet':sheet.title,'sheet_index':index,'cell':address,'visibility':sheet.sheet_state,'origin':'cell_comment'})
+                                    except _IndexFull:
+                                        chunks.rollback(mark)
+                                        raise
+                                    comments += 1
+                                note.clear()
+                except _IndexFull:
+                    # The cells of this sheet are indexed; its remaining comments and the sheets after it are not.
+                    if limit.reason is None:
+                        limit.stop('index')
+                        limit.place = f'to the end of {sheet.title}'
+                        item['read_to_row'] = item['rows']
                 if comments: item['comment_count']=comments
                 if 'vmlDrawing' in graphics and _vml_only_notes(archive, source_path, relations):
                     # Excel draws every cell comment's note box in a VML drawing. Those comments are
@@ -1845,9 +2053,16 @@ def _workbook(path, record, chunks):
                 if graphics:
                     item.update(requires_vision=True, unread_visual_parts=graphics)
             inventory.append(item)
-            if sum(item['populated_cells'] for item in inventory) > MAX_CELLS:
-                raise ExtractionError('Workbook exceeds two million populated cells; no partial index was published.')
-        limitations = []
+            previous = sheet.title
+        if limit.reason is not None:
+            for name in names[MAX_SHEETS:]:
+                count(book[name])
+        if not chunks.items and limit.reason is not None:
+            raise ExtractionError(INDEX_FULL_MESSAGE if limit.reason == 'index' else NOTHING_READ_MESSAGE)
+        limitations = limit.notes()
+        if len(names) > MAX_SHEETS and limit.reason is None:
+            limitations.append(f'Sheets 1 to {MAX_SHEETS:,} of {len(names):,} were read; the rest was not.')
+        read_limit = ' '.join(limitations)
         missing = sum(item['formulas_without_cached_values'] for item in inventory)
         if missing:
             limitations.append(f'{missing} formula cells have no cached result. Formulas were indexed as text, never executed.')
@@ -1859,10 +2074,15 @@ def _workbook(path, record, chunks):
             limitations.append(f'{mixed_sheets} worksheets contain drawings, charts, images or embedded objects that cell extraction does not read. Cell text is indexed; export the visual content as PDF or PNG for review. No graphic content was inferred.')
         if record['kind'] == 'xlsm':
             limitations.append('Macros are preserved in the original only and were never executed or interpreted.')
-        return ({'sheets': inventory, 'sheet_count': len(inventory), 'rows': sum(item['rows'] for item in inventory),
+        # A sheet counts as indexed when all of it is: no chart-only tab, no unread graphics, no stop.
+        indexed = sum(item.get('kind') != 'chart_sheet' and not item.get('unread_visual_parts') and 'read_to_row' not in item
+                      for item in inventory)
+        return ({'sheets': inventory, 'sheet_count': len(names), **({'sheets_read': len(inventory)} if len(inventory) < len(names) else {}),
+                 'rows': sum(item['rows'] for item in inventory),
                  'formula_cells': sum(item['formula_cells'] for item in inventory), 'macros_executed': False,
                  'formula_policy': 'Formula text and saved cached values only; no recalculation.'},
-                {'indexed_units': len(inventory) - chart_sheets - mixed_sheets, 'total_units': len(inventory), 'limitations': limitations})
+                {'indexed_units': indexed, 'total_units': len(names), 'limitations': limitations,
+                 **({'read_limit': read_limit} if read_limit else {})})
 
 
 def _looks_utf16_or_32(head):
@@ -1901,23 +2121,57 @@ def _csv(path, record, chunks):
             except csv.Error:
                 delimiter = ','
             reader = csv.reader(stream, delimiter=delimiter, strict=True)
+            limit = _SheetLimit()
             def rows():
-                for number, row in enumerate(reader, 1):
+                numbered = enumerate(reader, 1)
+                while True:
+                    try:
+                        number, row = next(numbered)
+                    except StopIteration:
+                        return
+                    except (csv.Error, UnicodeError):
+                        if limit.reason is None:
+                            raise
+                        # Past a limit the rest is only counted. A fault in it ends the count, not the file.
+                        limit.counted = False
+                        return
+                    if limit.reason is None and number > MAX_ROWS:
+                        limit.stop('rows')
+                    if limit.reason is not None:
+                        limit.skip(sum(1 for value in row if value), number)
+                        continue
                     if any('\x00' in value for value in row):
                         raise ExtractionError(f'Row {number:,} of this CSV contains a null character, which a CSV cell '
                                               'cannot hold. In Excel, choose Save As > CSV UTF-8 (Comma delimited), '
                                               'or attach an XLSX copy.')
-                    yield number, [(column, value, None, None) for column, value in enumerate(row, 1) if value]
-            item = _row_chunks(record, chunks, 1, 'CSV', rows())
+                    cells = [(column, value, None, None) for column, value in enumerate(row, 1) if value]
+                    kept = [cell for cell in cells if cell[0] <= MAX_COLUMNS]
+                    if limit.take(len(kept), number):
+                        if len(kept) < len(cells):
+                            limit.wide.append((number, cells[-1][0]))
+                        yield number, kept
+                    else:
+                        limit.unread += len(cells) - len(kept)
+            item = _row_chunks(record, chunks, 1, 'CSV', rows(), limit)
     except UnicodeError:
         raise ExtractionError(error) from None
     except csv.Error:
         raise ExtractionError('CSV has an invalid or oversized field; no partial index was published.') from None
     if not item['populated_cells']:
-        raise ExtractionError('CSV has no populated cells to index.')
-    return ({'sheets': [item], 'sheet_count': 1, 'rows': item['rows'], 'delimiter': delimiter,
+        raise ExtractionError(INDEX_FULL_MESSAGE if limit.reason == 'index' else NOTHING_READ_MESSAGE if limit.reason
+                              else 'CSV has no populated cells to index.')
+    # Rows count as indexed when all of their cells are: a row cut at MAX_COLUMNS is not, nor is any row after a stop.
+    read = item['rows']
+    limit.wide = [entry for entry in limit.wide if entry[0] <= read]
+    total = max(read, limit.rows) if limit.reason else read
+    limit.place = f'to row {read:,}'
+    notes = limit.notes(total)
+    if limit.reason:
+        item.update(read_to_row=read, rows=total)
+    return ({'sheets': [item], 'sheet_count': 1, 'rows': total, 'delimiter': delimiter,
              'formula_policy': 'CSV cells are literal text; formulas are never executed.'},
-            {'indexed_units': item['rows'], 'total_units': item['rows'], 'limitations': []})
+            {'indexed_units': read - len(limit.wide), 'total_units': total, 'limitations': notes,
+             **({'read_limit': ' '.join(notes)} if notes else {})})
 
 
 def _legacy_xls(path, record, chunks):
@@ -1932,28 +2186,45 @@ def _legacy_xls(path, record, chunks):
             raise ExtractionError('Legacy XLS must be an OLE binary workbook. Save as XLSX or CSV and attach it.')
     book = xlrd.open_workbook(str(path), on_demand=True, ragged_rows=True)
     try:
-        if book.nsheets > MAX_SHEETS:
-            raise ExtractionError('Workbook exceeds 100 sheets.')
-        sheets, remaining = [], MAX_CELLS
-        for index in range(book.nsheets):
-            sheet = book.sheet_by_index(index)
-            def rows():
-                nonlocal remaining
-                for number in range(sheet.nrows):
-                    row = sheet.row_values(number)
-                    remaining -= len(row)
-                    if remaining < 0: raise ExtractionError('Workbook exceeds two million stored cells.')
+        # As in _workbook: stored cells count, the first MAX_SHEETS sheets are read, and a stop
+        # leaves the rows and sheets after it counted but unread.
+        limit, sheets, previous = _SheetLimit(), [], ''
+        def rows(sheet):
+            for number in range(sheet.nrows):
+                row = sheet.row_values(number)
+                if limit.take(len(row), number + 1):
                     yield number + 1, [(col, value, None, None) for col,value in enumerate(row,1) if value != '']
-            first_chunk = len(chunks.items)
-            item = _row_chunks(record, chunks, index + 1, sheet.name, rows())
+        for index in range(min(book.nsheets, MAX_SHEETS)):
+            sheet = book.sheet_by_index(index)
+            if limit.reason is not None:
+                if limit.reason == 'cells':
+                    for _ in rows(sheet): pass
+                continue
+            first_chunk, limit.rows = len(chunks.items), 0
+            item = _row_chunks(record, chunks, index + 1, sheet.name, rows(sheet), limit)
+            if limit.reason is not None:
+                item.update(read_to_row=item['rows'], rows=max(item['rows'], limit.rows))
+                limit.place = (f'to row {item["read_to_row"]:,} of {sheet.name}' if item['read_to_row'] or not previous
+                               else f'to the end of {previous}')
             item.update(visibility={0:'visible',1:'hidden',2:'veryHidden'}.get(sheet.visibility,'unknown'), formula_cells=None)
             if item['visibility'] in ('hidden', 'veryHidden'):
                 for chunk in chunks.items[first_chunk:]: chunk['label'] += HIDDEN_SHEET_LABEL
             sheets.append(item)
-        return ({'sheets': sheets, 'sheet_count': len(sheets), 'rows': sum(item['rows'] for item in sheets),
+            previous = sheet.name
+        if limit.reason == 'cells':
+            for index in range(MAX_SHEETS, book.nsheets):
+                for _ in rows(book.sheet_by_index(index)): pass
+        if not chunks.items and limit.reason is not None:
+            raise ExtractionError(INDEX_FULL_MESSAGE if limit.reason == 'index' else NOTHING_READ_MESSAGE)
+        notes = limit.notes()
+        if book.nsheets > MAX_SHEETS and limit.reason is None:
+            notes.append(f'Sheets 1 to {MAX_SHEETS:,} of {book.nsheets:,} were read; the rest was not.')
+        return ({'sheets': sheets, 'sheet_count': book.nsheets, **({'sheets_read': len(sheets)} if len(sheets) < book.nsheets else {}),
+                 'rows': sum(item['rows'] for item in sheets),
                  'formula_policy': 'Saved legacy cell results only; formula provenance may be unavailable.'},
-                {'indexed_units': len(sheets), 'total_units': len(sheets),
-                 'limitations': ['Legacy XLS exposes saved cell results. Formula counts, chart and image contents, and macros are unavailable.']})
+                {'indexed_units': sum('read_to_row' not in item for item in sheets), 'total_units': book.nsheets,
+                 'limitations': [*notes, 'Legacy XLS exposes saved cell results. Formula counts, chart and image contents, and macros are unavailable.'],
+                 **({'read_limit': ' '.join(notes)} if notes else {})})
     finally:
         book.release_resources()
 

@@ -166,7 +166,8 @@ class ChunkMapStaysInStep(Case):
             saved = json.loads(db.execute('SELECT record FROM documents WHERE id=?', (record['id'],)).fetchone()[0])
             saved.pop('extraction_version')
             db.execute('UPDATE documents SET record=? WHERE id=?', (json.dumps(saved), record['id']))
-        with patch.object(documents, 'MAX_CHUNKS', 1):
+        # A file whose first section does not fit is refused (one that fits in part is indexed up to the limit).
+        with patch.object(documents, 'MAX_CHUNKS', 0):
             self.assertEqual(self.store.extract(self.scope, record['id'])['status'], 'error')
         self.assertEqual(self.assert_map_matches_index(), before)
         with self.store._db() as db:

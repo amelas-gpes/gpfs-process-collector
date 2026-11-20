@@ -45,6 +45,16 @@ class LiveStopParityTests(unittest.TestCase):
         for text in ("My boss is calling me now. I need to stop now. The bank file goes out at noon",
                      "I have another meeting in five minutes, so I need to stop now. Thanks. Bye"):
             self.assertIn([text, True, True], cases)
+        # Python reads letters, digits and spaces beyond ASCII as such, and its case-blind match
+        # takes İ and ı for i and ſ for s; the page's JavaScript did not, and let these through.
+        for text in ("The bank file goes out at noon. I have to go because I have another café meeting",
+                     "The bank file goes out at noon. I have to go because I have another meeting at \u0663",
+                     "The bank file goes out at noon. \u0130 need to stop now",
+                     "The bank file goes out at noon. \u0131 need to stop now",
+                     "The bank file goes out at noon. I need to \u017ftop now",
+                     "The bank file goes out at noon.\x1cI need to stop now",
+                     "The bank file goes out at noon. I need to stop now as soon\u00e8 as possible"):
+            self.assertIn([text, True, True], cases)
         self.assertGreaterEqual(sum(1 for _, stop, page in cases if not stop and not page), 4,
                                 "Ordinary answers are not held back")
 

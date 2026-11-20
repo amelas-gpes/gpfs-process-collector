@@ -264,11 +264,27 @@
   //   first for answers that already ended goes at once); no more than three
   //   per answer. The end-of-answer capture is never held by them.
   // liveNotesChars: how much participant speech the notes on screen read;
-  // liveMidAnswer: the answer being noted ({key,count}); liveCaptureReturned:
+  // liveMidAnswer: the answer being noted ({key,count,resumed}); liveCaptureReturned:
   // when the last notes capture came back; liveAnswerStarts: when each open
   // participant caption, by caption key, began.
+  // The capture of the whole answer (see liveCaptureQuiet, overtakeLiveCapture):
+  // LIVE_CAPTURE_QUIET: it goes this long after the participant's caption
+  //   finishes (the caption finishes after 1.5 s without words); while the
+  //   microphone still hears sound it is tried again this often.
+  // LIVE_LONG_ANSWER_QUIET, LIVE_RESUMED_QUIET: an answer that is already long,
+  //   or whose caption already went on after a pause, is captured when the
+  //   interviewer replies, or this long after its last words if it does not
+  //   (10 s: after that, more words start a new caption, web/live-voice.js), so
+  //   a thinking pause is not taken for its end.
+  // LIVE_KEEP_SHARE: a capture of part of the answer still on its way is waited
+  //   for when it has been on its way this share of the time the last capture
+  //   of its kind took, and until it is that much past it; otherwise it is
+  //   given up. liveCaptureTook: those times ({part,whole}, ms); liveWordsAt:
+  //   when the participant's words last grew; liveCaptureDue: when the capture
+  //   timer (liveCaptureTimer) fires.
   const LIVE_MID_ANSWER_CHARS=1400,LIVE_MID_ANSWER_MS=100000,LIVE_DEFERRED_CHARS=200,LIVE_MID_ANSWER_GAPS=[30000,60000,120000];
-  let liveNotesChars=0,liveMidAnswer=null,liveCaptureReturned=null;const liveAnswerStarts=new Map();
+  const LIVE_CAPTURE_QUIET=400,LIVE_LONG_ANSWER_QUIET=3500,LIVE_RESUMED_QUIET=10000,LIVE_KEEP_SHARE=0.75;
+  let liveNotesChars=0,liveMidAnswer=null,liveCaptureReturned=null,liveWordsAt=null,liveCaptureDue=null;const liveAnswerStarts=new Map(),liveCaptureTook={part:null,whole:null};
   const LIVE_NOTES_RETRY_DELAYS=[3000,10000];
   let liveRetryTimer=null,liveRetryCount=0,liveMapEndRevision=null;
   // Captions in which GPT-Live read an application-authorized line, by caption
@@ -288,6 +304,10 @@
   const liveResponseSources=new WeakMap();
   const liveFrontActive=()=>Boolean(conversationUI.live?.active&&state.config?.agent_team?.voice_mode==="live_front");
   const liveAnswerPending=()=>Boolean(conversationUI.pendingParticipantCaptions.size||conversationUI.live?.participantSpeaking);
+  // A participant caption is still open: more words of it may come, and its end
+  // schedules the capture (receiveLiveCaption). The microphone alone may also
+  // still hear sound (liveAnswerPending); runLiveCapture waits that out itself.
+  const liveCaptionOpen=()=>conversationUI.pendingParticipantCaptions.size>0;
   function liveSourceMatches(captured){
     return captured&&captured.generation===state.generation&&captured.liveSession===liveSession&&captured.live===conversationUI.live&&
       captured.document_revision===activeDocumentSignature()&&
@@ -361,7 +381,7 @@
     liveCapture?.controller.abort();liveCapture=null;liveCaptureQueued=false;liveCapturedThrough=null;liveReadings.clear();liveFinalReply=null;liveSession++;liveWithheldMoments=0;liveWithheldRepeatSaid=false;
     clearTimeout(liveCaptureTimer);liveCaptureTimer=null;clearTimeout(liveCompleteTimer);liveCompleteTimer=null;state.liveSuggestedQuestion="";
     clearTimeout(liveRetryTimer);liveRetryTimer=null;liveRetryCount=0;liveMapEndRevision=null;
-    liveNotesChars=participantChars();liveMidAnswer=null;liveCaptureReturned=null;liveAnswerStarts.clear();
+    liveNotesChars=participantChars();liveMidAnswer=null;liveCaptureReturned=null;liveWordsAt=null;liveAnswerStarts.clear();liveCaptureTook.part=liveCaptureTook.whole=null;
     liveCatchUpDue=false;liveOpen=false;completionHeld=false;
   }
   // Voice can end (Stop talking, a dropped session, the transcript limit) while
@@ -1636,17 +1656,22 @@
     // After a pause the notes are as old as the last real capture: say through
     // which answer they go, never that they include every saved answer.
     const through=analysisCheckpoint?.kept?analysisCheckpoint.through:analysisCheckpoint?.count;
-    // Notes taken while the latest answer was being spoken read part of it; those of the whole answer
-    // follow. Busy only while a notes capture is on its way (after a failed one the notes stay as they are).
-    const partOfLatest=!current&&analysisCheckpoint&&!analysisCheckpoint.kept&&analysisCheckpoint.count===count&&
-      analysisCheckpoint.documents===activeDocumentSignature()&&answersStand(JSON.parse(analysisCheckpoint.basis),basis,liveCaptionAnswers());
-    const partNoted=partOfLatest&&!liveCapture;
+    // Notes taken while an answer was being spoken read part of it (their last answer has since grown,
+    // see liveSourceUsable); those of the whole answer follow. While voice is on, busy only while a notes
+    // capture is on its way or about to go: otherwise (between captures, after a failed one) the notes
+    // stay as they are and the line only says what they hold.
+    const read=!current&&analysisCheckpoint&&!analysisCheckpoint.kept&&!analysisCheckpoint.restored&&
+      analysisCheckpoint.documents===activeDocumentSignature()?JSON.parse(analysisCheckpoint.basis):null;
+    const part=read?.length&&answersStand(read,basis,liveCaptionAnswers())&&read.at(-1)[1]!==basis[read.length-1][1]?read.length:0;
+    const updating=Boolean(liveCapture)||liveCaptureTimer!==null||liveRetryTimer!==null;
+    const quiet=!current&&!updating&&(liveFrontActive()||part>0);
     node.textContent=current?(analysisCheckpoint.kept?`${through?`Notes kept through answer ${through}`:'Notes kept as they were'} · paused at your request`:`Notes include all ${count} saved answers`):
-      partNoted?`Notes include part of answer ${count}`:
-      !analysisCheckpoint||partOfLatest||analysisCheckpoint.kept&&!through?`Updating notes for answer ${count}`:
+      part&&part<count?`Notes include part of answer ${part} of ${count}`:
+      part&&!updating?`Notes include part of answer ${count}`:
+      !analysisCheckpoint||part||analysisCheckpoint.kept&&!through?`Updating notes for answer ${count}`:
       analysisCheckpoint.count<count?(through?`Notes through answer ${through} of ${count}`:`Updating notes for answer ${count}`):
       'Notes are updating for the revised conversation or files';
-    setLevel(node,current?(analysisCheckpoint.kept?"info":""):partNoted?"":"busy");
+    setLevel(node,current?(analysisCheckpoint.kept?"info":""):quiet?"":"busy");
   }
   function captureProgressMark(turns=state.turns){
     const basis=participantCoverageBasis(turns);
@@ -3209,6 +3234,8 @@
       notice("This interview has reached its limit for new answers, so voice has stopped. Choose Wrap up to get the final check, then create a draft or save a copy.",false,"limit",true);
     }
     if(caption.role==="user"&&!caption.final)captureMidAnswer();
+    // The capture of a long answer may be waiting for the interviewer's reply (liveCaptureQuiet).
+    if(caption.role==="assistant")liveInterviewerSpoke();
   }
   // Notes wait for the participant to pause (runLiveCapture), so one who talks
   // for minutes would see none of it noted until the end. When the answer being
@@ -3225,13 +3252,32 @@
   // gives this one up then). The closing sequence judges whole replies (see
   // completionHeld), so nothing is captured mid-answer there.
   function captureMidAnswer(){
-    const live=conversationUI.live,now=Date.now(),open=[...conversationUI.pendingParticipantCaptions];
+    const now=Date.now(),open=[...conversationUI.pendingParticipantCaptions];
     for(const key of open)if(!liveAnswerStarts.has(key))liveAnswerStarts.set(key,now);
-    if(!liveFrontActive()||state.example||intakeActive()||liveCapture||liveRetryTimer!==null||!open.length)return;
-    if(voiceEnded||liveLimitStops.has(live)||liveFinalReply||liveStopTurn||completionHeld||completionStands()||pendingCompletionReview||pendingFinalCheck||state.closure.asked)return;
+    liveWordsAt=now;
+    // The participant is speaking again: a capture that was about to go waits
+    // for this caption to finish, which schedules it (scheduleLiveCapture).
+    if(liveCaptureTimer!==null&&open.length){clearTimeout(liveCaptureTimer);liveCaptureTimer=null;liveCaptureQueued=true;renderAnalysisThrough();}
+    if(!liveFrontActive()||state.example||intakeActive()||!open.length||liveClosing())return;
+    // A capture sent when the participant paused (their caption finished) read
+    // the answer as it then stood. The same caption has gone on, so it now reads
+    // only part of the answer, like one sent mid-answer: it counts toward the
+    // answer's captures of part of it (the cap and spacing below), the capture of
+    // the whole answer does not wait behind it (overtakeLiveCapture), and the
+    // answer is captured when the interviewer replies or its caption can no
+    // longer go on (liveCaptureQuiet): this speaker goes on after a pause.
+    const resumed=liveCapture&&!liveCapture.midAnswer&&!liveCapture.outgrown&&
+      open.findLast(key=>(conversationUI.captions.get(key)||[]).some(id=>liveCapture.captured.turns.some(turn=>turn.id===id)));
+    if(resumed){
+      liveCapture.outgrown=true;
+      if(liveMidAnswer?.key!==resumed)liveMidAnswer={key:resumed,count:0,resumed:false};
+      liveMidAnswer.count++;liveMidAnswer.resumed=true;
+      rawTrace("live.notes_outgrown",{count:liveMidAnswer.count});
+    }
+    if(liveCapture||liveRetryTimer!==null)return;
     // The answer being spoken is the newest open caption; a caption that resumes after a pause is the same answer.
     const key=open.at(-1);
-    if(liveMidAnswer?.key!==key)liveMidAnswer={key,count:0};
+    if(liveMidAnswer?.key!==key)liveMidAnswer={key,count:0,resumed:false};
     const gap=LIVE_MID_ANSWER_GAPS[liveMidAnswer.count];
     if(gap===undefined)return;
     const rested=liveCaptureReturned===null||now-liveCaptureReturned>=gap;
@@ -3248,6 +3294,12 @@
     liveMidAnswer.count++;
     void runLiveCapture(false,true);
   }
+  // The closing sequence, or voice ending: whole replies are judged there (see
+  // completionHeld), so nothing is captured mid-answer and the capture of an
+  // answer goes as it always did (liveCaptureQuiet).
+  function liveClosing(){
+    return voiceEnded||liveLimitStops.has(conversationUI.live)||liveFinalReply||liveStopTurn||completionHeld||completionStands()||pendingCompletionReview||pendingFinalCheck||state.closure.asked;
+  }
   // Whether the words so far could be read by the server as a request to stop
   // (server.py stop_request_prefix). The server splits at . ! ? … ; and line
   // breaks, then at commas, colons, brackets and dashes, so fillers, courtesies
@@ -3262,28 +3314,91 @@
   // server refuses part of an answer that reads as a stop in any case (it
   // decides a stop when the answer ends). Separate from voiceStopPrefix, which
   // ends voice and so reads only how the words end.
+  // The server reads with Python's re: \w, \d, \s and \b take in every
+  // language's letters, digits and spaces, and its case-blind match takes İ and
+  // ı for i and ſ for s ("another café meeting", "İ need to stop"). The
+  // patterns come to the page as Python wrote them, so they are read here the
+  // same way (pythonStopPattern); one that cannot be is read as written.
   function liveStopInWords(value,patterns=state.config?.agent_team?.stop_intent_patterns||[]){
-    const expressions=patterns.flatMap(pattern=>{try{return [new RegExp(pattern,"u")];}catch{return [];}});
+    const expressions=patterns.flatMap(pattern=>{try{return [pythonStopPattern(pattern)];}catch{try{return [new RegExp(pattern,"u")];}catch{return [];}}});
     const stop=clause=>expressions.some(expression=>expression.test(clause));
     const sentences=value.split(/[.!?…;\n]+/u).filter(sentence=>sentence.trim());
-    const clauses=list=>list.flatMap(sentence=>sentence.split(/[,()]|:(?!\d)|\s[—–-]+\s/u))
-      .map(clause=>clause.trim().split(/\s+/u).join(" ").toLowerCase()).filter(Boolean);
+    const clauses=list=>list.flatMap(sentence=>sentence.split(new RegExp(`[,()]|:(?!\\p{Nd})|${PY_SPACE}[—–-]+${PY_SPACE}`,"u")))
+      .map(clause=>clause.split(new RegExp(`${PY_SPACE}+`,"u")).filter(Boolean).join(" ").replace(/[\u0130\u0131]/gu,"i").replace(/\u017f/gu,"s").toLowerCase()).filter(Boolean);
     return clauses(sentences).slice(0,9).some(stop)||clauses(sentences.slice(-3)).some(stop);
   }
-  function scheduleLiveCapture() {
+  // Python's \s (str.isspace) and \w; \d is \p{Nd} in both.
+  const PY_SPACE="[\\t-\\r\\x1c-\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]",PY_WORD="[\\p{L}\\p{N}_]";
+  function pythonStopPattern(pattern){
+    return new RegExp(pattern.replace(/\\(.)/gsu,(escape,code)=>code==="w"?PY_WORD:code==="d"?"\\p{Nd}":code==="s"?PY_SPACE:
+      code==="b"?`(?:(?<=${PY_WORD})(?!${PY_WORD})|(?<!${PY_WORD})(?=${PY_WORD}))`:escape),"u");
+  }
+  // A capture on its way read only part of the answer: it was sent mid-answer
+  // (captureMidAnswer), or at a pause after which the same caption went on.
+  const livePartOfAnswer=check=>Boolean(check?.midAnswer||check?.outgrown);
+  // wait: how long until the capture goes (liveCaptureQuiet by default).
+  function scheduleLiveCapture(wait=liveCaptureQuiet()) {
     if(!liveFrontActive()||state.example||intakeActive()||liveRetryTimer!==null)return;
-    // The answer has ended while a capture of part of it is on its way. That
-    // capture can never mark the answer as captured, and the server keeps
-    // nothing of it (see captureMidAnswer), so it is given up and the capture
-    // of the whole answer goes now instead of after it.
-    if(liveCapture?.midAnswer&&!liveAnswerPending()){
-      const check=liveCapture;liveCapture=null;liveCaptureQueued=true;check.controller.abort();
-      if(voiceStreamTopics?.check===check){voiceStreamTopics=null;renderCoverage();}
-      rawTrace("live.notes_mid_answer_superseded",{through_turn:check.captured.turns.findLast(turn=>turn.role==="user")?.id||null});
+    // A capture of the conversation as it stood is on its way: this one follows
+    // it (runLiveCapture's finally). One that read only part of the answer does
+    // not hold this one back: when this one is due, it is given up or, if it is
+    // nearly back, waited for (overtakeLiveCapture).
+    if(liveCapture&&!livePartOfAnswer(liveCapture)){liveCaptureQueued=true;return;}
+    if(liveCapture)liveCaptureQueued=true;
+    armLiveCapture(wait);
+  }
+  function armLiveCapture(wait){
+    clearTimeout(liveCaptureTimer);liveCaptureDue=Date.now()+wait;
+    liveCaptureTimer=setTimeout(()=>{liveCaptureTimer=null;void runLiveCapture();renderAnalysisThrough();},wait);
+    renderAnalysisThrough();
+  }
+  // How long after a participant caption finishes the capture of the answer
+  // goes. An ordinary answer: LIVE_CAPTURE_QUIET, as always, and so in the
+  // closing sequence. One that is already long (LIVE_MID_ANSWER_CHARS,
+  // LIVE_MID_ANSWER_MS) or whose caption already went on after a pause
+  // (captureMidAnswer): until the interviewer replies (liveInterviewerSpoke), or
+  // LIVE_LONG_ANSWER_QUIET or LIVE_RESUMED_QUIET after its last words. A capture
+  // sent at a thinking pause reads only part of the answer and is a full
+  // capture, so a long answer with pauses in it would otherwise cost one at
+  // every pause, each given up at the next.
+  function liveCaptureQuiet(){
+    const index=state.turns.findLastIndex(turn=>turn.role==="user"&&!turn.document_event),latest=state.turns[index];
+    const key=latest&&[...conversationUI.captions].find(([key,ids])=>key.startsWith("user:")&&ids.includes(latest.id))?.[0];
+    // The interviewer has replied since: the answer is over.
+    if(!key||liveWordsAt===null||liveClosing()||conversationUI.live?.assistantSpeaking||state.turns.slice(index+1).some(turn=>turn.role==="assistant"))return LIVE_CAPTURE_QUIET;
+    const chars=conversationUI.captions.get(key).reduce((sum,id)=>sum+(state.turns.find(turn=>turn.id===id)?.text.length||0),0);
+    const resumed=liveMidAnswer?.key===key&&liveMidAnswer.resumed;
+    const long=resumed||chars>LIVE_MID_ANSWER_CHARS||liveWordsAt-(liveAnswerStarts.get(key)??liveWordsAt)>=LIVE_MID_ANSWER_MS;
+    return long?Math.max(LIVE_CAPTURE_QUIET,liveWordsAt+(resumed?LIVE_RESUMED_QUIET:LIVE_LONG_ANSWER_QUIET)-Date.now()):LIVE_CAPTURE_QUIET;
+  }
+  // The interviewer has begun its reply (receiveLiveCaption): an answer that
+  // was waiting for a longer silence (liveCaptureQuiet) is over, and its capture
+  // goes now.
+  function liveInterviewerSpoke(){
+    if(liveCaptureTimer!==null&&!liveCaptionOpen()&&liveCaptureDue-Date.now()>LIVE_CAPTURE_QUIET)armLiveCapture(LIVE_CAPTURE_QUIET);
+  }
+  // The capture of the whole answer is due (its caption has finished and the
+  // microphone is quiet) while one that read only part of it is on its way.
+  // That one can never mark the answer as captured, so the capture of the whole
+  // answer does not wait behind it: it is given up, unless it is nearly back
+  // (on its way for LIVE_KEEP_SHARE of the time the last capture of its kind
+  // took, and not that much past it). Then its notes are applied when it
+  // returns and the capture of the whole answer goes at once after it (the
+  // finally of runLiveCapture), or here, given up, once it is overdue. Returns
+  // whether the capture of the whole answer can go now.
+  function overtakeLiveCapture(){
+    const check=liveCapture;
+    if(!livePartOfAnswer(check)){liveCaptureQueued=true;return false;}
+    const on=Date.now()-check.sent,took=liveCaptureTook[check.midAnswer?"part":"whole"],due=took===null?0:took*(2-LIVE_KEEP_SHARE);
+    if(took!==null&&on>=took*LIVE_KEEP_SHARE&&on<due){
+      liveCaptureQueued=true;armLiveCapture(due-on);
+      rawTrace("live.notes_part_awaited",{on_its_way_ms:on,expected_ms:took});
+      return false;
     }
-    if(liveCapture){liveCaptureQueued=true;return;}
-    clearTimeout(liveCaptureTimer);
-    liveCaptureTimer=setTimeout(()=>{liveCaptureTimer=null;void runLiveCapture();},400);
+    liveCapture=null;liveCaptureQueued=true;check.controller.abort();
+    if(voiceStreamTopics?.check===check){voiceStreamTopics=null;renderCoverage();}
+    rawTrace("live.notes_mid_answer_superseded",{through_turn:check.captured.turns.findLast(turn=>turn.role==="user")?.id||null,on_its_way_ms:on});
+    return true;
   }
   function reportLiveNotesFailure(error){
     if(error.code==="provider_unavailable"){
@@ -3305,12 +3420,20 @@
     // afterVoice: the catch-up capture for an answer that voice ended on (see
     // settleLiveNotes). It is the same notes capture, sent once voice is off.
     // midAnswer: a capture of an answer still being spoken (captureMidAnswer).
-    if((afterVoice?Boolean(conversationUI.live?.active):!liveFrontActive())||liveCapture||state.example||intakeActive())return;
-    if(!afterVoice&&!midAnswer&&liveAnswerPending()){liveCaptureQueued=true;scheduleLiveCapture();return;}
+    if((afterVoice?Boolean(conversationUI.live?.active):!liveFrontActive())||state.example||intakeActive())return;
+    if(!afterVoice&&!midAnswer){
+      // The capture of the conversation as it stands waits for the participant:
+      // a caption still open schedules it when it finishes (receiveLiveCaption);
+      // a microphone that still hears sound is waited out here.
+      if(liveAnswerPending()){liveCaptureQueued=true;if(!liveCaptionOpen())scheduleLiveCapture(LIVE_CAPTURE_QUIET);return;}
+      if(liveCapture&&!overtakeLiveCapture())return;
+    }
+    if(liveCapture)return;
     const captured=liveSnapshot(),latest=captured.turns.findLast(turn=>turn.role==="user"&&!turn.document_event);
     if(!latest||liveCapturedThrough===`${latest.id}:${latest.text}`)return;
     const through=`${latest.id}:${latest.text}`;
-    const generation=state.generation,controller=new AbortController(),check={controller,generation,captured,midAnswer};
+    // sent: when it went (overtakeLiveCapture, liveCaptureTook).
+    const generation=state.generation,controller=new AbortController(),check={controller,generation,captured,midAnswer,sent:Date.now()};
     // A capture taken mid-answer leaves the capture of the whole answer owed.
     liveCapture=check;liveCaptureQueued=midAnswer;renderAnalysisThrough();
     if(midAnswer)rawTrace("live.notes_mid_answer",{through_turn:latest.id,unnoted_chars:participantChars(captured.turns)-liveNotesChars,count:liveMidAnswer?.count||0});
@@ -3322,6 +3445,7 @@
       // live_partial: the server keeps nothing of a capture taken mid-answer (see captureMidAnswer).
       const result=await request("/api/interview",{...payload,action:"answer",live_notes:true,interview_memory:liveMemoryEnabled(),...(midAnswer?{live_partial:true}:{})},{signal:controller.signal,concurrentBypass:true,liveNotes:true,...(afterVoice?{timeout:LIVE_NOTES_WAIT}:{})});
       if(liveCapture!==check||generation!==state.generation)return;
+      liveCaptureTook[midAnswer?"part":"whole"]=Date.now()-check.sent;
       liveRetryCount=0;
       if(liveFrontActive()){
         if(midAnswer||!liveSourceMatches(captured)){
@@ -3360,7 +3484,10 @@
         if(voiceStreamTopics?.check===check){voiceStreamTopics=null;renderCoverage();}
         // Captures taken mid-answer are spaced from this moment (captureMidAnswer).
         liveCapture=null;liveCaptureReturned=Date.now();renderAnalysisThrough();
-        if(liveFrontActive()){if(liveCaptureQueued&&!liveAnswerPending())scheduleLiveCapture();}
+        // The capture owed follows once no caption is open; while the microphone
+        // still hears sound, runLiveCapture waits that out (not only until the
+        // next caption ends, which could be an answer later).
+        if(liveFrontActive()){if(liveCaptureQueued&&!liveCaptionOpen())scheduleLiveCapture();}
         else if(generation===state.generation)settleLiveNotes();
       }
     }
@@ -4154,7 +4281,8 @@
       // response, a completion review above all, needs the exact conversation.
       if(voiceSource&&!(options.liveNotes?liveSourceUsable(voiceSource):liveSourceMatches(voiceSource))){
         liveCaptureQueued=true;
-        if(!liveCapture&&!liveAnswerPending())scheduleLiveCapture();
+        // A caption still open schedules it when it finishes; a microphone that still hears sound is waited out by runLiveCapture.
+        if(!liveCapture&&!liveCaptionOpen())scheduleLiveCapture();
         throw new DOMException("New participant evidence replaced these notes","AbortError");
       }
       if(voiceSource)liveResponseSources.set(result,voiceSource);

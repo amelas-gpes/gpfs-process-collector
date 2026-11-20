@@ -68,7 +68,7 @@ _technical = set(
     control tabid producerid interviewid turnid eventid sourceid documentid sessionid
     schemaid clock observedat recordedat updatedat createdat generatedat implementation
     originaltype omission tracestate hash sha256 trace parenteventid parentoperationid
-    teamid throughturnid sourcerevision jobid submissionid category mediatype
+    teamid throughturnid throughturn sourcerevision jobid submissionid category mediatype
     roles tag fieldname contentomitted valueomitted encoding""".split()
 )
 # Object keys can also be data (e.g. a user-named workflow step or a document
@@ -101,7 +101,8 @@ _metadata_keys = _technical | set(
     stepcount turncount map view uploading mutating discarded persisted recovered synthetic
     count omittedfields startoffset endoffset offset matched exitcode timeoutms bytecount
     sourcemode lastsequence depth resource limit mode
-    audioms wordsbefore wordsafter charsbefore charsafter""".split()
+    audioms wordsbefore wordsafter charsbefore charsafter
+    unnotedchars onitswayms expectedms answercount midanswer""".split()
 )
 _context_keys = {
     "producer", "producer_id", "tab_id", "source_sequence", "observed_at", "interview_id",

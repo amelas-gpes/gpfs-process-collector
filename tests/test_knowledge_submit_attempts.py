@@ -187,8 +187,9 @@ class SubmissionSizeTests(SubmitRouteCase):
         finally:
             connection.close()
         self.assertEqual(response.status, 413)
-        self.assertEqual(result, {'error': 'Knowledge request is empty or too large.'})
-        self.assertEqual(self.post('/api/knowledge/submit', None, raw=b'')[0], 413, 'An empty submission is still refused')
+        self.assertEqual(result, {'error': 'Knowledge request is too large.'})
+        # An empty submission is still refused, as a bad request rather than one that is too large.
+        self.assertEqual(self.post('/api/knowledge/submit', None, raw=b'')[0], 400, 'An empty submission is still refused')
 
 
 class NotSavedSignalTests(SubmitRouteCase):

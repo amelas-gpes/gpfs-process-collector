@@ -135,7 +135,7 @@ class RejectionsReachTheClient(Fixture):
                         message = (f"This submission is too large for company knowledge: it is {size:,} bytes "
                                    f"and the limit is {limit:,}. Nothing was saved.")
                     else:
-                        message = "Document request is empty or too large."
+                        message = "Document request is too large."
                     body = b"{" + b" " * (size - 2) + b"}"
                     self.all_answered(self.head(path, len(body)), body, 413, message, code)
 

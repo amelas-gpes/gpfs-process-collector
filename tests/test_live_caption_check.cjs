@@ -1041,6 +1041,48 @@ const MERGED={caption:"We reconcile the NAV to the GL before the capital call no
   assert.equal(deferred.captures.length,1,"The capture of the last answer goes at the next answer's first words");
   assert.equal(deferred.captures[0].body.live_partial,true);
  });
+ await check("the held capture of an answer goes 0.4 s after its caption finishes, or 0.4 s after a check that is still on its way settles",async()=>{
+  // As docs/AGENT_TEAM.md and the changelog give it: an ordinary answer's capture goes
+  // LIVE_CAPTURE_QUIET after its caption finishes, or, when the check has not settled by then,
+  // LIVE_CAPTURE_QUIET after it settles or passes its CAPTION_CHECK_HOLD: 6.4 s after it began at most.
+  const at=async(settle,label)=>{
+   const h=await page(),began=h.page.context.Date.now();
+   h.say("live_u1",CAPTION);
+   const sent=[];
+   for(let ms=0;ms<8000;ms+=100){
+    if(ms===settle)await h.answer(h.transcribe[0],READ(CAPTION));
+    await h.clock(100);
+    if(h.captures.length>sent.length)sent.push(h.page.context.Date.now()-began);
+   }
+   assert.deepEqual(sent,[settle!==null&&settle<400?400:(settle??6000)+400],label);
+   assert.equal(h.lastAnswer(h.captures[0]),CAPTION,label);
+  };
+  await at(200,"the check settles within the 0.4 s: the capture goes 0.4 s after the caption finishes");
+  await at(2000,"the check settles at 2 s: 0.4 s later");
+  await at(5000,"the check settles at 5 s: 0.4 s later");
+  await at(null,"the check never returns: 0.4 s after its six seconds");
+  // An answer that is already long and that the interviewer has not replied to waits as it does
+  // without the check (3.5 s after its last words), or for the check as above, whichever is later.
+  const LONG_ANSWER=Array(12).fill(CAPTION.replace(/\.$/,",")).join(" ").replace(/,$/,".")+" "+CAPTION.repeat(8);
+  assert.ok(LONG_ANSWER.length>1400);
+  const long=async(settle,reply,expected,label)=>{
+   const h=await page(),began=h.page.context.Date.now();
+   // Its first words arrive as it is spoken, then the caption finishes.
+   h.say("live_u1",CAPTION,false);h.say("live_u1",LONG_ANSWER);
+   const sent=[];
+   for(let ms=0;ms<12000;ms+=100){
+    if(ms===settle)await h.answer(h.transcribe[0],READ(LONG_ANSWER));
+    if(ms===reply)h.interviewer("live_a1","Who runs them?");
+    await h.clock(100);
+    if(h.captures.length>sent.length)sent.push(h.page.context.Date.now()-began);
+   }
+   assert.deepEqual(sent,[expected],label);
+   assert.notEqual(h.captures[0].body.live_partial,true,label+": the capture of the whole answer");
+  };
+  await long(1000,null,3500,"a long answer whose check settles at 1 s: 3.5 s after its last words");
+  await long(5000,null,5400,"a long answer whose check settles at 5 s: 0.4 s later");
+  await long(3000,2000,3400,"a long answer the interviewer replies to while its check is on its way: 0.4 s after the check settles");
+ });
  console.log(JSON.stringify({checks_passed:passed,checks_failed:failed.length,provider_calls:0,network_calls:0}));
  if(failed.length)process.exitCode=1;
 })().catch(error=>{console.error(error);process.exitCode=1;});

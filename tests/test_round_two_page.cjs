@@ -57,7 +57,9 @@ let checks = 0;
   app.state.turns=[];app.state.context={};
   assert.deepEqual(JSON.parse(JSON.stringify(app.transcriptionHints())),[]);
   assert.match(source,/headers\["X-Transcription-Hints"\]=encodeURIComponent\(hints\.join\(","\)\)/);
-  assert.match(source,/path==="\/api\/transcribe"\?transcriptionHints\(\):\[\]/,"Only a recording carries them");
+  // Only a recording carries them; a live caption check sends the process name alone (its hints are the
+  // server's glossary, see captionCheckHints and tests/test_live_caption_check.cjs).
+  assert.match(source,/path!=="\/api\/transcribe"\?\[\]:checking\?captionCheckHints\(\):transcriptionHints\(\)/,"Only a recording carries them");
   checks++;
 }
 

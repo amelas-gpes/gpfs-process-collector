@@ -3155,7 +3155,8 @@ def load_settings():
     allowed = {"OPENAI_API_KEY", "INTERVIEW_MODEL", "DRAFT_MODEL", "DRAFT_AUDIT_MODEL", "DRAFT_COVERAGE_MODEL", "WORKFLOW_AUDIT_MODEL", "TRANSCRIPTION_MODEL", "TRANSCRIPTION_KEYWORDS",
                "COLLECTOR_DEPLOYMENT_MODE", "KNOWLEDGE_LOCAL_OWNER", "AGENT_INTERVIEW_MODEL", "COLLECTOR_MODEL_REASONING", "TRANSCRIPTION_LANGUAGE", "INTERVIEW_TOKEN_CAP", "DAILY_TOKEN_CAP",
                "AGENT_COVERAGE_MODEL", "AGENT_PROCESS_MODEL", "AGENT_DOCUMENT_MODEL", "VOICE_MODE", "VOICE_PAUSE_MS", "RAW_TRACE_MODE",
-               "COLLECTOR_PROVIDER_SLOTS", "COLLECTOR_MAP_WORKERS", "COLLECTOR_NOTES_WORKERS", "DRAFT_PREPARE", "COLLECTOR_FAST_TIER", "INTERVIEW_MEMORY_ENABLED"}
+               "COLLECTOR_PROVIDER_SLOTS", "COLLECTOR_MAP_WORKERS", "COLLECTOR_NOTES_WORKERS", "DRAFT_PREPARE", "COLLECTOR_FAST_TIER", "INTERVIEW_MEMORY_ENABLED",
+               "LIVE_CAPTION_CHECK"}
     for path in (APP_DIR / ".env.local",):
         if path.is_file() and not path.is_symlink():
             for number, line in enumerate(read_settings_text(path).splitlines(), 1):
@@ -3198,6 +3199,24 @@ def reviewed_pause_ms(value):
     except (TypeError, ValueError):
         return REVIEWED_PAUSE_MS
     return min(max(number, REVIEWED_PAUSE_RANGE_MS[0]), REVIEWED_PAUSE_RANGE_MS[1])
+
+
+def live_caption_check(value):
+    """LIVE_CAPTION_CHECK: on (the default) or off.
+
+    The live transcriber takes no spelling hints ("KYC" was captioned "kite"). With the check on, the
+    page corrects fund terms and configured names in live captions using the participant's own audio:
+    it sends the audio of each final caption to /api/transcribe marked as a caption check, which is
+    transcribed with the glossary as its hints (caption_check_terms), and only a glossary term read at
+    the place of a misheard caption word replaces that word (web/app.js correctCaption). Off keeps the
+    live captions exactly as the provider sends them.
+    """
+    setting = str(value or "on").strip().lower()
+    if setting in ("on", "1", "true", "yes"):
+        return True
+    if setting in ("off", "0", "false", "no"):
+        return False
+    raise SettingsError("LIVE_CAPTION_CHECK must be on or off.")
 
 
 def bounded_text(value, name, limit=6000, required=False):
@@ -3278,9 +3297,9 @@ SPOKEN_FUND_TERMS = {"KYC": ("kite",), "AML": (), "ACH": (), "IRR": ("DI",), "LP
                      "NAV": (), "LPA": (), "GL": (), "DPI": (), "SWIFT": (), "PEP": ()}
 
 
-def term_glossary(configured, context, limit=40, max_chars=900):
-    """Spelling reference for live voice: the fund terms above first, the process name, then the configured
-    keywords. Terms from the participant's captions are left out: they may be the mishearings themselves."""
+def glossary_terms(configured, context):
+    """The fund terms above first, the process name, then the configured keywords, each once. Terms from the
+    participant's captions are left out: they may be the mishearings themselves."""
     name = " ".join(str((context or {}).get("process_name") or "").split())
     # Listed only when it is a short plain term, as dictation hints are (server-side transcription_hints).
     named = [name] if 2 <= len(name) <= 60 and re.fullmatch(r"\w[\w &./'’+-]*", name) else []
@@ -3290,10 +3309,51 @@ def term_glossary(configured, context, limit=40, max_chars=900):
         if key not in seen:
             seen.add(key)
             terms.append(term)
+    return terms
+
+
+def term_glossary(configured, context, limit=40, max_chars=900):
+    """Spelling reference for live voice (glossary_terms), with the misheard forms, within max_chars of JSON."""
+    terms = glossary_terms(configured, context)
     glossary = {"terms": terms[:limit], "often_misheard_as": {term: list(aliases) for term, aliases in SPOKEN_FUND_TERMS.items() if aliases}}
     while glossary["terms"] and len(json.dumps(glossary, ensure_ascii=False)) > max_chars:
         glossary["terms"].pop()
     return glossary
+
+
+# The live caption check (LIVE_CAPTION_CHECK, web/app.js sendCaptionCheck) marks its recordings with
+# this header; dictation and reviewed voice never send it, and their requests are read as before.
+CAPTION_CHECK_PURPOSE = "live-caption-check"
+
+
+def transcription_purpose(values):
+    """X-Transcription-Purpose: absent (dictation, reviewed voice) or exactly CAPTION_CHECK_PURPOSE, once.
+
+    Anything else is refused rather than read as dictation: only the caption check asks for its glossary."""
+    if not values:
+        return None
+    if len(values) != 1 or values[0] != CAPTION_CHECK_PURPOSE:
+        raise ValueError("This recording names a purpose this app does not know. Refresh the page.")
+    return CAPTION_CHECK_PURPOSE
+
+
+def caption_check_terms(configured, hints):
+    """The spelling hints of a live caption check, which are also the only terms it may correct.
+
+    The terms of the live glossary (glossary_terms): the fund terms, the process name and the configured
+    keywords, never terms from the transcript (a caption, or another check's reading, may hold the
+    mishearing). The page sends the process name as its only hint; its first hint is read as that name,
+    under the glossary's own short-plain-term rule, and nothing else it sends is used. As many are sent as
+    dictation sends at most (MAX_TRANSCRIPTION_KEYWORDS), with no other limit: with the twelve fund terms and
+    a process name, the first seventeen configured keywords (eighteen without a process name)."""
+    named = {"process_name": hints[0]} if hints else None
+    return glossary_terms(configured, named)[:MAX_TRANSCRIPTION_KEYWORDS]
+
+
+def caption_check_misheard(terms):
+    """The misheard forms SPOKEN_FUND_TERMS lists for the terms of a check ("CPAC" for LPAC), named with its
+    answer: a caption word written as an acronym is replaced only by the term it is listed for."""
+    return {term: list(aliases) for term, aliases in SPOKEN_FUND_TERMS.items() if aliases and term in terms}
 
 
 def _fingerprint(value):
@@ -5442,6 +5502,7 @@ class OpenAIClient:
         self.interview_memory_enabled = str(settings.get("INTERVIEW_MEMORY_ENABLED", "1")).strip().lower() not in ("0","false","off")
         self.voice_mode = "reviewed" if mode in ("reviewed", "reviewed_turns", "controlled") else "live"
         self.voice_pause_ms = reviewed_pause_ms(settings.get("VOICE_PAUSE_MS"))
+        self.live_caption_check = live_caption_check(settings.get("LIVE_CAPTION_CHECK"))
         self.coordinator = interview_orchestrator.Coordinator(self, sys.modules[__name__])
         # Only a running server or an explicit test supplies a diagnostic sink.
         # Standalone clients must not write into the user's live workspace.
@@ -5451,6 +5512,8 @@ class OpenAIClient:
         """Public capabilities only; configuration is not a live health check."""
         microphone_notice = (
             "Live voice streams microphone audio to the AI service until you mute or stop. "
+            + ("Each finished answer's audio is also sent again, to correct fund terms and configured names in its caption. "
+               if self.live_caption_check else "")
             if self.voice_mode == "live" else
             "Reviewed voice records your answer, waits for a pause, then sends the recording to the AI service for transcription. "
         )
@@ -5481,7 +5544,10 @@ class OpenAIClient:
                      "voice": "marin", "provider": "openai",
                      "transport": "gpt-live-webrtc" if self.voice_mode == "live" else "reviewed-turns",
                      # Lets the page say before the click that voice will resume with condensed history.
-                     **({"history_limit": {"messages": LIVE_HISTORY_MESSAGES, "bytes": LIVE_HISTORY_BYTES}}
+                     **({"history_limit": {"messages": LIVE_HISTORY_MESSAGES, "bytes": LIVE_HISTORY_BYTES},
+                         # LIVE_CAPTION_CHECK: the page corrects fund terms and configured names in each
+                         # final participant caption from its own audio (web/app.js checkLiveCaption).
+                         "caption_check": self.live_caption_check}
                         if self.voice_mode == "live" else {})},
             "data_notice": (
                 "Submitted interview text and recorded answer audio are sent to the AI service. "
@@ -6731,9 +6797,17 @@ class OpenAIClient:
         except ValueError as error:
             raise APIError(own_wording(error, UNUSABLE_RESULT_MESSAGE)) from None
 
-    def transcribe(self, audio, media_type, hints=()):
-        """Transcribe one recording. hints are names and terms this interview has already used."""
-        keywords = list(dict.fromkeys([*self.transcription_keywords, *hints]))[:MAX_TRANSCRIPTION_KEYWORDS]
+    def transcribe(self, audio, media_type, hints=(), glossary=None):
+        """Transcribe one recording. hints are names and terms this interview has already used.
+
+        glossary: a live caption check's terms (caption_check_terms), which are then the only hints, and
+        which the result names, with their listed misheard forms (caption_check_misheard), so that the page
+        corrects only those terms. Without it, as dictation."""
+        if glossary is None:
+            keywords = list(dict.fromkeys([*self.transcription_keywords, *hints]))[:MAX_TRANSCRIPTION_KEYWORDS]
+        else:
+            glossary = list(dict.fromkeys(glossary))[:MAX_TRANSCRIPTION_KEYWORDS]
+            keywords = glossary
         types = {"audio/webm": "webm", "video/webm": "webm", "audio/mp4": "mp4", "audio/mpeg": "mp3",
                  "audio/wav": "wav", "audio/x-wav": "wav", "audio/ogg": "ogg"}
         base_type = media_type.split(";", 1)[0].strip().lower()
@@ -6759,6 +6833,7 @@ class OpenAIClient:
         )
         raw_trace.emit("voice.transcription.prepared", {"media_type": base_type, "byte_count": len(audio),
             "model": self.transcription_model, "language": self.transcription_language,
+            **({"stage": "live_caption_check"} if glossary is not None else {}),
             "content": {"keywords": keywords}, "omitted_fields": ["audio"]})
         result = self.request("audio/transcriptions", b"".join(parts), "multipart/form-data; boundary=" + boundary)
         text = result.get("text", "")
@@ -6779,7 +6854,7 @@ class OpenAIClient:
             report('rejected', 'text_limit')
             raise APIError("The transcription exceeds 6,000 characters. Dictate a shorter section or type your answer.", 400) from None
         report('accepted', 'none')
-        return {"text": recognized}
+        return {"text": recognized, **({"terms": glossary, "misheard": caption_check_misheard(glossary)} if glossary is not None else {})}
 
 
 def validated_browser_connect_sources(sources):
@@ -7579,6 +7654,7 @@ STATIC_FILES = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/workflow-walkthrough.css": ("workflow-walkthrough.css", "text/css; charset=utf-8"),
                  "/vendor/elk.bundled.js": ("vendor/elk.bundled.js", "text/javascript; charset=utf-8"),
                  "/live-voice.js": ("live-voice.js", "text/javascript; charset=utf-8"),
+                 "/live-voice-tap.js": ("live-voice-tap.js", "text/javascript; charset=utf-8"),
                  "/controlled-voice.js": ("controlled-voice.js", "text/javascript; charset=utf-8"),
                  "/concurrent-interview.js": ("concurrent-interview.js", "text/javascript; charset=utf-8"),
                  "/agent-team.js": ("agent-team.js", "text/javascript; charset=utf-8"),
@@ -8060,9 +8136,16 @@ class Handler(BaseHTTPRequestHandler):
             raw = self._read_body(size, self.server.body_timeout)
             if path != "/api/transcribe" and media_type.split(";", 1)[0].strip() != "application/json":
                 return self._json({"error": "This endpoint requires JSON."}, 415)
+            purpose = None
             if path == "/api/transcribe":
                 payload = raw
                 raw_trace.emit("http.audio_read", {"bytes":len(raw), "content_omitted":"recorded_audio"})
+                # A live caption check asks for its glossary (caption_check_terms); it is refused, before
+                # it takes a place, unless this server runs that check.
+                purpose = transcription_purpose(self.headers.get_all("X-Transcription-Purpose"))
+                if purpose and not (isinstance(self.server.client, OpenAIClient) and self.server.client.voice_mode == "live"
+                                    and self.server.client.live_caption_check):
+                    raise ValueError("Live captions are not checked in this app. Refresh the page.")
             else:
                 payload = self._received_json(raw)
             if path == "/api/conversation/discard":
@@ -8259,8 +8342,13 @@ class Handler(BaseHTTPRequestHandler):
                     result = self._timed_workflow(client.workflow, payload)
                 else:
                     hints = transcription_hints(self.headers.get("X-Transcription-Hints"))
-                    result = (client.transcribe(payload, media_type, hints) if hints and isinstance(client, OpenAIClient)
-                              else client.transcribe(payload, media_type))
+                    if purpose:
+                        # The glossary only: the page's hints come from the transcript (see caption_check_terms).
+                        result = client.transcribe(payload, media_type,
+                                                   glossary=caption_check_terms(client.transcription_keywords, hints))
+                    else:
+                        result = (client.transcribe(payload, media_type, hints) if hints and isinstance(client, OpenAIClient)
+                                  else client.transcribe(payload, media_type))
             finally:
                 self.server.api_slots.release()
             if document_snapshot is not None:

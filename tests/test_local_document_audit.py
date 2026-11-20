@@ -92,7 +92,7 @@ class DocumentAuditTests(unittest.TestCase):
         self.assertEqual([chunk['text'] for chunk in chunks.items],['A1=header'])
         self.assertEqual((inventory['sheets'][0]['read_to_row'],inventory['sheets'][0]['rows']),(1,2))
         self.assertEqual((coverage['indexed_units'],coverage['total_units']),(0,1))
-        self.assertEqual(coverage['read_limit'],'The first 1 cells were read, to row 1 of Hidden; 1 more were not.')
+        self.assertEqual(coverage['read_limit'],'Row 1 of Hidden was read; the rest of the workbook was not.')
         self.assertEqual(coverage['limitations'][0],coverage['read_limit'])
 
     def test_fictional_settlement_fixtures_include_pdf_forms_comments_hidden_sheets_and_legacy_csv(self):

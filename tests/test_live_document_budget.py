@@ -10,7 +10,7 @@ import threading
 import unittest
 import urllib.error
 import urllib.request
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from test_server import server, interview_payload
 
@@ -124,6 +124,21 @@ class LiveDocumentBudgetTests(unittest.TestCase):
         self.assertEqual(result['document_context'],
                          {'condensed': True, 'included_excerpts': len(ids), 'retrieved_excerpts': len(retrieved)})
         self.assertEqual(len(result['document_evidence']), len(retrieved), 'The browser still receives the full source catalog')
+
+    def test_a_file_read_up_to_a_row_limit_never_reaches_voice_as_complete_text(self):
+        # Rows past the limit were never indexed: all of the index is not all of the file.
+        with patch.object(server.documents, 'MAX_ROWS', 20):
+            supporting = self.supporting(procedure_csv(), query='How is the ESCALATIONSENTINEL handled?')
+        coverage = supporting['documents'][0]['context_coverage']
+        self.assertTrue(coverage['all_indexed_sections_supplied'])
+        self.assertEqual((coverage['complete_text'], coverage['selection']), (False, 'selected excerpts'))
+        # Just too large to be sent whole, so it becomes a digest, which has room for every excerpt.
+        whole = len(json.dumps({key: value for key, value in supporting.items() if key != 'notice'}, ensure_ascii=False))
+        digest, _ = server.live_document_context(supporting, whole - 1)
+        entry = digest['documents'][0]
+        self.assertEqual(len(entry['excerpts']), len(supporting['documents'][0]['excerpts']), 'Every excerpt fits the digest')
+        self.assertEqual((entry['context_coverage']['complete_text'], entry['context_coverage']['selection']),
+                         (False, 'live voice digest: selected excerpts only'))
 
     def test_a_file_inside_the_retrieval_cap_reaches_voice_by_relevance_not_from_its_head(self):
         question = 'How is the ESCALATIONSENTINEL handled?'

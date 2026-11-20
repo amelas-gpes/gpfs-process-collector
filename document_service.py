@@ -1675,7 +1675,10 @@ class DocumentService:
             analysis = record.get('analysis') or {}
             coverage = record.get('coverage') or {}
             summary = analysis.get('summary', '')
-            complete_text = len(grouped[identity]) == totals[identity] and not any(chunk.get('requires_vision') for chunk in grouped[identity])
+            # A file past a page, sheet, row or cell limit was indexed only up to it (coverage.read_limit):
+            # all of its index is not all of its text.
+            complete_text = (len(grouped[identity]) == totals[identity] and not coverage.get('read_limit')
+                             and not any(chunk.get('requires_vision') for chunk in grouped[identity]))
             # Four facts about a file that must not be read as one: how much of its own text is
             # indexed, how much of the index this request carries, how far the AI review has
             # come, and which graphics or scans nobody has read yet. Assets shows them apart

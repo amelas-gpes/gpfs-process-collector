@@ -228,7 +228,9 @@ class ReindexKeepsTranscriptionTests(StoreCase):
         with patch.object(documents, 'MAX_INDEX_BYTES', 200):
             result = self.store.extract(self.scope, document_id)
         self.assertEqual(result['status'], 'error')
-        self.assertIn('indexing limit', result['error'])
+        self.assertEqual(result['error'], documents.CARRIED_TOO_LARGE_MESSAGE)
+        # Not read as an earlier version's size refusal: Retry review would only give the same result.
+        self.assertEqual((self.store.get(self.scope, document_id)['error'], result['retryable']), (documents.CARRIED_TOO_LARGE_MESSAGE, False))
         source = self.store.source(self.scope, document_id, source_id)
         self.assertEqual((source['text'], source['origin']), (text, 'ai_visual_transcription'))
         self.assertEqual(self.store.get(self.scope, document_id)['visual_transcription_hashes'], before['visual_transcription_hashes'])

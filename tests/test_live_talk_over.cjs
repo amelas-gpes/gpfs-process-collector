@@ -84,6 +84,41 @@ async function check(name,fn){
   assert.deepEqual(s.turns(),["user: Step four, screen the supplier. Step five.","assistant: I heard two approvals. Who gives the second?"]);
   await s.stop();
  });
+ await check("a breath while the interviewer is still mid-sentence leaves the answer and the line whole",async()=>{
+  // The participant goes on over the line and breathes 700 ms; the interviewer's next word follows 100 ms later.
+  let s=await session();
+  s.play([["user","Step one, we log it. Step two, we match",1000,4000],["assistant","I can't",4200,4400],["user"," it",4400,4600],
+   ["assistant"," confirm that",4600,5200],["user"," to the purchase order.",5300,6000],["assistant"," without the contract.",5400,6200],
+   ["user"," Step three, we post it.",6200,7200],["assistant"," So who approves it?",6400,7600]]);
+  assert.deepEqual(s.turns(),["user: Step one, we log it. Step two, we match it to the purchase order. Step three, we post it.",
+   "assistant: I can't confirm that without the contract. So who approves it?"]);
+  await s.stop();
+  // Word by word, as in the recordings, with a 600 ms hesitation before "and".
+  s=await session();
+  s.play([["user","We check the invoice",1000,2400],["user"," against",2400,2600],["assistant","So",2600,2800],["user"," the order",2600,3000],
+   ["assistant"," who",2800,3000],["assistant"," signs",3000,3200],["assistant"," it",3200,3400],["assistant"," off",3400,3600],
+   ["user"," and",3600,3800],["assistant"," when",3800,4000],["user"," the delivery note.",4000,4600],["assistant"," it's late?",4000,4400]]);
+  assert.deepEqual(s.turns(),["user: We check the invoice against the order and the delivery note.","assistant: So who signs it off when it's late?"]);
+  assert.deepEqual(s.labels(),["Question 1","Answer 1","Question 2"]);
+  await s.stop();
+  // A breath across a full stop inside the line, and an "uh," finished before the question ends.
+  s=await session();
+  s.play([["user","Step two, match it",4000,4600],["assistant","I can't",4400,4600],["user"," to the purchase",4600,5800],
+   ["assistant"," confirm that without the contract.",4600,6400],["user"," order. Step three, record it.",6500,7600],["assistant"," So who approves it?",6600,8000]]);
+  assert.deepEqual(s.turns(),["user: Step two, match it to the purchase order. Step three, record it.","assistant: I can't confirm that without the contract. So who approves it?"]);
+  await s.stop();
+  s=await session();
+  s.play([["user","We check the invoice",1000,2400],["assistant","Who",2600,2800],["user"," uh,",2700,2900],["assistant"," signs it off?",3000,3800],
+   ["user"," against the order.",3700,4400]]);
+  assert.deepEqual(s.turns(),["user: We check the invoice uh, against the order.","assistant: Who signs it off?"]);
+  await s.stop();
+  // A known limit: once the question has ended, the rest of the sentence cannot be told from a reply, and goes below it.
+  s=await session();
+  s.play([["user","We check the invoice",1000,2400],["assistant","Who",2600,2800],["user"," uh,",2700,2900],["assistant"," signs it off?",3000,3400],
+   ["user"," against the order.",3700,4400]]);
+  assert.deepEqual(s.turns(),["user: We check the invoice uh,","assistant: Who signs it off?","user: against the order."]);
+  await s.stop();
+ });
  await check("ordinary exchanges keep their turns, and a filler still joins the question after it",async()=>{
   // Latencies as measured in the test recordings: the interviewer replies 600 to 800 ms after an answer.
   const s=await session();
@@ -122,6 +157,20 @@ async function check(name,fn){
    "assistant: And if she's away?","user: Her deputy.","assistant: Got it. What happens next?"]);
   assert.deepEqual(s.labels(),["Question 1","Answer 1","Question 2","Answer 2","Question 3","Answer 3","Question 4"]);
   await s.stop();
+  // The same, with the answer's last word ending 200 ms after the question: both ended a sentence together.
+  s=await session();
+  s.play([["user","We check the invoice",1000,2400],["assistant","Who signs",2600,3000],["user"," against the order.",2600,3600],
+   ["assistant"," it off?",3000,3400],["user","The manager.",4200,4800],["assistant","And if she's away?",5400,6400],["user","Her deputy.",7000,7600]]);
+  assert.deepEqual(s.turns(),["user: We check the invoice against the order.","assistant: Who signs it off?","user: The manager.",
+   "assistant: And if she's away?","user: Her deputy."]);
+  await s.stop();
+  // Cut off mid-sentence by the question, and replying 200 ms after it ends (800 ms after their own last word).
+  s=await session();
+  s.play([["user","We check the invoice",1000,2400],["assistant","Who signs",2600,3000],["user"," against",2600,2800],
+   ["assistant"," it off?",3000,3400],["user","The manager.",3600,4200],["assistant","And if she's away?",4800,5800],["user","Her deputy.",6400,7000]]);
+  assert.deepEqual(s.turns(),["user: We check the invoice against","assistant: Who signs it off?","user: The manager.",
+   "assistant: And if she's away?","user: Her deputy."]);
+  await s.stop();
  });
  await check("a correction spoken into a recap is an answer below what it corrects",async()=>{
   const s=await session();
@@ -132,7 +181,11 @@ async function check(name,fn){
   await s.stop();
  });
  await check("a request to stop spoken over the interviewer ends voice, also with a thank-you after it",async()=>{
-  const STOP={stop_intent_patterns:["^(?:i need to stop(?: now)?)$"],stop_sign_off_pattern:"^(?:okay|thanks|thank you|bye)$"};
+  // Patterns in the form the server sends (server.py STOP_INTENT_PATTERNS and the ones after it).
+  const NAMED="^(?:(?:sorry )?i need to stop(?: now)?)$";
+  const STOP={stop_intent_patterns:[NAMED,"^(?:stop|pause|we need to stop)$"],stop_named_intent_patterns:[NAMED],
+   stop_sign_off_pattern:"^(?:okay|thanks|thank you|bye|sorry)$"};
+  const evidence=page=>page.t.processEvidence({turns:page.state.turns}).turns.filter(turn=>turn.role==="user").map(turn=>turn.text);
   // "Thanks." once the line has ended: a turn of its own below the line, as before the talk-over.
   let stops=0;const counted=page=>{const live=page.t.conversationUI.live,stop=live.stop.bind(live);live.stop=()=>{stops++;return stop();};};
   let s=await session(STOP);counted(s.page);
@@ -140,6 +193,7 @@ async function check(name,fn){
    ["assistant"," approves it? Of course, we can pause here.",2800,5200],["user"," Thanks.",5600,6000]]);
   assert.deepEqual(s.turns(),["user: We pay on Friday. I need to stop now.","assistant: And who approves it? Of course, we can pause here.","user: Thanks."]);
   assert.equal(stops,1,"Voice ends");assert.equal(s.page.t.conversationUI.muted,true,"The microphone is closed");
+  assert.deepEqual(evidence(s.page),["We pay on Friday."],"Neither the request nor the thank-you after it is process evidence");
   await s.stop();
   // "Thanks." 300 ms after the request, while the line is still being spoken: the same caption as the request.
   stops=0;s=await session(STOP);counted(s.page);
@@ -149,8 +203,23 @@ async function check(name,fn){
   await new Promise(resolve=>setTimeout(resolve,1700));
   assert.deepEqual(s.turns(),["user: We pay on Friday. I need to stop now. Thanks.","assistant: And who approves it? Of course, we can pause here."]);
   assert.equal(stops,1,"Voice ends");assert.equal(s.page.t.conversationUI.muted,true,"The microphone is closed");
-  const answers=s.page.t.processEvidence({turns:s.page.state.turns}).turns.filter(turn=>turn.role==="user").map(turn=>turn.text);
-  assert.deepEqual(answers,["We pay on Friday."],"Only the answer before the request is process evidence");
+  assert.deepEqual(evidence(s.page),["We pay on Friday."],"Only the answer before the request is process evidence");
+  await s.stop();
+  // A hesitation inside the request while the line goes on, then "sorry" and "thanks" around it.
+  stops=0;s=await session(STOP);counted(s.page);
+  s.play([["user","We pay on Friday.",1000,2400],["assistant","And who",2600,2800],["user"," Sorry, I need to",2800,3400],["assistant"," approves",2800,3600],
+   ["assistant"," it? Of",3600,4000],["user"," stop now, thanks.",4000,4600],["assistant"," course, we can pause here.",4000,5600]]);
+  await new Promise(resolve=>setTimeout(resolve,1700));
+  assert.deepEqual(s.turns(),["user: We pay on Friday. Sorry, I need to stop now, thanks.","assistant: And who approves it? Of course, we can pause here."]);
+  assert.equal(stops,1,"Voice ends");assert.deepEqual(evidence(s.page),["We pay on Friday."]);
+  await s.stop();
+  // "We need to stop. Okay." can be the work itself: voice goes on, and the answer stays whole.
+  stops=0;s=await session(STOP);counted(s.page);
+  s.play([["user","A duplicate shows up in the batch.",1000,2400],["assistant","And who",2600,2800],["user"," We need to stop. Okay.",2800,4200],
+   ["assistant"," clears it?",2800,3600]]);
+  await new Promise(resolve=>setTimeout(resolve,1700));
+  assert.equal(stops,0,"Voice goes on");
+  assert.deepEqual(evidence(s.page),["A duplicate shows up in the batch. We need to stop. Okay."]);
   await s.stop();
  });
  await check("an answer that reaches the length limit while the interviewer talks over it leaves the line whole",async()=>{

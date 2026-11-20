@@ -40,7 +40,8 @@
   // heard yet. Once one speaker is going on over the other, a pause shorter
   // than TALK_OVER_MS does not end their turn (the interviewer paused 1.6 s
   // inside one talked-over line in the November 19 stress test), unless the
-  // participant let the interviewer's line end first: then they reply to it.
+  // participant let the interviewer's question, or its line, end first, or
+  // ended a sentence with it: then they reply to it (see goingOn).
   const ANSWER_MS = 1000, TALK_OVER_MS = 2000;
   // Match the trusted startup developer message configured by the server.
   const OPENING_GREETING = 'Greet the participant now in English. Say: "Hi, I\'m here to help you capture how your work gets done. What work would you like to walk through together?" Then pause and listen. Ask only this one question.';
@@ -79,7 +80,20 @@
   // Telling the reading of an application line (see say) from the
   // interviewer's own speech, by content. Both are compared as words, with
   // contractions written out, so "we'll" reads "we will".
-  const SENTENCE_END = /[.!?…]["'’”)\]]*\s*$/;
+  const SENTENCE_END = /[.!?…]["'’”)\]]*\s*$/, QUESTION_END = /\?["'’”)\]]*\s*$/;
+  // A participant going on over an interviewer line paused, and speaks again
+  // at `start` (see append). They still hold the floor when they took a
+  // breath: began again within ANSWER_MS while the line, as heard so far, was
+  // mid-sentence, or while their own sentence was unfinished, unless a
+  // question had been heard to its end in the pause (then they reply to it).
+  // Or when they spoke on past the end of the line, for ANSWER_MS or more, or
+  // without both having ended a sentence.
+  const goingOn = (answer, line, start) => {
+    const lineEnd = line.end_ms ?? line.start_ms, lineEnded = SENTENCE_END.test(line.text), answerEnded = SENTENCE_END.test(answer.text);
+    const asked = QUESTION_END.test(line.text) && start >= lineEnd;
+    return start - answer.end_ms < ANSWER_MS && (!lineEnded || !answerEnded && !asked) ||
+      answer.end_ms >= lineEnd && !(lineEnded && answerEnded && answer.end_ms - lineEnd < ANSWER_MS);
+  };
   const sentences = text => text.split(/(?<=[.!?…]["'’”)\]]*)(?=\s+\S)/u).filter(Boolean);
   const CONTRACTIONS = [[/n['’]t\b/g," not"],[/['’]ll\b/g," will"],[/['’]re\b/g," are"],[/['’]ve\b/g," have"],[/['’]m\b/g," am"],[/['’][sd]\b/g,""]];
   const lineWords = text => CONTRACTIONS.reduce((value,[short,full]) => value.replace(short,full),text.toLowerCase()).match(/[\p{L}\p{N}]+/gu) || [];
@@ -601,17 +615,20 @@
       // answer, not a reply to the line, when the participant paused for less
       // than TALK_OVER_MS and did not stop at all, or began again before the
       // line could be heard (ANSWER_MS), or is already going on over this line
-      // and was still speaking when the line, as heard so far, ended. Once the
-      // line has been heard to its end with the participant silent, what they
-      // say next is a reply below it ("Who signs it off?" "The manager."), even
-      // if they had talked over its first words.
+      // and either took a breath or went on speaking past its end (goingOn).
+      // Once the line has been heard to its end with the participant silent,
+      // or only finishing the sentence they were in, what they say next is a
+      // reply below it ("Who signs it off?" "The manager."), even if they had
+      // talked over its first words or were cut off mid-sentence. A participant
+      // who waits for a question to end and then finishes their own sentence
+      // cannot be told from one replying, and is placed below it. One who
+      // speaks on for ANSWER_MS or more past the line's end holds the floor.
       // Without a timeline this cannot be told, and the line ends the answer.
       // An application line always ends it (see below).
       const overLine = role === "user" && words && caption && reply && !reply.line && reply.userCaptionId === caption.id &&
         start !== null && caption.end_ms !== null && reply.start_ms !== null && since(reply.start_ms) &&
         start - caption.end_ms < TALK_OVER_MS &&
-        (caption.over === reply.id && caption.end_ms >= (reply.end_ms ?? reply.start_ms) ||
-          !paused(caption.end_ms,start) || start - reply.start_ms < ANSWER_MS);
+        (caption.over === reply.id && goingOn(caption,reply,start) || !paused(caption.end_ms,start) || start - reply.start_ms < ANSWER_MS);
       const afterReply = role === "user" && words && caption && reply && !listeningCue(reply.text) && hasWords(reply.text) &&
         reply.userCaptionId === caption.id && since(reply.start_ms) && !overLine;
       const afterLine = role === "user" && words && caption && op.said?.userCaptionId === caption.id && since(op.said.at);

@@ -252,6 +252,14 @@
   // Live front, managed back: GPT-Live speaks; the lead captures each spoken
   // answer in the background and the application still owns completion.
   let liveCapture=null,liveCaptureQueued=false,liveCaptureTimer=null,liveCapturedThrough=null,liveCompleteTimer=null;
+  // A long answer is noted while it is still being spoken (see captureMidAnswer)
+  // once the notes are this many characters behind the participant's words
+  // (about 100 words, some 40 seconds of ordinary speech: enough to change the
+  // notes), and at most once in this many milliseconds, so a fast speaker adds
+  // at most two captures a minute. liveNotesChars: how much participant speech
+  // the notes on screen read; liveMidAnswerAt: when the last such capture went.
+  const LIVE_MID_ANSWER_CHARS=600,LIVE_MID_ANSWER_INTERVAL=30000;
+  let liveNotesChars=0,liveMidAnswerAt=null;
   const LIVE_NOTES_RETRY_DELAYS=[3000,10000];
   let liveRetryTimer=null,liveRetryCount=0,liveMapEndRevision=null;
   // Captions in which GPT-Live read an application-authorized line, by caption
@@ -283,12 +291,25 @@
   // transcript, unchanged and in the same order, and newer answers (or one being
   // spoken) only follow them. Its notes are used for those answers; it decides
   // nothing about completion (see applyLiveCapture). A capture that read an
-  // answer which has since been corrected, extended or removed is not usable.
+  // answer which has since been corrected, extended or removed is not usable,
+  // except that an answer still being spoken when it was read (openAnswers, see
+  // liveSnapshot) may since have grown by the words that followed.
   function liveSourceUsable(captured){
     if(!captured||captured.generation!==state.generation||captured.liveSession!==liveSession||captured.live!==conversationUI.live||
       captured.document_revision!==activeDocumentSignature()||JSON.stringify(captured.context)!==JSON.stringify(state.context))return false;
-    const read=participantCoverageBasis(captured.turns),now=participantCoverageBasis();
-    return read.length<=now.length&&read.every(([id,answer],index)=>now[index][0]===id&&now[index][1]===answer);
+    return answersStand(participantCoverageBasis(captured.turns),participantCoverageBasis(),captured.openAnswers);
+  }
+  // Every answer read is still in the transcript, unchanged and in the same
+  // order; an answer named in `growing` may only have had words added at its end.
+  function answersStand(read,now,growing=[]){
+    return read.length<=now.length&&read.every(([id,answer],index)=>now[index][0]===id&&(now[index][1]===answer||growing.includes(id)&&now[index][1].startsWith(answer)));
+  }
+  // The participant's turns whose captions are still open: words are still being added to them.
+  function openParticipantTurns(){
+    return [...conversationUI.pendingParticipantCaptions].flatMap(key=>conversationUI.captions.get(key)||[]);
+  }
+  function participantChars(turns=state.turns){
+    return participantCoverageBasis(turns).reduce((sum,[,answer])=>sum+answer.length,0);
   }
   // The command stays in the transcript. A final request for process evidence reads only the account before it.
   let liveStopTurn=null,liveDelivery=null;
@@ -307,7 +328,8 @@
     if(liveStopTurn.prefix)turns.push({...turn,text:liveStopTurn.prefix});
     return {...captured,turns};
   }
-  function liveSnapshot(){return {...processEvidence(snapshot()),generation:state.generation,live:conversationUI.live,liveSession,revision:conversationUI.revision};}
+  // openAnswers: the answers that were still being spoken when this was read (none, unless a capture is taken mid-answer).
+  function liveSnapshot(){return {...processEvidence(snapshot()),generation:state.generation,live:conversationUI.live,liveSession,revision:conversationUI.revision,openAnswers:openParticipantTurns()};}
   function resetLiveFront(){
     voiceTopicPreview=null;voiceStreamTopics=null;
     if(conversationUI.liveMemory?.generation!==state.generation)conversationUI.liveMemory=null;
@@ -315,6 +337,7 @@
     liveCapture?.controller.abort();liveCapture=null;liveCaptureQueued=false;liveCapturedThrough=null;liveReadings.clear();liveFinalReply=null;liveSession++;liveWithheldMoments=0;liveWithheldRepeatSaid=false;
     clearTimeout(liveCaptureTimer);liveCaptureTimer=null;clearTimeout(liveCompleteTimer);liveCompleteTimer=null;state.liveSuggestedQuestion="";
     clearTimeout(liveRetryTimer);liveRetryTimer=null;liveRetryCount=0;liveMapEndRevision=null;
+    liveNotesChars=participantChars();liveMidAnswerAt=null;
     liveCatchUpDue=false;liveOpen=false;completionHeld=false;
   }
   // Voice can end (Stop talking, a dropped session, the transcript limit) while
@@ -1589,8 +1612,11 @@
     // After a pause the notes are as old as the last real capture: say through
     // which answer they go, never that they include every saved answer.
     const through=analysisCheckpoint?.kept?analysisCheckpoint.through:analysisCheckpoint?.count;
+    // Notes taken while the latest answer was being spoken read part of it; those of the whole answer follow.
+    const partOfLatest=!current&&analysisCheckpoint&&!analysisCheckpoint.kept&&analysisCheckpoint.count===count&&
+      analysisCheckpoint.documents===activeDocumentSignature()&&answersStand(JSON.parse(analysisCheckpoint.basis),basis,[basis.at(-1)[0]]);
     node.textContent=current?(analysisCheckpoint.kept?`${through?`Notes kept through answer ${through}`:'Notes kept as they were'} · paused at your request`:`Notes include all ${count} saved answers`):
-      !analysisCheckpoint||analysisCheckpoint.kept&&!through?`Updating notes for answer ${count}`:
+      !analysisCheckpoint||partOfLatest||analysisCheckpoint.kept&&!through?`Updating notes for answer ${count}`:
       analysisCheckpoint.count<count?(through?`Notes through answer ${through} of ${count}`:`Updating notes for answer ${count}`):
       'Notes are updating for the revised conversation or files';
     setLevel(node,current?(analysisCheckpoint.kept?"info":""):"busy");
@@ -3127,6 +3153,8 @@
       // No notes update is sent for caption fragments: a speech model fed a
       // stream of silent context mid-answer drifts into voicing the
       // participant's side. The next completed capture sends one short update.
+      // A long answer may be noted on screen meanwhile (captureMidAnswer); that
+      // capture sends nothing to the live interviewer.
       // After the completion line the capture of these words decides whether
       // the account changed; until then nothing is revoked (see completionHeld).
       liveDelivery?.abort();
@@ -3153,6 +3181,27 @@
       liveLimitStops.add(live);void live.stop();
       notice("This interview has reached its limit for new answers, so voice has stopped. Choose Wrap up to get the final check, then create a draft or save a copy.",false,"limit",true);
     }
+    if(caption.role==="user"&&!caption.final)captureMidAnswer();
+  }
+  // Notes wait for the participant to pause (runLiveCapture), so one who talks
+  // for minutes would see none of it noted until the end. Once enough of their
+  // words are missing from the notes, the transcript as it stands is captured
+  // while they keep talking. Its notes are applied as a lagging capture's are
+  // (applyLiveCapture): nothing is said or sent to the live interviewer for it,
+  // and the capture of the whole answer still follows when the answer ends and
+  // alone marks the answer as captured. The closing sequence judges whole
+  // replies (see completionHeld), so nothing is captured mid-answer there.
+  function captureMidAnswer(){
+    const live=conversationUI.live;
+    if(!liveFrontActive()||state.example||intakeActive()||liveCapture||liveRetryTimer!==null||!conversationUI.pendingParticipantCaptions.size)return;
+    if(voiceEnded||liveLimitStops.has(live)||liveFinalReply||liveStopTurn||completionHeld||completionStands()||pendingCompletionReview||pendingFinalCheck||state.closure.asked)return;
+    if(liveMidAnswerAt!==null&&Date.now()-liveMidAnswerAt<LIVE_MID_ANSWER_INTERVAL)return;
+    if(participantChars()-liveNotesChars<LIVE_MID_ANSWER_CHARS)return;
+    // Words that end like a request to stop ("I need to stop" before "the run")
+    // are left to the end of the answer, where a request to stop is decided.
+    const latest=state.turns.findLast(turn=>turn.role==="user"&&!turn.document_event);
+    if(latest&&voiceStopPrefix(latest.text)!==null)return;
+    void runLiveCapture(false,true);
   }
   function scheduleLiveCapture() {
     if(!liveFrontActive()||state.example||intakeActive()||liveRetryTimer!==null)return;
@@ -3176,18 +3225,21 @@
     }
     notice("The notes could not be updated from the last answer. Your transcript is still here. Notes will try again with your next answer. "+(error?.message||""),true,"notes");
   }
-  async function runLiveCapture(afterVoice=false) {
+  async function runLiveCapture(afterVoice=false,midAnswer=false) {
     // afterVoice: the catch-up capture for an answer that voice ended on (see
     // settleLiveNotes). It is the same notes capture, sent once voice is off.
+    // midAnswer: a capture of an answer still being spoken (captureMidAnswer).
     if((afterVoice?Boolean(conversationUI.live?.active):!liveFrontActive())||liveCapture||state.example||intakeActive())return;
-    if(!afterVoice&&liveAnswerPending()){liveCaptureQueued=true;scheduleLiveCapture();return;}
+    if(!afterVoice&&!midAnswer&&liveAnswerPending()){liveCaptureQueued=true;scheduleLiveCapture();return;}
     const captured=liveSnapshot(),latest=captured.turns.findLast(turn=>turn.role==="user"&&!turn.document_event);
     if(!latest||liveCapturedThrough===`${latest.id}:${latest.text}`)return;
     const through=`${latest.id}:${latest.text}`;
-    const generation=state.generation,controller=new AbortController(),check={controller,generation,captured};
-    liveCapture=check;liveCaptureQueued=false;
+    const generation=state.generation,controller=new AbortController(),check={controller,generation,captured,midAnswer};
+    // A capture taken mid-answer leaves the capture of the whole answer owed.
+    liveCapture=check;liveCaptureQueued=midAnswer;
+    if(midAnswer){liveMidAnswerAt=Date.now();rawTrace("live.notes_mid_answer",{through_turn:latest.id,unnoted_chars:participantChars(captured.turns)-liveNotesChars});}
     try{
-      const {live:_,liveSession:sessionId,generation:__,revision:___,...payload}=captured;
+      const {live:_,liveSession:sessionId,generation:__,revision:___,openAnswers:____,...payload}=captured;
       // concurrentBypass: with voice off this is still the live front's notes
       // capture, never a typed interviewer turn that asks a new question.
       // liveNotes: the lead's proposed question is never shown for this capture.
@@ -3195,11 +3247,13 @@
       if(liveCapture!==check||generation!==state.generation)return;
       liveRetryCount=0;
       if(liveFrontActive()){
-        if(!liveSourceMatches(captured)){
+        if(midAnswer||!liveSourceMatches(captured)){
           // The participant answered again, or is speaking, before this capture
           // returned. Its notes are shown for the answers it read; the capture
           // of the conversation as it now stands follows (see finally), and
-          // only that one can be marked as covering the latest answer.
+          // only that one can be marked as covering the latest answer. A
+          // capture taken mid-answer is always such a capture, even if the
+          // answer ended on the words it read.
           liveCaptureQueued=true;
           if(liveSourceUsable(captured))await applyLiveCapture(result,captured,false,true);
           return;
@@ -3216,7 +3270,9 @@
       if(error.name!=="AbortError"||check.expired){
         // Words said after the completion line were not judged: it is no longer shown as standing.
         accountChangedAfterCompletion();
-        if(liveFrontActive()&&!check.expired)reportLiveNotesFailure(error);
+        // A failed mid-answer capture is not reported or retried: the capture
+        // of the whole answer follows it, and reports its own failure.
+        if(liveFrontActive()&&!check.expired){if(!midAnswer)reportLiveNotesFailure(error);}
         // With voice off the failure is said once: not while the catch-up for
         // this end of voice is still to come.
         else if(!liveCatchUpDue&&conversationUI.status==="idle")notice("The notes could not be updated from your last answer. Your transcript is still here; choose Update notes in Notes to try again, or continue the interview. "+(check.expired?"That took too long.":error?.message||"")+unsavedReminder(),true,"notes");
@@ -3307,10 +3363,14 @@
     if(typeof result.capture_token==="string"&&result.capture_token&&result.capture_token.length<=4096&&!(notesOnly&&result.no_new_run===true)&&continues)state.captureToken=result.capture_token;
     state.coverageVerified=(kept||!notesOnly)&&result.coverage_verified===true;state.completion=notesOnly&&!kept?null:result.completion||null;
     if(memo){
-      Object.assign(state,memo);notesProgress=captureProgressMark(captured.turns);keepMapProgress(result,captured.turns);
+      Object.assign(state,memo);notesProgress=captureProgressMark(captured.turns);keepMapProgress(result,captured.turns);liveNotesChars=participantChars(captured.turns);
       if(voiceTopicPreview&&captured.turns.some(t=>t.id===voiceTopicPreview.id&&t.text===voiceTopicPreview.text))voiceTopicPreview=null;
-      rawTrace("live.notes_checkpoint",{through_turn:notesProgress.through,answer_count:notesProgress.count});
-      rememberLiveLeads("notes",result.question_candidates,captured.turns);
+      const midAnswer=lagging&&captured.openAnswers?.length>0;
+      rawTrace("live.notes_checkpoint",{through_turn:notesProgress.through,answer_count:notesProgress.count,...(midAnswer?{mid_answer:true}:{})});
+      // Leads from part of an answer are not kept: offered to the interviewer
+      // when the answer ends, they would take the place of those from the
+      // whole answer (sendLiveLead offers one lead per two answers).
+      if(!midAnswer)rememberLiveLeads("notes",result.question_candidates,captured.turns);
       traceNotes("live_capture");
       rememberCoverageCheckpoint(captured.turns,captured.revision,captured.document_revision,result.coverage_assessment,result.process_review,result.coverage_adjudication);
       rewritten=acceptRepairs(repairs,memo.memo_findings);

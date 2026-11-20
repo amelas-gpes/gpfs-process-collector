@@ -4,6 +4,7 @@ The page has each final participant caption transcribed again from the participa
 audio, as a 16 kHz 16-bit mono PCM WAV, through /api/transcribe with the dictation hints
 (web/app.js checkLiveCaption, web/live-voice.js captionAudio). Loopback sockets and a stubbed provider.
 """
+import importlib.util
 import io
 import json
 import os
@@ -122,8 +123,33 @@ class RecordingRoute(unittest.TestCase):
         self.assertEqual(keywords, ["GPFS", "Capital calls", "NAV", "GP Fund Solutions"])
 
     def test_the_longest_caption_checked_fits_the_recording_limit(self):
-        # 150 s of caption, 0.4 s before and 0.6 s after (web/live-voice.js TAP_MAX_MS and padding).
-        self.assertLess(44 + (150 + 1) * 16000 * 2, server.request_body_limit("/api/transcribe"))
+        # 150 s of caption, 1.5 s before and 0.6 s after (web/live-voice.js TAP_MAX_MS and padding).
+        self.assertLess(44 + (150 + 1.5 + 0.6) * 16000 * 2, server.request_body_limit("/api/transcribe"))
+
+
+class Trace(unittest.TestCase):
+    """The page traces each check's outcome with counts and no text (web/app.js traceCaptionCheck)."""
+
+    def test_the_metadata_trace_keeps_the_names_of_the_counts(self):
+        path = Path(__file__).resolve().parents[1] / "raw_trace.py"
+        spec = importlib.util.spec_from_file_location("caption_check_trace_under_test", path)
+        raw_trace = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(raw_trace)
+        payloads = [
+            {"caption_id": "live_1_user_3", "turn_id": "t012", "outcome": "sent", "audio_ms": 4100, "bytes": 131244},
+            {"caption_id": "live_1_user_3", "turn_id": "t012", "outcome": "replaced", "words_before": 12, "words_after": 14,
+             "chars_before": 60, "chars_after": 58},
+            {"caption_id": "live_1_user_3", "turn_id": "t012", "outcome": "kept", "reason": "edge_end", "words_before": 12, "words_after": 9},
+            {"count": 2},
+        ]
+        for payload in payloads:
+            recorded = raw_trace._Snapshot(False, ()).copy(payload)
+            self.assertFalse([key for key in recorded if key.startswith("_trace_field")], recorded)
+            # The turn identifies the check's caption (one turn each); the counts and the outcome are kept as sent.
+            self.assertEqual(recorded.get("turn_id"), "t012" if "turn_id" in payload else None)
+            for key, value in payload.items():
+                if key != "caption_id":
+                    self.assertEqual(recorded[key], value, key)
 
 
 if __name__ == "__main__":

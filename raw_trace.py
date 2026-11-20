@@ -100,7 +100,8 @@ _metadata_keys = _technical | set(
     chars captionid clienteventid itemid audioomitted busy lasting exceptiontype
     stepcount turncount map view uploading mutating discarded persisted recovered synthetic
     count omittedfields startoffset endoffset offset matched exitcode timeoutms bytecount
-    sourcemode lastsequence depth resource limit mode""".split()
+    sourcemode lastsequence depth resource limit mode
+    audioms wordsbefore wordsafter charsbefore charsafter""".split()
 )
 _context_keys = {
     "producer", "producer_id", "tab_id", "source_sequence", "observed_at", "interview_id",

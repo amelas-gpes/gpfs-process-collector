@@ -30,11 +30,11 @@ async function check(name,fn){
 const AHEAD=5000,BLOCK=100,RATE=48000;
 const level=end=>((end%50000)+100)/100000;
 const sample=end=>Math.round(level(end)*32767);
-async function transport({tap=true,worklet=true,script=false,failModule=false}={}){
+async function transport({tap=true,worklet=true,script=false,failModule=false,rate=RATE}={}){
  const h=voice.setup({metering:true}),AC=h.window.AudioContext;
  h.modules=[];h.nodes=[];h.gains=[];h.traces=[];
  h.window.CollectorRawTrace={record:(type,payload)=>h.traces.push({type,payload})};
- AC.prototype.sampleRate=RATE;AC.prototype.destination={destination:true};AC.prototype.currentTime=0;
+ AC.prototype.sampleRate=rate;AC.prototype.destination={destination:true};AC.prototype.currentTime=0;
  AC.prototype.createGain=function(){const gain={gain:{value:1},connected:[],connect(node){this.connected.push(node);},disconnect(){this.disconnected=true;}};h.gains.push(gain);return gain;};
  if(worklet)AC.prototype.audioWorklet={addModule:async url=>{h.modules.push(url);if(failModule)throw new Error("blocked");}};
  if(script)AC.prototype.createScriptProcessor=function(size,inputs,outputs){
@@ -78,7 +78,7 @@ function readWav(bytes){
 }
 
 // ---- Part 2: the page -----------------------------------------------------------------------
-const EXPOSE="receiveCheckedCaption,receiveLiveCaption,receiveLiveStatus,getCapturedThrough,askFinalCheck,startLiveConversation";
+const EXPOSE="receiveCheckedCaption,receiveLiveCaption,receiveLiveStatus,getCapturedThrough,askFinalCheck,startLiveConversation,generateDraft,finalCheck,resetLiveFront,liveNotesStatus";
 const HOOK="const getCapturedThrough=()=>liveCapturedThrough,askFinalCheck=line=>{pendingFinalCheck={line};};"+
  "window.__notices=[];const __notice=notice;notice=(message,...rest)=>{window.__notices.push(String(message));return __notice(message,...rest);};";
 const CONFIG=(caption_check=true)=>({agent_team:{enabled:true,voice_mode:"live_front",interview_memory:true,stop_intent_patterns:["^(?:i need to stop)$"]},
@@ -94,13 +94,13 @@ async function page({caption_check=true}={}){
  page.state.started=true;page.state.captureToken="token-before";
  page.state.turns=[{id:"t001",role:"assistant",text:"What starts a capital call?"},{id:"t002",role:"user",text:"The NAV is struck and the GP Fund Solutions team drafts the notice."},
   {id:"t003",role:"assistant",text:"Which checks run before it goes out?"}];
- const h={page,traces:[],audio:[],transcribe:[],captures:[],said:[],context:[]};
+ const h={page,traces:[],audio:[],since:[],transcribe:[],captures:[],interviews:[],maps:[],drafts:[],reviews:[],said:[],context:[]};
  page.window.CollectorRawTrace={record:(type,payload)=>h.traces.push({type,payload}),link(){},references(){},configure(){}};
  page.t.conversationUI.live={active:true,connected:true,participantSpeaking:false,assistantSpeaking:false,
   stop(){this.active=false;return Promise.resolve({finalized:true});},setMuted(){},closeInput(){},
   appendContext(text){h.context.push(text);return Promise.resolve({status:"acknowledged"});},
   say(text){h.said.push(text);return Promise.resolve({status:"acknowledged"});},
-  captionAudio(id){h.audio.push(id);return {wav:new ArrayBuffer(44+32000*2),duration_ms:2000};}};
+  captionAudio(id,since){h.audio.push(id);h.since.push(since);return {wav:new ArrayBuffer(44+32000*2),duration_ms:2000};}};
  page.t.receiveLiveStatus("connecting");
  // Each request stays on its way until the test answers it; a cancelled one fails as fetch does.
  const pending=(list,url,init,body)=>new Promise((resolve,reject)=>{
@@ -109,16 +109,23 @@ async function page({caption_check=true}={}){
  });
  page.route((url,init,body)=>{
   if(url==="/api/transcribe")return pending(h.transcribe,url,init,body);
-  if(url==="/api/agent-team/interview")return pending(h.captures,url,init,body);
+  // The notes captures of the live front; any other interview request (Wrap up) apart.
+  if(url==="/api/agent-team/interview")return pending(body?.live_notes&&body.action==="answer"?h.captures:h.interviews,url,init,body);
+  if(url==="/api/agent-team/workflow")return pending(h.maps,url,init,body);
+  if(url==="/api/draft")return pending(h.drafts,url,init,body);
+  if(url==="/api/agent-team/review"){h.reviews.push(body);return pending([],url,init,body);}
   return {};
  });
- h.say=(id,text,final=true)=>page.t.receiveCheckedCaption({id,role:"user",text,final,start_ms:1000,end_ms:5000,fragments:[]});
+ h.say=(id,text,final=true,fragments=[])=>page.t.receiveCheckedCaption({id,role:"user",text,final,start_ms:1000,end_ms:5000,fragments});
  h.interviewer=(id,text)=>page.t.receiveCheckedCaption({id,role:"assistant",text,final:true,start_ms:6000,end_ms:7000,fragments:[]});
  h.answer=async(entry,value)=>{entry.resolve(value);await page.flush();await page.flush();};
  h.refuse=async(entry,status,error)=>{entry.resolve({ok:false,status,json:async()=>({error}),headers:{get:()=>"2"}});await page.flush();await page.flush();};
  h.timer=pattern=>page.waiting(entry=>String(entry[1]?.fn??entry.fn).includes(pattern));
  h.runCapture=async()=>{const timer=page.waiting(entry=>String(entry.fn).includes("runLiveCapture"))[0];assert.ok(timer,"A notes capture is scheduled");await page.run(timer);};
- h.runHold=async()=>{const timer=page.waiting(entry=>String(entry.fn).includes("releaseCaptionHold"))[0];assert.ok(timer,"A caption check holds the notes");await page.run(timer);};
+ h.runHold=async()=>{const timer=page.waiting(entry=>String(entry.fn).includes("check.timer=null"))[0];assert.ok(timer,"A caption check holds the notes");await page.run(timer);};
+ // The map's start (scheduleWorkflow): fired without waiting for the map request it sends.
+ h.runMap=async()=>{const timer=page.waiting(entry=>String(entry.fn).includes("refreshWorkflow"))[0];if(!timer)return false;
+  page.timers.delete(timer[0]);page.advance(timer[1].ms);void timer[1].fn();await page.flush();return true;};
  h.turn=()=>page.state.turns.filter(turn=>turn.role==="user").at(-1);
  h.outcomes=()=>h.traces.filter(trace=>trace.type==="live.caption_check").map(trace=>trace.payload.outcome+(trace.payload.reason?":"+trace.payload.reason:""));
  h.lastAnswer=capture=>capture.body.turns.filter(turn=>turn.role==="user").at(-1).text;
@@ -151,14 +158,15 @@ async function page({caption_check=true}={}){
   assert.deepEqual([file.riff,file.wave,file.fmt,file.data],["RIFF","WAVE","fmt ","data"]);
   assert.deepEqual([file.fmtSize,file.format,file.channels,file.rate,file.byteRate,file.align,file.bits],[16,1,1,16000,32000,2,16],"16 kHz 16-bit mono PCM");
   assert.equal(file.dataSize,file.samples.length*2);assert.equal(file.size,36+file.dataSize);assert.equal(audio.wav.byteLength,44+file.dataSize);
-  // 2.0 to 4.0 s on the session timeline, 400 ms before and 600 ms after: 3 seconds.
-  assert.ok(Math.abs(file.samples.length-48000)<=8,`3 s of audio (${file.samples.length} samples)`);assert.equal(audio.duration_ms,3000);
-  assert.equal(file.samples[0],sample(1600),"It starts 400 ms before the caption");
+  // 2.0 to 4.0 s on the session timeline, 1.5 s before (the mapping can fall late by the time the
+  // transcriber takes to deliver its words) and 600 ms after: 4.1 seconds.
+  assert.ok(Math.abs(file.samples.length-65600)<=8,`4.1 s of audio (${file.samples.length} samples)`);assert.equal(audio.duration_ms,4100);
+  assert.equal(file.samples[0],sample(500),"It starts 1.5 s before the caption");
   assert.equal(file.samples[file.samples.length-20],sample(4600),"and ends 600 ms after it");
-  assert.equal(file.samples[24000],sample(3100),"the middle is the middle");
+  assert.equal(file.samples[32800],sample(2600),"the middle is the middle");
   const values=new Set(file.samples);
-  for(let end=1600;end<=4600;end+=BLOCK)assert.ok(values.has(sample(end)),"block ending at "+end+" is there");
-  assert.ok(!values.has(sample(1500))&&!values.has(sample(4700)),"Nothing from outside the window");
+  for(let end=500;end<=4600;end+=BLOCK)assert.ok(values.has(sample(end)),"block ending at "+end+" is there");
+  assert.ok(!values.has(sample(400))&&!values.has(sample(4700)),"Nothing from outside the window");
   // No timestamps, a caption longer than 150 s, a window ahead of what was heard: no audio.
   h.run(9000,[{at:8000,fire:()=>h.event({type:"session.output_transcript.delta",event_id:"a1",delta:"Which checks?",start_ms:7000,end_ms:7800})},
    {at:8500,fire:()=>h.event({type:"session.input_transcript.delta",event_id:"u2",delta:"No timestamps here."})}]);
@@ -192,7 +200,8 @@ async function page({caption_check=true}={}){
   const after=h.captions.at(-1);assert.equal(after.text,"Then the wire goes out.");
   const file=readWav(h.api.captionAudio(after.id).wav);
   assert.ok(file.samples.length>0);
-  assert.ok(file.samples.every(value=>value===0||value>=sample(7000)),"Only audio heard after unmuting");
+  // (The low-pass before 16 kHz rings by a few steps where the test's level jumps from block to block.)
+  assert.ok(file.samples.every(value=>value===0||value>=sample(7000)-8),"Only audio heard after unmuting");
   await h.api.stop({immediate:true});
  });
  await check("the buffer keeps the last four minutes only",async()=>{
@@ -222,7 +231,7 @@ async function page({caption_check=true}={}){
    assert.equal(h.tap()?.kind,"script",JSON.stringify(options));
    assert.equal(h.nodes[0].size,4096);assert.equal(h.nodes[0].stream,h.streams[0]);assert.equal(h.nodes[0].connected[0],h.gains[0]);
    h.run(6000,[{at:4100,fire:()=>h.user("We run the kite checks.",2000,4000)}]);
-   assert.ok(Math.abs(readWav(h.api.captionAudio(h.captions.at(-1).id).wav).samples.length-48000)<=8);
+   assert.ok(Math.abs(readWav(h.api.captionAudio(h.captions.at(-1).id).wav).samples.length-65600)<=8);
    await h.api.stop({immediate:true});
   }
   const h=await transport({worklet:false,script:false});
@@ -230,6 +239,89 @@ async function page({caption_check=true}={}){
   assert.equal(JSON.stringify(h.traces.find(trace=>trace.type==="live.caption_tap").payload),JSON.stringify({state:"unavailable"}));
   h.run(6000,[{at:4100,fire:()=>h.user("We run the kite checks.",2000,4000)}]);
   assert.equal(h.api.captionAudio(h.captions.at(-1).id),null);assert.equal(h.api.connected,true,"Voice itself is unaffected");
+  await h.api.stop({immediate:true});
+ });
+
+ await check("a caption's audio holds the whole answer when its words arrive late, and one timestamp that is too late moves no later window",async()=>{
+  // Over a long call the session timeline runs ahead of the page clock (1693 ms at 16.5 minutes, as
+  // test_live_speech_gate.cjs models it), and the transcriber delivers each word some time L after
+  // it was said, so a caption's timeline maps late by up to L. decode: the end of the block (page
+  // time) a sample was taken from; a block holds the 100 ms before its end.
+  const decode=value=>Math.round(value/32767*100000-100);
+  const covers=(h,caption,from,to)=>{
+   const file=readWav(h.api.captionAudio(caption.id).wav);
+   return {before:from%50000-decode(file.samples[0]),after:decode(file.samples.at(-1))-100-to%50000};
+  };
+  for(const late of [200,700,1000]){
+   const h=await transport(),S=h.api.operation.sessionStartedAt,P0=125050,ms=t=>t-S+1693+late;
+   h.run(P0+3000+late+1600,[
+    {at:P0+1500+late,fire:()=>h.user("We approve the kite checks",ms(P0),ms(P0+1500))},
+    {at:P0+3000+late,fire:()=>h.user(" before the wire goes out.",ms(P0+1500),ms(P0+3000))}]);
+   const {before,after}=covers(h,h.captions.filter(caption=>caption.role==="user").at(-1),P0,P0+3000);
+   assert.ok(before>=250,`Words delivered ${late} ms late: the audio begins ${before} ms before the first word`);
+   assert.ok(after>=250,`and ends ${after} ms after the last`);
+   await h.api.stop({immediate:true});
+  }
+  // A word whose end is two seconds too late (inside the drift the speech gate allows this late in a
+  // call) raises the gate's clock lead for good; the next answer's audio is still its own.
+  const h=await transport(),S=h.api.operation.sessionStartedAt,late=300,P0=375050,ms=t=>t-S+1693+late;
+  h.run(P0+20000+3000+late+1600,[
+   {at:P0+1000+late,fire:()=>h.user("Okay.",ms(P0),ms(P0+1000)+2000)},
+   {at:P0+20000+1500+late,fire:()=>h.user("Treasury releases the wire",ms(P0+20000),ms(P0+21500))},
+   {at:P0+20000+3000+late,fire:()=>h.user(" after two approvals.",ms(P0+21500),ms(P0+23000))}]);
+  const caption=h.captions.filter(item=>item.role==="user").at(-1);
+  assert.equal(caption.text,"Treasury releases the wire after two approvals.");
+  assert.ok(h.api.operation.inputClockLead>3000,"The speech gate kept the late timestamp");
+  const {before,after}=covers(h,caption,P0+20000,P0+23000);
+  assert.ok(before>=250&&after>=250,`The next answer's audio holds it whole (${before} ms before, ${after} ms after)`);
+  await h.api.stop({immediate:true});
+ });
+ await check("the tap filters before it takes 16 kHz: speech-band tones pass clean and 9 to 12 kHz do not fold into them",async()=>{
+  const sine=(rate,freq,n,offset)=>{const s=new Float32Array(n);for(let i=0;i<n;i++)s[i]=.5*Math.sin(2*Math.PI*freq*(i+offset)/rate);return s;};
+  // A least-squares fit of a tone of freq: its amplitude, and how far everything else lies below it.
+  const fit=(x,freq)=>{
+   let ss=0,cc=0,sc=0,sx=0,cx=0;
+   for(let i=0;i<x.length;i++){const s=Math.sin(2*Math.PI*freq*i/16000),c=Math.cos(2*Math.PI*freq*i/16000);ss+=s*s;cc+=c*c;sc+=s*c;sx+=s*x[i];cx+=c*x[i];}
+   const det=ss*cc-sc*sc,a=(sx*cc-cx*sc)/det,b=(cx*ss-sx*sc)/det;let rest=0,tone=0;
+   for(let i=0;i<x.length;i++){const y=a*Math.sin(2*Math.PI*freq*i/16000)+b*Math.cos(2*Math.PI*freq*i/16000);rest+=(x[i]-y)**2;tone+=y*y;}
+   return {gain:20*Math.log10(Math.hypot(a,b)/.5),sinad:10*Math.log10(tone/rest)};
+  };
+  for(const rate of [48000,44100]){
+   for(const freq of [1000,3000,6000,9000,10000,12000]){
+    const h=await transport({rate}),op=h.api.operation,block=Math.round(rate/10);
+    for(let index=0;index<20;index++){h.step(100);h.api.receiveTap(op,sine(rate,freq,block,index*block),(h.now()-1)/1000);}
+    const x=[];for(const chunk of op.tap.chunks)for(const value of chunk.samples)x.push(value/32767);
+    const steady=x.slice(1600,17600);
+    if(freq<8000){
+     const tone=fit(steady,freq);
+     assert.ok(Math.abs(tone.gain)<1&&tone.sinad>=40,`${freq} Hz at ${rate} Hz: ${tone.gain.toFixed(1)} dB, SINAD ${tone.sinad.toFixed(1)} dB`);
+    }else{
+     const folded=fit(steady,16000-freq);
+     assert.ok(folded.gain<=-40,`${freq} Hz at ${rate} Hz folds into ${16000-freq} Hz at ${folded.gain.toFixed(1)} dB`);
+    }
+    await h.api.stop({immediate:true});
+   }
+  }
+ });
+ await check("a script processor's buffers are stamped by the audio they hold, not by when a busy page runs them",async()=>{
+  const h=await transport({worklet:false,script:true}),node=h.nodes.at(-1),op=h.api.operation,length=4096*1000/RATE;
+  const fire=(heard,handled)=>{
+   if(handled>h.now())h.step(handled-h.now());
+   op.audioContext.currentTime=(handled+AHEAD)/1000;
+   node.onaudioprocess({inputBuffer:{getChannelData:()=>new Float32Array(4096).fill(level(Math.round(heard)))}});
+  };
+  // A 400 ms long task from 3.0 s: the buffers heard meanwhile are handled together when it ends.
+  const waiting=[];
+  for(let heard=length;heard<6000;heard+=length){
+   if(heard>3000&&heard<3400){waiting.push(heard);continue;}
+   for(const queued of waiting.splice(0))fire(queued,3400);
+   fire(heard,heard+1);
+  }
+  const around=op.tap.chunks.filter(chunk=>chunk.to>2900&&chunk.to<3700);
+  assert.ok(around.length>=8);
+  for(let index=1;index<around.length;index++)assert.ok(Math.abs(around[index].from-around[index-1].to)<1,"One buffer after another, no gap and no overlap");
+  h.user("We run the kite checks before the CPAC meets.",2000,4000);
+  assert.ok(h.api.captionAudio(h.captions.at(-1).id),"The caption across the long task gets its audio");
   await h.api.stop({immediate:true});
  });
 
@@ -279,13 +371,41 @@ async function page({caption_check=true}={}){
   await h.answer(h.transcribe[1],{text:CHECKED});
   assert.equal(h.turn().text,CHECKED);
   assert.deepEqual(h.outcomes(),["sent","discarded:caption_changed","sent","replaced"]);
-  // A replaced caption that grows shows its own words until it is checked again.
-  h.say("live_u1",CAPTION+" Then the LPAC signs.",false);
-  assert.equal(h.turn().text,CAPTION+" Then the LPAC signs.");
-  h.say("live_u1",CAPTION+" Then the LPAC signs.");
-  assert.equal(h.transcribe.length,3);
-  await h.answer(h.transcribe[2],{text:CHECKED+" Then the LPAC signs."});
-  assert.equal(h.turn().text,CHECKED+" Then the LPAC signs.");
+ });
+ await check("a caption that goes on after a quiet checkpoint keeps its checked words; only the words added are checked, from their own audio",async()=>{
+  // One answer with three pauses: the transport marks the caption final at each, and it goes on.
+  const parts=["After the kite review the CPAC meets."," Then the kite file goes to the CPAC chair.",
+   " The each wire is released after the DI is signed off."," And the K one goes out with the kite pack."];
+  const fix=value=>value.replace(/kite/g,"KYC").replace(/CPAC/g,"LPAC").replace(/each/g,"ACH").replace(/\bDI\b/g,"IRR").replace(/K one/g,"K-1");
+  const h=await page(),fragments=[];let text="";
+  for(const [index,part] of parts.entries()){
+   text+=part;fragments.push({delta:part,start_ms:1000+index*10000,end_ms:5000+index*10000});
+   if(index){
+    h.say("live_u1",text,false,fragments.slice());
+    assert.equal(h.turn().text,fix(parts.slice(0,index).join(""))+part,"While it grows the checked words keep their checked wording");
+   }
+   h.say("live_u1",text,true,fragments.slice());
+   assert.equal(h.transcribe.length,index+1);
+   assert.equal(h.since.at(-1),index?1000+index*10000:undefined,"Only the audio of the words added since is sent");
+   // The transcription of that audio, with a word of the part before it from the padding.
+   await h.answer(h.transcribe.at(-1),{text:(index?"meets. ":"")+fix(part.trim())});
+   assert.equal(h.turn().text,fix(text));
+  }
+  // The last part's check is refused under load: the corrections before it stay.
+  const last=" That is how it ends for the kite case.";
+  text+=last;fragments.push({delta:last,start_ms:41000,end_ms:44000});
+  h.say("live_u1",text,false,fragments.slice());h.say("live_u1",text,true,fragments.slice());
+  await h.refuse(h.transcribe.at(-1),429,"Several requests are already processing.");
+  assert.equal(h.turn().text,fix(parts.join(""))+last);
+  assert.equal(h.transcribe.length,5,"One request for each part, none repeated");
+  h.say("live_u1",text,true,fragments.slice());assert.equal(h.transcribe.length,5,"The refused part is not sent again by itself");
+  // Should the answer go on, the refused part is read again with the words that follow it.
+  const more=" The kite pack is filed.";
+  text+=more;fragments.push({delta:more,start_ms:46000,end_ms:48000});
+  h.say("live_u1",text,false,fragments.slice());h.say("live_u1",text,true,fragments.slice());
+  assert.equal(h.transcribe.length,6);assert.equal(h.since.at(-1),41000);
+  await h.answer(h.transcribe.at(-1),{text:fix((last+more).trim())});
+  assert.equal(h.turn().text,fix(text));
  });
  await check("a refused or failed check keeps the caption, is not repeated or announced, and frees the notes at once",async()=>{
   for(const [status,error] of [[429,"Several requests are already processing. Wait for them to finish."],[503,"The AI service is unavailable."]]){
@@ -308,11 +428,12 @@ async function page({caption_check=true}={}){
    "Thanks for watching.":"word_count",
    "Kite.":"word_count",
    "Please subscribe to the channel for more videos about payments and wires and things.":"different_words",
-   "We run the KYC checks before the LPAC meets and the ACH wire goes out. I need to stop":"stop_phrase",
    [CAPTION]:"same",
+   // Punctuation, capitals, fillers and "OK" for "okay" are not corrections.
+   [CAPTION.toLowerCase().replace(/[.,]/g,"")]:"same",["Um, "+CAPTION.replace("the kite","uh, the kite")]:"same",
    // The caption word for word with words from the padding around it corrects nothing, and a
    // replacement is never an append: a capture that read the caption always reads a changed answer.
-   [CAPTION+" Okay."]:"no_correction",["Mm. "+CAPTION]:"no_correction"};
+   [CAPTION+" Okay."]:"no_correction",["Right. "+CAPTION]:"no_correction",[CAPTION.slice(0,-1)+", thank you."]:"no_correction"};
   for(const [result,reason] of Object.entries(cases)){
    const h=await page();
    h.say("live_u1",CAPTION);
@@ -320,11 +441,50 @@ async function page({caption_check=true}={}){
    assert.equal(h.turn().text,CAPTION,JSON.stringify(result)+" is not used");
    assert.deepEqual(h.outcomes(),["sent","kept:"+reason]);
   }
-  // A shorter or longer reading of the same words is used, within the bounds.
-  const h=await page();
-  h.say("live_u1","Then the K one goes out.");
-  await h.answer(h.transcribe[0],{text:"Then the K-1 goes out."});
-  assert.equal(h.turn().text,"Then the K-1 goes out.");
+  // A window that fell early or late cuts words at an edge: such a reading is never used, even when
+  // it corrects the words it kept, nor one that lost a word near an edge or several inside.
+  const cut=[
+   ["We approve the wire after the review.","approve the wire after the review.","edge_start"],
+   ["Fund accounting runs the kite checks before the each wire goes out.","accounting runs the KYC checks before the ACH wire goes out.","edge_start"],
+   ["No we never send it before the LPAC signs it off.","never send it before the LPAC signs it off.","edge_start"],
+   ["Treasury releases the wire after two approvals.","releases the wire after two approvals. Thanks, and who","edge_start"],
+   ["Treasury releases the wire after two approvals.","Treasury releases the wire after","edge_end"],
+   ["Treasury releases the wire after two approvals.","What changed? Treasury releases the wire after","edge_end"],
+   ["Treasury releases the wire after two approvals.","Treasury releases the wire after two thanks","edge_end"],
+   ["We run the kite checks and then the wire goes out to the bank on Friday.","We run the KYC checks and then the wire","edge_end"],
+   // A term read differently at an edge stands only where the reading ends with it.
+   ["We send it to the CPAC.","We send it to the LPAC. Thanks.","edge_end"],
+   ["Kite checks run first.","Okay. KYC checks run first.","edge_start"],
+   ["The approvals go to the kite team and then on to treasury for release and booking.","The approvals go to the KYC team for release and booking.","word_count"],
+   ["We approve it and the kite team signs.","We approve it and team signs.","word_count"],
+   // A request to stop is decided on the caption, never on a transcription.
+   ["We run the kite checks and. I need to top","We run the KYC checks and. I need to stop","edge_end"],
+   ["We run the kite checks and I need to stop","We run the KYC checks and. I need to stop.","stop_phrase"]];
+  for(const [caption,result,reason] of cut){
+   const h=await page();
+   h.say("live_u1",caption);
+   await h.answer(h.transcribe[0],{text:result});
+   assert.equal(h.turn().text,caption,JSON.stringify(result)+" is not used");
+   assert.deepEqual(h.outcomes(),["sent","kept:"+reason],JSON.stringify(result));
+  }
+  // Readings of the same words that correct them are used; words from the padding before or after
+  // the caption's own are left out, and the wording starts and ends as a sentence.
+  const used=[
+   ["Then the K one goes out.","Then the K-1 goes out.","Then the K-1 goes out."],
+   ["Yes, kite.","Yes, KYC.","Yes, KYC."],
+   ["We send the K one and the DI report.","We send the K-1 and the IRR report.","We send the K-1 and the IRR report."],
+   ["We do the kite check, then each transfer goes to custodian bank.","We do the KYC check, then ACH transfer goes to the custodian bank.","We do the KYC check, then ACH transfer goes to the custodian bank."],
+   ["We wire it after the CPAC signs.","We wire it after the LPAC signs. Okay, and who signs","We wire it after the LPAC signs."],
+   ["We wire it after the CPAC signs.","got it, we wire it after the LPAC signs, okay and","We wire it after the LPAC signs."],
+   ["We run, um, the kite checks first.","We run the KYC checks first.","We run the KYC checks first."],
+   ["The approvals go to the kite team and then on to treasury for release and booking.","The approvals go to the KYC team and on to treasury for release and booking.","The approvals go to the KYC team and on to treasury for release and booking."]];
+  for(const [caption,result,turn] of used){
+   const h=await page();
+   h.say("live_u1",caption);
+   await h.answer(h.transcribe[0],{text:result});
+   assert.equal(h.turn().text,turn,JSON.stringify(result));
+   assert.deepEqual(h.outcomes(),["sent","replaced"]);
+  }
  });
  await check("a check that takes too long holds the notes six seconds; its later result is a correction applied once",async()=>{
   const h=await page();
@@ -407,6 +567,134 @@ async function page({caption_check=true}={}){
    assert.equal(made[0].captionAudio,enabled?true:undefined,enabled?"With the check, the tap is asked for":"Without it, no tap");
    assert.equal(made[0].onTranscript.name,enabled?"receiveCheckedCaption":"receiveLiveCaption","Without it, captions go straight to the transcript as before");
   }
+ });
+ await check("the map waits for a caption check as the notes do: one map, of the checked wording, during voice and after it",async()=>{
+  const MAP={workflow:{title:"Capital calls",steps:[],connections:[],open_questions:[]}};
+  const h=await page();
+  h.say("live_u1",CAPTION);
+  // The map would start a second after the final caption, while the check is on its way.
+  assert.equal(await h.runMap(),true);assert.equal(h.maps.length,0,"The map waits for the check");
+  await h.answer(h.transcribe[0],{text:CHECKED});
+  assert.equal(await h.runMap(),true);
+  assert.equal(h.maps.length,1,"Then one map");assert.equal(h.lastAnswer(h.maps[0]),CHECKED,"of the checked wording");
+  await h.answer(h.maps[0],MAP);
+  assert.equal(h.page.t.conversationUI.applied,h.page.t.conversationUI.revision,"and it is current");
+  assert.equal(await h.runMap(),false,"No second map");
+  // Voice stopped on an answer, the check returning before or after the map's start: the map owed
+  // for the last spoken answer is drawn from the checked wording and ends up current.
+  for(const early of [false,true]){
+   const p=await page();
+   p.page.t.conversationUI.live.active=false;p.page.t.receiveLiveStatus("closing");
+   p.say("live_u1",CAPTION);
+   p.page.t.receiveLiveStatus("idle");await p.page.flush();
+   if(!early){assert.equal(await p.runMap(),true);assert.equal(p.maps.length,0);}
+   await p.answer(p.transcribe[0],{text:CHECKED});
+   for(const capture of p.captures)await p.answer(capture,notes("Notes after voice"));
+   assert.equal(await p.runMap(),true,"The map is started");
+   assert.equal(p.maps.length,1);assert.equal(p.lastAnswer(p.maps[0]),CHECKED);
+   await p.answer(p.maps[0],MAP);
+   assert.equal(p.page.t.conversationUI.applied,p.page.t.conversationUI.revision,"The map is current");
+   assert.equal(p.page.text("workflow-status"),"Up to date");
+   assert.equal(await p.runMap(),false);
+  }
+ });
+ await check("spelling hints never come from a live caption that no check has confirmed",async()=>{
+  const h=await page();
+  const hints=entry=>decodeURIComponent(entry.init.headers["X-Transcription-Hints"]||"").split(",");
+  h.say("live_u1","After the kite review the CPAC meets and approves the DI number.");
+  h.interviewer("live_a1","And then?");
+  h.say("live_u2","Then the CPAC signs and the kite file is closed.");
+  assert.equal(h.transcribe.length,2);
+  for(const entry of h.transcribe)assert.ok(!hints(entry).includes("CPAC")&&!hints(entry).includes("DI"),"No mishearing is a hint: "+hints(entry));
+  // Once a check confirms a caption's wording, its terms are hints like a typed answer's.
+  await h.answer(h.transcribe[0],{text:"After the KYC review the LPAC meets and approves the IRR number."});
+  await h.answer(h.transcribe[1],{text:"Then the LPAC signs and the kite file is closed.",status:"ok"});
+  h.interviewer("live_a2","Who files it?");
+  h.say("live_u3","The ops team files it with the bank.");
+  const third=hints(h.transcribe[2]);
+  assert.ok(third.includes("LPAC")&&third.includes("KYC")&&third.includes("IRR")&&third.includes("NAV"),"Confirmed and typed terms: "+third);
+  assert.ok(!third.includes("CPAC")&&!third.includes("DI"));
+  // A caption whose check was refused lends none.
+  const r=await page();
+  r.say("live_u1","After the kite review the CPAC meets.");
+  await r.refuse(r.transcribe[0],429,"Several requests are already processing.");
+  r.interviewer("live_a1","And then?");r.say("live_u2","The ops team files it with the bank.");
+  assert.ok(!hints(r.transcribe[1]).includes("CPAC"));
+ });
+ await check("after voice a result that comes too late is not used: the catch-up, a draft and Wrap up read the transcript as it stands",async()=>{
+  const stopped=async()=>{
+   const h=await page();
+   h.page.t.conversationUI.live.active=false;h.page.t.receiveLiveStatus("closing");
+   h.say("live_u1",CAPTION);
+   h.page.t.receiveLiveStatus("idle");await h.page.flush();
+   // The check outlasts its hold: it is given up, and the catch-up reads the caption.
+   await h.runHold();
+   assert.equal(h.transcribe[0].aborted,true,"The check is given up");
+   assert.equal(h.captures.length,1);assert.equal(h.lastAnswer(h.captures[0]),CAPTION);
+   await h.answer(h.captures[0],notes("Notes after voice"));
+   assert.equal(h.page.state.busy,false);
+   return h;
+  };
+  const d=await stopped();
+  const drafting=d.page.t.generateDraft();await d.page.flush();
+  assert.equal(d.drafts.length,1);
+  await d.answer(d.drafts[0],{draft:{title:"Capital calls",steps:[]},coverage_assessment:null});await drafting;
+  assert.equal(d.turn().text,CAPTION);assert.equal(d.captures.length,1,"No second catch-up");
+  assert.ok(!d.page.window.__notices.some(message=>/changed while the draft/.test(message)),"The draft is kept: "+d.page.window.__notices);
+  assert.ok(d.outcomes().includes("discarded:late"));
+  // Wrap up: the close request and the completion review read the same answer.
+  const w=await stopped();
+  w.page.state.completion={ready_for_final_check:true};w.page.state.config.concurrent_interview.enabled=false;
+  // (Wrap up then waits for the completion review, which this test leaves on its way.)
+  void w.page.t.finalCheck();await w.page.flush();
+  assert.equal(w.interviews.length,1);assert.equal(w.interviews[0].body.action,"close");
+  await w.answer(w.interviews[0],{question:"Let me check that I have everything before we finish.",speech_authorization:{kind:"review_pending",approved:true,text:"Let me check that I have everything before we finish."},
+   review_ticket:"ticket-1",agent_run_id:"run1",summary:"s",coverage:[],parking_lot:[],capture_token:"tok-close"});
+  await w.page.flush();
+  assert.equal(w.reviews.length,1,"The completion review is sent");
+  assert.equal(w.reviews[0].turns.filter(turn=>turn.role==="user").at(-1).text,w.interviews[0].body.turns.filter(turn=>turn.role==="user").at(-1).text);
+  assert.equal(w.turn().text,CAPTION);
+  // A check still within its hold when a draft or Wrap up begins is given up then.
+  for(const start of ["generateDraft","finalCheck"]){
+   const h=await page();
+   h.say("live_u1",CAPTION);
+   h.page.t.conversationUI.live.active=false;
+   void h.page.t[start]();await h.page.flush();
+   assert.equal(h.transcribe[0].aborted,true,start+" gives the check up");
+   await h.answer(h.transcribe[0],{text:CHECKED});
+   assert.equal(h.turn().text,CAPTION);
+   assert.deepEqual(h.outcomes(),["sent","discarded:closing"]);
+  }
+ });
+ await check("the closing sequence gives every check up at once: none is waited for or sent",async()=>{
+  // A request to stop: the catch-up does not wait for the check on its way.
+  const h=await page();
+  h.say("live_u1",CAPTION);h.interviewer("live_a1","And who approves it?");
+  h.say("live_u2","That is all for today. I need to stop");
+  assert.equal(h.transcribe[0].aborted,true,"The check on its way is given up");
+  h.page.t.receiveLiveStatus("closing");h.page.t.receiveLiveStatus("idle");await h.page.flush();
+  assert.equal(h.captures.length,1,"The catch-up runs at once");
+  assert.equal(h.timer("check.timer=null").length,0,"Nothing waits for the check");
+  assert.deepEqual(h.outcomes(),["sent","skipped:closing","discarded:closing"]);
+  // The final check is read out while two checks are on their way and one waits.
+  const q=await page();
+  q.say("live_u1","We run the kite checks before it goes.");q.interviewer("live_a1","And then?");
+  q.say("live_u2","The CPAC meets on Tuesday morning.");q.interviewer("live_a2","Who attends?");
+  q.say("live_u3","The each team and the GP attend.");
+  assert.equal(q.transcribe.length,2);
+  q.page.t.askFinalCheck("Have I missed anything?");q.page.state.closure={asked:true,confirmed:false};
+  q.interviewer("live_a3","Have I missed anything?");
+  assert.deepEqual(q.transcribe.map(entry=>entry.aborted),[true,true],"Both requests are cancelled");
+  await q.page.flush();
+  assert.equal(q.transcribe.length,2,"The waiting check is never sent");
+  assert.deepEqual(q.outcomes(),["sent","sent","discarded:closing","discarded:closing","discarded:closing"]);
+ });
+ await check("a new live session gives up the checks of the last one, and the trace says so",async()=>{
+  const h=await page();
+  h.say("live_u1",CAPTION);
+  h.page.t.resetLiveFront();await h.page.flush();
+  assert.equal(h.transcribe[0].aborted,true);
+  assert.deepEqual(h.outcomes(),["sent","discarded:session_changed"]);
  });
  console.log(JSON.stringify({checks_passed:passed,checks_failed:failed.length,provider_calls:0,network_calls:0}));
  if(failed.length)process.exitCode=1;

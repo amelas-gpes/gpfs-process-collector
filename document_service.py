@@ -1719,7 +1719,11 @@ class DocumentService:
                                                 # counted beside it and do not make that text partial.
                                                 'all_indexed_sections_supplied': len(grouped[identity]) == totals[identity],
                                                 'text_sections_supplied': len(grouped[identity]) - placeholders,
-                                                'unread_visual_placeholders_supplied': placeholders},
+                                                'unread_visual_placeholders_supplied': placeholders,
+                                                # What a file read only up to a limit leaves out. A request
+                                                # that supplies all of its index (file_parts) still must
+                                                # not call that text complete.
+                                                **({'read_limit': coverage['read_limit']} if coverage.get('read_limit') else {})},
                            'questions': [{**item, 'text': item['text'][:600]} for item in analysis.get('questions', [])
                                          if all(source['source_id'] in included for source in item.get('sources', []))][:2],
                            'observations': [{**item, 'text': item['text'][:1500]} for item in analysis.get('observations', [])

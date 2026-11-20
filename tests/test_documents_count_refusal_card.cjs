@@ -83,5 +83,28 @@ if(option>0){
   assert.equal(seen.cost_note,null,"No paid re-index note");
   assert.doesNotMatch(seen.text,/Indexed by an earlier version|Re-index/);
  });
+ check("a card names no button it does not show",()=>{
+  // An earlier index kept beside a re-index that failed and cannot be retried.
+  const kept={...REFUSED,name:"scan.pdf",chunk_count:3,extraction_needs_reindex:true,retryable:false,
+   error:"Together with its saved AI visual readings, this file has more text than the app can store for one file, so it was not read again.",
+   analysis:{phase:"reindex_required",review_complete:false}};
+  let seen=render(kept);
+  assert.equal(seen.detail,"Indexed by an earlier version; not counted.");
+  assert.deepEqual(seen.warnings,[kept.error]);
+  assert.ok(!seen.buttons.includes("Re-index and review")&&!seen.buttons.includes("Retry review"),seen.buttons.join(" | "));
+  assert.equal(seen.cost_note,null,"No paid re-read note without the button");
+  assert.doesNotMatch(seen.text,/Re-index/);
+  // The same file while it can still be re-indexed: the instruction, the button it names and the cost beside it.
+  seen=render({...kept,retryable:true});
+  assert.ok(seen.buttons.includes("Re-index and review"),seen.buttons.join(" | "));
+  assert.ok(seen.warnings.some(text=>text.includes("Choose Re-index and review")),seen.warnings.join(" | "));
+  assert.match(seen.cost_note,/Before you choose Re-index and review/);
+ });
+ check("the upload limits are stated plainly and in the cells a workbook counts",()=>{
+  const h=setup(async()=>({}));h.api.scope="local-scope";h.api.setDocuments([],false);
+  const text=h.text();h.api.dispose();
+  assert.match(text,/about 2 million spreadsheet cells \(formatted empty cells count\)/);
+  assert.doesNotMatch(text,/populated cells|MiB of indexed text|sections/);
+ });
  console.log(JSON.stringify({tests_passed:passed,provider_calls:0,network_calls:0,real_browser:false}));
 }

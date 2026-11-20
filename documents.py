@@ -609,15 +609,18 @@ class DocumentStore:
         # authorize full coverage. check_extraction compares the saved index
         # with what the current parser reads, on this computer and at no cost;
         # only when they differ does Revisit have to re-index the original.
-        refused = (record.get('status') == 'error' and not record.get('chunk_count')
-                   and (record.get('error') in COUNT_LIMIT_REFUSALS or record.get('error') == COUNT_LIMIT_RETRY))
-        if refused:
+        # A file that could not be read and has nothing indexed has no earlier index to re-index or
+        # confirm, whichever version failed to read it: the re-index projection below would say it
+        # was indexed and name a button the card does not show. That holds after a retry by this
+        # version fails too, since a failed read leaves extraction_version as it was.
+        unindexed = record.get('status') == 'error' and not record.get('chunk_count')
+        if unindexed and (record.get('error') in COUNT_LIMIT_REFUSALS or record.get('error') == COUNT_LIMIT_RETRY):
             # Refused whole by an earlier version for passing a count limit. Its original is kept,
             # and this version reads it up to the limit, so it is offered Retry review again.
-            # Nothing of it was indexed, so there is no earlier index to re-index or confirm: the
-            # re-index projection below would name a button the card does not show. A copy of
-            # that projection which a later action saved with the record is taken back out.
-            record.update(error=COUNT_LIMIT_RETRY, retryable=True, extraction_needs_reindex=False)
+            record.update(error=COUNT_LIMIT_RETRY, retryable=True)
+        if unindexed:
+            # A copy of the re-index projection which a later action saved with the record is taken back out.
+            record['extraction_needs_reindex'] = False
             coverage = record.get('coverage') or {}
             record['coverage'] = {**coverage, 'limitations': [entry for entry in coverage.get('limitations', [])
                                                               if entry not in REINDEX_NOTICES]}
@@ -631,7 +634,7 @@ class DocumentStore:
         if type(version) is int and version > EXTRACTION_VERSION:
             record['indexed_by_newer_build'] = True
         checked = record.pop('reindex_check', None)
-        if not refused and record.get('status') in ('ready', 'partial', 'error') and not DocumentStore.extraction_current(record):
+        if not unindexed and record.get('status') in ('ready', 'partial', 'error') and not DocumentStore.extraction_current(record):
             record['extraction_needs_reindex'] = True
             if record['status'] != 'error':
                 record['status'] = 'partial'
@@ -1773,20 +1776,33 @@ class _SheetLimit:
         return (_span('Row', read) + (f' of {total:,}' if self.counted and total > read else '')
                 + f' {"was" if read == 1 else "were"} read; the rest {self.rest(total > MAX_ROWS)}.')
 
-    def sheets_note(self, sheet_count):
-        """A workbook's sentence: the sheets read whole, then the rows read of the sheet where reading stopped."""
+    def sheets_note(self, sheet_count, charts=0):
+        """A workbook's sentence: the sheets read whole, then the rows read of the sheet where reading stopped.
+
+        charts: the chart-only tabs before that sheet. They hold no cells to read (a limitation of their
+        own says so), so they are not counted as read: the sheets before the stop are named only when one
+        of them held cells, and the chart-only tabs among them are named apart.
+        """
         number, name, rows = self.cut
         rest = self.rest(sheet_count > MAX_SHEETS)
-        comments = f', apart from some comments in {name}' if self.comments else ''
+        # The tabs named as read whole: those before the stop, and the sheet where it came as well when
+        # all of its cells were read and only comments were not.
+        whole = number if rows is None else number - 1
+        if not rows and whole >= sheet_count:
+            return f'Some comments in {name} did not fit and were not read.'
+        apart = [*([f'some comments in {name}'] if self.comments else []), *_chart_tabs(charts, whole)]
+        apart = f', apart from {" and ".join(apart)}' if apart else ''
         if rows:
             read = _span('Row', rows) + f' of {name}'
-            if number > 1:
-                read = _span('Sheet', number - 1) + ' and ' + read[0].lower() + read[1:]
-            return f'{read} {"was" if read.startswith("Row 1 ") else "were"} read{comments}; the rest of the workbook {rest}.'
-        whole = number if rows is None else number - 1
-        if whole >= sheet_count:
-            return f'Some comments in {name} did not fit and were not read.'
-        return f'{_span("Sheet", whole)} of {sheet_count:,} {"was" if whole == 1 else "were"} read{comments}; the rest {rest}.'
+            if whole > charts:
+                read = _span('Sheet', whole) + ' and ' + read[0].lower() + read[1:]
+            return f'{read} {"was" if read.startswith("Row 1 ") else "were"} read{apart}; the rest of the workbook {rest}.'
+        return f'{_span("Sheet", whole)} of {sheet_count:,} {"was" if whole == 1 else "were"} read{apart}; the rest {rest}.'
+
+
+def _chart_tabs(charts, named):
+    """['2 chart-only tabs'] when a sentence names tabs 1 to `named` as read and `charts` of them are chart-only."""
+    return [f'{charts:,} chart-only {"tab" if charts == 1 else "tabs"}'] if 0 < charts < named else []
 
 
 def _span(unit, last):
@@ -1971,6 +1987,9 @@ def _workbook(path, record, chunks):
                     number = int(element.get('r') or self.row_counter + 1)
                 except ValueError:
                     number = self.row_counter + 1
+                if limit.reason is None and number > MAX_ROWS:
+                    # Past the row limit, as in a CSV: the rows before it are read, the rest counted.
+                    limit.stop('rows')
                 if not limit.take(len(element), number):
                     self.row_counter = number
                     return None  # Past a limit: counted, not parsed.
@@ -2103,8 +2122,11 @@ def _workbook(path, record, chunks):
             inventory.append(item)
         if not chunks.items and limit.reason is not None:
             raise ExtractionError(INDEX_FULL_MESSAGE if limit.reason == 'index' else NOTHING_READ_MESSAGE)
-        limitations = ([limit.sheets_note(len(names))] if limit.cut
-                       else [f'Sheets 1 to {MAX_SHEETS:,} of {len(names):,} were read; the rest was not.'] if len(names) > MAX_SHEETS
+        # Chart-only tabs among those a sentence names as read: they hold no cells, and are named apart.
+        charts = sum(item.get('kind') == 'chart_sheet' for item in inventory[:limit.cut[0] - 1 if limit.cut else None])
+        apart = ''.join(f', apart from {tabs}' for tabs in _chart_tabs(charts, MAX_SHEETS))
+        limitations = ([limit.sheets_note(len(names), charts)] if limit.cut
+                       else [f'Sheets 1 to {MAX_SHEETS:,} of {len(names):,} were read{apart}; the rest was not.'] if len(names) > MAX_SHEETS
                        else [])
         read_limit = ' '.join(limitations)
         missing = sum(item['formulas_without_cached_values'] for item in inventory)
@@ -2179,9 +2201,13 @@ def _csv(path, record, chunks):
                         # Past a limit the rest is only counted. A fault in it ends the count, not the file.
                         limit.counted = False
                         return
+                    if not any(row):
+                        # An empty line holds nothing to read or to leave out. It neither stops the
+                        # reading nor counts toward the rows a cut file is said to have (limit.rows).
+                        if limit.reason is None and number <= MAX_ROWS:
+                            yield number, []
+                        continue
                     if limit.reason is None and number > MAX_ROWS:
-                        if not any(row):
-                            continue  # An empty line past the row limit holds nothing that was left out.
                         limit.stop('rows')
                     if limit.reason is not None:
                         limit.skip(number)

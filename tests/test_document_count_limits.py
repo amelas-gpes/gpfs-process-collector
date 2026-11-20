@@ -240,6 +240,24 @@ class CsvLimits(Case):
         self.assert_cut(record, 'Rows 1 to 5 of 7 were read; the rest was not.', 5, 7)
         self.assertFalse(self.found(record, 'r7'))
 
+    def test_empty_lines_after_any_stop_are_not_counted_as_rows(self):
+        # Ten rows of two cells and an empty last line. The cell limit stops the reading at row 10.
+        with patch.object(documents, 'MAX_CELLS', 19):
+            record = self.read('ten.csv', pair_csv(10) + b'\n')
+        self.assert_cut(record, 'Rows 1 to 9 of 10 were read; the rest was not.', 9, 10)
+        # After the index fills: the rows after the stop are counted to the last one that holds a value.
+        with patch.object(documents, 'MAX_CHUNKS', 1):
+            record = self.read('index.csv', pair_csv(120) + b'\n\n')
+        self.assert_cut(record, 'Rows 1 to 50 of 120 were read; the rest did not fit.', 50, 120)
+        # Empty lines read before the index filled at the very end are not rows either.
+        with patch.object(documents, 'MAX_CHUNKS', 1):
+            record = self.read('sixty.csv', pair_csv(60) + b'\n\n')
+        self.assert_cut(record, 'Rows 1 to 50 of 60 were read; the rest did not fit.', 50, 60)
+        # An empty line no longer turns "did not fit" into "was not" by passing the row limit.
+        with patch.object(documents, 'MAX_ROWS', 120), patch.object(documents, 'MAX_CHUNKS', 1):
+            record = self.read('limit.csv', pair_csv(120) + b'\n')
+        self.assert_cut(record, 'Rows 1 to 50 of 120 were read; the rest did not fit.', 50, 120)
+
 
 @unittest.skipUnless(importlib.util.find_spec('openpyxl'), 'Existing openpyxl runtime required')
 class WorkbookLimits(Case):
@@ -283,6 +301,52 @@ class WorkbookLimits(Case):
         with patch.object(documents, 'MAX_CELLS', 10):
             record = self.read('three.xlsx', workbook_bytes(sheets=3, rows=3))
         self.assert_cut(record, 'Sheet 1 and rows 1 to 2 of Sheet02 were read; the rest of the workbook was not.', 1, 3)
+
+    def test_rows_past_the_row_limit_are_read_up_to_it(self):
+        # As in a CSV: not refused as rows that "repeat or are out of order".
+        with patch.object(documents, 'MAX_ROWS', 2):
+            record = self.read('rows.xlsx', workbook_bytes(sheets=2, rows=3))
+        self.assert_cut(record, 'Rows 1 to 2 of Sheet01 were read; the rest of the workbook was not.', 0, 2)
+        [sheet] = record['inventory']['sheets']
+        self.assertEqual((sheet['read_to_row'], sheet['rows']), (2, 3))
+        self.assertTrue(self.found(record, 'row-2'))
+        self.assertFalse(self.found(record, 'row-3'))
+
+    def test_chart_only_tabs_before_a_cut_are_not_called_read(self):
+        def book(*tabs):
+            from openpyxl import Workbook
+            from openpyxl.chart import BarChart, Reference
+            workbook = Workbook()
+            workbook.remove(workbook.active)
+            data = None
+            for tab in tabs:
+                if tab == 'chart':
+                    continue
+                data = workbook.create_sheet(tab)
+                for row in range(1, 21):
+                    data.append([f'{tab.lower()}entry{row}', row])
+            for position, tab in enumerate(tabs):
+                if tab == 'chart':
+                    chart = BarChart()
+                    chart.add_data(Reference(data, min_col=2, min_row=1, max_row=20))
+                    workbook.create_chartsheet(f'Chart{position + 1}', position).add_chart(chart)
+            output = io.BytesIO()
+            workbook.save(output)
+            return output.getvalue()
+        # The chart tab is the first tab: only the rows of Data were read.
+        with patch.object(documents, 'MAX_CELLS', 21):
+            record = self.read('chart.xlsx', book('chart', 'Data'))
+        self.assertEqual([sheet.get('kind') for sheet in record['inventory']['sheets']], ['chart_sheet', None])
+        self.assert_cut(record, 'Rows 1 to 10 of Data were read; the rest of the workbook was not.', 0, 2)
+        # A worksheet and a chart tab before the cut: the chart tab is named apart.
+        with patch.object(documents, 'MAX_CELLS', 61):
+            record = self.read('mixed.xlsx', book('Ledger', 'chart', 'Data'))
+        self.assert_cut(record, 'Sheets 1 to 2 and rows 1 to 10 of Data were read, apart from 1 chart-only tab; '
+                                'the rest of the workbook was not.', 1, 3)
+        # The same past the sheet limit.
+        with patch.object(documents, 'MAX_SHEETS', 2):
+            record = self.read('tabs.xlsx', book('chart', 'Ledger', 'Data'))
+        self.assert_cut(record, 'Sheets 1 to 2 of 3 were read, apart from 1 chart-only tab; the rest was not.', 1, 3)
 
     def test_comments_follow_the_rows_read_and_comments_that_do_not_fit_are_named(self):
         # The cell limit stops Ledger after row 20: the comment on row 5 is read with its row, the
@@ -361,10 +425,32 @@ class EarlierRefusals(Case):
             record.update(fields)
             db.execute('UPDATE documents SET record=? WHERE id=?', (json.dumps(record), document_id))
 
-    def old_refusal(self, name='library.pdf', error=OLD_PAGES):
+    def old_refusal(self, name='library.pdf', error=OLD_PAGES, data=None):
         """A file refused whole by the version before EXTRACTION_VERSION 5, nothing of it indexed."""
-        record = self.store.add(self.scope, name, f'%PDF-1.4\n%{name}\n%%EOF\n'.encode())
+        record = self.store.add(self.scope, name, data or f'%PDF-1.4\n%{name}\n%%EOF\n'.encode())
         self.saved(record['id'], status='error', error_code='invalid_file', retryable=False, extraction_version=4, error=error)
+        return self.store.get(self.scope, record['id'])
+
+    def card(self, record):
+        """What the real web/documents.js shows on the Assets card of this record."""
+        node = os.environ.get('NODE') or shutil.which('node')
+        if not node:
+            self.skipTest('Node.js renders the card: put it on PATH or set NODE to it')
+        path = Path(self.temporary.name) / 'record.json'
+        path.write_text(json.dumps(record), encoding='utf-8')
+        script = Path(__file__).resolve().parent / 'test_documents_count_refusal_card.cjs'
+        return json.loads(subprocess.run([node, str(script), '--record', str(path)], capture_output=True, text=True,
+                                         timeout=60, check=True).stdout)
+
+    def retry(self, record):
+        """Retry review (revisit), as the card's button does, until this version has read the file again."""
+        manager = service_module.DocumentService(self.store, lambda *args: self.fail('No provider review is expected'))
+        self.addCleanup(lambda: manager._worker.join(timeout=5))
+        self.addCleanup(manager.close)
+        manager.action(self.scope, record['id'], 'revisit')
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline and self.store.get(self.scope, record['id'])['status'] in ('pending', 'indexing'):
+            threading.Event().wait(.01)
         return self.store.get(self.scope, record['id'])
 
     def test_an_old_refusal_is_offered_retry_review_and_not_a_re_index(self):
@@ -393,14 +479,7 @@ class EarlierRefusals(Case):
 
     def test_the_card_of_an_old_refusal_shows_the_button_it_names(self):
         # The record as the store returns it, rendered by the real web/documents.js.
-        node = os.environ.get('NODE') or shutil.which('node')
-        if not node:
-            self.skipTest('Node.js renders the card: put it on PATH or set NODE to it')
-        path = Path(self.temporary.name) / 'record.json'
-        path.write_text(json.dumps(self.old_refusal()), encoding='utf-8')
-        script = Path(__file__).resolve().parent / 'test_documents_count_refusal_card.cjs'
-        seen = json.loads(subprocess.run([node, str(script), '--record', str(path)], capture_output=True, text=True,
-                                         timeout=60, check=True).stdout)
+        seen = self.card(self.old_refusal())
         self.assertEqual(seen['status'], 'Could not read file')
         self.assertIsNone(seen['detail'], 'No line says the file was indexed: nothing of it was')
         self.assertEqual(seen['warnings'], [documents.COUNT_LIMIT_RETRY], 'One instruction')
@@ -408,6 +487,46 @@ class EarlierRefusals(Case):
         self.assertNotIn('Re-index and review', seen['buttons'])
         self.assertIsNone(seen['cost_note'])
         self.assertNotIn('Indexed by an earlier version', seen['text'])
+
+    def test_a_retry_that_fails_again_is_this_version_s_failure_and_no_re_index(self):
+        # The retry reads the file with this version, and this version cannot read it either. The record
+        # keeps its earlier extraction_version (nothing was indexed), but it is not then described as
+        # indexed by an earlier version, nor told to choose a Re-index button that is not shown.
+        empty_pdf = self.old_refusal()
+        cells = self.old_refusal('ledger.csv', 'A sheet exceeds two million populated cells; no partial index was published.',
+                                 csv_bytes(6))
+        # The first row of the CSV is past a one-cell limit: this version reads nothing of it.
+        for old, max_cells in ((empty_pdf, documents.MAX_CELLS), (cells, 1)):
+            with self.subTest(old['name']), patch.object(documents, 'MAX_CELLS', max_cells):
+                self.assertEqual((old['error'], old['retryable']), (documents.COUNT_LIMIT_RETRY, True))
+                failed = self.retry(old)
+                self.assertEqual((failed['status'], failed['retryable'], failed['extraction_version']), ('error', False, 4))
+                self.assertNotIn(failed['error'], [documents.COUNT_LIMIT_RETRY, *documents.COUNT_LIMIT_REFUSALS])
+                self.assertFalse(failed['extraction_needs_reindex'])
+                self.assertNotEqual((failed.get('analysis') or {}).get('phase'), 'reindex_required')
+                self.assertNotIn(documents.REINDEX_NOTICE, failed['coverage']['limitations'])
+                seen = self.card(failed)
+                self.assertEqual(seen['status'], 'Could not read file')
+                self.assertIsNone(seen['detail'])
+                self.assertEqual(seen['warnings'], [failed['error']], 'Its own reason, and no instruction beside it')
+                self.assertFalse({'Retry review', 'Re-index and review'} & set(seen['buttons']), seen['buttons'])
+                self.assertIsNone(seen['cost_note'])
+                self.assertNotRegex(seen['text'], 'Indexed by an earlier version|Re-index')
+        self.assertEqual(self.store.get(self.scope, cells['id'])['error'], documents.NOTHING_READ_MESSAGE)
+
+    def test_an_earlier_index_that_cannot_be_read_again_names_no_missing_button(self):
+        # An earlier index is kept beside a failed re-index. The card says so, and names no button it does not show.
+        record = self.store.add(self.scope, 'scan.pdf', b'%PDF-1.4\n%scan\n%%EOF\n')
+        self.saved(record['id'], status='error', error_code='invalid_file', retryable=False, extraction_version=4,
+                   error=documents.CARRIED_TOO_LARGE_MESSAGE, chunk_count=3)
+        read = self.store.get(self.scope, record['id'])
+        self.assertTrue(read['extraction_needs_reindex'])
+        seen = self.card(read)
+        self.assertEqual((seen['status'], seen['detail']), ('Could not read file', 'Indexed by an earlier version; not counted.'))
+        self.assertEqual(seen['warnings'], [documents.CARRIED_TOO_LARGE_MESSAGE])
+        self.assertFalse({'Retry review', 'Re-index and review'} & set(seen['buttons']), seen['buttons'])
+        self.assertIsNone(seen['cost_note'])
+        self.assertNotIn('Re-index', seen['text'])
 
     def test_an_old_index_full_refusal_can_be_retried(self):
         read = self.old_refusal('large.pdf', OLD_INDEX)
@@ -496,6 +615,44 @@ class ContextOfACutFile(Case):
         self.assertFalse(document['context_coverage']['complete_text'])
         self.assertEqual(document['context_coverage']['selection'], 'selected excerpts')
         self.assertIn('Rows 1 to 4 of 7 were read; the rest was not.', document['review']['limitations'])
+        self.assertEqual(document['context_coverage']['read_limit'], 'Rows 1 to 4 of 7 were read; the rest was not.')
+
+    def test_the_first_notes_read_in_parts_never_give_a_cut_file_as_complete(self):
+        # file_parts reads all of the index in parallel parts, and of a cut file that is not the whole file.
+        parts_spec = importlib.util.spec_from_file_location('collector_file_parts_count_limits',
+                                                            Path(__file__).resolve().parents[1] / 'file_parts.py')
+        file_parts = importlib.util.module_from_spec(parts_spec)
+        parts_spec.loader.exec_module(file_parts)
+        manager = service_module.DocumentService(self.store, lambda *args: self.fail('No review is expected'))
+        self.addCleanup(lambda: manager._worker.join(timeout=5))
+        self.addCleanup(manager.close)
+        with patch.object(documents, 'MAX_ROWS', 300):
+            cut = self.read('cut.csv', csv_bytes(400))
+        whole = self.read('whole.csv', csv_bytes(300))
+        sentence = 'Rows 1 to 300 of 400 were read; the rest was not.'
+        self.assertEqual(cut['coverage']['read_limit'], sentence)
+        for record, complete in ((cut, False), (whole, True)):
+            self.store.update(self.scope, record['id'], {'analysis': {'phase': 'complete', 'disposition': 'relevant', 'summary': 'Rows.'}})
+            supporting = manager.supporting_context(self.scope, 'r3c1', required_documents=[record['id']])
+            supporting = {**supporting, 'documents': [entry for entry in supporting['documents'] if entry['id'] == record['id']]}
+            sections = manager.whole_sections(self.scope, record['id'], file_parts.MAX_FILE_CHARS)
+            reading = file_parts.plan(supporting, {record['id']: sections})
+            self.assertIsNotNone(reading, 'The file is read in parts')
+            [entry] = reading['supporting']['documents']
+            coverage = entry['context_coverage']
+            self.assertEqual((coverage['complete_text'], coverage['all_indexed_sections_supplied']), (complete, True))
+            self.assertEqual(coverage['selection'], 'whole file' if complete else file_parts.CUT_SELECTION)
+            self.assertEqual(coverage.get('read_limit'), None if complete else sentence)
+            # The reply schemas name the fact topics of capture_facts, which sits beside file_parts.
+            with patch.dict(sys.modules), patch.object(sys, 'path', [str(Path(__file__).resolve().parents[1]), *sys.path]):
+                payload, suffix, _ = file_parts.sweep_request(reading, {'context': {}, 'turns': []})
+                parts = file_parts.part_requests(reading, {'context': {}, 'turns': []})
+            [swept] = payload['supporting_documents']['documents']
+            self.assertEqual(len(swept['excerpts']), len(sections), 'The sweep reads all of the index')
+            self.assertEqual(swept['context_coverage']['complete_text'], complete)
+            self.assertEqual(file_parts.SWEEP_CUT_NOTE in suffix, not complete)
+            for part, _, _, _ in parts:
+                self.assertFalse(part['supporting_documents']['documents'][0]['context_coverage']['complete_text'])
 
 
 if __name__ == '__main__':

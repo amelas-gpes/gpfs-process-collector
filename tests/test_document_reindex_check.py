@@ -128,7 +128,10 @@ class ReadProjection(Case):
         record = self.store.add(self.scope, 'broken.csv', b'\xff\xfe\x00broken')
         self.rewrite(record['id'], lambda saved: (saved.pop('extraction_version'), saved.update(status='error', error='Earlier failure.')))
         read = self.store.get(self.scope, record['id'])
-        self.assertTrue(read['extraction_needs_reindex'])
+        # Nothing of it was indexed, so it is not described as an earlier index to re-index: it keeps
+        # its failure, and Retry review (which reads it with this version) is offered as for any failure.
+        self.assertFalse(read['extraction_needs_reindex'])
+        self.assertEqual((read['status'], read['error']), ('error', 'Earlier failure.'))
         self.assertNotIn('reindex_check', read)
         manager = self.manager()
         manager.status(self.scope, {})

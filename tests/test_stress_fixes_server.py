@@ -419,7 +419,7 @@ class EmptyBodiesOnEveryRoute(Loopback):
     def test_an_empty_body_is_called_empty_on_the_document_knowledge_and_recovery_routes(self):
         for path in ("/api/documents/session", "/api/documents/status", "/api/documents/action", "/api/documents/source",
                      "/api/documents/context", "/api/knowledge/status", "/api/knowledge/submit", "/api/recovery/status",
-                     "/api/recovery/save", "/api/interview"):
+                     "/api/recovery/save", "/api/interview", "/api/trace/events"):
             with self.subTest(path=path):
                 status, _, body, failure = exchange(self.port, self.head(path, 0, "application/json"))
                 self.assertEqual((status, failure, body), (400, None, {"error": "The request was empty. Nothing was changed; try again."}))
@@ -430,6 +430,8 @@ class EmptyBodiesOnEveryRoute(Loopback):
                 body = b"{" + b" " * server.MAX_JSON + b"}"
                 status, _, answer, failure = exchange(self.port, self.head(path, len(body), "application/json"), body)
                 self.assertEqual((status, failure, answer), (413, None, {"error": message}))
+        status, _, answer, failure = exchange(self.port, self.head("/api/trace/events", 262145, "application/json"))
+        self.assertEqual((status, failure, answer), (413, None, {"error": "Trace batch exceeds its limit."}))
 
 
 class LiveStartTimeBudget(unittest.TestCase):

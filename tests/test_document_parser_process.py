@@ -41,7 +41,8 @@ launcher_spec.loader.exec_module(launcher)
 AUDIT = APP / 'tests' / 'fixtures' / 'document-audit'
 UPLOADS = APP / 'docs' / 'testing' / 'runs' / '2026-11-16-process-capture' / 'uploads' / 'inputs'
 GENERIC = 'The document could not be safely decoded. Its original is retained.'
-STORAGE = documents.STORAGE_UNAVAILABLE_MESSAGE
+# As the card shows it. It names no button: a file indexed by an earlier version offers Re-index and review.
+STORAGE = 'Local storage could not publish the index. Check free disk space and access, then read the file again.'
 READERS = all(importlib.util.find_spec(name) for name in ('pypdf', 'openpyxl', 'PIL'))
 
 

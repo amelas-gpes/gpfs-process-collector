@@ -2005,6 +2005,12 @@ def _row_chunks(record, chunks, sheet_index, sheet_name, rows, limit):
             'formulas_without_cached_values': committed['formulas_without_cached_values']}
 
 
+def _sheet_text_read(item):
+    """A sheet with indexed cell text: read whole, or read up to a limit with text before it. A sheet whose
+    reading stopped at its first row, or before any filled cell, has none and is not counted as text."""
+    return 'read_to_row' not in item or bool(item.get('populated_cells') or item.get('comment_count'))
+
+
 def _vml_only_notes(archive, source_path, relations):
     """True when every VML drawing of this worksheet holds only comment note boxes (ObjectType Note)."""
     import posixpath
@@ -2215,7 +2221,7 @@ def _workbook(path, record, chunks):
                       for item in inventory)
         # Sheets whose own cell text is indexed, whatever else they hold, as for a PDF's pages: a sheet read up
         # to a limit has its rows up to there, and the read limit says where it stops.
-        text_indexed = sum(item.get('kind') != 'chart_sheet' for item in inventory)
+        text_indexed = sum(item.get('kind') != 'chart_sheet' and _sheet_text_read(item) for item in inventory)
         return ({'sheets': inventory, 'sheet_count': len(names), **({'sheets_read': len(inventory)} if len(inventory) < len(names) else {}),
                  'rows': sum(item['rows'] for item in inventory),
                  'formula_cells': sum(item['formula_cells'] for item in inventory), 'macros_executed': False,
@@ -2359,7 +2365,7 @@ def _legacy_xls(path, record, chunks):
                  'rows': sum(item['rows'] for item in sheets),
                  'formula_policy': 'Saved legacy cell results only; formula provenance may be unavailable.'},
                 {'indexed_units': sum('read_to_row' not in item for item in sheets), 'total_units': book.nsheets,
-                 'text_indexed_units': len(sheets),
+                 'text_indexed_units': sum(_sheet_text_read(item) for item in sheets),
                  'limitations': [*notes, 'Legacy XLS exposes saved cell results. Formula counts, chart and image contents, and macros are unavailable.'],
                  **({'read_limit': ' '.join(notes)} if notes else {})})
     finally:

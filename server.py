@@ -3157,6 +3157,11 @@ def read_settings_text(path):
                             "then start the app again.") from None
 
 
+# Settings whose empty value is a choice, not a missing one: an empty TRANSCRIPTION_KEYWORDS lists no
+# names of your own, where leaving it out uses the built-in ones.
+EMPTY_MEANS_NONE = {"TRANSCRIPTION_KEYWORDS"}
+
+
 def load_settings():
     # Only explicit task-local settings are read; no credential store scanning.
     settings = {}
@@ -3185,13 +3190,14 @@ def load_settings():
                         value = value[1:close]
                     else:
                         value = re.split(r"\s+#", value, 1)[0].strip()
-                    if value:
+                    if value or key in EMPTY_MEANS_NONE:
                         settings[key] = value
                 else:
                     print(f"Ignored unsupported setting on .env.local line {number}.", file=sys.stderr)
     for key in allowed:
-        value = os.environ.get(key, "").strip().strip("\"'“”‘’").strip()
-        if value:
+        raw = os.environ.get(key)
+        value = (raw or "").strip().strip("\"'“”‘’").strip()
+        if value or (raw is not None and key in EMPTY_MEANS_NONE):
             settings[key] = value
     return settings
 
@@ -8412,6 +8418,8 @@ class Handler(BaseHTTPRequestHandler):
             self._failed_request("interview_request", error, "The request could not be completed. Your browser session is retained.")
 
     def _browser_trace(self, size):
+        if size <= 0 and not self.headers.get("Transfer-Encoding"):
+            return self._json({"error": EMPTY_REQUEST_MESSAGE}, 400)
         if self.headers.get("Transfer-Encoding") or not 0 < size <= 262144:
             return self._json({"error":"Trace batch exceeds its limit."}, 413)
         if self.headers.get("Content-Type", "").split(";", 1)[0].strip() != "application/json":

@@ -557,6 +557,18 @@ class EarlierRefusals(Case):
                     self.assertEqual(sum(shown in warning for warning in seen['warnings']),
                                      int(shown == 'Re-index and review'), seen['warnings'])
 
+    def test_a_reason_that_can_be_read_again_names_no_button_without_the_card_too(self):
+        # The test above renders the card with Node.js and is skipped without it; this holds either way.
+        self.assertEqual(set(documents.RETRYABLE_MESSAGES.values()),
+                         {documents.READING_STOPPED_MESSAGE, documents.STORAGE_UNAVAILABLE_MESSAGE})
+        for code, message in documents.RETRYABLE_MESSAGES.items():
+            with self.subTest(code):
+                self.assertNotRegex(message, r'(?i)retry|re-index|review|select')
+                record = self.store.add(self.scope, f'{code}.csv', csv_bytes(3))
+                self.saved(record['id'], status='error', error_code=code, retryable=True, extraction_version=4,
+                           error=f'{message} Select Retry review.', chunk_count=1)
+                self.assertEqual(self.store.get(self.scope, record['id'])['error'], message)
+
     def test_an_old_index_full_refusal_can_be_retried(self):
         read = self.old_refusal('large.pdf', OLD_INDEX)
         self.assertEqual((read['error'], read['retryable'], read['extraction_needs_reindex']), (documents.COUNT_LIMIT_RETRY, True, False))
@@ -678,6 +690,41 @@ class ContextOfACutFile(Case):
         # Every unit then has indexed text and all of it is supplied: the notice keeps a read limit apart.
         self.assertIn('context_coverage has no read_limit, do not call the text coverage incomplete', context['notice'])
         self.assertIn('read_limit says where the reading of a file stopped', context['notice'])
+
+    def test_a_sheet_whose_reading_stopped_at_its_first_row_has_no_indexed_text(self):
+        # Two sheets that fill the cell allowance exactly once: the reading stops on the first row of the
+        # second sheet. Only the first sheet has indexed text, so the file is 1 of 2 units of text, not 2.
+        manager = service_module.DocumentService(self.store, lambda *args: self.fail('No review is expected'))
+        self.addCleanup(lambda: manager._worker.join(timeout=5))
+        self.addCleanup(manager.close)
+        with patch.object(documents, 'MAX_CELLS', 300):
+            workbook = self.read('two.xlsx', ledger_xlsx(rows=10, sheets=('Ledger', 'Journal')))
+        reader = Mock()
+        reader.__version__ = '2.0.1'
+        sheets = []
+        for name in ('Ledger', 'Journal'):
+            sheet = Mock()
+            sheet.name, sheet.visibility, sheet.nrows = name, 0, 4
+            sheet.row_values.side_effect = lambda row, name=name: [f'{name.lower()}entry{row + 1}', 'x', 'y']
+            sheets.append(sheet)
+        reader.open_workbook.return_value.nsheets = 2
+        reader.open_workbook.return_value.sheet_by_index.side_effect = lambda index: sheets[index]
+        data = bytes.fromhex('D0CF11E0A1B11AE1') + b'FAKE TEST DATA'
+        with (patch.dict(sys.modules, {'xlrd': reader}), patch.object(documents, 'MAX_CELLS', 12),
+              patch.object(documents.importlib.util, 'find_spec', return_value=True)):
+            legacy = self.read('legacy.xls', data)
+        for record in (workbook, legacy):
+            with self.subTest(record['name']):
+                self.assert_cut(record, 'Sheet 1 of 2 was read; the rest was not.', 1, 2)
+                self.assertEqual([sheet.get('read_to_row') for sheet in record['inventory']['sheets']], [None, 0])
+                self.assertTrue(self.found(record, 'ledgerentry1'))
+                self.assertFalse(self.found(record, 'journalentry1'))
+                self.assertEqual(record['coverage']['text_indexed_units'], 1)
+                self.store.update(self.scope, record['id'], {'analysis': {'phase': 'complete', 'disposition': 'relevant', 'summary': 'Rows.'}})
+                context = manager.supporting_context(self.scope, 'entry1', required_documents=[record['id']])
+                [document] = [entry for entry in context['documents'] if entry['id'] == record['id']]
+                self.assertEqual((document['review']['native_text_units'], document['review']['total_units']), (1, 2))
+                self.assertEqual(document['context_coverage']['read_limit'], 'Sheet 1 of 2 was read; the rest was not.')
 
     def test_the_first_notes_read_in_parts_never_give_a_cut_file_as_complete(self):
         # file_parts reads all of the index in parallel parts, and of a cut file that is not the whole file.

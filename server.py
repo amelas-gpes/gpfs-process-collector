@@ -7205,7 +7205,8 @@ class InterviewServer(ThreadingHTTPServer):
         try:
             files_root = Path(documents_root or APP_DIR / "work" / "documents")
             # Each review worker reads its file in a separate Python process (documents._parse_apart), so
-            # parsing a large file does not slow the requests of other interviews.
+            # parsing a large file does not slow the requests of other interviews. The store leaves one
+            # processor free, and documents.close() ends the readers that are running as the server closes.
             self.documents_store = self._open_store("documents", files_root / "documents.sqlite3",
                                                     lambda: documents.DocumentStore(files_root,
                                                                                     parser_processes=DOCUMENT_REVIEW_WORKERS))

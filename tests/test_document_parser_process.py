@@ -7,8 +7,11 @@ read in another interview, and status polls took up to 175 ms. The store the ser
 runs the reader in its own process (documents._parse_apart) and publishes what it sends back.
 
 These tests read the same files both ways and compare the results byte for byte, then check the
-errors, the time limit, a reader process that dies, the fallback to the server's own process, the
-bound on processes at once and a desktop release's folder. Local only; no provider.
+errors, the time limit (counted from when the reader is ready, and again from when its own budget
+starts), a reader process ended from outside, the fallback to the server's own process (also when
+documents.py changed on disk after the server loaded it), readers ending with the server and when
+the app closes, their priority, the bound on processes at once and a desktop release's folder.
+Local only; no provider.
 """
 import datetime
 import importlib.util
@@ -94,7 +97,8 @@ class Fixture(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.folder = Path(self.temporary.name)
         self.events = []
-        self.store = self.open_store('apart', parser_processes=2)
+        with patch.object(documents.os, 'cpu_count', return_value=8):  # Two slots on any computer.
+            self.store = self.open_store('apart', parser_processes=2)
 
     def open_store(self, name, **options):
         store = documents.DocumentStore(self.folder / name, **options)
@@ -128,6 +132,20 @@ class Fixture(unittest.TestCase):
             started.append(real(*arguments, **options))
             return started[-1]
         return started, patch.object(documents.subprocess, 'Popen', side_effect=start)
+
+    def waiting(self, marker, seconds=60):
+        """A reader process that says when it is reading, then reads for `seconds` (as a large or hung file does)."""
+        return boot('import time\n'
+                    'def waiting(*arguments):\n'
+                    f'    open({str(marker)!r}, "w").close()\n'
+                    f'    time.sleep({seconds})\n'
+                    'module._csv = waiting')
+
+    def wait_for(self, marker, seconds=20):
+        until = time.monotonic() + seconds
+        while not marker.exists():
+            self.assertLess(time.monotonic(), until, 'The reader process never started reading')
+            time.sleep(.02)
 
 
 class SameResult(Fixture):
@@ -236,7 +254,7 @@ class Errors(Fixture):
         self.assertEqual(documents.PARSER_SECONDS['pdf'], 45 + documents.PDF_DRAWING_SECONDS)
         self.assertEqual(documents.PARSER_SECONDS['xlsx'], 90)
 
-    def test_a_reader_process_that_dies_leaves_a_clean_error_and_a_working_store(self):
+    def test_a_reader_process_that_dies_leaves_the_file_to_retry_and_a_working_store(self):
         ways = ['os._exit(3)']
         if hasattr(signal, 'SIGKILL'):
             ways.append('os.kill(os.getpid(), signal.SIGKILL)')  # What the system does to a process using too much memory.
@@ -248,9 +266,47 @@ class Errors(Fixture):
                          'module._csv = dying')
             with self.subTest(way=way), patch.object(documents, '_PARSER_BOOT', dying):
                 record = self.extract('log.csv', CSV)[2]
-                self.assertEqual((record['status'], record['error'], record['error_code']), ('error', GENERIC, 'invalid_file'))
+                self.assertEqual([record[key] for key in ('status', 'error', 'error_code', 'retryable')],
+                                 ['error', documents.READING_STOPPED_MESSAGE, 'reading_stopped', True])
                 self.assertEqual([(event, fields['outcome']) for event, fields in self.events], [('document_parser_process', 'ended')])
         self.assertEqual(self.extract('log.csv', CSV)[2]['status'], 'ready')
+
+    def test_a_reader_that_sends_something_out_of_place_fails_the_file_as_before(self):
+        garbling = boot('import sys\n'
+                        'def garbling(*arguments):\n'
+                        "    sys.__stdout__.buffer.write(b'{PRIVATE CELL TEXT\\n')\n"
+                        '    sys.__stdout__.buffer.flush()\n'
+                        '    import time\n'
+                        '    time.sleep(60)\n'
+                        'module._csv = garbling')
+        started, popen = self.children()
+        with patch.object(documents, '_PARSER_BOOT', garbling), popen:
+            record = self.extract('log.csv', CSV)[2]
+        self.assertEqual([record[key] for key in ('status', 'error', 'error_code', 'retryable')],
+                         ['error', GENERIC, 'invalid_file', False])
+        self.assertIsNotNone(started[0].poll())
+        self.assertEqual(self.events, [('document_parser_process', {'stage': 'csv', 'outcome': 'ended', 'reason': 'protocol'})])
+
+    def test_a_reader_ended_from_outside_leaves_the_file_to_retry(self):
+        # Task Manager's End task on the busy python.exe, a log-off, an antivirus, the system short of memory.
+        marker = self.folder / 'reading'
+        started, popen = self.children()
+        records = []
+        scope = self.store.create_scope()
+        document_id = self.store.add(scope, 'log.csv', CSV)['id']
+        with patch.object(documents, '_PARSER_BOOT', self.waiting(marker)), popen:
+            reading = threading.Thread(target=lambda: records.append(self.store.extract(scope, document_id)))
+            reading.start()
+            self.wait_for(marker)
+            started[0].kill()
+            reading.join(20)
+        record = records[0]
+        self.assertEqual([record[key] for key in ('status', 'error', 'error_code', 'retryable')],
+                         ['error', 'Reading this file stopped before it finished. Select Retry review.', 'reading_stopped', True])
+        self.assertEqual(self.store.get(scope, document_id)['retryable'], True)
+        self.assertEqual([(event, fields['outcome']) for event, fields in self.events], [('document_parser_process', 'ended')])
+        # Retry review reads it again.
+        self.assertEqual(self.store.extract(scope, document_id)['status'], 'ready')
 
 
 class Fallback(Fixture):
@@ -363,7 +419,8 @@ class Processes(Fixture):
         self.addCleanup(httpd.server_close)
         self.addCleanup(httpd.documents.close)
         store = httpd.documents_store
-        self.assertEqual(store._parser_slots._initial_value, server.DOCUMENT_REVIEW_WORKERS)
+        self.assertEqual(store._parser_slots._initial_value,
+                         min(server.DOCUMENT_REVIEW_WORKERS, max(1, (os.cpu_count() or 2) - 1)))
         started, real = [], subprocess.Popen
 
         def start(*arguments, **options):
@@ -373,6 +430,243 @@ class Processes(Fixture):
         with patch.object(server.documents.subprocess, 'Popen', side_effect=start):
             record = store.extract(scope, store.add(scope, 'procedure.csv', CSV)['id'])
         self.assertEqual((record['status'], len(started)), ('ready', 1))
+
+
+class Timing(Fixture):
+    def test_the_time_python_takes_to_start_does_not_count_against_the_reading(self):
+        # An antivirus scan of python.exe or a cold disk: the reader is ready only after 1.5 s.
+        slow_start = 'import time\ntime.sleep(1.5)\n' + documents._PARSER_BOOT
+        limits = {**documents.PARSER_SECONDS, 'csv': .5}
+        with patch.object(documents, '_PARSER_BOOT', slow_start), patch.object(documents, 'PARSER_SECONDS', limits), \
+                patch.object(documents, 'PARSER_MARGIN_SECONDS', .5), \
+                patch.object(documents, '_csv', side_effect=AssertionError('read in the server')):
+            record = self.extract('log.csv', CSV)[2]
+        self.assertEqual((record['status'], record.get('error')), ('ready', None))
+        self.assertEqual(self.events, [])
+
+    def test_a_reader_not_ready_in_time_is_ended_and_the_file_read_in_the_server(self):
+        never_ready = 'import time\ntime.sleep(30)\n' + documents._PARSER_BOOT
+        started, popen = self.children()
+        with patch.object(documents, '_PARSER_BOOT', never_ready), patch.object(documents, 'PARSER_START_SECONDS', .5), popen:
+            began = time.monotonic()
+            record = self.extract('log.csv', CSV)[2]
+        self.assertLess(time.monotonic() - began, 10)
+        self.assertEqual(record['status'], 'ready')
+        self.assertEqual(self.events, [('document_parser_process', {'stage': 'csv', 'outcome': 'unavailable',
+                                                                    'reason': 'start_time_limit'})])
+        self.assertIsNotNone(started[0].poll())
+        # The limit for the reading itself is separate and generous.
+        self.assertEqual(documents.PARSER_START_SECONDS, 30)
+
+    def test_the_limit_counts_again_from_when_the_readers_own_budget_starts(self):
+        # Opening a workbook (its shared strings) or a PDF comes before the reader's own budget starts.
+        # It does not use up the margin that lets the reader's own message come first.
+        opening = boot('import time\n'
+                       'real = module._csv\n'
+                       'def opening(*arguments):\n'
+                       '    time.sleep(1.5)\n'
+                       '    module._budget_started()\n'
+                       '    time.sleep(1.5)\n'
+                       '    return real(*arguments)\n'
+                       'module._csv = opening')
+        limits = {**documents.PARSER_SECONDS, 'csv': 2}
+        with patch.object(documents, '_PARSER_BOOT', opening), patch.object(documents, 'PARSER_SECONDS', limits), \
+                patch.object(documents, 'PARSER_MARGIN_SECONDS', .5), \
+                patch.object(documents, '_csv', side_effect=AssertionError('read in the server')):
+            record = self.extract('log.csv', CSV)[2]
+        self.assertEqual((record['status'], record.get('error')), ('ready', None))
+        self.assertEqual(self.events, [])
+
+    @unittest.skipUnless(READERS, 'pypdf, openpyxl and Pillow are not installed')
+    def test_the_pdf_and_workbook_readers_say_when_their_own_budget_starts(self):
+        record = {'id': 'doc_' + 'ab' * 12, 'kind': 'xlsx', 'name': 'register.xlsx'}
+        for path, kind in ((self.file('register.xlsx', workbook_bytes()), 'xlsx'), (AUDIT / 'settlement-intake.pdf', 'pdf')):
+            with self.subTest(kind=kind), patch.object(documents, '_budget_started') as started:
+                read_here(path, {**record, 'kind': kind, 'name': path.name})
+                started.assert_called_once_with()
+
+
+class Lifetime(Fixture):
+    @unittest.skipIf(os.name == 'nt', 'Checks a process by its ID the POSIX way')
+    def test_a_reader_ends_when_the_server_process_ends(self):
+        # The server is killed (or the desktop window's drain gives up and calls os._exit) while a
+        # reader is busy with a file that would keep it busy for a minute.
+        marker = self.folder / 'reading'
+        server = self.folder / 'server.py'
+        server.write_text(
+            'import importlib.util, sys, threading\n'
+            'from pathlib import Path\n'
+            "spec = importlib.util.spec_from_file_location('documents', sys.argv[1])\n"
+            'documents = importlib.util.module_from_spec(spec)\n'
+            'spec.loader.exec_module(documents)\n'
+            'documents._PARSER_BOOT = sys.argv[2]\n'
+            'real = documents.subprocess.Popen\n'
+            'def start(*arguments, **options):\n'
+            '    child = real(*arguments, **options)\n'
+            '    print(child.pid, flush=True)\n'
+            '    return child\n'
+            'documents.subprocess.Popen = start\n'
+            "documents._parse_apart(Path(sys.argv[3]), {'id': 'doc_' + 'aa' * 12, 'name': 'log.csv', 'kind': 'csv'},\n"
+            '                       threading.BoundedSemaphore(1), lambda *_, **__: None)\n', encoding='utf-8')
+        host = subprocess.Popen([sys.executable, '-I', '-B', str(server), str(APP / 'documents.py'), self.waiting(marker),
+                                 str(self.file('log.csv', CSV))], stdout=subprocess.PIPE)
+        self.addCleanup(host.stdout.close)
+        reader = int(host.stdout.readline())
+
+        def alive():
+            try:
+                os.kill(reader, 0)
+            except ProcessLookupError:
+                return False
+            return True
+
+        def end_reader():
+            if alive():
+                os.kill(reader, signal.SIGKILL)
+        self.addCleanup(end_reader)
+        self.wait_for(marker)
+        host.kill()
+        host.wait()
+        until = time.monotonic() + 10
+        while alive() and time.monotonic() < until:
+            time.sleep(.05)
+        self.assertFalse(alive(), 'The reader process outlived the server')
+
+    def test_closing_the_store_ends_its_readers_and_leaves_the_file_to_read_again(self):
+        marker = self.folder / 'reading'
+        started, popen = self.children()
+        scope = self.store.create_scope()
+        document_id = self.store.add(scope, 'log.csv', CSV)['id']
+        raised = []
+
+        def read():
+            try:
+                self.store.extract(scope, document_id)
+            except BaseException as error:
+                raised.append(error)
+        with patch.object(documents, '_PARSER_BOOT', self.waiting(marker)), popen:
+            reading = threading.Thread(target=read)
+            reading.start()
+            self.wait_for(marker)
+            began = time.monotonic()
+            self.store.stop_readers()
+            self.assertIsNotNone(started[0].poll(), 'stop_readers returned before the reader ended')
+            reading.join(10)
+            self.assertLess(time.monotonic() - began, 5)
+            # Nothing more is read by a closing store, and no process is started for it.
+            with self.assertRaises(documents.ReadingStopped):
+                self.store.extract(scope, self.store.add(scope, 'other.csv', CSV + b'x;y;z\n')['id'])
+        self.assertEqual([type(error) for error in raised], [documents.ReadingStopped])
+        self.assertEqual(len(started), 1)
+        record = self.store.get(scope, document_id)
+        self.assertEqual((record['status'], record.get('error'), record.get('error_code')), ('indexing', None, None))
+        self.assertEqual(self.events, [])
+        # At the next start the file is read again.
+        self.assertEqual(self.open_store('apart', parser_processes=2).extract(scope, document_id)['status'], 'ready')
+
+    def test_the_review_service_ends_running_readers_when_it_closes(self):
+        service_spec = importlib.util.spec_from_file_location('parser_process_service', APP / 'document_service.py')
+        service = importlib.util.module_from_spec(service_spec)
+        service_spec.loader.exec_module(service)
+        marker = self.folder / 'reading'
+        started, popen = self.children()
+        reviews = []
+        with patch.object(documents, '_PARSER_BOOT', self.waiting(marker)), popen:
+            reviewer = service.DocumentService(self.store, lambda *arguments, **options: reviews.append(arguments), workers=2)
+            scope = reviewer.session()['scope']
+            document_id = reviewer.upload(scope, 'log.csv', CSV)['id']
+            self.wait_for(marker)
+            began = time.monotonic()
+            reviewer.close()  # What the server does as it closes (InterviewServer.server_close).
+            self.assertLess(time.monotonic() - began, 5)
+            self.assertIsNotNone(started[0].poll())
+            for worker in reviewer._workers:
+                worker.join(5)
+        record = self.store.get(scope, document_id)
+        self.assertEqual((record['status'], record.get('error')), ('indexing', None))
+        self.assertFalse((record.get('analysis') or {}).get('error'))
+        self.assertEqual(reviews, [])
+
+
+class SameCode(Fixture):
+    def release(self):
+        release = self.folder / 'release'
+        release.mkdir()
+        shutil.copy2(APP / 'documents.py', release / 'documents.py')
+        loader = importlib.util.spec_from_file_location('collector_changed_documents', release / 'documents.py')
+        copy = importlib.util.module_from_spec(loader)
+        loader.loader.exec_module(copy)
+        return release / 'documents.py', copy
+
+    def test_a_reader_runs_the_code_the_server_loaded(self):
+        source, copy = self.release()
+        path = self.file('procedure.csv', CSV)
+        record = {'id': 'doc_' + 'ef' * 12, 'name': path.name, 'kind': 'csv'}
+        unchanged = copy._parse_apart(path, record, threading.BoundedSemaphore(1),
+                                      lambda event, **fields: self.events.append((event, fields)))
+        self.assertEqual(exact(unchanged), exact(read_here(path, record)))
+        self.assertEqual(self.events, [])
+        # A half-finished edit, or a git pull, after the server started.
+        text = source.read_text(encoding='utf-8')
+        edited = text.replace('def _csv(path, record, chunks):\n', 'def _csv(path, record, chunks):\n    half_finished_edit\n', 1)
+        self.assertNotEqual(edited, text)
+        source.write_text(edited, encoding='utf-8')
+        started, popen = self.children()
+        with popen:
+            self.assertIsNone(copy._parse_apart(path, record, threading.BoundedSemaphore(1),
+                                                lambda event, **fields: self.events.append((event, fields))))
+        self.assertEqual(self.events, [('document_parser_process', {'stage': 'csv', 'outcome': 'unavailable',
+                                                                    'reason': 'source_changed'})])
+        self.assertIsNotNone(started[0].poll(), 'The reader that loaded the edited code was ended')
+        # The store reads the file in the server, with the code the server loaded.
+        self.events.clear()
+        saved = []
+        for name, options in (('changed', {'parser_processes': 2}), ('here', {})):
+            store = copy.DocumentStore(self.folder / name, **options)
+            store.diagnostic = lambda event, **fields: self.events.append((event, fields))
+            scope = store.create_scope()
+            record = store.extract(scope, store.add(scope, 'procedure.csv', CSV)['id'])
+            self.assertEqual((record['status'], record.get('error')), ('ready', None))
+            saved.append(json.dumps(store.chunks(scope, record['id'], 0, 500)['chunks'], ensure_ascii=False)
+                         .replace(record['id'], 'ID'))
+        self.assertEqual(saved[0], saved[1])
+        self.assertEqual([fields.get('reason') for event, fields in self.events], ['source_changed'])
+
+
+class Priority(Fixture):
+    def test_a_store_leaves_one_processor_for_the_server(self):
+        for processors, slots in ((1, 1), (2, 1), (3, 2), (4, 3), (5, 4), (16, 4), (None, 1)):
+            with self.subTest(processors=processors), patch.object(documents.os, 'cpu_count', return_value=processors):
+                self.assertEqual(self.open_store(f'cpu{processors}', parser_processes=4)._parser_slots._initial_value, slots)
+        self.assertIsNone(self.open_store('here')._parser_slots)
+
+    @unittest.skipUnless(hasattr(os, 'nice'), 'POSIX priority')
+    def test_a_reader_runs_below_normal_priority(self):
+        marker = self.folder / 'priority'
+        probing = boot('import os\n'
+                       'real = module._csv\n'
+                       'def probing(*arguments):\n'
+                       f'    open({str(marker)!r}, "w").write(str(os.nice(0)))\n'
+                       '    return real(*arguments)\n'
+                       'module._csv = probing')
+        server = os.nice(0)
+        if server > 9:
+            self.skipTest('This test already runs at the lowest priority')
+        with patch.object(documents, '_PARSER_BOOT', probing):
+            self.assertEqual(self.extract('log.csv', CSV)[2]['status'], 'ready')
+        self.assertEqual(int(marker.read_text()), server + 10)
+
+    def test_on_windows_a_reader_starts_below_normal_priority_without_a_window(self):
+        options = []
+
+        def start(*arguments, **given):
+            options.append(given)
+            raise OSError('not started in this test')
+        with patch.object(documents.subprocess, 'CREATE_NO_WINDOW', 0x08000000, create=True), \
+                patch.object(documents.subprocess, 'BELOW_NORMAL_PRIORITY_CLASS', 0x00004000, create=True), \
+                patch.object(documents.subprocess, 'Popen', side_effect=start):
+            self.assertEqual(self.extract('log.csv', CSV)[2]['status'], 'ready')
+        self.assertEqual(options[0]['creationflags'], 0x08000000 | 0x00004000)
 
 
 if __name__ == '__main__':

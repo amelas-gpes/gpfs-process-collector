@@ -29,6 +29,19 @@ import unicodedata
 import zipfile
 from xml.etree import ElementTree
 
+
+def _source_digest():
+    try:
+        return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    except (NameError, OSError):
+        return None  # Loaded from somewhere other than a file of its own.
+
+
+# What this file held when it was loaded. A reader process (_parse_apart) reports its own, and a
+# file is read in this process instead when they differ: a git pull or a half-saved edit after
+# the server started must not change how it reads files before it is restarted.
+_SOURCE_DIGEST = _source_digest()
+
 MAX_FILE_BYTES = 64 * 1024 * 1024
 MAX_FILES_PER_SCOPE = 20
 # Count limits. A file past one is indexed up to it and the rest is named in its coverage, the way
@@ -639,8 +652,12 @@ class DocumentStore:
         self._locks = {}
         self.diagnostic = None  # Set by the server to its bounded local event log.
         # Up to this many files are read at once, each by a separate Python process (_parse_apart);
-        # with none, files are read in this process. The server allows one per review worker.
+        # with none, files are read in this process. The server allows one per review worker, and
+        # never one per processor: one is left for the server's requests and the window.
+        if parser_processes:
+            parser_processes = max(1, min(parser_processes, (os.cpu_count() or 2) - 1))
         self._parser_slots = threading.BoundedSemaphore(parser_processes) if parser_processes else None
+        self._readers = _Readers()
         # Before any statement that creates or changes anything in the file.
         probe = sqlite3.connect(_long_path(self.db_path), timeout=30)
         try:
@@ -1133,6 +1150,13 @@ class DocumentStore:
                         current['visual_reread_basis'] = {'placeholders': sentences, 'limitations': parsed_limitations}
                     db.execute('UPDATE documents SET record=? WHERE id=?', (json.dumps(current), document_id))
                 return current
+            except ReadingStopped:
+                raise  # The app is closing. The file stays 'indexing' and is read again at the next start.
+            except ReadingInterrupted:
+                # Its reader process was ended by something other than this app. The file may well be
+                # fine: it can be read again.
+                return self.update(scope, document_id, {'status': 'error', 'error_code': 'reading_stopped', 'retryable': True,
+                                                        'error': READING_STOPPED_MESSAGE})
             except ImportError as error:
                 # The selected Python lacks a reader. That is not a damaged file: name the package,
                 # as _legacy_xls does for xlrd, and leave a diagnostic that names the module.
@@ -1161,12 +1185,21 @@ class DocumentStore:
         never depends on one.
         """
         if self._parser_slots is not None:
-            parsed = _parse_apart(path, record, self._parser_slots, self._diagnose)
+            parsed = _parse_apart(path, record, self._parser_slots, self._diagnose, self._readers)
             if parsed is not None:
                 return parsed
         chunks = _Chunks(record)
         inventory, coverage = globals()[PARSERS[record['kind']]](path, record, chunks)
         return inventory, coverage, chunks
+
+    def stop_readers(self, wait=2.0):
+        """End every reader process now and start no more: the app is closing.
+
+        Each file being read stays as it was ('indexing') and is read again when the app next
+        starts. Waits up to `wait` seconds for the processes to end, so that none still holds
+        a file open once the app has closed.
+        """
+        self._readers.stop(wait)
 
     def _diagnose(self, event, **fields):
         """Report an operational fact (never file content) to whoever started the store, if anyone listens."""
@@ -1202,6 +1235,8 @@ class DocumentStore:
             try:
                 path = _long_path(self.original_path(scope, document_id))
                 inventory, coverage, chunks = self._parse(path, before)
+            except ReadingStopped:
+                raise  # The app is closing: the comparison is still owed, at the next start.
             except Exception:
                 outcome = 'failed'
             with self._db() as db:
@@ -1491,6 +1526,7 @@ def _pdf(path, record, chunks):
     reader = PdfReader(path)
     _open_pdf(reader)
     deadline = time.monotonic() + 45
+    _budget_started()
     drawing_seconds = 0.0
     operations = 0
     exhausted = False
@@ -1911,6 +1947,7 @@ def _workbook(path, record, chunks):
         # empty but formatted cell costs the parser as much as a filled one.
         limit = _SheetLimit()
         deadline = time.monotonic() + 90
+        _budget_started()
 
         class SparseParser(WorkSheetParser):
             def parse_row(self, element):
@@ -2239,15 +2276,23 @@ PARSERS = {'pdf': '_pdf', 'png': '_png', 'xlsx': '_workbook', 'xlsm': '_workbook
 # How long a reader may run in its own process, by kind. The PDF and workbook readers stop
 # themselves at their 45 s and 90 s budgets, with their own message (time spent telling
 # drawings from page furniture extends a PDF's budget by up to PDF_DRAWING_SECONDS). This
-# limit also ends what their checks cannot interrupt, such as opening the file or one long
-# library call, and a reader that hangs, so no review worker waits forever. The margin covers
-# starting Python and lets a reader's own message come first.
+# limit also ends what their checks cannot interrupt, such as one long library call, and a
+# reader that hangs, so no review worker waits forever. It counts from when the reader is
+# ready, and again from when a reader's own budget starts (after opening the file), so the
+# margin only has to let the reader's own message come first.
 PARSER_SECONDS = {'pdf': 45 + PDF_DRAWING_SECONDS, 'png': 45, 'xlsx': 90, 'xlsm': 90, 'xls': 90, 'csv': 90}
 PARSER_MARGIN_SECONDS = 15
+# How long Python may take to start and load the reader before it is ready, apart from the
+# limit above: an antivirus scan of python.exe or a cold disk must not use up the reading's
+# time. A reader not ready by then is ended and the file is read in the server instead.
+PARSER_START_SECONDS = 30
 # What a file says when its reader was ended at that limit. A kind without a budget of its
 # own says that the file could not be read.
 PARSER_TIME_MESSAGES = {'pdf': PDF_BUDGET_MESSAGE, 'xlsx': WORKBOOK_TIME_MESSAGE, 'xlsm': WORKBOOK_TIME_MESSAGE,
                         'xls': WORKBOOK_TIME_MESSAGE}
+# What a file says when its reader process was ended by something other than this app (Task
+# Manager, a log-off, the system short of memory). Nothing says the file is at fault.
+READING_STOPPED_MESSAGE = 'Reading this file stopped before it finished. Select Retry review.'
 # The process loads this file by its path. Python starts isolated (-I), which puts neither the
 # app's folder nor the working directory on sys.path, in a checkout and a desktop release alike.
 _PARSER_BOOT = ('import importlib.util, sys\n'
@@ -2256,12 +2301,32 @@ _PARSER_BOOT = ('import importlib.util, sys\n'
                 "sys.modules['documents'] = module\n"
                 'spec.loader.exec_module(module)\n'
                 'module._parse_apart_main()\n')
+# Set in a reader process only: tells the server that a reader's own time budget has started.
+_budget_signal = None
+
+
+def _budget_started():
+    """Called by a reader as its own time budget starts. In a reader process the server then
+    counts the process's limit from here (_parse_apart): the time it took to open the file does
+    not count against it, and the reader's own message comes first. Elsewhere, nothing."""
+    if _budget_signal is not None:
+        _budget_signal()
 
 
 class ParserProcessError(Exception):
     """A reader in its own process failed in a way that must not be described here: the
     process ended without a result, or the reader raised an error whose message could
     quote the file. The file then shows the usual message for a file that cannot be read."""
+
+
+class ReadingInterrupted(ParserProcessError):
+    """A reader process ended before it finished, and this app did not end it: the system or
+    a person did. The file shows READING_STOPPED_MESSAGE and can be read again."""
+
+
+class ReadingStopped(ParserProcessError):
+    """The store ended its reader processes because the app is closing (stop_readers). The file
+    is left as it was, to be read again when the app next starts."""
 
 
 def _line(value):
@@ -2276,69 +2341,148 @@ def _end_process(child):
         pass  # It had already ended.
 
 
-def _parse_apart(path, record, slots, diagnose):
+class _Readers:
+    """The reader processes one store is running, so that a closing app can end them."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._running = set()
+        self.stopped = False
+
+    def add(self, child):
+        """Count a reader process as running. False once the store has stopped: end it."""
+        with self._lock:
+            if not self.stopped:
+                self._running.add(child)
+            return not self.stopped
+
+    def discard(self, child):
+        with self._lock:
+            self._running.discard(child)
+
+    def stop(self, wait):
+        with self._lock:
+            self.stopped = True
+            running = list(self._running)
+        for child in running:
+            _end_process(child)
+        until = time.monotonic() + wait
+        for child in running:
+            try:
+                child.wait(max(0.0, until - time.monotonic()))
+            except subprocess.TimeoutExpired:
+                pass  # The worker that started it still waits for it.
+
+
+class _ReaderClock:
+    """Ends a reader process when its time runs out. The time can be set again (restart), and
+    `expired` names the phase ('start' or 'read') whose time ran out, if one did."""
+
+    def __init__(self, child, seconds, phase):
+        self._child, self._condition = child, threading.Condition()
+        self._deadline, self._phase, self._done = time.monotonic() + seconds, phase, False
+        self.expired = None
+        threading.Thread(target=self._watch, name='document-reader-clock', daemon=True).start()
+
+    def restart(self, seconds, phase):
+        with self._condition:
+            if self.expired is None:
+                self._deadline, self._phase = time.monotonic() + seconds, phase
+                self._condition.notify()
+
+    def cancel(self):
+        with self._condition:
+            self._done = True
+            self._condition.notify()
+
+    def _watch(self):
+        with self._condition:
+            while not self._done and self._deadline > time.monotonic():
+                self._condition.wait(self._deadline - time.monotonic())
+            if self._done:
+                return
+            self.expired = self._phase
+        _end_process(self._child)
+
+
+def _parse_apart(path, record, slots, diagnose, readers=None):
     """Read a file with its reader in a separate Python process: (inventory, coverage, chunks).
 
     The result equals what the reader returns in this process, and its errors are raised
     again here: a DocumentError with its own message, an ImportError naming the missing
     module, an OSError, or ParserProcessError for any other error, without its message. A
     reader still running at its limit is ended and raises its time-limit error. One that
-    ends without a result (a crash, or the system ending it for using too much memory)
-    raises ParserProcessError. Returns None when no reader process can run on this
-    computer; the caller then reads the file itself.
+    ends without a result, and that this app did not end (a crash, a person or the system
+    ending it), raises ReadingInterrupted; one ended by `readers` being stopped raises
+    ReadingStopped. Returns None when no reader process can run on this computer, or when
+    the one that started does not run the code this process loaded; the caller then reads
+    the file itself.
     """
     kind = record['kind']
     limit = PARSER_SECONDS[kind] + PARSER_MARGIN_SECONDS  # An unsupported kind fails as it does in-process.
-    if not sys.executable or getattr(sys, 'frozen', False):
+    if not sys.executable or getattr(sys, 'frozen', False) or not _SOURCE_DIGEST:
         return None  # This Python is part of another program and cannot be started on its own.
+    readers = readers or _Readers()
     command = [sys.executable, '-I', '-B', '-c', _PARSER_BOOT, os.fspath(_long_path(Path(__file__).resolve()))]
     # The reader process looks for packages where this process does: a desktop release, a launcher
     # or a Python started without -I can have put them on sys.path.
     request = _line({'path': os.fspath(path), 'record': record,
                      'sys_path': [entry for entry in sys.path if isinstance(entry, str)]})
+    # No console window on Windows, and below normal priority there; elsewhere the reader lowers
+    # its own priority. Either way it takes no processor time that the server's requests or the
+    # window need.
+    flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0) | getattr(subprocess, 'BELOW_NORMAL_PRIORITY_CLASS', 0)
     with slots:
+        if readers.stopped:
+            raise ReadingStopped()
         try:
-            # No console window on Windows. What the reader prints is discarded: it can quote the file.
-            # Its own session: Ctrl+C in the terminal that runs the server stops the server, which
-            # leaves the file to be read again, instead of failing this reader and the file with it.
+            # What the reader prints is discarded: it can quote the file. Its own session: Ctrl+C in
+            # the terminal that runs the server stops the server, which ends this reader and leaves
+            # the file to be read again, instead of failing this reader and the file with it.
             child = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-                                     creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0), start_new_session=True)
+                                     creationflags=flags, start_new_session=True)
         except (OSError, ValueError) as error:
             diagnose('document_parser_process', stage=kind, outcome='unavailable', error_type=type(error).__name__)
             return None
-        ended = threading.Event()
-
-        def end():
-            ended.set()
+        clock = _ReaderClock(child, PARSER_START_SECONDS, 'start')
+        if not readers.add(child):
             _end_process(child)
-        timer = threading.Timer(limit, end)
-        timer.daemon = True
-        started, items, outcome = False, [], None
-        timer.start()
+        loaded, items, outcome, broken = None, [], None, False
         try:
             try:
-                child.stdin.write(request)
-                child.stdin.close()
-            except OSError:
-                pass  # It ended before reading the request; its exit says why.
-            try:
-                # 'ready' once the reader is loaded, then one line per section, then the result.
+                # 'ready' with the digest of the code it loaded, then, once it has the request, one
+                # line per section, and the result. stdin stays open until the reader has ended: the
+                # reader ends itself when it closes, that is when this process has ended.
                 for line in child.stdout:
+                    if not line.endswith(b'\n'):
+                        break  # Cut short: the process ended while it wrote.
                     value = json.loads(line.decode('utf-8', 'surrogatepass'))
-                    if not started:
-                        if value != 'ready':
+                    if loaded is None:
+                        if type(value) is not dict or not isinstance(value.get('ready'), str):
                             raise ValueError('not a reader process')
-                        started = True
+                        loaded = value['ready']
+                        if loaded != _SOURCE_DIGEST:
+                            _end_process(child)  # documents.py changed on disk after this process loaded it.
+                            break
+                        clock.restart(limit, 'read')
+                        try:
+                            child.stdin.write(request)
+                            child.stdin.flush()
+                        except OSError:
+                            pass  # It ended before reading the request; its exit says why.
+                    elif value == 'clock':
+                        clock.restart(limit, 'read')  # The reader's own budget starts now.
                     elif type(value) is list:
                         items.append({'id': value[0], 'label': value[1], 'text': value[2], 'location': value[3]})
                     else:
                         outcome = value
             except (ValueError, IndexError):
-                outcome = None  # A line cut short or out of place: nothing it sent is used.
+                outcome, broken = None, True  # A line out of place: nothing it sent is used.
                 _end_process(child)
-            code = child.wait()  # Bounded: at its limit the timer ends the process.
+            code = child.wait()  # Bounded: at its limit the clock ends the process.
         finally:
-            timer.cancel()
+            clock.cancel()
+            readers.discard(child)
             if child.poll() is None:
                 _end_process(child)
                 child.wait()
@@ -2363,28 +2507,71 @@ def _parse_apart(path, record, slots, diagnose):
             chunks.items, chunks.characters = items, outcome['characters']
             return outcome['inventory'], outcome['coverage'], chunks
         raise ParserProcessError()
-    if ended.is_set():
+    if readers.stopped:
+        raise ReadingStopped()
+    if loaded is not None and loaded != _SOURCE_DIGEST:
+        diagnose('document_parser_process', stage=kind, outcome='unavailable', reason='source_changed')
+        return None
+    if clock.expired == 'read':
         diagnose('document_parser_process', stage=kind, outcome='time_limit', timeout_seconds=int(limit))
         if kind in PARSER_TIME_MESSAGES:
             raise ExtractionError(PARSER_TIME_MESSAGES[kind])
         raise ParserProcessError()
-    if not started:
-        # Python started but could not load the reader (a locked-down or damaged installation).
-        diagnose('document_parser_process', stage=kind, outcome='unavailable', reason=f'exit_{code}')
+    if loaded is None or clock.expired == 'start':
+        # Python started but could not load the reader, or not in time (a locked-down, damaged or
+        # very slow installation).
+        diagnose('document_parser_process', stage=kind, outcome='unavailable',
+                 reason='start_time_limit' if clock.expired == 'start' else f'exit_{code}')
         return None
-    diagnose('document_parser_process', stage=kind, outcome='ended', reason=f'exit_{code}')
-    raise ParserProcessError()
+    diagnose('document_parser_process', stage=kind, outcome='ended', reason='protocol' if broken else f'exit_{code}')
+    if broken:
+        raise ParserProcessError()
+    raise ReadingInterrupted()
+
+
+def _end_with_server(descriptor):
+    """In a reader process: end it when the server's end of stdin closes, that is when the server
+    has ended, however it ended (closed, crashed or killed). Without the server nobody needs the
+    result, and the reader must not go on using a processor and holding the file open."""
+    try:
+        if os.name == 'nt':
+            # The pipe's own handle: os.read would hold the C runtime's lock on stdin while it waits.
+            import _winapi
+            import msvcrt
+            handle = msvcrt.get_osfhandle(descriptor)
+            while _winapi.ReadFile(handle, 4096)[0]:
+                pass
+        else:
+            while os.read(descriptor, 4096):
+                pass
+    except OSError:
+        pass  # The pipe is broken: the server has ended.
+    os._exit(1)
 
 
 def _parse_apart_main():
-    """The reader process of _parse_apart. Reads the request (the file's path and record, and the
-    server's sys.path) from stdin and writes 'ready', each section and then the result to stdout,
-    one JSON value a line."""
+    """The reader process of _parse_apart. Writes 'ready' with the digest of the code it loaded,
+    reads the request (the file's path and record, and the server's sys.path) as one line from
+    stdin, and writes each section and then the result to stdout, one JSON value a line."""
+    global _budget_signal
+    if hasattr(os, 'nice'):
+        try:
+            os.nice(10)  # Below normal priority (on Windows the server starts it so).
+        except OSError:
+            pass
     protocol = sys.stdout.buffer
     sys.stdout = sys.stderr  # Whatever a library prints must not land among the result's lines.
-    protocol.write(_line('ready'))
+    protocol.write(_line({'ready': _SOURCE_DIGEST}))
     protocol.flush()
-    request = json.loads(sys.stdin.buffer.read().decode('utf-8', 'surrogatepass'))
+    stdin = sys.stdin.buffer
+    request = json.loads(stdin.readline().decode('utf-8', 'surrogatepass'))
+    # The server sends nothing more; the pipe stays open while it waits for the result.
+    threading.Thread(target=_end_with_server, args=(stdin.fileno(),), name='server-watch', daemon=True).start()
+
+    def clock():
+        protocol.write(_line('clock'))
+        protocol.flush()
+    _budget_signal = clock
     sys.path[:] = request['sys_path']
     record = request['record']
     chunks = _Chunks(record)

@@ -209,6 +209,11 @@ class DocumentService:
             self._failures.clear()
             self._contexts.clear()
             self._condition.notify_all()
+        # A file being read now stays as it is and is read again at the next start: its reader
+        # process (documents._parse_apart) ends here instead of reading on for an app that is closing.
+        stop = getattr(self.store, 'stop_readers', None)
+        if callable(stop):
+            stop()
         for worker in self._workers:
             if threading.current_thread() is not worker:
                 # Let an idle worker or short local transaction settle, while never

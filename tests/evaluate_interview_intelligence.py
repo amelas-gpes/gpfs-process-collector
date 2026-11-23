@@ -25,6 +25,15 @@ def turns(*texts):
 
 
 CASES = [
+    ('issued_fee_estimate', 'Capital call', turns(
+        'Investors use the issued notice to know what to fund. We sent it with an estimated management fee of $250,000.',
+        'What happened when the fee support arrived?', 'The final support showed a fee of $225,000.'),
+     'Ask one neutral question about how the team handles the $25,000 difference. Keep the issued estimate and later supported fee distinct.'),
+    ('issued_fee_misstatement', 'Capital call', turns(
+        'The issued notice included a $250,000 management fee.',
+        'What did the notice establish for investors?',
+        'I misread the notice. It actually said $225,000 when we sent it. The amount never changed. Investors use the notice to know what to fund.'),
+     'Apply the correction and move to a different unanswered need. Do not invent an adjustment or re-ask what investors rely on.'),
     ('reconciliation', 'Monthly fund cash reconciliation', turns(
         'I prepare monthly cash reconciliations for a fund administrator. I reconcile the bank balance with our ledger, then send the file to Maya.'),
      'Clarify what reconciliation entails or how agreement is determined; do not assume a tolerance or an approval.'),

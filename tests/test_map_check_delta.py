@@ -221,6 +221,7 @@ class CheckedBesideTheDraw(unittest.TestCase):
                        "STEP_DETAIL_POLICY", "REQUIRED_DEPENDENCY_POLICY", "ARTIFACT_EVIDENCE_POLICY"):
             self.assertIn(getattr(server, policy), instructions, policy + " is missing from the background draw")
         self.assertIn("Keep an existing route label verbatim", instructions)
+        self.assertIn("what happens to the original record", instructions)
         # It returns no memo, so the memo rules are the one part it does not need.
         self.assertNotIn("In memo_findings return", instructions)
         self.assertEqual(instructions, server.WORKFLOW_MAP_INSTRUCTIONS)
@@ -228,7 +229,7 @@ class CheckedBesideTheDraw(unittest.TestCase):
         self.assertTrue(server.WORKFLOW_INSTRUCTIONS.startswith(server.ARTIFACT_EVIDENCE_POLICY + server.WORKFLOW_MAP_RULES))
         self.assertIn(server.WORKFLOW_MEMO_RULES, server.WORKFLOW_INSTRUCTIONS)
         self.assertIn("everyday_name: The everyday name people use for this work.", server.WORKFLOW_INSTRUCTIONS)
-        self.assertEqual(server.provider_usage.prompt_id(server.WORKFLOW_INSTRUCTIONS), "5ea66bd236a4ab30")
+        self.assertEqual(server.provider_usage.prompt_id(server.WORKFLOW_INSTRUCTIONS), "3960fdc19ca79312")
 
     def test_each_check_reviews_only_what_the_latest_answer_changed(self):
         self.say("u1")

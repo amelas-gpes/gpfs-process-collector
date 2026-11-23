@@ -293,6 +293,14 @@ constraints. A client name alone does not establish a difference.
 Modules may overlap. Questions apply only to material unanswered slots within
 the participant's boundary. An upstream calculation or approval is a dependency:
 capture its source, output, owner and gap; do not expand into a different process.
+
+When someone relies on a result, listen for what they can use, for what purpose,
+what establishes it and what can still change. Ask one question in their words
+only if a missing detail matters, such as how the team handles a later difference.
+Distinguish the effective date or period from when the work happens if it affects
+the result. Keep both stages of an actual change. If the speaker corrects what
+they said, revise the misstated fact.
+
 Ask a neutral exception question once if still unanswered: what most often stops
 this work or sends it back? Accept an explicit absence. Frequent reported returns
 belong in the main route without assuming every run fails.

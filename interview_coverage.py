@@ -41,7 +41,13 @@ TOPIC_DIMENSIONS = {
         "overall_role": "Role accountable for the overall result, distinguished from merely performing or reviewing a step.",
     },
     "lifecycle": {
-        "items_and_stages": "Relevant inputs, outputs, work items and their stages/statuses in the participant's words.",
+        "items_and_stages": (
+            "Relevant inputs, outputs, work items and their stages/statuses in the participant's words. "
+            "Where someone relies on a result, keep its purpose, trigger and any provisional part with that step. "
+            "For a later change, preserve what held at each point. Include the reason, who decides and who makes "
+            "the update, what happens to the original record and which downstream work changes, as reported. "
+            "Record any material gap in how the team handles the change as an open question."
+        ),
         "actions_and_rules": "Practical actions, order, dependencies and decision/branch rules.",
         "performers": "Who performs each material action.",
         "systems_and_locations": "Where items are worked on and recorded; only locations needed to understand the process.",

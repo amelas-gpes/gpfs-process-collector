@@ -28,7 +28,7 @@ if (!(Test-Path -LiteralPath $icon) -or (Get-FileHash -LiteralPath $sourceIcon).
 # Build alongside the installed host. A failed compilation cannot damage the working executable.
 $candidate = Join-Path $appDir ("ProcessCollector." + [guid]::NewGuid().ToString('N') + ".exe")
 try {
-    & $compiler /nologo /target:winexe /platform:x64 /optimize+ /codepage:65001 "/win32icon:$icon" "/out:$candidate" "/reference:$core" "/reference:$forms" /reference:System.Drawing.dll /reference:System.Windows.Forms.dll (Join-Path $PSScriptRoot 'NativeHost.cs')
+    & $compiler /nologo /target:winexe /platform:x64 /optimize+ /codepage:65001 "/win32icon:$icon" "/out:$candidate" "/reference:$core" "/reference:$forms" /reference:System.Drawing.dll /reference:System.Windows.Forms.dll (Join-Path $PSScriptRoot 'NativeHost.cs') (Join-Path $PSScriptRoot 'HostLogic.cs')
     if ($LASTEXITCODE -ne 0) { throw "Desktop host compilation failed ($LASTEXITCODE)." }
     # Validate task ownership before replacing the currently working executable.
     if (-not $BuildOnly) { & (Join-Path $PSScriptRoot 'register-updates.ps1') }

@@ -502,7 +502,7 @@ class CarriedNotesTests(unittest.TestCase):
 
 class SourceBindingTests(unittest.TestCase):
     def test_binding_follows_the_evidence_not_the_count_of_citations_left_unread(self):
-        binding = server.interview_orchestrator.Coordinator._source_binding
+        binding = server.capture_facts.source_binding
         context = {"process_name": "Invoice intake"}
         support = {"documents": [{"id": "doc_a", "name": "a.csv", "source_revision": "a" * 64,
                                   "excerpts": [{"id": "doc_a_r1_c1", "text": "One."}, {"id": "doc_a_r2_c1", "text": "Two."}]}],

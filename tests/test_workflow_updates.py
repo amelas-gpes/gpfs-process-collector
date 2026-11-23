@@ -217,7 +217,7 @@ class WorkflowUpdateTests(unittest.TestCase):
         # The transport passes the time left to its deadline. With zero simulated
         # local work we can assert the exact configured limits on every platform.
         with patch.object(server, 'time', wraps=server.time) as clock, \
-             patch.object(server, 'urlopen', side_effect=[io.BytesIO(json.dumps(provider_result).encode()),
+             patch.object(server.openai_transport, 'urlopen', side_effect=[io.BytesIO(json.dumps(provider_result).encode()),
                                                           TimeoutError('PRIVATE_AUDIT_SENTINEL')]) as network:
             clock.monotonic.return_value = 1000.0
             with self.assertRaises(server.APIError) as caught:
@@ -237,7 +237,7 @@ class WorkflowUpdateTests(unittest.TestCase):
         provider_result = {'status': 'completed', 'output': [{'content': [{'type': 'output_text', 'text': json.dumps(candidate)}]}]}
         client = server.OpenAIClient({'OPENAI_API_KEY': 'synthetic-key'})
         with patch.object(server, 'time', wraps=server.time) as clock, \
-             patch.object(server, 'urlopen', return_value=io.BytesIO(json.dumps(provider_result).encode())) as network:
+             patch.object(server.openai_transport, 'urlopen', return_value=io.BytesIO(json.dumps(provider_result).encode())) as network:
             clock.monotonic.return_value = 1000.0
             client.workflow(payload())
         network.assert_called_once()

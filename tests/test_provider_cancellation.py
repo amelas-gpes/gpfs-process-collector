@@ -16,7 +16,7 @@ from unittest.mock import patch
 from test_server import server
 
 
-class WatchedHTTPHandler(server.NamesProviderSockets, urllib.request.HTTPHandler):
+class WatchedHTTPHandler(server.openai_transport.NamesProviderSockets, urllib.request.HTTPHandler):
     """The application's own socket naming, over the plain HTTP of the loopback stand-in."""
 
 
@@ -81,7 +81,7 @@ class ProviderCancellationTests(unittest.TestCase):
         self.provider = SlowProvider()
         self.addCleanup(self.provider.close)
         self.client = server.OpenAIClient({"OPENAI_API_KEY": "sk-cancel-test-never-real"})
-        patcher = patch.object(server, "urlopen", self.provider.urlopen)
+        patcher = patch.object(server.openai_transport, "urlopen", self.provider.urlopen)
         patcher.start()
         self.addCleanup(patcher.stop)
 
@@ -151,7 +151,7 @@ class ProviderCancellationTests(unittest.TestCase):
     def test_silent_tls_handshake_can_be_cancelled_or_reach_its_deadline(self):
         # The peer accepts ClientHello but sends no handshake response. Cancellation must
         # release the request even before HTTPSConnection has returned a connected SSL socket.
-        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), server.WatchedHTTPSHandler())
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), server.openai_transport.WatchedHTTPSHandler())
         with socket.socket() as listener:
             listener.settimeout(3)
             listener.bind(("127.0.0.1", 0))
@@ -161,7 +161,7 @@ class ProviderCancellationTests(unittest.TestCase):
                 request.full_url = f"https://127.0.0.1:{listener.getsockname()[1]}/v1/responses"
                 return opener.open(request, timeout=timeout)
 
-            with patch.object(server, "urlopen", local):
+            with patch.object(server.openai_transport, "urlopen", local):
                 for cancel in (True, False):
                     with self.subTest(cancel=cancel):
                         flag = threading.Event()
@@ -239,7 +239,7 @@ class ProviderSlotTests(unittest.TestCase):
                                     client.request("responses", {"model": "offline", "input": "x"}, timeout=20)["status"]))
             except server.APIError:
                 pass
-        with patch.object(server, "urlopen", provider.urlopen):
+        with patch.object(server.openai_transport, "urlopen", provider.urlopen):
             workers = [threading.Thread(target=ask, args=(True,), daemon=True) for _ in range(3)]
             for worker in workers:
                 worker.start()

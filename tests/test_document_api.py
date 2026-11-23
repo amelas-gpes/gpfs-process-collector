@@ -391,7 +391,8 @@ class NativeDocumentProviderTests(unittest.TestCase):
 
     @unittest.skipUnless(importlib.util.find_spec('pypdf'), 'Existing PDF runtime required')
     def test_pdf_native_input_is_only_the_requested_page_with_its_exact_source(self):
-        from pypdf import PdfReader, PdfWriter
+        pdf = server.documents.pdf_reader()
+        PdfReader, PdfWriter = pdf.PdfReader, pdf.PdfWriter
         writer = PdfWriter()
         for _ in range(3):
             writer.add_blank_page(width=100, height=100)

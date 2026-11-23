@@ -6,10 +6,13 @@ formulas, embedded PDF actions, external links or uploaded code are executed.
 """
 from __future__ import annotations
 
+import base64
 import codecs
 import csv
 from contextlib import contextmanager, ExitStack
 import hashlib
+import importlib
+import importlib.metadata
 import importlib.util
 import io
 import itertools
@@ -108,11 +111,64 @@ SUPPORTED_TYPES = {'.pdf': 'application/pdf', '.png': 'image/png',
 READERS = {'pdf': ('PDF', 'pypdf', 'pypdf'), 'png': ('PNG image', 'PIL', 'Pillow'),
            'xlsx': ('Excel workbook', 'openpyxl', 'openpyxl'), 'xlsm': ('Excel workbook', 'openpyxl', 'openpyxl')}
 
+PDF_WHEEL = Path(__file__).resolve().parent / 'vendor' / 'pypdf-6.21.4-py3-none-any.whl'
+PDF_WHEEL_SHA256 = '33e4fb41ca352810eb4e9838aa0d82d6888a5f8bf682f43e99cce5faa666255c'
+_pdf_import_lock = threading.RLock()
+
+
+PDF_VERSION = '6.21.4'
+
+
+def _pdf_needs_process():
+    loaded = sys.modules.get('pypdf')
+    return loaded is not None and getattr(loaded, '__version__', None) != PDF_VERSION
+
+
+def _verified_pdf_wheel():
+    try:
+        with PDF_WHEEL.open('rb') as stream:
+            return hashlib.file_digest(stream, 'sha256').hexdigest() == PDF_WHEEL_SHA256
+    except OSError:
+        return False
+
+
+def pdf_reader():
+    """Use the pinned reader from this interpreter or the verified release wheel."""
+    with _pdf_import_lock:
+        loaded = sys.modules.get('pypdf')
+        if loaded is not None:
+            if getattr(loaded, '__version__', None) == PDF_VERSION:
+                return loaded
+            # Another caller owns these objects. Mixing submodules of different versions
+            # in one interpreter can corrupt an in-progress parse. A clean launch resolves it.
+            raise ModuleNotFoundError('An incompatible PDF reader is already loaded.', name='pypdf')
+        try:
+            installed = importlib.metadata.version('pypdf')
+        except importlib.metadata.PackageNotFoundError:
+            installed = None
+        wheel_path = str(PDF_WHEEL)
+        if installed != PDF_VERSION or wheel_path in sys.path:
+            if not _verified_pdf_wheel():
+                raise ModuleNotFoundError('The release PDF reader could not be verified.', name='pypdf')
+            # The upstream wheel contains only pypdf and its metadata. Zip import needs
+            # no extraction, site-packages write or environment changes.
+            if wheel_path not in sys.path:
+                sys.path.insert(0, wheel_path)
+        reader = importlib.import_module('pypdf')
+        if getattr(reader, '__version__', None) != PDF_VERSION:
+            raise ModuleNotFoundError('The selected PDF reader version is incompatible.', name='pypdf')
+        return reader
+
 
 def missing_reader_message(kind, module=None):
     """Fixed wording for a file kind whose reader this interpreter lacks; never a parser's own text."""
     name, expected, package = READERS[kind]
     other = module and module != expected and re.fullmatch(r'[A-Za-z0-9_]{1,60}', module)
+    if kind == 'pdf':
+        return ('This computer cannot read PDF files: it has no usable pypdf package'
+                + (f' (module {module} is missing)' if other else '')
+                + '. Restart Process Collector with a complete approved release to load its verified PDF reader. '
+                  'The original is retained.')
     return (f'This computer cannot read {name} files: the Python that runs Process Collector has no usable {package} package'
             + (f' (module {module} is missing)' if other else '') + '. Install the packages listed in requirements-documents.txt into '
             "that Python's own site-packages, then restart the app and retry. The app starts Python in isolated mode, "
@@ -120,11 +176,15 @@ def missing_reader_message(kind, module=None):
 
 
 def unavailable_readers():
-    """The file kinds this interpreter cannot read, each with its message. Nothing is imported."""
+    """List unavailable formats. Verify the selected PDF reader before offering PDF uploads."""
     missing = {}
     for kind, (_, module, _) in READERS.items():
         try:
-            found = importlib.util.find_spec(module) is not None
+            if kind == 'pdf':
+                found = (_verified_pdf_wheel() and bool(sys.executable) and not getattr(sys, 'frozen', False)
+                         if _pdf_needs_process() else pdf_reader() is not None)
+            else:
+                found = importlib.util.find_spec(module) is not None
         except (ImportError, ValueError):
             found = False
         if not found:
@@ -692,6 +752,7 @@ class DocumentStore:
         # on a computer with few processors: a reader runs below normal priority, so the server's
         # requests and the window come first, and a small file is not kept waiting behind large ones.
         self._parser_slots = threading.BoundedSemaphore(parser_processes) if parser_processes else None
+        self._pdf_slots = self._parser_slots or threading.BoundedSemaphore(1)
         self._readers = _Readers()
         # Files whose free comparison (check_extraction) lost its reader to something outside the
         # app in this run. Each is compared once more before the comparison counts as failed.
@@ -1222,10 +1283,13 @@ class DocumentStore:
         can be started on this computer, the file is read here as before, so an upload
         never depends on one.
         """
-        if self._parser_slots is not None:
-            parsed = _parse_apart(path, record, self._parser_slots, self._diagnose, self._readers)
+        isolated_pdf = record['kind'] == 'pdf' and _pdf_needs_process()
+        if self._parser_slots is not None or isolated_pdf:
+            parsed = _parse_apart(path, record, self._parser_slots or self._pdf_slots, self._diagnose, self._readers)
             if parsed is not None:
                 return parsed
+            if isolated_pdf:
+                raise ImportError(name='pypdf')
         chunks = _Chunks(record)
         inventory, coverage = globals()[PARSERS[record['kind']]](path, record, chunks)
         return inventory, coverage, chunks
@@ -1343,25 +1407,33 @@ class DocumentStore:
 
     def page_input(self, scope, document_id, page_number):
         """Internal-only native PDF page input; page_number is one-based."""
-        from pypdf import PdfReader, PdfWriter
         record = self.get(scope, document_id)
         if record['kind'] != 'pdf' or not isinstance(page_number, int) or isinstance(page_number, bool):
             raise DocumentError('Choose a PDF page by its one-based number.')
-        # Read through an open file: given a path, pypdf loads the whole file into memory for every page
-        # (69 MiB for one page of a 63 MiB PDF, sixteen pages at a time in an in-depth wave). pypdf reads
-        # objects lazily while writing, so the page is written before the file is closed.
-        with open(_long_path(self.original_path(scope, document_id)), 'rb', buffering=1 << 20) as stream:
-            reader = PdfReader(stream)
-            _open_pdf(reader)
-            if not 1 <= page_number <= min(len(reader.pages), MAX_PDF_PAGES):
-                raise DocumentError('That PDF page is unavailable.')
-            writer = PdfWriter()
-            writer.add_page(reader.pages[page_number - 1])
-            output = io.BytesIO()
-            writer.write(output)
-        if output.tell() > MAX_PDF_PAGE_BYTES:
-            raise DocumentError('This single PDF page exceeds the 16 MiB review limit. Export the page separately and attach it.')
-        return output.getvalue()
+        path = self.original_path(scope, document_id)
+        if _pdf_needs_process():
+            page = _parse_apart(path, record, self._pdf_slots, self._diagnose, self._readers, page_number=page_number)
+            if page is None:
+                raise DocumentError(missing_reader_message('pdf'))
+            return page
+        return _pdf_page(path, page_number)
+
+
+def _pdf_page(path, page_number):
+    pdf = pdf_reader()
+    # Keep the file open through writing: pypdf resolves the page's objects lazily.
+    with open(_long_path(path), 'rb', buffering=1 << 20) as stream:
+        reader = pdf.PdfReader(stream)
+        _open_pdf(reader)
+        if not 1 <= page_number <= min(len(reader.pages), MAX_PDF_PAGES):
+            raise DocumentError('That PDF page is unavailable.')
+        writer = pdf.PdfWriter()
+        writer.add_page(reader.pages[page_number - 1])
+        output = io.BytesIO()
+        writer.write(output)
+    if output.tell() > MAX_PDF_PAGE_BYTES:
+        raise DocumentError('This single PDF page exceeds the 16 MiB review limit. Export the page separately and attach it.')
+    return output.getvalue()
 
 
 def _open_pdf(reader):
@@ -1568,9 +1640,8 @@ def _pdf_page_has_drawing(page, reader, contents, text_chars, deadline):
 
 
 def _pdf(path, record, chunks):
-    from pypdf import PdfReader
-    from pypdf.errors import LimitReachedError
-    reader = PdfReader(path)
+    pdf = pdf_reader()
+    reader = pdf.PdfReader(path)
     _open_pdf(reader)
     deadline = time.monotonic() + 45
     _budget_started()
@@ -1634,7 +1705,7 @@ def _pdf(path, record, chunks):
                 drawing_seconds += spent
                 deadline += spent
             visual = bool(unread_annotations or painted)
-        except LimitReachedError:
+        except pdf.errors.LimitReachedError:
             raise ExtractionError('PDF decoded content exceeds 16 MiB per page or 128 MiB total; no partial index was published.') from None
         except DocumentError:
             raise
@@ -2512,7 +2583,7 @@ class _ReaderClock:
         _end_process(self._child)
 
 
-def _parse_apart(path, record, slots, diagnose, readers=None):
+def _parse_apart(path, record, slots, diagnose, readers=None, *, page_number=None):
     """Read a file with its reader in a separate Python process: (inventory, coverage, chunks).
 
     The result equals what the reader returns in this process, and its errors are raised
@@ -2533,7 +2604,7 @@ def _parse_apart(path, record, slots, diagnose, readers=None):
     command = [sys.executable, '-I', '-B', '-c', _PARSER_BOOT, os.fspath(_long_path(Path(__file__).resolve()))]
     # The reader process looks for packages where this process does: a desktop release, a launcher
     # or a Python started without -I can have put them on sys.path.
-    request = _line({'path': os.fspath(path), 'record': record,
+    request = _line({'path': os.fspath(path), 'record': record, 'page_number': page_number,
                      'sys_path': [entry for entry in sys.path if isinstance(entry, str)]})
     # No console window on Windows, and below normal priority there; elsewhere the reader lowers
     # its own priority. Either way it takes no processor time that the server's requests or the
@@ -2609,6 +2680,8 @@ def _parse_apart(path, record, slots, diagnose, readers=None):
             failure = OSError()
             failure.reported_type = outcome.get('type')
             raise failure
+        if error is None and page_number is not None and isinstance(outcome.get('page'), str):
+            return base64.b64decode(outcome['page'], validate=True)
         if error is None and outcome.get('sections') == len(items):
             chunks = _Chunks(record)
             chunks.items, chunks.characters = items, outcome['characters']
@@ -2643,13 +2716,18 @@ def _end_with_server(descriptor):
     try:
         if os.name == 'nt':
             try:
-                # The pipe's own handle: os.read would hold the C runtime's lock on stdin while it waits.
+                # A blocking read on this synchronous pipe also blocks native libraries
+                # inspecting stdin during import (including NumPy loaded by openpyxl).
+                # Peek without holding the pipe while idle. A broken pipe signals parent exit.
                 import _winapi
                 import msvcrt
                 handle = msvcrt.get_osfhandle(descriptor)
-                while _winapi.ReadFile(handle, 4096)[0]:
-                    pass
-                os._exit(1)
+                while True:
+                    available, _ = _winapi.PeekNamedPipe(handle, 0)
+                    if available:
+                        _winapi.ReadFile(handle, min(available, 4096))
+                    else:
+                        time.sleep(0.2)
             except OSError:
                 raise
             except Exception:
@@ -2688,6 +2766,11 @@ def _parse_apart_main():
     record = request['record']
     chunks = _Chunks(record)
     try:
+        if request.get('page_number') is not None:
+            page = _pdf_page(Path(request['path']), request['page_number'])
+            protocol.write(_line({'page': base64.b64encode(page).decode('ascii')}))
+            protocol.flush()
+            return
         inventory, coverage = globals()[PARSERS[record['kind']]](Path(request['path']), record, chunks)
         for item in chunks.items:
             protocol.write(_line([item['id'], item['label'], item['text'], item['location']]))

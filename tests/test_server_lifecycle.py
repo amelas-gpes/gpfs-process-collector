@@ -169,7 +169,7 @@ class HTTPDiagnosticTests(unittest.TestCase):
             'https://example.invalid', 503, 'Busy', {'Retry-After': '8'},
             io.BytesIO(b'{"error":{"code":"server_is_overloaded","type":"service_unavailable_error"}}'))
         payload = dict(interview_payload(), live_notes=True)
-        with patch.object(server, 'urlopen', side_effect=unavailable):
+        with patch.object(server.openai_transport, 'urlopen', side_effect=unavailable):
             status, body = self.request('/api/agent-team/interview', payload)
         self.assertEqual(status, 502)
         self.assertEqual(body['code'], 'provider_unavailable')
@@ -189,7 +189,7 @@ class HTTPDiagnosticTests(unittest.TestCase):
     def test_provider_diagnostics_use_this_servers_private_store_and_known_stage(self):
         self.client.key = 'PRIVATE_KEY_SENTINEL'
         body = {'text': {'format': {'name': 'working_process_map_audit'}}, 'input': 'PRIVATE_DOCUMENT_SENTINEL'}
-        with patch.object(server, 'urlopen', side_effect=TimeoutError('PRIVATE_PROVIDER_SENTINEL')):
+        with patch.object(server.openai_transport, 'urlopen', side_effect=TimeoutError('PRIVATE_PROVIDER_SENTINEL')):
             with self.assertRaises(server.APIError):
                 self.client.request('responses', body, timeout=240)
         event = next(item for item in self.events() if item['event'] == 'provider_request_finished')
@@ -218,7 +218,7 @@ class HTTPDiagnosticTests(unittest.TestCase):
 class LifecycleDiagnosticTests(unittest.TestCase):
     def test_standalone_clients_do_not_write_to_the_live_workspace(self):
         client = server.OpenAIClient({'OPENAI_API_KEY': 'synthetic-key'})
-        with patch.object(server, 'urlopen', return_value=io.BytesIO(b'{}')), \
+        with patch.object(server.openai_transport, 'urlopen', return_value=io.BytesIO(b'{}')), \
              patch.object(server, 'record_diagnostic') as diagnostics:
             self.assertEqual(client.request('responses', {}), {})
         diagnostics.assert_not_called()
@@ -226,7 +226,7 @@ class LifecycleDiagnosticTests(unittest.TestCase):
     def test_arbitrary_response_format_names_are_never_logged_as_stages(self):
         events = Mock()
         client = server.OpenAIClient({'OPENAI_API_KEY': 'synthetic-key'}, events)
-        with patch.object(server, 'urlopen', return_value=io.BytesIO(b'{}')):
+        with patch.object(server.openai_transport, 'urlopen', return_value=io.BytesIO(b'{}')):
             client.request('responses', {'text': {'format': {'name': 'PRIVATE_DOCUMENT_SENTINEL'}}})
         self.assertEqual(events.call_args.kwargs['stage'], 'responses')
         self.assertNotIn('PRIVATE_', repr(events.call_args))

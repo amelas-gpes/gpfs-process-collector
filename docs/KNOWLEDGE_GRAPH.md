@@ -20,6 +20,10 @@ The submitter can refresh the status of the submitted revision using a private, 
 
 ## Matching and historical records
 
+Knowledge store format 3 protects filed revisions, review history, canonical group history and historical deletion receipts. Every application connection enables SQLite triggers that reject updates, deletions and replacements of those rows. This includes rows carried forward from older stores. A correction appends a new revision. Builds supporting only formats 0–2 refuse the upgraded store.
+
+Trusted authorization integrations supply the complete principal identifier for each capability. The app accepts 1–200 printable characters with no leading or trailing whitespace. An invalid identifier grants no capability. The local-owner option conveys revision authority on the local machine and supplies no verified employee identity.
+
 When a compatible text provider is available, the background worker compares the filed revision with up to eight recent eligible processes in compatible scopes. It sends bounded participant excerpts and up to two eligible document excerpts per submission. Each proposed connection must reference both revisions and pass evidence checks before it is stored. Provider calls can incur charges. The participant can check status using their receipt.
 
 A submission filed without a provider stays on disk. On startup with a provider, the worker resumes eligible waiting or interrupted jobs, oldest first, up to its automatic attempt limit. A job that exhausts that limit reports failure on the receipt. Its filed revision stays available. **Refresh status** can also start the receipt holder’s eligible waiting job.

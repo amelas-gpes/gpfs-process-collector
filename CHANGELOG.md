@@ -1,7 +1,7 @@
 # Changelog
 
 One entry per release, newest first. A release is a commit on `main` in which `VERSION` in
-`server.py` was raised; tag that commit `v<VERSION>` and add its entry here in the same change.
+`runtime_build.py` was raised; tag that commit `v<VERSION>` and add its entry here in the same change.
 Between releases, changes are collected under "Unreleased". The release number alone does not
 identify the code that is running: Settings > Data handling, saved interviews and transcript
 exports also carry the build (a desktop release's commit, or `dev+` and a source hash for a
@@ -9,6 +9,9 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 
 ## Unreleased
 
+- Filed process revisions and their review history are protected from replacement in the local database. Opening company knowledge upgrades its format to 3. Keep a pre-upgrade backup if you may need to use an older desktop build.
+- Recovery checks consent and validates the copy on both save and restore. The desktop shell also recovers from invalid saved window coordinates.
+- PDF reading uses the reviewed pypdf 6.21.4 release. The architecture decision records the boundaries for the local provider, settings, interview rules and data stores. [Desktop architecture](docs/adr/0001-desktop-boundaries.md)
 - **Process name** now shows the recognized or edited name in Notes. **Where it applies** covers funds, clients and other entities that use the process. The naming check focuses on the name and aliases.
 - **Start talking** now asks whether you have files for the process. Go straight to the interview, or choose files and start with a question based on what they cover.
 - A topic opened from **Notes** now appears inside the Workspace panel instead of a dialog over the page, so the voice and transcript stay in view and usable. It shows the current understanding, what is still open and compact sources, and steps through the 16 topics with the arrows, the arrow keys or a strip that shows each topic's coverage. Esc returns to the list.

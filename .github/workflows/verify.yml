@@ -6,20 +6,49 @@ on:
 permissions:
   contents: read
 jobs:
-  offline:
+  frontend:
     runs-on: windows-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - name: Check Python syntax
-        shell: pwsh
-        run: python -I -B -m compileall -q -x '[/\\](work|\.local|\.git)[/\\]' .
-      - name: Run dependency-free backend regressions
-        shell: pwsh
-        run: |
-          foreach ($suite in 'test_capture_facts.py','test_process_memory.py','test_interview_coverage.py','test_workflow_components.py','test_provider_usage_metrics.py','test_provider_cancellation.py','test_document_selection_replay.py','test_route_gaps.py','test_release_boundaries.py') {
-            python -I -B -m unittest discover -s tests -p $suite
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          }
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: Run all frontend suites offline
         shell: pwsh
         run: node tests/run_all.cjs
+  backend:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check tracked files for private state and recognizable credentials
+        shell: pwsh
+        run: py -3.12 -X utf8 -I -B tests/check_release_inputs.py credentials
+      - name: Check pinned document readers for high and critical advisories
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: py -3.12 -X utf8 -I -B tests/check_release_inputs.py dependencies
+      - name: Check Python syntax
+        shell: pwsh
+        run: py -3.12 -X utf8 -I -B -m compileall -q -x '[/\\](work|\.local|\.git|\.utility-reuse)[/\\]' .
+      - name: Prepare the pinned document readers on the disposable runner
+        shell: pwsh
+        run: |
+          $wheel = (Get-Item vendor/pypdf-*.whl).FullName
+          py -3.12 -I -B -m pip --disable-pip-version-check install --only-binary=:all: --no-deps -r requirements-documents.txt $wheel
+      - name: Run all offline backend and desktop suites
+        shell: pwsh
+        run: py -3.12 -X utf8 -I -B -m unittest discover -s tests -p 'test_*.py' -v
+  offline:
+    needs: [frontend, backend]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require both Windows jobs to pass
+        env:
+          FRONTEND_RESULT: ${{ needs.frontend.result }}
+          BACKEND_RESULT: ${{ needs.backend.result }}
+        run: test "$FRONTEND_RESULT" = success && test "$BACKEND_RESULT" = success

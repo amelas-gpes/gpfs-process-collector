@@ -245,6 +245,31 @@ class ProviderBoundaryTests(unittest.TestCase):
             httpd.server_close()
             worker.join(timeout=3)
 
+    def test_keyless_provider_can_process_knowledge_matches_when_configured(self):
+        from test_knowledge_graph import payload
+        completed = threading.Event()
+
+        class IdentityProvider:
+            def browser_connect_sources(self):
+                return ()
+
+            def public_config(self):
+                return {"api_configured": True}
+
+            def structured(self, instructions, evidence, schema, name, limit):
+                self.stage = name
+                completed.set()
+                return {"proposals": []}
+
+        provider = IdentityProvider()
+        root = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        with server.InterviewServer(("127.0.0.1", 0), server.Handler, client=provider,
+                                    documents_root=root / "documents", knowledge_settings={}) as app:
+            app.knowledge.submit(payload("Publishing", "We publish approved NAV."))
+            app.knowledge.submit(payload("Reporting", "We use approved NAV."))
+            self.assertTrue(completed.wait(10))
+            self.assertEqual(provider.stage, "knowledge_connection_proposals")
+
     def test_browser_sources_reject_malformed_wildcard_and_unapproved_origins(self):
         for sources in (
             ("*",), ("wss:",), ("wss://*.openai.com",), ("https://api.openai.com",),

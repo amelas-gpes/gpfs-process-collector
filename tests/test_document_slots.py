@@ -149,15 +149,15 @@ class DocumentSlotTests(unittest.TestCase):
                                                    source_ids=pins, required_documents=[ids[2]])
         self.assertEqual(self.selected(original), {ids[0], ids[1], ids[2], *ids[4:]})
         self.assertEqual(original['omitted_documents'], 1)
-        binding = server.interview_orchestrator.Coordinator._source_binding(context, original)
+        binding = server.capture_facts.source_binding(context, original)
         shown = sorted(chunk['id'] for document in original['documents'] for chunk in document['excerpts'])
         # The confirmation pins every excerpt it was shown and words its turns differently.
         replay = self.service.supporting_context(self.scope, 'Yes uniqueword04 that is everything.',
                                                  source_ids=shown, frozen=True)
-        self.assertEqual(server.interview_orchestrator.Coordinator._source_binding(context, replay), binding)
+        self.assertEqual(server.capture_facts.source_binding(context, replay), binding)
         still_asking = self.service.supporting_context(self.scope, 'Yes uniqueword04 that is everything.',
                                                        source_ids=shown, required_documents=[ids[2]], frozen=True)
-        self.assertEqual(server.interview_orchestrator.Coordinator._source_binding(context, still_asking), binding)
+        self.assertEqual(server.capture_facts.source_binding(context, still_asking), binding)
         # Without the freeze the file left out would join and the capture would no longer match.
         unfrozen = self.service.supporting_context(self.scope, 'Yes uniqueword04 that is everything.', source_ids=shown)
         self.assertEqual(self.selected(unfrozen), set(ids))
@@ -171,7 +171,7 @@ class DocumentSlotTests(unittest.TestCase):
         cited = [self.large(f'cited-{index}.csv', f'cited{index}') for index in range(2)]
         idle = [self.large(f'idle-{index}.csv', f'idle{index}') for index in range(6)]
         context = {'process_name': 'Synthetic returns'}
-        binding = server.interview_orchestrator.Coordinator._source_binding
+        binding = server.capture_facts.source_binding
         pins = [chunk['id'] for identity in cited for chunk in self.sources(identity)[:3]]
         original = self.service.supporting_context(self.scope, 'An ordinary answer about the work.', source_ids=pins)
         files = [document['id'] for document in original['documents']]

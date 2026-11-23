@@ -9,7 +9,6 @@ import errno
 import gzip
 import importlib.util
 import inspect
-import io
 import json
 from datetime import datetime, timezone
 import math
@@ -17,7 +16,7 @@ import hashlib
 import opcode
 import os
 from pathlib import Path
-from contextlib import ExitStack, closing, contextmanager
+from contextlib import contextmanager
 import re
 import secrets
 import select
@@ -30,131 +29,12 @@ from concurrent.futures import ThreadPoolExecutor
 import time
 import unicodedata
 import uuid
-from http.client import BadStatusLine, HTTPException, HTTPSConnection, IncompleteRead, LineTooLong
+from http.client import BadStatusLine, HTTPException, IncompleteRead, LineTooLong
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.error import HTTPError, URLError
 from urllib.parse import unquote, urlsplit
-from urllib.request import HTTPRedirectHandler, HTTPSHandler, Request, build_opener
 import webbrowser
 
-class NoProviderRedirect(HTTPRedirectHandler):
-    """An authenticated API request is valid only for its original endpoint."""
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        return None
-
-
-class ProviderResponseReader(io.RawIOBase):
-    """Check cancellation between bounded socket reads, underneath HTTP's buffer."""
-    def __init__(self, sock, owner, check_active):
-        self.sock, self.owner, self.check_active = sock, owner, check_active
-        self.previous_timeout = sock.gettimeout()
-        sock.settimeout(min(.25, self.previous_timeout) if self.previous_timeout is not None else .25)
-
-    def readable(self):
-        return True
-
-    def readinto(self, buffer):
-        while True:
-            self.check_active()
-            try:
-                return self.sock.recv_into(buffer)
-            except TimeoutError:
-                # No bytes were returned by this recv. The HTTP buffer keeps everything
-                # from earlier reads, including an unfinished header or body.
-                continue
-
-    def close(self):
-        if not self.closed:
-            try:
-                self.sock.settimeout(self.previous_timeout)
-            except OSError:
-                pass
-            finally:
-                # HTTPResponse's original file keeps the transport alive after the
-                # HTTPConnection hands ownership to its response.
-                self.owner.close()
-                super().close()
-
-
-class ProviderTLSHandshake:
-    """Use the connection's TLS configuration and check cancellation while the peer negotiates."""
-    def __init__(self, context, check_active):
-        self.context = context
-        self.check_active = check_active
-
-    def wrap_socket(self, sock, **options):
-        # HTTPSConnection supplies the origin hostname, including when using a proxy tunnel.
-        transport = self.context.wrap_socket(sock, do_handshake_on_connect=False, **options)
-        try:
-            timeout = transport.gettimeout()
-            transport.settimeout(min(.25, timeout) if timeout is not None else .25)
-            while True:
-                self.check_active()
-                try:
-                    transport.do_handshake()
-                    break
-                except TimeoutError:
-                    continue
-            transport.settimeout(timeout)
-            return transport
-        except BaseException:
-            # wrap_socket transferred the descriptor; the connection still holds the detached socket.
-            transport.close()
-            raise
-
-
-class NamesProviderSockets:
-    """Names each connection's socket to the request that opened it (request.provider_sockets).
-
-    A request to the AI service that is not streamed sends nothing back until the whole
-    answer exists. Its thread waits inside urlopen for the status line, where no code of
-    this application runs. The socket named here is what lets OpenAIClient.request end that
-    wait when the request is cancelled or its time is up (see _release_on_deadline): until
-    it could, a cancelled map kept its worker and a provider slot for up to four minutes.
-    """
-    def do_open(self, http_class, req, **http_conn_args):
-        sockets = getattr(req, "provider_sockets", None)
-
-        def watched(host, **options):
-            connection = http_class(host, **options)
-            check_active = getattr(req, "check_provider_active", None)
-            if check_active is not None:
-                if isinstance(connection, HTTPSConnection):
-                    connection._context = ProviderTLSHandshake(connection._context, check_active)
-                response_type = connection.response_class
-
-                def watched_response(sock, *args, **kwargs):
-                    response = response_type(sock, *args, **kwargs)
-                    # HTTPResponse has opened its socket file but has not started parsing.
-                    # A local shutdown may leave a Windows readiness wait blocked. Check
-                    # on the reading thread even when no status line or body bytes arrive.
-                    response.fp = io.BufferedReader(ProviderResponseReader(sock, response.fp, check_active))
-                    return response
-
-                connection.response_class = watched_response
-            if sockets is not None:
-                connect = connection.connect
-
-                def connect_and_name():
-                    try:
-                        connect()
-                    finally:
-                        if connection.sock is not None:
-                            sockets.append(connection.sock)
-                connection.connect = connect_and_name
-            return connection
-        return super().do_open(watched, req, **http_conn_args)
-
-
-class WatchedHTTPSHandler(NamesProviderSockets, HTTPSHandler):
-    pass
-
-
-urlopen = build_opener(NoProviderRedirect(), WatchedHTTPSHandler()).open
-# The clock of the provider watchdog thread. It is read here once, so that a test which
-# replaces time.monotonic to walk a deadline does not hand its prepared values to that thread.
-_steady_clock = time.monotonic
-VERSION = "0.34.1"
 APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 DIAGNOSTIC_MAX_BYTES = 1024 * 1024
@@ -223,7 +103,16 @@ def local_module(name, filename):
     return sys.modules[name]
 
 
+runtime_build = local_module("runtime_build", "runtime_build.py")
+VERSION = runtime_build.VERSION
+recovery_store = local_module("recovery_store", "recovery_store.py")
+RecoveryStore = recovery_store.RecoveryStore
+RecoveryConflict = recovery_store.RecoveryConflict
+RECOVERY_DAYS = recovery_store.RECOVERY_DAYS
+RECOVERY_FORMAT = recovery_store.RECOVERY_FORMAT
+MAX_RECOVERY = recovery_store.MAX_RECOVERY
 raw_trace = local_module("raw_trace", "raw_trace.py")
+openai_transport = local_module("openai_transport", "openai_transport.py")
 provider_usage = local_module("provider_usage", "provider_usage.py")
 documents = local_module("documents", "documents.py")
 gpfs_interview = local_module("gpfs_interview", "gpfs_interview.py")
@@ -234,6 +123,11 @@ interview_coverage = local_module("interview_coverage", "interview_coverage.py")
 capture_facts = local_module("capture_facts", "capture_facts.py")
 file_parts = local_module("file_parts", "file_parts.py")
 agent_team = local_module("agent_team", "agent_team.py")
+local_module("interview_stop", "interview_stop.py")
+from interview_stop import (
+    STOP_ACKNOWLEDGEMENTS, STOP_INTENT_PATTERNS, STOP_NAMED_INTENT_PATTERNS, STOP_SIGN_OFF_PATTERN,
+    participant_requested_stop, stop_request_prefix, stop_request_text, stop_request_turn,
+)
 interview_orchestrator = local_module("interview_orchestrator", "interview_orchestrator.py")
 concurrent_interview = local_module("concurrent_interview", "concurrent_interview.py")
 knowledge_ai = local_module("knowledge_ai", "knowledge_ai.py")
@@ -2381,267 +2275,6 @@ WRAP_UP_LANGUAGE = re.compile("|".join((
 )), re.IGNORECASE)
 
 
-# Every reply the server itself gives to a stop request (the typed-turn path, the
-# Coordinator, and both variants of the response boundary below). A stop request
-# followed by one of these has been answered and is not answered again.
-STOP_ACKNOWLEDGEMENTS = (
-    "Of course. We can pause here and keep the unfinished parts open.",
-    "Of course. We can stop here. Your account is retained, with any unfinished sections still open.",
-    "Of course. We can stop here. The captured account remains available for review.",
-    "Of course. We can stop here. The unfinished sections remain open; this is a partial capture.")
-_STOP_FILLER = r"(?:okay|ok|sorry|actually|um+|uh+|er+|well|alright|all right|right|so|look|thanks|thank you)"
-_STOP_COURTESY = (r"(?:please|sorry|bye|goodbye|thanks|thank you)"
-                  r"(?: (?:very|so) much| a lot| for (?:your|the) (?:help|time|patience)| about that)?")
-_STOP_APPOINTMENT = r"(?:a|an|another|my|my next|the next) (?:meeting|call|appointment)"
-_STOP_GO = (r"i(?:(?: have|['’]ve got| have got| need) to| must) (?:go|leave|run)(?: now| soon| shortly)?"
-            r"(?: (?:to|for) " + _STOP_APPOINTMENT + r")?")
-# When the meeting or call is: 'now', 'in five minutes', 'at three'. Nothing longer
-# may follow, so 'I have a meeting with the controller before anything is released'
-# stays an answer.
-_STOP_SOON = (r"(?: (?:now|right now|soon|shortly|coming up|in (?:\w+ ){1,2}(?:minutes?|mins?|moments?)"
-              r"|at (?:\d{1,2}(?::\d\d)?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|noon)"
-              r"(?: (?:o['’]clock|am|pm))?))?")
-# The participant's own reason for leaving, as a whole clause. Anything else beside
-# an ambiguous stop word is process content ('Stop. Nothing is released until the
-# controller signs', 'Pause. My call with the custodian confirms the amount').
-_STOP_REASON = (r"(?:" + _STOP_GO +
-                r"|i(?: have|['’]ve got| have got) (?:(?:another|a|an|my next)(?: \w+)? (?:meeting|call|appointment|commitment)"
-                r"|a hard stop)" + _STOP_SOON +
-                r"|i can (?:get to|go to|make|join|take) (?:a|an|another|my|my next|the next) (?:meeting|call|appointment)"
-                r"|(?:i['’]m|i am|we['’]re|we are) (?:out of|running out of|short on) time"
-                r"|(?:i['’]m|i am) (?:running )?late(?: for (?:a|an|another|my|my next|the|the next) (?:meeting|call|appointment))?"
-                r"|my (?:next )?(?:meeting|call|appointment) (?:is (?:starting|about to start)|starts)" + _STOP_SOON +
-                r"|it['’]s getting late|something (?:urgent |important )?(?:has |just )?c[ao]me up)")
-_STOP_SOMEONE = r"my (?:boss|manager|supervisor|director|team lead|colleague|client|customer|phone)"
-# Everyday first-person reasons and parting requests, again as a whole clause.
-_STOP_PERSONAL = (
-    r"(?:(?:i['’]m|i am)(?: (?:really|very|so|too|just|quite|pretty|a bit|a little|getting|feeling)){0,3}"
-    r" (?:tired|exhausted|worn out|unwell|sick|ill|not (?:feeling|doing)(?: (?:very|too|so))? (?:well|good|great)|not well)"
-    r"|i (?:do not|don['’]t) feel (?:very |too |so )?(?:well|good|great)"
-    r"|i (?:really |just )?(?:need|want|could use|have to take|need to take) (?:a|another|five|ten|a few)"
-    r"(?: (?:short|quick|little|comfort|bathroom|lunch))? (?:break|rest|breather|minutes?|moment)"
-    r"|i (?:really |just )?(?:have|need|['’]ve got) to (?:get back to (?:work|my desk)|take (?:this|a|another) call"
-    r"|pick up (?:my|the) (?:kids?|children|son|daughter))"
-    r"|" + _STOP_SOMEONE + r"(?: is|['’]s)? (?:calling|ringing|waiting|asking|looking)(?: for)?(?: me)?(?: now| again)?"
-    r"|" + _STOP_SOMEONE + r" (?:needs|wants) me(?: now)?"
-    r"|my shift (?:is|['’]s|has) (?:over|ending|ended|finished)"
-    r"|this is taking (?:too|so|very) long"
-    r"|(?:save|keep) (?:what (?:we have|we['’]ve got|i (?:have )?said)|my (?:notes|answers)|the notes)"
-    r"|no more questions(?: (?:today|for (?:now|today)))?)")
-# 'and continue tomorrow', 'we can pick this up next week': resuming the interview
-# later. A later time is required, so 'and go back to the approval step' is not it.
-_STOP_LATER = (r"(?:later(?: on| today)?|tomorrow|another (?:time|day)|some other (?:time|day)|next (?:time|week|month)"
-               r"|(?:on|next) (?:monday|tuesday|wednesday|thursday|friday)|after (?:lunch|the break)"
-               r"|this (?:afternoon|evening)|in the (?:morning|afternoon))")
-_STOP_RESUME = (r"(?:(?:we can|can we|could we|we could|i can|i could|i['’]ll|i will|we['’]ll|we will|let['’]?s|shall we) )?"
-                r"(?:(?:continue|resume|carry on|finish|reschedule)(?: (?:this|it|that|the rest|the interview|the conversation))?"
-                r"|pick (?:this|it|that|things)(?: back)? up|pick up(?: again| where we left off)?"
-                r"|(?:come|get) back(?: to (?:this|it|that|the rest|you))?|do (?:this|the rest))(?: again)? " + _STOP_LATER)
-# The participant speaking about the conversation: 'I need to stop', 'I'd like to
-# pause'; put to the interviewer: 'let's stop', 'can we pause'; and the weaker 'we
-# need to stop', which is as often a statement about the work. 'End' and 'finish'
-# keep their narrower set of openers because 'we have to finish today' is about the work.
-_STOP_NEED = (r"(?:(?:i (?:need|want|have|would like)|i['’]d like) to (?:stop|pause)"
-              r"|(?:i (?:need|want|would like)|i['’]d like) to (?:end|finish))")
-_STOP_ASK = (r"(?:let['’]?s (?:stop|pause|end|finish)"
-             r"|(?:can|could|may|shall|should) (?:we|i)(?: please)? (?:stop|pause)"
-             r"|(?:can|could) we(?: please)? (?:end|finish))")
-_STOP_WE = r"we (?:need|have) to (?:stop|pause)"
-_STOP_INTERVIEW = r"(?:this|the|our) (?:interview|conversation)"
-# 'The session', 'the call', 'here' and 'there' can also be a thing or a point in
-# the work, so they never make a request firm.
-_STOP_SESSION = r"(?:this|the|our) (?:interview|conversation|session)"
-_STOP_CALL = r"(?:this|the|our) (?:call|meeting)"
-_STOP_WHEN = r"(?:now|right now|for now|for today|for the day|for the moment|for a (?:minute|moment))"
-_STOP_TIME_UP = r"that(?:['’]s| is) all (?:i|we) have time for(?: (?:today|now|right now))?"
-_STOP_DONE = (r"(?:(?:i['’]m|i am|we['’]re|we are) done (?:for (?:now|today|the day|the moment)"
-              r"|with (?:this|that|the|our) (?:interview|conversation|session))|(?:i['’]m|i am) done with this)")
-_STOP_OPEN = r"(?:" + _STOP_FILLER + r" ){0,4}(?:please )?"
-_STOP_AND_LATER = r"(?: (?:and|but|so)(?: then)? " + _STOP_RESUME + r")?"
-# After a firm request, the speaker can share a subject with a second verb:
-# “I need to stop now and go to a meeting.” Work destinations stay outside this list.
-_STOP_LEAVING = (r"(?:(?:go|get|head|run) to|leave for|join|attend|take) " + _STOP_APPOINTMENT +
-                 r"|get back to (?:work|my desk)|take (?:a|my) break|pick up (?:my|the) (?:kids?|children)")
-# The message is read clause by clause (see _stop_clauses); every pattern is
-# anchored to one clause, so matching stays linear in the length of the message.
-# A firm request is the participant's own ('I', 'let's', 'can we', 'please') and
-# names the interview itself or the present moment: 'I need to stop now', 'please
-# stop the interview', 'I'm done for today'. Any reason may be given with it.
-_STOP_FIRM = re.compile(
-    _STOP_OPEN + r"(?:(?:" + _STOP_NEED + r"|" + _STOP_ASK + r")(?: (?:here|there|talking))? (?:" + _STOP_INTERVIEW + r"|" + _STOP_WHEN + r")"
-    r"(?: (?:" + _STOP_INTERVIEW + r"|" + _STOP_WHEN + r"|here|there)){0,2}"
-    r"|(?:stop|pause)(?: (?:" + _STOP_WHEN + r"|here)){0,2} " + _STOP_INTERVIEW + r"(?: (?:" + _STOP_WHEN + r"|here)){0,2}"
-    r"|" + _STOP_TIME_UP +
-    r"|(?:i['’]m|i am) done (?:for (?:now|today|the moment)|with (?:this|the|our) (?:interview|conversation)))"
-    r"(?: " + _STOP_COURTESY + r")?(?: (?:because|since|so|as(?! soon\b| long\b)) .+|"
-    r" (?:and|but)(?: then)? (?:" + _STOP_REASON + r"|" + _STOP_PERSONAL + r"|" + _STOP_LEAVING + r")|"
-    + _STOP_AND_LATER + r"(?: " + _STOP_COURTESY + r")?)",
-    re.IGNORECASE)
-# Any request, including the ambiguous ones: a bare 'Stop.', 'Let's finish.', 'I
-# need to stop', 'We need to stop now', 'I'm done with this', 'I have to go'. With
-# these only a listed reason for leaving or a later time to resume may be joined.
-_STOP_SOFT_NAMED_HEAD = (
-    _STOP_NEED + r"(?: (?:" + _STOP_SESSION + r"|" + _STOP_WHEN + r"|" + _STOP_CALL + r"|here|talking)){0,3}"
-    r"|" + _STOP_ASK + r"(?: (?:" + _STOP_SESSION + r"|" + _STOP_WHEN + r"|" + _STOP_CALL + r"|here|there|talking)){0,3}"
-    r"|" + _STOP_TIME_UP + r"|" + _STOP_DONE + r"|" + _STOP_GO)
-_STOP_SOFT_TAIL = (r"(?: " + _STOP_COURTESY + r")?(?: (?:because|since|as|so) (?:" + _STOP_REASON + r"|" + _STOP_PERSONAL + r"))?" +
-                   _STOP_AND_LATER + r"(?: " + _STOP_COURTESY + r")?")
-_STOP_SOFT = re.compile(
-    _STOP_OPEN + r"(?:(?:stop|pause|" + _STOP_WE + r")(?: (?:" + _STOP_SESSION + r"|" + _STOP_WHEN + r"|here|talking)){0,3}"
-    r"|" + _STOP_SOFT_NAMED_HEAD + r")" + _STOP_SOFT_TAIL, re.IGNORECASE)
-# The same without a bare 'Stop.' or 'Pause.' and without 'we need to stop': only
-# requests that name the speaker ('I need to stop', 'can we pause', 'I have to go').
-# A courtesy said after a request is passed over only for these and the firm ones
-# (see stop_request_prefix): 'A duplicate shows up in the batch. We need to stop.
-# Okay.' is an answer.
-_STOP_SOFT_NAMED = re.compile(_STOP_OPEN + r"(?:" + _STOP_SOFT_NAMED_HEAD + r")" + _STOP_SOFT_TAIL, re.IGNORECASE)
-# Beside an ambiguous request, any other clause may only be a filler, a courtesy,
-# a reason for leaving or a later time to resume.
-_STOP_ASIDE = re.compile(
-    r"(?:" + _STOP_FILLER + r" ){0,4}(?:" + _STOP_FILLER + r"|" + _STOP_COURTESY +
-    r"|(?:(?:because|since|as|and|but|so) )?(?:" + _STOP_REASON + r"|" + _STOP_PERSONAL + r")(?: " + _STOP_COURTESY + r")?"
-    r"|(?:(?:and|but|so|maybe|perhaps) )?" + _STOP_RESUME + r"(?: please)?)", re.IGNORECASE)
-# What follows a firm request is the participant's business ('my boss is calling',
-# 'leave those gaps recorded'), unless it carries on with the work: 'I need to
-# stop now, then check the file.'
-_STOP_CONTINUES = re.compile(
-    r"(?:(?:and|but|so) )?(?:then|after that|afterwards|otherwise|or else"
-    r"|next(?! (?:time|week|month|monday|tuesday|wednesday|thursday|friday)))\b"
-    r"|and (?!i\b|i['’]|we\b|we['’]|you\b|can\b|could\b|let['’]?s\b|thank|sorry\b|my\b|please\b|maybe\b"
-    r"|that['’]s\b|it['’]s\b|this\b)", re.IGNORECASE)
-# An explicit request to the interviewer to stop recording is a control. An instruction
-# about recording a receipt or completing a process step does not match the whole clause.
-_STOP_RECORDING = re.compile(
-    r"(?:(?:can|could|would) you (?:please )?|(?:please )?)(?:stop|pause) (?:the |this )?recording(?: now)?", re.I)
-# The browser's immediate microphone cutoff is conservative: it checks a final sentence.
-# The server also recognizes multipart farewells and decides which prior testimony to keep.
-STOP_INTENT_PATTERNS = tuple("^(?:" + pattern.pattern + ")$" for pattern in (_STOP_FIRM, _STOP_SOFT, _STOP_RECORDING))
-# The requests that stand with a courtesy around them (see _STOP_SOFT_NAMED).
-STOP_NAMED_INTENT_PATTERNS = tuple("^(?:" + pattern.pattern + ")$" for pattern in (_STOP_FIRM, _STOP_SOFT_NAMED, _STOP_RECORDING))
-# A sentence that is only a courtesy or a goodbye: 'Thanks.', 'Thank you very much!',
-# 'Okay, bye.', 'Cheers.', 'Have a good day.' Said after a request to stop that names
-# the speaker, it leaves the request standing, so the request is read in the sentence
-# before it. The browser skips the same sentences (it is sent this pattern with the
-# stop patterns), so it is written in lower case and in syntax JavaScript reads the same way.
-_STOP_SIGN_OFF_GAP = r"[\s,;:…—–-]"
-_STOP_SIGN_OFF_WORD = (r"(?:okay|ok|alright|all right|great|cheers|sorry(?: about that)?|take care"
-                       r"|see you(?: (?:later|soon|next time))?|(?:talk|speak)(?: to you)? soon"
-                       r"|have a (?:good|nice|great|lovely) (?:day|one|afternoon|evening|weekend)"
-                       r"|(?:it was )?(?:nice|good|great) (?:talking|speaking) (?:to|with) you"
-                       r"|bye(?:[ -]bye| now| for now)?|goodbye"
-                       r"|(?:thanks|thank you)(?: (?:again|(?:very|so) much|a lot|for having me"
-                       r"|for (?:your|the|all (?:your|the)) (?:help|time|patience)(?: today)?)){0,2})")
-STOP_SIGN_OFF_PATTERN = (r"^" + _STOP_SIGN_OFF_GAP + r"*" + _STOP_SIGN_OFF_WORD
-                         + r"(?:" + _STOP_SIGN_OFF_GAP + r"+(?:and )?" + _STOP_SIGN_OFF_WORD + r"){0,3}"
-                         + _STOP_SIGN_OFF_GAP + r"*$")
-_STOP_SIGN_OFF = re.compile(STOP_SIGN_OFF_PATTERN, re.IGNORECASE)
-_STOP_SENTENCE_BREAK = re.compile(r"[.!?…;\n]+")
-_STOP_CLAUSE_BREAK = re.compile(r"[,()]|:(?!\d)|\s[—–-]+\s")
-
-
-def _stop_clauses(text, limit):
-    """The first clauses of a message: split at sentence ends, commas, colons, dashes and brackets."""
-    clauses = []
-    for sentence in _STOP_SENTENCE_BREAK.split(text):
-        for clause in _STOP_CLAUSE_BREAK.split(sentence):
-            clause = " ".join(clause.split())
-            if clause:
-                clauses.append(clause)
-                if len(clauses) == limit:
-                    return clauses
-    return clauses
-
-
-def stop_request_text(text, soft=_STOP_SOFT):
-    """Only a direct request to stop the interview itself.
-
-    Process instructions ('we stop the merge on an error', 'Stop and escalate to
-    the controller', 'I'm done with this when the bank confirms'), quoted text and
-    a local 'no' are not requests. A firm request stands with whatever reason or
-    parting remark is added to it, after any punctuation ('I need to stop now, my
-    boss is calling', 'I need to stop now. Leave those gaps recorded.'), unless
-    the next thing said carries on with the work ('I need to stop now, then check
-    the file'). An ambiguous one counts only when nothing but a courtesy, a
-    reason for leaving or a later time to resume comes with it: 'Stop. Nothing
-    is released until the controller signs' is an answer. With `soft` set to
-    _STOP_SOFT_NAMED, a bare 'Stop.' and 'we need to stop' are not requests.
-    """
-    clauses = _stop_clauses(text, 9)
-    requested = False
-    for index, clause in enumerate(clauses[:8]):
-        if _STOP_FIRM.fullmatch(clause) or _STOP_RECORDING.fullmatch(clause):
-            following = next((later for later in clauses[index + 1:] if not _STOP_ASIDE.fullmatch(later)), "")
-            return not _STOP_CONTINUES.match(following)
-        if soft.fullmatch(clause):
-            requested = True
-        elif not _STOP_ASIDE.fullmatch(clause):
-            return False
-    return requested and len(clauses) <= 8
-
-
-def stop_request_prefix(text):
-    """Return testimony before a closing request, an empty string for control alone, or None."""
-    if stop_request_text(text):
-        return ""
-    # Keep preceding sentences intact when the participant both reports work and asks to stop.
-    # Only the final sentence can take this shortcut, so "Stop. Then check the file" stays intact.
-    # A courtesy after a request that names the speaker ("... I need to stop now. Thanks.")
-    # is passed over: it is neither testimony nor a new request. After a bare "Stop." or
-    # "We need to stop." it is not: "The batch has a duplicate. We need to stop. Okay." is an answer.
-    body = text.rstrip(".!?…;\n ")
-    breaks = list(_STOP_SENTENCE_BREAK.finditer(body))
-    soft = _STOP_SOFT
-    while breaks and _STOP_SIGN_OFF.fullmatch(body[breaks[-1].end():].strip()):
-        body, soft = body[:breaks.pop().start()], _STOP_SOFT_NAMED
-    if soft is _STOP_SOFT_NAMED and stop_request_text(body, soft):
-        return ""
-    final = breaks[-1] if breaks else None
-    if final and stop_request_text(body[final.end():], soft):
-        return text[:final.end()].strip()
-    return None
-
-
-def _courtesy_only(text):
-    """A message that is only courtesies or goodbyes: 'Thanks.', 'Okay. Bye.'"""
-    sentences = [sentence.strip() for sentence in _STOP_SENTENCE_BREAK.split(text) if sentence.strip()]
-    return bool(sentences) and all(_STOP_SIGN_OFF.fullmatch(sentence) for sentence in sentences)
-
-
-def stop_request_turn(turns):
-    """The participant's latest turn, or the request to stop that only courtesies follow.
-
-    In live voice a thank-you said once the interviewer has answered a request to stop
-    is a turn of its own ('I need to stop now.' ... 'Thanks.'). The request was a whole
-    turn, and the page ended voice on it, so the thank-you leaves it standing.
-    """
-    said = [t for t in turns if t["role"] == "user" and not t.get("document_event")]
-    index = len(said) - 1
-    while index > 0 and _courtesy_only(said[index]["text"]):
-        index -= 1
-    if index < len(said) - 1 and stop_request_prefix(said[index]["text"]) is not None:
-        return said[index]
-    return said[-1] if said else None
-
-
-def participant_requested_stop(turns, action="answer"):
-    """Whether the participant's latest message is a request to stop that is still unanswered."""
-    # An explicit Wrap up, Skip or file follow-up is a newer instruction than an
-    # earlier request to stop: it is answered, never met with the pause reply again.
-    if action in ("close", "skip", "document_followup"):
-        return False
-    spoken = [t for t in turns if not t.get("document_event")]
-    request = stop_request_turn(spoken)
-    if request is None:
-        return False
-    last = next(index for index, turn in enumerate(spoken) if turn is request)
-    # In live voice the model's own spoken caption can already follow the request
-    # when a capture is posted, so a later interviewer turn alone does not consume
-    # it. The server's own acknowledgement does.
-    if any(t["role"] == "assistant" and t["text"].strip() in STOP_ACKNOWLEDGEMENTS for t in spoken[last + 1:]):
-        return False
-    return stop_request_prefix(spoken[last]["text"]) is not None
-
-
 def next_uncovered_question(result):
     assessments = {item["key"]: item for item in result.get("coverage_assessment", {}).get("topics", [])}
     findings = {item["key"]: item for item in result["memo_findings"]}
@@ -3127,79 +2760,14 @@ def enforce_closure(result, turns, action):
     return result
 
 
-class SettingsError(ValueError):
-    """A settings file that cannot be used, worded for the person who starts the app."""
-
-
-def read_settings_text(path):
-    """The text of a settings file, whichever way a Windows tool saved it.
-
-    Windows PowerShell 5.1 writes UTF-16 for `"KEY=value" > .env.local` and Out-File,
-    with a byte-order mark; some editors write UTF-16 without one, which shows as NUL
-    bytes (read as UTF-8, every line would then be skipped and the key silently
-    ignored). Everything else must be UTF-8. The message never quotes the file.
-    """
-    try:
-        raw = path.read_bytes()
-    except OSError:
-        raise SettingsError(f"{path.name} could not be opened. Check that the file is readable, "
-                            "then start the app again.") from None
-    try:
-        if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
-            return raw.decode("utf-16")
-        if b"\x00" in raw:
-            # ASCII text in UTF-16 has its zero bytes second (little endian) or first.
-            return raw.decode("utf-16-le" if raw[1::2].count(0) >= raw[0::2].count(0) else "utf-16-be")
-        return raw.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        raise SettingsError(f"{path.name} must be saved as UTF-8. It contains text in another encoding "
-                            "(for example an accented letter saved as ANSI). Save the file again as UTF-8, "
-                            "then start the app again.") from None
-
-
-# Settings whose empty value is a choice, not a missing one: an empty TRANSCRIPTION_KEYWORDS lists no
-# names of your own, where leaving it out uses the built-in ones.
-EMPTY_MEANS_NONE = {"TRANSCRIPTION_KEYWORDS"}
+collector_settings = local_module("collector_settings", "collector_settings.py")
+SettingsError = collector_settings.SettingsError
+whole_setting = collector_settings.whole_setting
 
 
 def load_settings():
-    # Only explicit task-local settings are read; no credential store scanning.
-    settings = {}
-    allowed = {"OPENAI_API_KEY", "INTERVIEW_MODEL", "DRAFT_MODEL", "DRAFT_AUDIT_MODEL", "DRAFT_COVERAGE_MODEL", "WORKFLOW_AUDIT_MODEL", "TRANSCRIPTION_MODEL", "TRANSCRIPTION_KEYWORDS",
-               "COLLECTOR_DEPLOYMENT_MODE", "KNOWLEDGE_LOCAL_OWNER", "AGENT_INTERVIEW_MODEL", "COLLECTOR_MODEL_REASONING", "TRANSCRIPTION_LANGUAGE", "INTERVIEW_TOKEN_CAP", "DAILY_TOKEN_CAP",
-               "AGENT_COVERAGE_MODEL", "AGENT_PROCESS_MODEL", "AGENT_DOCUMENT_MODEL", "VOICE_MODE", "VOICE_PAUSE_MS", "RAW_TRACE_MODE",
-               "COLLECTOR_PROVIDER_SLOTS", "COLLECTOR_MAP_WORKERS", "COLLECTOR_NOTES_WORKERS", "DRAFT_PREPARE", "COLLECTOR_FAST_TIER", "INTERVIEW_MEMORY_ENABLED",
-               "LIVE_CAPTION_CHECK"}
-    for path in (APP_DIR / ".env.local",):
-        if path.is_file() and not path.is_symlink():
-            for number, line in enumerate(read_settings_text(path).splitlines(), 1):
-                if not line.strip() or line.lstrip().startswith("#"):
-                    continue
-                if "=" not in line:
-                    print(f"Ignored .env.local line {number}: expected NAME=value.", file=sys.stderr)
-                    continue
-                key, value = line.split("=", 1)
-                key = key.strip().removeprefix("export ").strip()
-                if key in allowed:
-                    value = value.strip()
-                    if value.startswith(('"', "'", "“", "‘")):
-                        end = {'"': '"', "'": "'", "“": "”", "‘": "’"}[value[0]]
-                        close = value.rfind(end)
-                        if close < 1 or (value[close+1:].strip() and not value[close+1:].lstrip().startswith("#")):
-                            raise SettingsError(f"Check the closing quote on .env.local line {number}.")
-                        value = value[1:close]
-                    else:
-                        value = re.split(r"\s+#", value, 1)[0].strip()
-                    if value or key in EMPTY_MEANS_NONE:
-                        settings[key] = value
-                else:
-                    print(f"Ignored unsupported setting on .env.local line {number}.", file=sys.stderr)
-    for key in allowed:
-        raw = os.environ.get(key)
-        value = (raw or "").strip().strip("\"'“”‘’").strip()
-        if value or (raw is not None and key in EMPTY_MEANS_NONE):
-            settings[key] = value
-    return settings
+    """The source folder can differ from the private settings folder in a desktop release."""
+    return collector_settings.load_settings(APP_DIR, os.environ)
 
 
 REVIEWED_PAUSE_MS = 1800  # the pause that ends a turn in reviewed voice; it is part of every reply's wait
@@ -3230,7 +2798,7 @@ def live_caption_check(value):
         return True
     if setting in ("off", "0", "false", "no"):
         return False
-    raise SettingsError("LIVE_CAPTION_CHECK must be on or off.")
+    raise SettingsError("LIVE_CAPTION_CHECK must be on or off.", key="LIVE_CAPTION_CHECK")
 
 
 def bounded_text(value, name, limit=6000, required=False):
@@ -5422,16 +4990,6 @@ PROVIDER_FOREGROUND_RESERVE = 2
 DOCUMENT_REVIEW_WORKERS = 4
 
 
-def whole_setting(settings, name, default, lowest, highest):
-    """A whole-number setting inside its range, or the default when it is not set."""
-    value = settings.get(name)
-    if value is None or str(value).strip() == "":
-        return default
-    if not re.fullmatch(r"[0-9]{1,4}", str(value).strip()) or not lowest <= int(str(value).strip()) <= highest:
-        raise SettingsError(f"{name} must be a whole number from {lowest} to {highest}.")
-    return int(str(value).strip())
-
-
 class OutputTruncated(APIError):
     """The model's reply reached its output allowance before it finished.
 
@@ -5445,7 +5003,9 @@ class OpenAIClient:
     key_problem = ""
     request_scope = staticmethod(provider_usage.request_scope)
 
-    def __init__(self, settings, diagnostic_callback=None):
+    def __init__(self, settings, diagnostic_callback=None, *,
+                 transport: openai_transport.ProviderTransport = openai_transport.exchange):
+        self.transport = transport
         key = str(settings.get("OPENAI_API_KEY") or "").strip()
         # The key travels as an HTTP header, so only visible ASCII can be one. A
         # value that is not (an environment variable read with a line break in the
@@ -5493,7 +5053,7 @@ class OpenAIClient:
         }
         self.reasoning_mode = str(settings.get("COLLECTOR_MODEL_REASONING") or "auto").lower()
         if self.reasoning_mode not in ("auto", "on", "off"):
-            raise SettingsError("COLLECTOR_MODEL_REASONING must be auto, on or off.")
+            raise SettingsError("COLLECTOR_MODEL_REASONING must be auto, on or off.", key="COLLECTOR_MODEL_REASONING")
         # What a participant watches arrive after adding a file (the file's first review, its
         # question, the first notes and the first map from it) is asked for on the provider's
         # priority tier: the same model and request, written about twice as fast (measured 210
@@ -5501,12 +5061,12 @@ class OpenAIClient:
         # COLLECTOR_FAST_TIER=off sends these requests like every other one.
         tier = str(settings.get("COLLECTOR_FAST_TIER") or "on").strip().lower()
         if tier not in ("on", "off"):
-            raise SettingsError("COLLECTOR_FAST_TIER must be on or off.")
+            raise SettingsError("COLLECTOR_FAST_TIER must be on or off.", key="COLLECTOR_FAST_TIER")
         self.fast_tier = tier == "on"
         self._fast_tier_refused = False
         self.transcription_language = str(settings.get("TRANSCRIPTION_LANGUAGE") or "").strip().lower()
         if self.transcription_language and not re.fullmatch("[a-z]{2}", self.transcription_language):
-            raise SettingsError("TRANSCRIPTION_LANGUAGE must be a two-letter language code.")
+            raise SettingsError("TRANSCRIPTION_LANGUAGE must be a two-letter language code.", key="TRANSCRIPTION_LANGUAGE")
         self.draft_model = settings.get("DRAFT_MODEL") or self.agent_models["process_reviewer"]
         self.draft_audit_model = settings.get("DRAFT_AUDIT_MODEL") or self.draft_model
         self.draft_coverage_model = settings.get("DRAFT_COVERAGE_MODEL") or self.draft_model
@@ -5516,7 +5076,9 @@ class OpenAIClient:
         # "reviewed": every spoken line is a reviewed lead turn read by a TTS voice.
         mode = str(settings.get("VOICE_MODE") or "live").strip().lower()
         self.interview_memory_enabled = str(settings.get("INTERVIEW_MEMORY_ENABLED", "1")).strip().lower() not in ("0","false","off")
-        self.voice_mode = "reviewed" if mode in ("reviewed", "reviewed_turns", "controlled") else "live"
+        if mode not in ("live", "reviewed", "reviewed_turns", "controlled"):
+            raise SettingsError("VOICE_MODE must be live or reviewed.", reason="unknown_backend", key="VOICE_MODE")
+        self.voice_mode = "live" if mode == "live" else "reviewed"
         self.voice_pause_ms = reviewed_pause_ms(settings.get("VOICE_PAUSE_MS"))
         self.live_caption_check = live_caption_check(settings.get("LIVE_CAPTION_CHECK"))
         self.coordinator = interview_orchestrator.Coordinator(self, sys.modules[__name__])
@@ -5593,51 +5155,6 @@ class OpenAIClient:
 
     def browser_connect_sources(self):
         return ("wss://api.openai.com",)
-
-    @staticmethod
-    @contextmanager
-    def _release_on_deadline(sockets, seconds, should_abort):
-        """End a provider exchange when its time is up or it is cancelled, wherever it waits.
-
-        sockets is the list WatchedHTTPSHandler fills for this request. The watch starts
-        before the request is sent: a reply that is not streamed arrives all at once, so a
-        watch that began with the response headers (as it used to) saw a cancellation only
-        when the provider had finished anyway. A reply trickled past the deadline is ended
-        the same way. Shutting the socket makes the blocked read fail; request() already
-        reports that as cancelled or as a timeout. With a stand-in urlopen no socket is
-        ever named and this only waits to be told the exchange is over.
-        """
-        done = threading.Event()
-        end = _steady_clock() + seconds
-
-        def cancelled():
-            try:
-                return bool(should_abort and should_abort())
-            except Exception:
-                return False
-
-        def stop_exchange():
-            while not done.is_set():
-                remaining = end - _steady_clock()
-                if remaining <= 0 or cancelled():
-                    if not sockets:
-                        # Still connecting: the socket is named as soon as it exists.
-                        done.wait(.05)
-                        continue
-                    for sock in list(sockets):
-                        try:
-                            sock.shutdown(socket.SHUT_RDWR)
-                        except OSError:
-                            pass
-                    return
-                done.wait(min(.25, remaining) if should_abort else remaining)
-        watchdog = threading.Thread(target=stop_exchange, daemon=True, name="provider-read-deadline")
-        watchdog.start()
-        try:
-            yield
-        finally:
-            done.set()
-            watchdog.join(timeout=1)
 
     @staticmethod
     def _trace_response(result):
@@ -5869,10 +5386,7 @@ class OpenAIClient:
                 metrics.update(error_category=reason, status=429)
                 raise APIError(QUOTA_MESSAGE if reason == "quota" else "This request would pass the local token budget. Save your interview or adjust the limit in local settings.", 429, reason)
             try:
-                request = Request("https://api.openai.com/v1/" + path, data=data,
-                                  headers={"Content-Type": content_type}, method="POST")
-                request.add_unredirected_header("Authorization", "Bearer " + self.key)
-                with slot(), ExitStack() as stack:
+                with slot():
                     if tracing:
                         if path in ("responses", "realtime/client_secrets") and isinstance(body, dict):
                             sent = {"content": body}
@@ -5883,32 +5397,32 @@ class OpenAIClient:
                         raw_trace.emit("provider.request.dispatch", {"request_id": metrics["request_id"], "stage": stage,
                             "path": path, "byte_count": len(data), "timeout_seconds": timeout, **sent})
                     remaining = max(.01, deadline - time.monotonic())
-                    request.provider_sockets = []
-                    request.check_provider_active = check_active
-                    stack.enter_context(self._release_on_deadline(request.provider_sockets, remaining, check_abort))
                     if role_binding:
                         run, role = role_binding
                         run.start_provider_request(role, metrics.get("requested_output_token_ceiling", 0))
                         role_dispatched = True
                         metrics["role"] = role
-                    response = stack.enter_context(urlopen(request, timeout=remaining))
-                    if tracing:
-                        trace_headers(getattr(response, "status", None))
-                    check_active()
-                    if streaming:
-                        try:
-                            raw = self._read_stream(response, on_text, check_active, metrics["request_id"])
-                        except (ValueError, UnicodeError):
-                            check_active()
-                            metrics.update(error_category="invalid_response")
-                            raise APIError("The AI service returned an unreadable response. Please try again.") from None
-                    else:
-                        raw = response.read(4 * 1024 * 1024 + 1)
+                    with self.transport(
+                        path, data, key=self.key, content_type=content_type, timeout=remaining,
+                        check_active=check_active, should_abort=check_abort,
+                    ) as response:
                         if tracing:
-                            raw_trace.emit("provider.http.body_read", {"request_id": metrics["request_id"], "bytes": len(raw)})
-                        if len(raw) > 4 * 1024 * 1024:
-                            raise APIError("The AI service returned more data than this operation can accept.")
-                    check_active()
+                            trace_headers(getattr(response, "status", None))
+                        check_active()
+                        if streaming:
+                            try:
+                                raw = self._read_stream(response, on_text, check_active, metrics["request_id"])
+                            except (ValueError, UnicodeError):
+                                check_active()
+                                metrics.update(error_category="invalid_response")
+                                raise APIError("The AI service returned an unreadable response. Please try again.") from None
+                        else:
+                            raw = response.read(4 * 1024 * 1024 + 1)
+                            if tracing:
+                                raw_trace.emit("provider.http.body_read", {"request_id": metrics["request_id"], "bytes": len(raw)})
+                            if len(raw) > 4 * 1024 * 1024:
+                                raise APIError("The AI service returned more data than this operation can accept.")
+                        check_active()
             except HTTPError as error:
                 code = ""
                 error_type = ""
@@ -5923,6 +5437,8 @@ class OpenAIClient:
                     error_type = details.get("type", "") or ""
                 except (ValueError, AttributeError, OSError, HTTPException):
                     pass
+                finally:
+                    error.close()
                 category = "http_error"
                 retry_after = (error.headers or {}).get("Retry-After", "")
                 if not isinstance(retry_after, str) or not re.fullmatch(r"[0-9]{1,5}", retry_after):
@@ -6892,11 +6408,7 @@ class KnowledgeAuthorization:
     def revision_owner(self, handler):
         """Return the trusted administrator or explicit loopback owner for this request."""
         if self.trusted_authorizer is not None:
-            try:
-                identity = self.trusted_authorizer(handler, "knowledge.admin")
-                return identity.strip()[:200] if isinstance(identity, str) and identity.strip() else None
-            except Exception:
-                return None
+            return self._verified_principal(handler, "knowledge.admin")
         if (self.local_owner and handler.server.server_address[0] == "127.0.0.1"
                 and handler.client_address[0] == "127.0.0.1"):
             return "local-owner"
@@ -6904,295 +6416,20 @@ class KnowledgeAuthorization:
 
     def submitter(self, handler):
         """Return only an identity supplied by trusted server integration."""
-        if self.trusted_authorizer is not None:
-            try:
-                identity = self.trusted_authorizer(handler, "knowledge.submit")
-                if isinstance(identity, str) and identity.strip():
-                    return identity[:200]
-            except Exception:
-                pass
+        return self._verified_principal(handler, "knowledge.submit")
+
+    def _verified_principal(self, handler, capability):
+        if self.trusted_authorizer is None:
+            return None
+        try:
+            identity = self.trusted_authorizer(handler, capability)
+        except Exception:
+            return None
+        # Never derive an ownership key by shortening or trimming a different identity.
+        if (isinstance(identity, str) and 0 < len(identity) <= 200 and identity == identity.strip()
+                and identity.isprintable()):
+            return identity
         return None
-
-
-RECOVERY_FORMAT = 1
-RECOVERY_DAYS = 7
-# The largest saved interview the page opens (Open saved interview in web/app.js).
-MAX_RECOVERY = 16 * 1024 * 1024
-RECOVERY_OFF_MESSAGE = "Recovery copies are turned off in Settings. Nothing was stored."
-
-
-class RecoveryOff(Exception):
-    """The person has not turned the recovery copy on (or has turned it off again)."""
-
-
-class RecoveryConflict(Exception):
-    """The stored copy is not the one the request is about; carries its description."""
-
-    def __init__(self, summary):
-        super().__init__("Another recovery copy is stored.")
-        self.summary = summary
-
-
-def recovery_session(value):
-    """Refuse what Open saved interview in the page would refuse, before a copy is stored.
-
-    The page validates the whole interview again when a copy is restored; these are its
-    size and shape bounds, so the store never holds something the page could not open.
-    """
-    def length(text):
-        # As the page counts it (UTF-16 units), so both sides apply the same bound.
-        return len(text.encode("utf-16-le", "surrogatepass")) // 2
-
-    if not isinstance(value, dict) or value.get("schema_version") != 1:
-        raise ValueError("A recovery copy must be an interview in this app's saved format.")
-    if value.get("synthetic_example") is True:
-        raise ValueError("The fictional example is not kept as a recovery copy.")
-    context = value.get("context")
-    if not isinstance(context, dict):
-        raise ValueError("A recovery copy needs the interview context.")
-    for key, limit in (("process_name", 500), ("process_owner", 500), ("objective", 500), ("background", 8000)):
-        if context.get(key) is not None and (not isinstance(context[key], str) or length(context[key]) > limit):
-            raise ValueError("The interview context is too long to keep as a recovery copy.")
-    turns = value.get("turns")
-    if not isinstance(turns, list) or len(turns) > 400:
-        raise ValueError("A recovery copy holds at most 400 turns.")
-    seen, total = set(), 0
-    for turn in turns:
-        if not isinstance(turn, dict) or turn.get("role") not in ("user", "assistant"):
-            raise ValueError("Turns must have a user or assistant role.")
-        turn_id, text = turn.get("id"), turn.get("text")
-        if (not isinstance(turn_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", turn_id)
-                or turn_id == "context" or turn_id in seen):
-            raise ValueError("Turn IDs must be unique letters, numbers, underscores or hyphens.")
-        seen.add(turn_id)
-        if not isinstance(text, str) or length(text) > 6000:
-            raise ValueError("A turn exceeds the 6,000-character limit.")
-        total += length(text)
-    if total > 400_000:
-        raise ValueError("A recovery copy holds at most 400,000 characters of conversation.")
-    if isinstance(value.get("unsent_answer"), str) and length(value["unsent_answer"]) > 18000:
-        raise ValueError("The unsent answer is too long to keep.")
-    return value
-
-
-class RecoveryStore:
-    """One optional local copy of an unsaved interview, kept with the app's private data.
-
-    Nothing is kept unless the person turns the setting on in the page; while it is off
-    the folder does not exist. The copy is what Save copy would write. It is read only
-    by the recovery routes below: no provider request, log or other store sees it. It
-    is deleted when the page reports a confirmed save, a replaced interview or Discard,
-    when the setting is turned off, and when it is RECOVERY_DAYS old.
-
-    The folder sits beside the document and knowledge stores, so the browser launcher
-    and the desktop window (two servers on one work folder) share the setting and the
-    copy. A copy belongs to the interview that wrote it (its id): another interview
-    never replaces it, and a copy this version cannot read is reported, not overwritten.
-    """
-
-    def __init__(self, root, clock=time.time):
-        self.root = Path(root)
-        self.clock = clock
-        self._seen = None
-
-    @contextmanager
-    def _exclusive(self):
-        # Every server serving these data must perform check-and-replace as one operation.
-        # Keep this content-free lock outside the folder removed when recovery is disabled.
-        with closing(sqlite3.connect(self.root.with_suffix(".lock.sqlite3"))) as db:
-            db.execute("BEGIN IMMEDIATE")
-            yield
-
-    @property
-    def _draft(self):
-        return self.root / "draft.json"
-
-    def enabled(self):
-        try:
-            data = json.loads((self.root / "setting.json").read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            return False
-        return isinstance(data, dict) and data.get("enabled") is True
-
-    def public_state(self):
-        """For /api/config: whether to ask at all. Never any part of a copy."""
-        state = self.status()
-        return {"enabled": state["enabled"], "stored": state["draft"] is not None}
-
-    def status(self):
-        if not self.root.is_dir():
-            return {"enabled": False, "draft": None}
-        with self._exclusive():
-            return {"enabled": self.enabled(), "draft": self._summary()}
-
-    def set_enabled(self, value):
-        if value:
-            self.root.parent.mkdir(parents=True, exist_ok=True)
-        elif not self.root.is_dir():
-            return {"enabled": False, "draft": None}
-        with self._exclusive():
-            if value:
-                self.root.mkdir(parents=True, exist_ok=True)
-                self._write(self.root / "setting.json", json.dumps(
-                    {"format": RECOVERY_FORMAT, "enabled": True, "changed_at": self._stamp(self.clock())}).encode("utf-8"))
-            else:
-                # Turning the option off removes everything it kept.
-                for path in (self._draft, self.root / "setting.json", *self._leftovers()):
-                    self._remove(path)
-                try:
-                    self.root.rmdir()
-                except OSError:
-                    pass
-        return self.status()
-
-    def save(self, draft_id, session):
-        if not self.root.is_dir():
-            raise RecoveryOff(RECOVERY_OFF_MESSAGE)
-        with self._exclusive():
-            if not self.enabled():
-                raise RecoveryOff(RECOVERY_OFF_MESSAGE)
-            current = self._summary()
-            if current and current["id"] != draft_id:
-                raise RecoveryConflict(current)
-            now = self.clock()
-            record = {"format": RECOVERY_FORMAT, "id": draft_id, "saved_at": self._stamp(now), "saved_epoch": int(now),
-                      "app_version": VERSION, "session": session}
-            # surrogatepass: typed or pasted text can hold half of a character pair, and the copy must
-            # give back exactly what the page sent.
-            self._write(self._draft, json.dumps(record, ensure_ascii=False, separators=(",", ":")).encode("utf-8", "surrogatepass"))
-            self._seen = None
-        return {"id": draft_id, "saved_at": record["saved_at"]}
-
-    def load(self, draft_id=None):
-        """The stored copy, or None. A copy other than the one asked for is a conflict."""
-        if not self.root.is_dir():
-            return None
-        with self._exclusive():
-            current = self._summary()
-            if not current:
-                return None
-            if not current["readable"] or (draft_id is not None and current["id"] != draft_id):
-                raise RecoveryConflict(current)
-            record = self._record()
-        if not record:
-            return None
-        return {"id": record["id"], "saved_at": record["saved_at"], "session": record["session"]}
-
-    def discard(self, draft_id):
-        """Delete the stored copy when it is the one named; say what is stored afterwards."""
-        if not self.root.is_dir():
-            return {"enabled": False, "draft": None}
-        with self._exclusive():
-            current = self._summary()
-            if current and current["id"] == draft_id:
-                self._remove(self._draft)
-                self._seen = None
-        return self.status()
-
-    def purge(self):
-        """Server start: drop an expired copy and files an interrupted write left behind."""
-        if not self.root.is_dir():
-            return
-        try:
-            with self._exclusive():
-                for path in self._leftovers():
-                    self._remove(path)
-                self._summary()
-        except (OSError, sqlite3.Error):
-            pass
-
-    def _leftovers(self):
-        try:
-            return [path for path in self.root.iterdir() if path.suffix == ".tmp"]
-        except OSError:
-            return []
-
-    @staticmethod
-    def _stamp(moment):
-        return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(moment))
-
-    @staticmethod
-    def _remove(path):
-        try:
-            path.unlink()
-        except FileNotFoundError:
-            pass
-
-    def _write(self, path, raw):
-        """Whole file or nothing: a crash, a kill or a shutdown never leaves half a copy."""
-        pending = path.with_name(f"{path.stem}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
-        try:
-            with pending.open("wb") as output:
-                output.write(raw)
-                output.flush()
-                os.fsync(output.fileno())
-            for attempt in range(5):
-                try:
-                    os.replace(pending, path)
-                    return
-                except PermissionError:
-                    # Windows refuses while the other server on this folder reads the file.
-                    if attempt == 4:
-                        raise
-                    time.sleep(.05)
-        finally:
-            try:
-                pending.unlink()
-            except OSError:
-                pass  # Already moved into place, or removed at the next start.
-
-    def _record(self):
-        """The stored record when this version can read it, else None."""
-        try:
-            if self._draft.stat().st_size > MAX_RECOVERY + 4096:
-                return None
-            record = json.loads(self._draft.read_bytes().decode("utf-8", "surrogatepass"))
-        except (OSError, ValueError, RecursionError):
-            return None
-        if (not isinstance(record, dict) or record.get("format") != RECOVERY_FORMAT
-                or not isinstance(record.get("id"), str) or not re.fullmatch(r"[A-Za-z0-9_-]{8,64}", record["id"])
-                or not isinstance(record.get("saved_at"), str) or len(record["saved_at"]) > 40
-                or type(record.get("saved_epoch")) not in (int, float) or not isinstance(record.get("session"), dict)):
-            return None
-        return record
-
-    def _summary(self):
-        """What may be said about the stored copy without any of its text, or None."""
-        try:
-            stat = self._draft.stat()
-        except OSError:
-            return None
-        # Read the file again only when it has changed, here or through the other server.
-        key = (stat.st_mtime_ns, stat.st_size, stat.st_ino)
-        if not self._seen or self._seen[0] != key:
-            record = self._record()
-            if record:
-                session = record["session"]
-                context = session.get("context") if isinstance(session.get("context"), dict) else {}
-                derived = session.get("derived_process_title") if session.get("process_name_manual") is not True else ""
-                name = derived or context.get("process_name") or ""
-                turns = session.get("turns") if isinstance(session.get("turns"), list) else []
-                summary = {"id": record["id"], "saved_at": record["saved_at"],
-                           "process_name": (name[:180].encode("utf-8", "replace").decode("utf-8")
-                                            if isinstance(name, str) else ""),
-                           "messages": sum(1 for turn in turns if isinstance(turn, dict) and turn.get("document_event") is not True),
-                           "readable": True}
-                saved = record["saved_epoch"]
-            else:
-                # Named by the file itself, so Discard removes exactly what was described.
-                summary = {"id": "unreadable-" + hashlib.sha256(repr(key).encode("ascii")).hexdigest()[:24],
-                           "saved_at": self._stamp(stat.st_mtime), "process_name": "", "messages": 0, "readable": False}
-                saved = stat.st_mtime
-            self._seen = (key, summary, saved)
-        _, summary, saved = self._seen
-        if self.clock() - saved > RECOVERY_DAYS * 86400:
-            self._seen = None
-            try:
-                self._remove(self._draft)
-            except OSError:
-                pass  # In use just now; it is neither offered nor kept past the next look.
-            return None
-        return dict(summary)
 
 
 class PortUnavailable(OSError):
@@ -7298,12 +6535,20 @@ class InterviewServer(ThreadingHTTPServer):
                  knowledge_settings=None, knowledge_authorizer=None, knowledge_analyzer=None):
         if address[0] != "127.0.0.1":
             raise ValueError("This prototype can only bind to 127.0.0.1.")
-        settings = knowledge_settings if knowledge_settings is not None else load_settings()
-        self.client = client if client is not None else OpenAIClient(load_settings() if knowledge_settings is not None else settings)
-        self.build_id = local_module('collector_runtime_build', 'runtime_build.py').build_id(APP_DIR)
+        # Existing integrations can override knowledge/trace settings independently of the
+        # provider. A fully injected server does not consult the host's private settings.
+        runtime_settings = load_settings() if client is None or knowledge_settings is None else {}
+        settings = knowledge_settings if knowledge_settings is not None else runtime_settings
+        limits = collector_settings.ServerLimits.from_settings(
+            settings, connections=self.max_connections, busy_replies=self.busy_reply_threads,
+            document_workers=DOCUMENT_REVIEW_WORKERS)
+        self.max_connections = limits.connections
+        self.busy_reply_threads = limits.busy_replies
+        self.client = client if client is not None else OpenAIClient(runtime_settings)
+        self.build_id = runtime_build.build_id(APP_DIR)
         if isinstance(self.client, OpenAIClient):
             self.client.build_id = self.build_id
-        self.instance_id = local_module('collector_runtime_build', 'runtime_build.py').instance_id(APP_DIR)
+        self.instance_id = runtime_build.instance_id(APP_DIR)
         self._last_build_check = time.monotonic()
         self.source_changed = False
         # The "have the app files changed?" check reads every app file. It runs on its own thread from
@@ -7346,13 +6591,13 @@ class InterviewServer(ThreadingHTTPServer):
         # a voice token request at once; each is one provider-bound request. A further
         # request waits up to api_slot_wait seconds for one of these (live voice uses
         # all four around Wrap up) before it is refused; the page never retries a refusal.
-        self.api_slots = threading.BoundedSemaphore(4)
+        self.api_slots = threading.BoundedSemaphore(limits.api_slots)
         self.conversation = (concurrent_interview.ConcurrentInterview(
             self.client, sys.modules[__name__], validate_sources=self.validate_conversation_sources)
             if isinstance(self.client, OpenAIClient) else None)
-        self.upload_slots = threading.BoundedSemaphore(2)
+        self.upload_slots = threading.BoundedSemaphore(limits.uploads)
         self.connection_slots = threading.BoundedSemaphore(self.max_connections)
-        self.status_wait_slots = threading.BoundedSemaphore(6)
+        self.status_wait_slots = threading.BoundedSemaphore(limits.status_waiters)
         # A damaged store switches off the feature that needs it, with the reason: {store: sentence}.
         self.storage_problems = {}
         try:
@@ -7362,7 +6607,7 @@ class InterviewServer(ThreadingHTTPServer):
             # priority, and documents.close() ends the readers that are running as the server closes.
             self.documents_store = self._open_store("documents", files_root / "documents.sqlite3",
                                                     lambda: documents.DocumentStore(files_root,
-                                                                                    parser_processes=DOCUMENT_REVIEW_WORKERS))
+                                                                                    parser_processes=limits.document_workers))
             self.documents_unavailable = documents.unavailable_readers()
             for kind in self.documents_unavailable:
                 self.record_event("dependency_missing", reason=documents.READERS[kind][1], stage=kind)
@@ -7385,7 +6630,7 @@ class InterviewServer(ThreadingHTTPServer):
                     return self.client.analyze_document(context, record, chunks, phase, self.documents_store,
                                                         **({"on_header": on_header} if on_header and hands_over_header else {}))
                 self.documents = service.DocumentService(self.documents_store, review_document, trace=raw_trace,
-                                                         workers=DOCUMENT_REVIEW_WORKERS)
+                                                         workers=limits.document_workers)
                 if getattr(self.client, "coordinator", None) is not None:
                     # The first notes from a file read the whole file in parallel parts (file_parts.py).
                     # The sections come from the store under the interview's own document scope.
@@ -7395,8 +6640,10 @@ class InterviewServer(ThreadingHTTPServer):
                     self.client.document_sections = document_sections
             self.knowledge_auth = KnowledgeAuthorization(settings, knowledge_authorizer)
             graph = local_module("knowledge_graph", "knowledge_graph.py")
-            if knowledge_analyzer is None and getattr(self.client, "key", None) and callable(getattr(self.client, "structured", None)):
-                knowledge_analyzer = knowledge_ai.build_analyzer(self.client)
+            if knowledge_analyzer is None and callable(getattr(self.client, "structured", None)):
+                # A managed-identity provider can be ready without holding an API key.
+                if self.client.public_config().get("api_configured") is True:
+                    knowledge_analyzer = knowledge_ai.build_analyzer(self.client)
             base = Path(knowledge_root) if knowledge_root else (Path(documents_root).parent / "knowledge" if documents_root else APP_DIR / "work" / "knowledge")
             with raw_trace.bind(self.trace, build=self.build_id):
                 self.knowledge = self._open_store("knowledge", base / "knowledge.sqlite3", lambda: graph.KnowledgeGraph(
@@ -7590,7 +6837,7 @@ class InterviewServer(ThreadingHTTPServer):
         with document_storage():
             current = self.documents.supporting_context(scope, query, source_ids=source_ids,
                                                         **(selection[0] if selection else {}))
-        return interview_orchestrator.Coordinator._source_binding(context, current) == original_binding
+        return capture_facts.source_binding(context, current) == original_binding
 
     source_check_seconds = 5
 
@@ -7611,11 +6858,10 @@ class InterviewServer(ThreadingHTTPServer):
 
     def _check_source(self):
         try:
-            build = local_module("collector_runtime_build", "runtime_build.py")
             # Read every file again only when one of them looks different (about 60 stat calls).
-            stamp = build.source_stamp(APP_DIR)
+            stamp = runtime_build.source_stamp(APP_DIR)
             if stamp != getattr(self, "_source_stamp", None):
-                self.source_changed = build.build_id(APP_DIR) != self.build_id
+                self.source_changed = runtime_build.build_id(APP_DIR) != self.build_id
                 self._source_stamp = stamp
         except Exception:
             pass  # The last answer stands; a failed check is not a reason to ask for a restart.
@@ -7950,6 +7196,7 @@ class Handler(BaseHTTPRequestHandler):
                            "documents": {"enabled": "documents" not in storage_problems,
                                          "max_file_bytes": documents.MAX_FILE_BYTES,
                                          "max_files": documents.MAX_FILES_PER_SCOPE,
+                                         "pdf_reader_version": None if "pdf" in unreadable else documents.PDF_VERSION,
                                          "types": [kind for kind in ("pdf", "png", "xlsx", "xlsm", "csv") if kind not in unreadable],
                                          "unavailable": unreadable}})
             # build, release_commit, release_staged_at: which code this is (Settings, saved files, exports).
@@ -8278,7 +7525,7 @@ class Handler(BaseHTTPRequestHandler):
                             # rank excerpts by the query this request was retrieved with.
                             payload["_document_retrieval"] = {"query": query, "source_ids": list(source_ids)}
                         document_snapshot = (scope, query, source_ids, context,
-                            interview_orchestrator.Coordinator._source_binding(context, supporting),
+                            capture_facts.source_binding(context, supporting),
                             selection)
                         # Cited excerpts that this request could not carry stay on the
                         # server: they keep earlier citations valid and are never sent
@@ -8379,7 +7626,7 @@ class Handler(BaseHTTPRequestHandler):
                     # and not as an unexplained 500 after the provider has already answered.
                     with document_storage():
                         current = self.server.documents.supporting_context(scope, query, source_ids=source_ids, **selection)
-                    unchanged = (interview_orchestrator.Coordinator._source_binding(context, current) == original_binding)
+                    unchanged = (capture_facts.source_binding(context, current) == original_binding)
                 except (PermissionError, documents.DocumentError):
                     unchanged = False
                 if not unchanged:
@@ -8676,9 +7923,7 @@ class Handler(BaseHTTPRequestHandler):
             if path.endswith("/status"):
                 return self._json(store.status())
             if path.endswith("/setting"):
-                if not isinstance(payload.get("enabled"), bool):
-                    raise ValueError("Choose whether a recovery copy is kept.")
-                return self._json(store.set_enabled(payload["enabled"]))
+                return self._json(store.set_enabled(payload.get("enabled")))
             draft_id = payload.get("id")
             if path.endswith("/load"):
                 if draft_id is not None:
@@ -8691,11 +7936,9 @@ class Handler(BaseHTTPRequestHandler):
             draft_id = bounded_text(draft_id, "Recovery copy ID", 80, True)
             if path.endswith("/discard"):
                 return self._json(store.discard(draft_id))
-            if not re.fullmatch(r"[A-Za-z0-9_-]{8,64}", draft_id) or draft_id.startswith("unreadable-"):
-                raise ValueError("The recovery copy ID is not valid.")
-            return self._json(store.save(draft_id, recovery_session(payload.get("session"))))
-        except RecoveryOff:
-            self._json({"error": RECOVERY_OFF_MESSAGE, "enabled": False}, 409)
+            return self._json(store.save(draft_id, payload.get("session")))
+        except recovery_store.RecoveryOff:
+            self._json({"error": recovery_store.RECOVERY_OFF_MESSAGE, "enabled": False}, 409)
         except RecoveryConflict as conflict:
             self._json({"error": "A different recovery copy is stored on this computer. It was left as it is.",
                         "draft": conflict.summary}, 409)

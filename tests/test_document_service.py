@@ -11,7 +11,7 @@ from unittest.mock import patch
 spec = importlib.util.spec_from_file_location('collector_document_service', Path(__file__).resolve().parents[1] / 'document_service.py')
 service_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(service_module)
-from documents import DocumentStore
+from documents import DocumentStore, pdf_reader
 
 
 def response(chunks, relevance='relevant'):
@@ -694,7 +694,7 @@ class DocumentServiceTests(unittest.TestCase):
         # page whose reading came back empty. The page is now recorded as unread and the
         # review ends; it is still not counted as read, and polling still pays for nothing.
         import io
-        from pypdf import PdfWriter
+        PdfWriter = pdf_reader().PdfWriter
         writer = PdfWriter()
         writer.add_blank_page(width=100, height=100)
         writer.add_blank_page(width=100, height=100)
@@ -743,7 +743,7 @@ class DocumentServiceTests(unittest.TestCase):
         self.assertEqual(self.store.original_path(self.scope, record['id']).read_bytes(), data.getvalue())
 
     def test_native_visual_batches_are_single_source_and_every_page_becomes_searchable(self):
-        from pypdf import PdfWriter
+        PdfWriter = pdf_reader().PdfWriter
         import io
         writer = PdfWriter()
         for _ in range(3):

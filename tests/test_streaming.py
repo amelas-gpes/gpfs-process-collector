@@ -76,19 +76,19 @@ class StreamParsingTests(unittest.TestCase):
     def test_request_streams_only_when_an_observer_is_supplied(self):
         client = server.OpenAIClient({"OPENAI_API_KEY": "sk-synthetic-stream-never-real"})
         lines = sse([delta('{"question": "What starts it?"'), {"type": "response.completed", "response": FINAL}])
-        with patch.object(server, "urlopen", return_value=FakeResponse(lines)) as opened:
+        with patch.object(server.openai_transport, "urlopen", return_value=FakeResponse(lines)) as opened:
             result = client.request("responses", {"model": "m"}, on_text=lambda text: True)
         self.assertEqual(result, FINAL)
         self.assertIs(json.loads(opened.call_args.args[0].data)["stream"], True)
         plain = FakeResponse([])
         plain.read = lambda _size: json.dumps(FINAL).encode()
-        with patch.object(server, "urlopen", return_value=plain) as opened:
+        with patch.object(server.openai_transport, "urlopen", return_value=plain) as opened:
             self.assertEqual(client.request("responses", {"model": "m"}), FINAL)
         self.assertNotIn("stream", json.loads(opened.call_args.args[0].data))
 
     def test_unreadable_stream_is_a_retained_provider_error(self):
         client = server.OpenAIClient({"OPENAI_API_KEY": "sk-synthetic-stream-never-real"})
-        with patch.object(server, "urlopen", return_value=FakeResponse(sse([delta("a")]))):
+        with patch.object(server.openai_transport, "urlopen", return_value=FakeResponse(sse([delta("a")]))):
             with self.assertRaises(server.APIError) as caught:
                 client.request("responses", {"model": "m"}, on_text=lambda text: False)
         self.assertIn("unreadable", str(caught.exception))

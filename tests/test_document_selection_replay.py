@@ -44,7 +44,7 @@ class DocumentSelectionReplayTests(unittest.TestCase):
         self.assertEqual(store.get(scope, file_id)["analysis"]["phase"], "complete")
 
     def test_changed_evidence_or_file_availability_invalidates_an_inflight_response(self):
-        bind = server.interview_orchestrator.Coordinator._source_binding
+        bind = server.capture_facts.source_binding
         original = {"id": "doc_one", "source_revision": "v1", "disposition": "relevant",
                     "excerpts": [{"id": "chunk1", "text": "The clerk logs the invoice."}],
                     "review": {"phase": "deep", "review_stopped": False, "unread_visual_units": 1, "limitations": []}}
@@ -61,7 +61,7 @@ class DocumentSelectionReplayTests(unittest.TestCase):
     def test_source_recheck_passes_the_selection_options_of_the_snapshot(self):
         context = self.client.payload()["context"]
         original = {"documents": [], "source_revision": "one"}
-        binding = server.interview_orchestrator.Coordinator._source_binding(context, original)
+        binding = server.capture_facts.source_binding(context, original)
         for options in ({"required_documents": ["doc_unread"]}, {"frozen": True},
                         {"frozen": True, "required_documents": ["doc_unread"]}, {}):
             payload = {"_conversation_document_snapshot": ("scope", "query", ["source"], context, binding, options)}

@@ -23,7 +23,7 @@ from test_rejected_requests import exchange
 MIB = 1024 * 1024
 KEY = "sk-test-stress-fixes-never-real"
 BUSY = "Several requests are already processing. Wait for them to finish."
-runtime_build = server.local_module("collector_runtime_build", "runtime_build.py")
+runtime_build = server.runtime_build
 
 
 class StubClient:
@@ -80,7 +80,7 @@ class UnreadableRecording(unittest.TestCase):
         details = json.dumps({"error": {"code": code, "type": "invalid_request_error", "message": "Synthetic"}}).encode()
         error = urllib.error.HTTPError("https://api.openai.com/v1/audio/transcriptions", 400, "Bad Request", {},
                                        io.BytesIO(details))
-        with patch.object(server, "urlopen", side_effect=error) as network:
+        with patch.object(server.openai_transport, "urlopen", side_effect=error) as network:
             with self.assertRaises(server.APIError) as caught:
                 client.transcribe(b"x" * 200, "audio/webm")
         network.assert_called_once()

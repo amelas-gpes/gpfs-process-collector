@@ -1,10 +1,4 @@
-"""The window host's own rules (desktop/NativeHost.cs, class HostLogic), exercised without a window.
-
-The host is never started by the suite: it opens a window, a browser profile and a local service.
-Its decisions that need none of those live in the static class HostLogic. This file compiles
-NativeHost.cs together with tests/desktop_host_checks.cs, a console front end whose own Main is
-selected (/main:HostChecks), and asks that program questions. Program.Main and the form never run.
-"""
+"""Exercise the desktop host's decision rules without opening a window or loading WebView2."""
 import os
 from pathlib import Path
 import re
@@ -23,20 +17,14 @@ BUILT = {}
 
 def setUpModule():
     compiler = Path(os.environ.get("WINDIR", r"C:\Windows")) / "Microsoft.NET" / "Framework64" / "v4.0.30319" / "csc.exe"
-    sdk = Path.home() / ".nuget" / "packages" / "microsoft.web.webview2" / "1.0.4258.31" / "lib" / "net462"
-    references = [sdk / "Microsoft.Web.WebView2.Core.dll", sdk / "Microsoft.Web.WebView2.WinForms.dll"]
-    if not compiler.is_file() or not all(reference.is_file() for reference in references):
-        return  # HostRules skips: the .NET Framework C# compiler or the WebView2 SDK is not on this computer.
+    if not compiler.is_file():
+        return
     scratch = tempfile.TemporaryDirectory()
     unittest.addModuleCleanup(scratch.cleanup)
     program = Path(scratch.name) / "host-checks.exe"
-    # The host's own source and switches (desktop/install.ps1), as a console program with
-    # the checks' entry point. The WebView2 libraries are needed to compile, never loaded.
     result = subprocess.run(
         [str(compiler), "/nologo", "/target:exe", "/main:HostChecks", "/platform:x64", "/optimize+", "/codepage:65001",
-         "/out:" + str(program), *("/reference:" + str(reference) for reference in references),
-         "/reference:System.Drawing.dll", "/reference:System.Windows.Forms.dll",
-         str(DESKTOP / "NativeHost.cs"), str(CHECKS)],
+         "/out:" + str(program), "/reference:System.Drawing.dll", str(DESKTOP / "HostLogic.cs"), str(CHECKS)],
         capture_output=True, stdin=subprocess.DEVNULL, timeout=300)
     BUILT["report"] = (result.stdout + result.stderr).decode(errors="replace")
     if not result.returncode and program.is_file():
@@ -48,7 +36,7 @@ class HostRules(unittest.TestCase):
 
     def setUp(self):
         if "report" not in BUILT:
-            self.skipTest("the .NET Framework C# compiler or the WebView2 SDK is not on this computer")
+            self.skipTest("the Windows .NET Framework C# compiler is unavailable")
         self.assertIn("program", BUILT, "The window host's rules did not compile:\n" + BUILT["report"])
         self.assertNotIn("warning", BUILT["report"].lower(), BUILT["report"])
         self.program = BUILT["program"]
@@ -177,7 +165,8 @@ class WindowPlacement(HostRules):
                     "200 100 1300 900 2 96", "200 100 1300 900 0 0", "200 100 1300 900 0 95", "200 100 1300 900 0 5000",
                     "200 100 0 900 0 96", "200 100 1300 -900 0 96", "200 100 1300.5 900 0 96", "2e2 100 1300 900 0 96",
                     "200  100 1300 900 0 96", "200,100,1300,900,0,96", "99999999999 100 1300 900 0 96",
-                    "200 100 999999 900 0 96", "0x10 100 1300 900 0 96", "{\"left\": 200}"]
+                    "200 100 999999 900 0 96", "-2147483648 100 1300 900 0 96", "100 -2147483648 1300 900 0 96",
+                    "0x10 100 1300 900 0 96", "{\"left\": 200}"]
         self.assertEqual(self.ask(*(("recall", text, main) for text in unusable)), ["none"] * len(unusable))
         # With no monitor described, nothing can be recalled either.
         self.assertEqual(self.ask(("recall", "200 100 1300 900 0 96", "")), ["none"])

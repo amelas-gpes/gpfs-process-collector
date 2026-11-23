@@ -23,7 +23,7 @@ from test_server import server
 from test_rejected_requests import exchange
 
 KEY = "sk-test-caption-check-never-real"
-runtime_build = server.local_module("collector_runtime_build", "runtime_build.py")
+runtime_build = server.runtime_build
 
 
 def page_wav(samples):

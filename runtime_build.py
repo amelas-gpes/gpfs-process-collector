@@ -4,6 +4,9 @@ import os
 from pathlib import Path
 
 
+VERSION = "0.34.1"
+
+
 def instance_id(root):
     """Distinguish identical builds launched from different workspaces."""
     return hashlib.sha256(os.fsencode(os.path.normcase(str(Path(root).resolve())))).hexdigest()
@@ -27,13 +30,14 @@ def source_files(root):
     root = Path(root)
     files = [root / name for name in (
         'server.py', 'draft_audit.py', 'provider_schema.py', 'provider_usage.py', 'raw_trace.py', 'launcher.py', 'runtime_build.py', 'documents.py',
-        'document_service.py', 'knowledge_graph.py', 'knowledge_ai.py',
-        'gpfs_interview.py', 'interview_coverage.py', 'agent_team.py', 'interview_orchestrator.py', 'capture_facts.py', 'file_parts.py', 'concurrent_interview.py', 'prompt_catalog.py', 'FOUNDATION.md')]
+        'document_service.py', 'knowledge_graph.py', 'knowledge_ai.py', 'openai_transport.py',
+        'interview_stop.py', 'recovery_store.py', 'collector_settings.py', 'gpfs_interview.py', 'interview_coverage.py', 'agent_team.py', 'interview_orchestrator.py', 'capture_facts.py', 'file_parts.py', 'concurrent_interview.py', 'prompt_catalog.py', 'FOUNDATION.md')]
     # Never include settings, saved interviews, private stores, logs, or Git data. The page files are
     # exactly the ones the server serves (its STATIC_FILES; a test keeps the two equal), not whatever
     # lies in web/: a stray copy such as an iCloud "app 2.js" is never served, so it must neither change
     # the build nor make a running server report that its files have changed.
     files.extend(root / 'web' / name for name in WEB_FILES)
+    files.append(root / 'vendor' / 'pypdf-6.21.4-py3-none-any.whl')
     return sorted(files)
 
 
@@ -56,10 +60,9 @@ def build_id(root):
     for path in source_files(root):
         digest.update(path.relative_to(root).as_posix().encode('utf-8') + b'\0')
         try:
-            # Every hashed file is text. Git checks one commit out with CRLF or LF line
-            # ends depending on the computer and always archives it with LF, so a working
-            # tree and a desktop release of the same commit must hash alike.
-            digest.update(path.read_bytes().replace(b'\r\n', b'\n'))
+            # Git may check text out with CRLF while archiving it with LF. The wheel is binary.
+            raw = path.read_bytes()
+            digest.update(raw if path.suffix == '.whl' else raw.replace(b'\r\n', b'\n'))
         except OSError:
             digest.update(b'<unavailable>')
         digest.update(b'\0')

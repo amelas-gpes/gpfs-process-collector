@@ -47,7 +47,7 @@ RELATIONSHIPS = frozenset(('provides_input_to', 'produces', 'consumes', 'hands_o
 # before it was recorded). Raise the second number with any change an older build would
 # misread. Keep this line a plain literal: desktop/manage.py reads it from an unpacked build
 # without running it, so that the window never gives newer data to an older build.
-STORE_FORMATS = (0, 2)
+STORE_FORMATS = (0, 3)
 
 class StoredScopeDigest(str):
     # Internal resolver credential. JSON request strings can never acquire this type.
@@ -344,6 +344,9 @@ class KnowledgeGraph:
                    if stored > STORE_FORMATS[1] else 'It is too old for this build to upgrade.')
                 + ' Nothing was changed.')
         self.db.execute('PRAGMA foreign_keys=ON')
+        # INSERT OR REPLACE deletes its conflicting row. SQLite only runs that row's
+        # DELETE trigger when recursive triggers are enabled on the writer.
+        self.db.execute('PRAGMA recursive_triggers=ON')
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.execute('PRAGMA secure_delete=ON')
         self.db.executescript('''
@@ -375,6 +378,15 @@ class KnowledgeGraph:
         ''')
         with self.db:
             self.db.execute("INSERT OR IGNORE INTO private_meta(key,value) VALUES ('status_secret',?)",(secrets.token_bytes(32),))
+            # Guard historical business records at the same boundary used by migrations,
+            # background jobs and filing. Live jobs and proposal status remain mutable.
+            for table in ('revisions', 'review_history', 'canonical_history', 'deletions'):
+                for operation in ('update', 'delete'):
+                    self.db.execute(f"""
+                        CREATE TRIGGER IF NOT EXISTS {table}_no_{operation}
+                        BEFORE {operation} ON {table}
+                        BEGIN SELECT RAISE(ABORT, 'Filed history is append-only'); END
+                    """)
             self.status_secret=bytes(self.db.execute("SELECT value FROM private_meta WHERE key='status_secret'").fetchone()['value'])
             group_columns={row['name'] for row in self.db.execute('PRAGMA table_info(canonical_groups)')}
             if 'status' not in group_columns: self.db.execute("ALTER TABLE canonical_groups ADD COLUMN status TEXT NOT NULL DEFAULT 'active'")

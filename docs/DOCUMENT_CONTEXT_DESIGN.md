@@ -100,7 +100,7 @@ On parser or provider failure, retain the original, current indexed sources and 
 | PDF decoded content | 16 MiB per page, 128 MiB total |
 | PNG | 40 million pixels, plus original-file and provider limits |
 
-`requirements-documents.txt` specifies pypdf 6.10.0, openpyxl 3.1.5 and Pillow 13.0.0 and et_xmlfile 2.0.0. SQLite/FTS5, CSV and ZIP support come from Python's standard library. Legacy XLS conversion is required when the optional xlrd reader is unavailable.
+`requirements-documents.txt` pins the supported PDF, spreadsheet and image readers. The hosted CI suite exercises those versions on Python 3.12. SQLite/FTS5, CSV and ZIP support come from Python's standard library. Legacy XLS conversion is required when the optional xlrd reader is unavailable.
 
 ## Deferred capabilities and verification
 

@@ -969,7 +969,7 @@ class DesktopHostSources(unittest.TestCase):
                  "/win32icon:" + str(DESKTOP / "ProcessCollector.ico"), "/out:" + str(Path(scratch) / "host.exe"),
                  *("/reference:" + str(reference) for reference in references),
                  "/reference:System.Drawing.dll", "/reference:System.Windows.Forms.dll",
-                 str(DESKTOP / "NativeHost.cs")],
+                 str(DESKTOP / "NativeHost.cs"), str(DESKTOP / "HostLogic.cs")],
                 capture_output=True, stdin=subprocess.DEVNULL, timeout=300)
             report = (result.stdout + result.stderr).decode(errors="replace")
             self.assertEqual(result.returncode, 0, report)

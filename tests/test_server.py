@@ -659,7 +659,7 @@ class UpstreamErrorTests(unittest.TestCase):
             with self.subTest(category=category, failure=type(failure).__name__):
                 diagnostics = Mock()
                 client = server.OpenAIClient({"OPENAI_API_KEY": "PRIVATE_KEY_SENTINEL"}, diagnostics)
-                with patch.object(server, "urlopen", side_effect=failure) as network:
+                with patch.object(server.openai_transport, "urlopen", side_effect=failure) as network:
                     with self.assertRaises(server.APIError) as caught:
                         client.request("responses", {"text": {"format": {"name": "working_process_map_audit"}},
                                                      "input": "PRIVATE_DOCUMENT_SENTINEL"}, timeout=240)
@@ -684,7 +684,7 @@ class UpstreamErrorTests(unittest.TestCase):
         response.__enter__.return_value = response
         response.read.side_effect = TimeoutError("PRIVATE_RESPONSE_SENTINEL")
         client = server.OpenAIClient({"OPENAI_API_KEY": "synthetic-key"})
-        with patch.object(server, "urlopen", return_value=response) as network:
+        with patch.object(server.openai_transport, "urlopen", return_value=response) as network:
             with self.assertRaises(server.APIError) as caught:
                 client.request("responses", {}, timeout=240)
         self.assertEqual(caught.exception.status, 504)
@@ -696,7 +696,7 @@ class UpstreamErrorTests(unittest.TestCase):
     def test_successful_provider_call_remains_successful_when_diagnostics_fail(self):
         diagnostics = Mock(side_effect=OSError("PRIVATE_DIAGNOSTIC_SENTINEL"))
         client = server.OpenAIClient({"OPENAI_API_KEY": "synthetic-key"}, diagnostics)
-        with patch.object(server, "urlopen", return_value=io.BytesIO(b'{"ok": true}')):
+        with patch.object(server.openai_transport, "urlopen", return_value=io.BytesIO(b'{"ok": true}')):
             self.assertEqual(client.request("responses", {}), {"ok": True})
         self.assertEqual(diagnostics.call_args.kwargs["outcome"], "success")
         self.assertEqual(diagnostics.call_args.kwargs["status"], 200)
@@ -707,7 +707,7 @@ class UpstreamErrorTests(unittest.TestCase):
                              "message": "Synthetic exhausted-credit response"}}
         error = urllib.error.HTTPError("https://api.openai.com/v1/responses", 429, "Too Many Requests", {},
                                        io.BytesIO(json.dumps(details).encode()))
-        with patch.object(server, "urlopen", side_effect=error) as network:
+        with patch.object(server.openai_transport, "urlopen", side_effect=error) as network:
             with self.assertRaises(server.APIError) as caught:
                 client.request("responses", {"model": "synthetic-test"})
         network.assert_called_once()
@@ -1103,7 +1103,7 @@ class HTTPBoundaryTests(unittest.TestCase):
             request = urllib.request.Request(
                 f"http://127.0.0.1:{httpd.server_port}/api/voice-session", data=b'{"voice": "marin"}',
                 headers={"Content-Type": "application/json", "X-CSRF-Token": httpd.csrf_token})
-            with patch.object(server, "urlopen", side_effect=refuse) as network:
+            with patch.object(server.openai_transport, "urlopen", side_effect=refuse) as network:
                 with self.assertRaises(urllib.error.HTTPError) as caught:
                     urllib.request.urlopen(request, timeout=3)
             raw = caught.exception.read()

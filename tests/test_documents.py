@@ -374,12 +374,12 @@ class DocumentStoreTests(unittest.TestCase):
         hit = self.store.search(self.scope, 'NeedlePageHundred')[0]
         self.assertEqual(hit['id'], record['id'] + '_p100_c1')
         self.assertEqual(hit['page'], 100)
-        from pypdf import PdfReader
+        PdfReader = documents.pdf_reader().PdfReader
         self.assertEqual(len(PdfReader(io.BytesIO(self.store.page_input(self.scope, record['id'], 100))).pages), 1)
 
     @unittest.skipUnless(importlib.util.find_spec('pypdf'), 'Existing pypdf runtime required')
     def test_scanned_and_encrypted_pdfs_never_claim_text_coverage(self):
-        from pypdf import PdfWriter
+        PdfWriter = documents.pdf_reader().PdfWriter
         writer = PdfWriter()
         writer.add_blank_page(width=100, height=100)
         raw = io.BytesIO()

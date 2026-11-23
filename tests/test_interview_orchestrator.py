@@ -300,7 +300,7 @@ class CoordinatorBoundaryTests(unittest.TestCase):
                 return io.BytesIO(("data: " + event + "\n\n").encode())
             return io.BytesIO(json.dumps(result).encode())
 
-        with patch.object(server, "urlopen", side_effect=simulated_transport) as transport:
+        with patch.object(server.openai_transport, "urlopen", side_effect=simulated_transport) as transport:
             _, reviewed = reviewed_capture(client)
         budget = reviewed["agent_team"]["budget"]
         coverage = next(row for row in reviewed["agent_team"]["agents"] if row["role"] == "coverage_reviewer")

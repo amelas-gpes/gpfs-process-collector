@@ -152,7 +152,7 @@ class PausedReviewWordingTests(ReviewCase):
         for failure, category, transient in cases:
             with self.subTest(category=category, failure=getattr(failure, 'code', type(failure).__name__)):
                 client = server.OpenAIClient({'OPENAI_API_KEY': 'sk-test-sentinel-not-a-real-credential'})
-                with patch.object(server, 'urlopen', side_effect=failure):
+                with patch.object(server.openai_transport, 'urlopen', side_effect=failure):
                     with self.assertRaises(server.APIError) as caught:
                         client.request('responses', {'model': 'synthetic-test'})
                 self.assertEqual((caught.exception.category, caught.exception.transient), (category, transient))
@@ -165,7 +165,7 @@ class PausedReviewWordingTests(ReviewCase):
 
     def test_local_token_budget_reaches_the_file_card_without_contacting_the_provider(self):
         client = server.OpenAIClient({'OPENAI_API_KEY': 'test-key', 'DAILY_TOKEN_CAP': '1'})
-        with patch.object(server, 'urlopen') as transport:
+        with patch.object(server.openai_transport, 'urlopen') as transport:
             service = self.service(lambda context, record, chunks, phase:
                                    client.analyze_document(context, record, chunks, phase, self.store))
             record = service.upload(self.scope, 'cited.csv', b'important,field\na,1\n')
@@ -179,7 +179,7 @@ class PausedReviewWordingTests(ReviewCase):
         client = server.OpenAIClient({'OPENAI_API_KEY': 'sk-test-sentinel-not-a-real-credential'})
         rejected = urllib.error.HTTPError('https://api.openai.com/v1/responses', 401, 'Unauthorized', {},
                                           io.BytesIO(b'{"error": {"message": "PRIVATE provider wording"}}'))
-        with patch.object(server, 'urlopen', side_effect=rejected):
+        with patch.object(server.openai_transport, 'urlopen', side_effect=rejected):
             service = self.service(lambda context, record, chunks, phase: client.analyze_document(context, record, chunks, phase, self.store))
             record = service.upload(self.scope, 'cited.csv', b'important,field\na,1\n')
             paused = self.wait(record['id'], 'error')

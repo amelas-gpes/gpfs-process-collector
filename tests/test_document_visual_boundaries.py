@@ -19,7 +19,7 @@ service_spec.loader.exec_module(service)
 
 
 def pdf_bytes(kind='text', pages=1):
-    from pypdf import PdfWriter
+    PdfWriter = documents.pdf_reader().PdfWriter
     from pypdf.generic import DictionaryObject, NameObject, NumberObject, DecodedStreamObject
     writer = PdfWriter()
     for number in range(pages):

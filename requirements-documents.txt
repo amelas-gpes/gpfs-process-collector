@@ -1,6 +1,6 @@
-# Document parsers verified in the configured Python runtime on 2026-11-11.
+# Supported document reader versions for Python 3.12. CI installs these exact pins.
 # Legacy .xls requires conversion to .xlsx/.csv; xlrd is not installed.
-pypdf==6.10.0
+pypdf==6.21.4
 openpyxl==3.1.5
 Pillow==13.0.0
 et_xmlfile==2.0.0

@@ -177,7 +177,7 @@ class ReviewLimitWording(unittest.TestCase):
     @staticmethod
     def scan():
         import io
-        from pypdf import PdfWriter
+        PdfWriter = documents.pdf_reader().PdfWriter
         writer = PdfWriter()
         writer.add_blank_page(width=100, height=100)
         raw = io.BytesIO()

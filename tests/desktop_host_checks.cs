@@ -1,6 +1,4 @@
-// A console front end to HostLogic in desktop/NativeHost.cs, for tests/test_desktop_host_logic.py.
-// The test compiles this file together with NativeHost.cs and selects this Main (/main:HostChecks),
-// so Program.Main, the window and the local service are never started: only the rules below run.
+// Exercises the production decision rules in desktop/HostLogic.cs without starting the window.
 // One request per input line, fields separated by tabs; one answer line per request.
 using System;
 using System.Drawing;

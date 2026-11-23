@@ -161,6 +161,10 @@ class RawTraceTests(unittest.TestCase):
         self.assertEqual([r["type"] for r in rows], ["worker.two", "trace.loss"])
         self.assertEqual(len(next(p for p in store.directory.glob("*.jsonl") if p != parts[0]).read_bytes()), 10)
 
+    def test_injected_settings_cannot_be_elevated_to_content_tracing_by_the_process_environment(self):
+        with patch.dict(os.environ, {"RAW_TRACE_MODE": "content"}):
+            self.assertEqual(trace.TraceStore(self.root, {}).mode, "metadata")
+
     def test_mode_selection_off_does_not_create_a_trace(self):
         marker = self.root / "raw-trace-mode.txt"
         self.assertEqual(trace.TraceStore(self.root).mode, "metadata")

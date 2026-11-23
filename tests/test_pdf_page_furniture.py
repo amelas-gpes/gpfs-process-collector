@@ -49,7 +49,7 @@ def pdf_bytes(pages):
     """One page per entry: a dict with 'text' (bytes of text operators, may be empty), 'drawn'
     (bytes of drawing operators), 'form' (put everything in one form object) and 'image'
     (None, or the size in points an image is drawn at)."""
-    from pypdf import PdfWriter
+    PdfWriter = documents.pdf_reader().PdfWriter
     from pypdf.generic import ArrayObject, DecodedStreamObject, DictionaryObject, FloatObject, NameObject, NumberObject
     writer = PdfWriter()
     for spec in pages:

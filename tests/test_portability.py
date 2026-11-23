@@ -42,6 +42,38 @@ class RepositoryPortabilityTests(unittest.TestCase):
         self.app_patch.start()
         self.addCleanup(self.app_patch.stop)
 
+    def test_configuration_snapshot_is_immutable_and_explicit_limits_reach_the_server(self):
+        (self.app / ".env.local").write_text(
+            "COLLECTOR_API_SLOTS=1\nCOLLECTOR_DOCUMENT_WORKERS=2\n", encoding="utf-8"
+        )
+        settings = server.load_settings()
+        self.assertEqual(settings.get("COLLECTOR_DOCUMENT_WORKERS"), "2")
+        with self.assertRaises(TypeError):
+            settings["RAW_TRACE_MODE"] = "content"
+        self.app_patch.stop()
+        with server.InterviewServer(("127.0.0.1", 0), server.Handler, client=server.OpenAIClient({}),
+                                    knowledge_settings=settings, documents_root=self.app / "work" / "documents") as app:
+            self.assertTrue(app.api_slots.acquire(blocking=False))
+            try:
+                self.assertFalse(app.api_slots.acquire(blocking=False))
+            finally:
+                app.api_slots.release()
+
+    def test_unknown_voice_setting_cannot_choose_a_microphone_transport(self):
+        with self.assertRaises(server.SettingsError) as refused:
+            server.OpenAIClient({"VOICE_MODE": "reveiwed"})
+        self.assertEqual(refused.exception.reason, "unknown_backend")
+        self.assertEqual(refused.exception.key, "VOICE_MODE")
+
+    def test_invalid_concurrency_setting_is_identified_before_opening_a_store(self):
+        root = self.app / "work"
+        with self.assertRaises(server.SettingsError) as refused:
+            server.InterviewServer(("127.0.0.1", 0), server.Handler, client=server.OpenAIClient({}),
+                                   knowledge_settings={"COLLECTOR_DOCUMENT_WORKERS": "0"}, documents_root=root / "documents")
+        self.assertEqual(refused.exception.reason, "invalid_value")
+        self.assertEqual(refused.exception.key, "COLLECTOR_DOCUMENT_WORKERS")
+        self.assertFalse(root.exists())
+
     def test_unrelated_ancestor_settings_are_not_loaded(self):
         (self.ancestor / ".env.local").write_text(
             "OPENAI_API_KEY=ancestor-fake-sentinel\nINTERVIEW_MODEL=ancestor-model\n",

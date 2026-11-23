@@ -160,8 +160,9 @@ class ConcurrentHTTPTests(unittest.TestCase):
         real_request = server.OpenAIClient.request.__get__(self.client)
         self.client.usage.daily_cap = 1
         self.client.request.side_effect = real_request
-        with patch.object(server, "build_opener", side_effect=AssertionError("Unexpected provider transport")):
+        with patch.object(self.client, "transport", side_effect=AssertionError("Unexpected provider transport")) as transport:
             status, result = self.post("/api/conversation/sync", payload)
+        transport.assert_not_called()
         self.assertEqual((status, result.get("code")), (429, "budget_reached"))
         self.assertIn("local", result["error"].lower())
         self.assertIn("retained", result["error"])
@@ -205,7 +206,7 @@ class ConcurrentHTTPTests(unittest.TestCase):
     def test_source_refresh_callback_checks_latest_scoped_material(self):
         context = self.client.payload()["context"]
         original = {"documents": [], "source_revision": "one"}
-        binding = server.interview_orchestrator.Coordinator._source_binding(context, original)
+        binding = server.capture_facts.source_binding(context, original)
         payload = {"_conversation_document_snapshot": ("scope", "query", ["source"], context, binding)}
         with patch.object(self.httpd.documents, "supporting_context", return_value=copy.deepcopy(original)) as resolve:
             self.assertTrue(self.httpd.validate_conversation_sources(payload))

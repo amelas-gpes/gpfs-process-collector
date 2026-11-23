@@ -195,7 +195,9 @@ class StoreLayoutChanges(unittest.TestCase):
     # (an expression index over json_extract, like proposals_source_idx); it only lacks the lookup that uses it.
     # Format 3 gives each document section a stable reading order with room after it for visual continuations.
     # Knowledge format 2 migrates stored document capabilities to revocable digests.
-    RECORDED = {"documents": (3, "79d8cfc60a730de2"), "knowledge": (2, "a1da01d2127e9a49")}
+    # Knowledge format 3 enforces append-only filing history. Older writers do not
+    # enable the recursive triggers needed for SQLite's replace operation.
+    RECORDED = {"documents": (3, "79d8cfc60a730de2"), "knowledge": (3, "7797542cbf8bc6fb")}
 
     def test_changed_layout_comes_with_a_decision_about_its_format_number(self):
         with tempfile.TemporaryDirectory() as scratch:
@@ -247,17 +249,18 @@ class DesktopHostStoreGuard(unittest.TestCase):
             site.app.check_stores(ROOT, Path(home))  # This build opens what it wrote.
 
     def test_build_older_than_the_saved_data_is_not_started_and_the_window_is_told_why(self):
-        for module in ("documents.py", "knowledge_graph.py"):
+        for module, newest in (("documents.py", documents.STORE_FORMATS[1]),
+                               ("knowledge_graph.py", knowledge_graph.STORE_FORMATS[1])):
             with self.subTest(store=module):
                 site = Installation(self)
-                old = self.approve(site, "c1")  # Declares nothing: reads format 1 and earlier.
-                path = self.saved(site, module, 2)
+                old = self.approve(site, "c1", {module: newest - 1})
+                path = self.saved(site, module, newest)
                 code, out, err = site.run("serve", "--port", site.free_port())
                 self.assertNotEqual(code, 0)
                 self.assertFalse(site.proof.exists(), "a build older than the saved data was run")
                 self.assertTrue(out.startswith("ERROR "), out)
                 self.assertEqual(len(out.splitlines()), 1)
-                for words in ("newer build", old[:12], "format 2", "nothing was changed"):
+                for words in ("newer build", old[:12], f"format {newest}", "nothing was changed"):
                     self.assertIn(words, out)
                 self.assertTrue(out.startswith(
                     {"documents.py": "ERROR The documents saved on this computer were written by a newer build ",
@@ -265,9 +268,9 @@ class DesktopHostStoreGuard(unittest.TestCase):
                                            "build "}[module]), out)
                 self.assertIn("older-than-saved-data " + old[:12], site.log())
                 self.assertEqual(site.app.failed(), {}, "the refusal was recorded as a failure to start")
-                self.assertEqual(stored_format(path), 2)
+                self.assertEqual(stored_format(path), newest)
                 # A build that declares the newer format opens; going back to the old one is refused.
-                new = self.approve(site, "c2", {module: 2})
+                new = self.approve(site, "c2", {module: newest})
                 window, address = site.window()
                 self.assertEqual(config(address)["build_id"], "stub-c2")
                 self.assertEqual(site.close(window), "")

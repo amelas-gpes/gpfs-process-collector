@@ -43,6 +43,51 @@ def typed_responder(client, callback):
     client.request = Mock(side_effect=reply)
 
 
+class FactReplayTests(unittest.TestCase):
+    def test_seed_capture_correction_and_review_replay_with_identical_record_history(self):
+        from datetime import datetime, timedelta, timezone
+        from itertools import count
+        from uuid import UUID
+
+        turns = [{"id": "u1", "role": "user", "text": "This is a fund process. A notice starts it."},
+                 {"id": "u2", "role": "user", "text": "Correction: an approved notice starts it."}]
+        original = {"key": "trigger", "status": "partial", "answer": "A notice starts it.", "evidence_turns": ["u1"]}
+
+        def replay():
+            ids, ticks = count(1), count()
+            start = datetime(2026, 1, 2, 12, tzinfo=timezone.utc)
+            records = facts.RecordMetadataSource(new_uuid=lambda: UUID(int=next(ids)),
+                utc_now=lambda: start + timedelta(seconds=next(ticks)))
+            base = facts.seed_legacy({"memo_findings": [original]}, {}, turns[:1], [], records=records)
+            old_id = base["facts"][0]["id"]
+            delta = transaction(base, [operation("trigger", "An approved notice starts it.", "u2",
+                op="replace", target=old_id, reason="participant_correction")])
+            delta["tag_operations"] = [{"op": "add", "target_id": "", "facet": "entity_type", "value": "fund",
+                                        "note": "Participant-reported scope", "evidence_turns": ["u1"]}]
+            delta["connections_out"] = [{"relationship_type": "subprocess_of", "counterpart": "Capital call",
+                                         "condition": "Approved notice", "evidence_turns": ["u2"]}]
+            changed = facts.apply_delta(base, delta, {}, turns, [], records=records)
+            repair = {**original, "answer": "The approved notice starts the work.", "evidence_turns": ["u2"]}
+            reviewed = facts.sync_review(changed, {"memo_findings": [repair],
+                "coverage_assessment": {"capture_repairs": [repair]}}, {}, turns, [], records=records)
+            return base, changed, reviewed
+
+        base, changed, reviewed = replay()
+        self.assertEqual((base, changed, reviewed), replay())
+        old, revised = [f for f in reviewed["facts"] if f["state"] != "active"]
+        self.assertEqual((old["id"], old["state"], old["change_reason"]),
+                         (base["facts"][0]["id"], "superseded", "participant_correction"))
+        self.assertEqual((revised["state"], revised["recorded_at"]), ("superseded_review", "2026-01-02T12:00:01.000+00:00"))
+        self.assertEqual(old["recorded_at"], "2026-01-02T12:00:00.000+00:00")
+        repaired = next(f for f in reviewed["facts"] if f["origin"] == "coverage_repair")
+        self.assertEqual(repaired["recorded_at"], "2026-01-02T12:00:03.000+00:00")
+        self.assertTrue(changed["tags"][0]["id"].startswith("tag_"))
+        link = changed["connections_out"][0]["id"]
+        self.assertTrue(link.startswith("connection_"))
+        self.assertEqual(next(f["connection_id"] for f in changed["facts"] if "connection_id" in f), link)
+        self.assertEqual(len({base["revision"], changed["revision"], reviewed["revision"]}), 3)
+
+
 class ScopedReconciliationTests(unittest.TestCase):
     """Only open claims the latest answer could affect need an explicit reconciliation row."""
 

@@ -1,6 +1,6 @@
 """The provider key is never shown or logged, and a library's own error text never reaches a response.
 
-Offline. The provider is a loopback stand-in or a replaced server.urlopen; every key is synthetic.
+Offline. The provider is a loopback stand-in or a replaced server.openai_transport.urlopen; every key is synthetic.
 """
 
 import ast
@@ -151,7 +151,7 @@ class KeySettingTests(unittest.TestCase):
                     sent.append(request.get_header("Authorization"))
                     raise urllib.error.URLError(ConnectionRefusedError("synthetic"))
 
-                with patch.object(server, "urlopen", side_effect=answer):
+                with patch.object(server.openai_transport, "urlopen", side_effect=answer):
                     with self.assertRaises(server.APIError):
                         client.request("responses", {"model": "synthetic"})
                 self.assertEqual(sent, ["Bearer " + KEY])
@@ -171,7 +171,7 @@ class KeySettingTests(unittest.TestCase):
                 self.assertEqual(leaks(json.dumps(config)), [])
                 for path, body in (("responses", {"model": "synthetic"}), ("realtime/client_secrets", {}),
                                    ("live/sessions", {}), ("audio/transcriptions", b"audio")):
-                    with patch.object(server, "urlopen") as network:
+                    with patch.object(server.openai_transport, "urlopen") as network:
                         with self.assertRaises(server.APIError) as caught:
                             client.request(path, body)
                     network.assert_not_called()
@@ -189,7 +189,7 @@ class KeySettingTests(unittest.TestCase):
                 client = server.OpenAIClient(settings)
                 self.assertEqual((client.key, client.key_problem), ("", ""))
                 self.assertNotIn("api_problem", client.public_config())
-                with patch.object(server, "urlopen") as network:
+                with patch.object(server.openai_transport, "urlopen") as network:
                     with self.assertRaises(server.APIError) as caught:
                         client.request("responses", {})
                 network.assert_not_called()
@@ -212,7 +212,7 @@ class TransportTextTests(unittest.TestCase):
                 with self.subTest(failure=type(failure).__name__, streamed=streamed):
                     diagnostics = Mock()
                     client = server.OpenAIClient({"OPENAI_API_KEY": KEY}, diagnostics)
-                    with patch.object(server, "urlopen", side_effect=failure) as network:
+                    with patch.object(server.openai_transport, "urlopen", side_effect=failure) as network:
                         with self.assertRaises(server.APIError) as caught:
                             client.request("responses", {"model": "synthetic"},
                                            **({"on_text": lambda text: False} if streamed else {}))
@@ -235,15 +235,15 @@ class TransportTextTests(unittest.TestCase):
         response.__enter__.return_value = response
         response.read.side_effect = http.client.IncompleteRead(LIBRARY_TEXT.encode())
         client = server.OpenAIClient({"OPENAI_API_KEY": KEY})
-        with patch.object(server, "urlopen", return_value=response):
+        with patch.object(server.openai_transport, "urlopen", return_value=response):
             with self.assertRaises(server.APIError) as caught:
                 client.request("responses", {"model": "synthetic"})
         self.assertNotIn(LIBRARY_TEXT, str(caught.exception))
 
     def test_a_failure_while_building_the_request_is_covered_too(self):
         client = server.OpenAIClient({"OPENAI_API_KEY": KEY})
-        with patch.object(server, "Request", side_effect=ValueError(LIBRARY_TEXT)), \
-             patch.object(server, "urlopen") as network:
+        with patch.object(server.openai_transport, "Request", side_effect=ValueError(LIBRARY_TEXT)), \
+             patch.object(server.openai_transport, "urlopen") as network:
             with self.assertRaises(server.APIError) as caught:
                 client.request("responses", {"model": "synthetic"})
         network.assert_not_called()
@@ -259,7 +259,7 @@ class TransportTextTests(unittest.TestCase):
         for forced in (KEY + "\r\n", HEAD + "\n" + TAIL, KEY + "\u200b"):
             with self.subTest(forced=repr(forced)):
                 client.key = forced
-                with patch.object(server, "urlopen", side_effect=provider.urlopen):
+                with patch.object(server.openai_transport, "urlopen", side_effect=provider.urlopen):
                     with self.assertRaises(server.APIError) as caught:
                         client.request("realtime/client_secrets", {})
                 self.assertEqual(leaks(str(caught.exception)), [])
@@ -276,7 +276,7 @@ class BrowserNeverSeesTheKeyTests(unittest.TestCase):
             with self.subTest(supplied=repr(supplied)):
                 provider.received.clear()
                 app = RunningApp(self, server.OpenAIClient({"OPENAI_API_KEY": supplied}))
-                with patch.object(server, "urlopen", side_effect=provider.urlopen):
+                with patch.object(server.openai_transport, "urlopen", side_effect=provider.urlopen):
                     status, body = app.post("/api/voice-session", {"voice": "marin"})
                 self.assertEqual(leaks(body), [])
                 self.assertEqual(status, 200, body)
@@ -294,7 +294,7 @@ class BrowserNeverSeesTheKeyTests(unittest.TestCase):
         for supplied in (HEAD + "\r" + TAIL + "\r\n", HEAD + " " + TAIL, KEY + "\u200b"):
             with self.subTest(supplied=repr(supplied)):
                 app = RunningApp(self, server.OpenAIClient({"OPENAI_API_KEY": supplied}))
-                with patch.object(server, "urlopen", side_effect=provider.urlopen):
+                with patch.object(server.openai_transport, "urlopen", side_effect=provider.urlopen):
                     replies = {
                         "/api/voice-session": app.post("/api/voice-session", {"voice": "marin"}),
                         "/api/transcribe": app.post("/api/transcribe", **audio),

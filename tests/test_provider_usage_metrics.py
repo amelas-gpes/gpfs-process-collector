@@ -1,6 +1,6 @@
 """A finished Responses call records its model and the token counts the provider reported.
 
-The lifecycle log receives sizes and one identifier, never content. Offline: server.urlopen is replaced.
+The lifecycle log receives sizes and one identifier, never content. Offline: server.openai_transport.urlopen is replaced.
 """
 
 import importlib.util
@@ -46,7 +46,7 @@ class RequestMetricsTests(unittest.TestCase):
         diagnostics = Mock()
         client = server.OpenAIClient({"OPENAI_API_KEY": KEY}, diagnostics)
         raw = answer if isinstance(answer, io.BytesIO) else io.BytesIO(json.dumps(answer).encode())
-        with patch.object(server, "urlopen", return_value=raw):
+        with patch.object(server.openai_transport, "urlopen", return_value=raw):
             result = client.request(path, body() if request_body is None else request_body, **options)
         self.assertEqual(diagnostics.call_args.args, ("provider_request_finished",))
         self.assertNotIn(PRIVATE, repr(diagnostics.call_args))
@@ -115,10 +115,10 @@ class RequestMetricsTests(unittest.TestCase):
     def test_a_failed_call_records_no_size(self):
         diagnostics = Mock()
         client = server.OpenAIClient({"OPENAI_API_KEY": KEY}, diagnostics)
-        with patch.object(server, "urlopen", side_effect=TimeoutError(PRIVATE)):
+        with patch.object(server.openai_transport, "urlopen", side_effect=TimeoutError(PRIVATE)):
             with self.assertRaises(server.APIError):
                 client.request("responses", body())
-        with patch.object(server, "urlopen", return_value=io.BytesIO(b"not json " + PRIVATE.encode())):
+        with patch.object(server.openai_transport, "urlopen", return_value=io.BytesIO(b"not json " + PRIVATE.encode())):
             with self.assertRaises(server.APIError):
                 client.request("responses", body())
         for call in diagnostics.call_args_list:
@@ -141,7 +141,7 @@ class RequestMetricsTests(unittest.TestCase):
         answer = {"status": "completed", "model": "gpt-reported", "usage": USAGE,
                   "output": [{"content": [{"type": "output_text", "text": json.dumps({"proposals": []})}]}]}
         record = {"submission_id": "s1", "process_id": "p1", "revision": 1, "turns": [], "context": {}}
-        with patch.object(server, "urlopen", return_value=io.BytesIO(json.dumps(answer).encode())):
+        with patch.object(server.openai_transport, "urlopen", return_value=io.BytesIO(json.dumps(answer).encode())):
             self.assertEqual(adapter.build_analyzer(client)(record, [{**record, "submission_id": "s2", "process_id": "p2"}]), [])
         self.assertEqual(diagnostics.call_args.kwargs["stage"], "knowledge_connection_proposals")
         self.assertEqual(diagnostics.call_args.kwargs["input_tokens"], 1200)
@@ -182,7 +182,7 @@ class LifecycleLogTests(unittest.TestCase):
             httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=client,
                                            documents_root=root / "documents", knowledge_settings={})
             try:
-                with patch.object(server, "urlopen", return_value=io.BytesIO(json.dumps(
+                with patch.object(server.openai_transport, "urlopen", return_value=io.BytesIO(json.dumps(
                         reply(model="gpt-5.4-mini-2026-03-17", usage=USAGE)).encode())):
                     result = client.structured("Synthetic instructions.", {"question": PRIVATE},
                                                {"type": "object", "properties": {"note": {"type": "string"}},

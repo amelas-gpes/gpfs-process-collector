@@ -51,7 +51,7 @@ def png_bytes():
 
 def pdf_bytes(kinds):
     """One page per entry: 'blank' (no text), 'text', or 'mixed' (text plus an image)."""
-    from pypdf import PdfWriter
+    PdfWriter = documents.pdf_reader().PdfWriter
     from pypdf.generic import DictionaryObject, NameObject, NumberObject, DecodedStreamObject
     writer = PdfWriter()
     for kind in kinds:

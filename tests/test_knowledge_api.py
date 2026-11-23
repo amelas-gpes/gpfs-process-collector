@@ -165,6 +165,18 @@ class KnowledgeAPITests(unittest.TestCase):
         self.assertEqual(self.request(httpd, '/api/knowledge/submit', {})[0], 202)
         self.assertIsNone(httpd.knowledge.calls[-1][2])
 
+    def test_trusted_capabilities_require_a_complete_principal_identifier(self):
+        identity = 'x' * 200
+        httpd = self.serve(authorizer=lambda handler, capability: identity)
+        for identity, allowed in (('x' * 200, True), ('x' * 201, False),
+                                  (' name ', False), ('name\ncontinued', False)):
+            with self.subTest(length=len(identity), allowed=allowed):
+                config = self.request(httpd, '/api/config')[1]
+                self.assertIs(config['agent_prompts_available'], allowed)
+                status, _ = self.request(httpd, '/api/knowledge/submit', {'process_id': 'owned-process'})
+                self.assertEqual(status, 202 if allowed else 403)
+        self.assertEqual([call[2] for call in httpd.knowledge.calls], ['x' * 200])
+
     def test_same_origin_and_csrf_apply_to_every_knowledge_endpoint(self):
         httpd = self.serve({'KNOWLEDGE_LOCAL_OWNER':'true','COLLECTOR_DEPLOYMENT_MODE':'local'})
         for route in ('submit', 'status'):

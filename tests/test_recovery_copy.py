@@ -141,6 +141,21 @@ class OffByDefaultTests(RecoveryCase):
         self.assertEqual(self.call(httpd, "/api/config")[1]["recovery"], {"enabled": False, "stored": False})
         self.assertEqual(self.call(httpd, "/api/recovery/save", {"id": "a" * 32, "session": interview()})[0], 409)
 
+    def test_unreadable_or_unknown_setting_does_not_disclose_an_existing_copy(self):
+        httpd = self.serve()
+        self.turn_on(httpd)
+        self.call(httpd, "/api/recovery/save", {"id": "a" * 32, "session": interview()})
+        setting = self.folder() / "setting.json"
+        for raw in (b"damaged", b'{"format":2,"enabled":true}', b'{"format":1,"enabled":false}'):
+            with self.subTest(setting=raw):
+                setting.write_bytes(raw)
+                self.assertEqual(self.call(httpd, "/api/recovery/status", {})[1], {"enabled": False, "draft": None})
+                self.assertEqual(self.call(httpd, "/api/recovery/load", {})[0], 404)
+                self.assertEqual(self.call(httpd, "/api/recovery/save", {"id": "a" * 32, "session": interview()})[0], 409)
+                self.assertTrue((self.folder() / "draft.json").exists())
+        self.turn_on(httpd)
+        self.assertEqual(self.call(httpd, "/api/recovery/load", {})[1]["draft"]["session"], interview())
+
     def test_the_setting_must_be_a_plain_choice(self):
         httpd = self.serve()
         for value in ("true", 1, None, {"enabled": True}):
@@ -301,6 +316,45 @@ class KeptCopyTests(RecoveryCase):
         self.assertEqual(self.call(httpd, "/api/recovery/load", {})[1]["draft"]["session"], full)
         self.assertEqual([path.name for path in self.folder().iterdir() if path.suffix == ".tmp"], [])
 
+    def test_store_refuses_invalid_sessions_from_any_caller(self):
+        store = server.RecoveryStore(self.folder())
+        store.set_enabled(True)
+        saved = interview()
+        store.save("first-copy", saved)
+        for key, value in (("schema_version", True), ("turns", "damaged")):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                store.save("first-copy", {**saved, key: value})
+        self.assertEqual(store.load()["session"], saved)
+
+    def test_invalid_consent_and_oversized_saves_cannot_change_storage(self):
+        store = server.RecoveryStore(self.folder())
+        with self.assertRaises(ValueError):
+            store.set_enabled("false")
+        self.assertFalse(self.folder().exists())
+        store.set_enabled(True)
+        store.save("first-copy", interview())
+        with patch.object(server.recovery_store, "MAX_RECOVERY", 4000):
+            with self.assertRaises(ValueError):
+                store.save("first-copy", {**interview(), "summary": "x" * 5000})
+        self.assertEqual(store.load()["session"], interview())
+
+    def test_damaged_saved_session_is_described_without_exposing_or_replacing_it(self):
+        httpd = self.serve()
+        self.turn_on(httpd)
+        self.call(httpd, "/api/recovery/save", {"id": "a" * 32, "session": interview()})
+        path = self.folder() / "draft.json"
+        original = json.loads(path.read_text(encoding="utf-8"))
+        for changes in ({"format": True}, {"session": {**interview(), "turns": "damaged"}}):
+            with self.subTest(field=next(iter(changes))):
+                raw = json.dumps({**original, **changes}).encode("utf-8")
+                path.write_bytes(raw)
+                summary = self.call(httpd, "/api/recovery/status", {})[1]["draft"]
+                self.assertIs(summary["readable"], False)
+                self.assertEqual(self.call(httpd, "/api/recovery/load", {})[0], 409)
+                response = self.call(httpd, "/api/recovery/save", {"id": "a" * 32, "session": interview()})
+                self.assertEqual(response[0], 409)
+                self.assertEqual(path.read_bytes(), raw)
+
     def test_a_copy_larger_than_the_page_would_open_is_refused(self):
         self.assertEqual(server.MAX_RECOVERY, 16 * 1024 * 1024, "The same bound as Open saved interview in web/app.js")
         page = (APP / "web" / "app.js").read_text(encoding="utf-8")
@@ -356,7 +410,7 @@ class KeptCopyTests(RecoveryCase):
         record = json.loads(path.read_text(encoding="utf-8"))
         record["session"]["summary"] = "x" * 20000     # grown on disk, outside the app
         path.write_text(json.dumps(record), encoding="utf-8")
-        with patch.object(server, "MAX_RECOVERY", 8000):
+        with patch.object(server.recovery_store, "MAX_RECOVERY", 8000):
             draft = self.call(httpd, "/api/recovery/status", {})[1]["draft"]
             self.assertIs(draft["readable"], False)
             status, refused = self.call(httpd, "/api/recovery/load", {})

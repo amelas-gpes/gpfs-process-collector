@@ -1,7 +1,7 @@
 # Desktop app (Windows)
 
 `desktop/` is an optional Windows host for the same application: a small WebView2 window
-(`NativeHost.cs`), its manager (`manage.py`) and two PowerShell scripts that install it. It is
+(`NativeHost.cs` and `HostLogic.cs`), its manager (`manage.py`) and two PowerShell scripts that install it. It is
 separate from `launcher.py` and the `.cmd` shortcuts, and it behaves differently from them in
 two ways that matter:
 
@@ -51,7 +51,7 @@ of this check.
 ## Which build is running
 
 The window runs a downloaded build and `launcher.py` runs the working tree, and both report the
-same release number (`VERSION` in `server.py`) until it is next raised. To tell them apart,
+same release number (`VERSION` in `runtime_build.py`) until it is next raised. To tell them apart,
 open **Settings > Help & about** in the page. The last line reads, for example,
 `Version 0.30.0 · build 4f2a9c1d7e03`:
 

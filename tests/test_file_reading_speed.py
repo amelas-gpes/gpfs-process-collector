@@ -277,7 +277,7 @@ class LeanReplyTests(unittest.TestCase):
             sent.append(json.loads(request.data))
             answer = {"status": "completed", "output": [{"content": [{"type": "output_text", "text": '{"source":"d1_p3_c1"}'}]}]}
             return io.BytesIO(json.dumps(answer).encode())
-        with patch.object(server, "urlopen", side_effect=fake):
+        with patch.object(server.openai_transport, "urlopen", side_effect=fake):
             result = client.request("responses", copy.deepcopy(body))
         wire = sent[0]
         self.assertEqual(wire["instructions"], "Review the file.", "The instructions are sent as written")

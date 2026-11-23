@@ -12,6 +12,8 @@ import json
 import unittest
 from pathlib import Path
 
+import importlib.util
+
 from test_server import server
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "live_stop_cases.json"
@@ -21,6 +23,14 @@ class LiveStopParityTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.data = json.loads(FIXTURE.read_text(encoding="utf-8"))
+
+    def test_stop_rules_run_without_starting_the_web_or_provider_layers(self):
+        spec = importlib.util.spec_from_file_location("standalone_interview_stop", FIXTURE.parents[2] / "interview_stop.py")
+        rules = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(rules)
+        for text, expected, _ in self.data["cases"]:
+            with self.subTest(text=text):
+                self.assertEqual(rules.stop_request_prefix(text) is not None, expected)
 
     def test_fixture_patterns_are_the_ones_the_page_is_given(self):
         # The page receives server.STOP_INTENT_PATTERNS as agent_team.stop_intent_patterns.

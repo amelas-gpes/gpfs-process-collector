@@ -173,7 +173,7 @@ def _has_link(path):
 
 
 def _mode(work_dir, settings):
-    mode = settings.get("RAW_TRACE_MODE") or os.environ.get("RAW_TRACE_MODE")
+    mode = settings.get("RAW_TRACE_MODE")
     if not mode:
         config = work_dir / "raw-trace-mode.txt"
         try:
@@ -290,7 +290,9 @@ class TraceStore:
     """One writer per server run; concurrent processes always own separate segments."""
 
     def __init__(self, work_dir, settings=None):
-        settings = settings or {}
+        if settings is None:
+            # Standalone callers resolve the local mode here. The server supplies its own snapshot.
+            settings = {"RAW_TRACE_MODE": os.environ.get("RAW_TRACE_MODE")}
         work_dir = Path(work_dir).absolute()
         self.directory = work_dir / "raw-trace"
         self.mode = _mode(work_dir, settings)

@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from urllib.request import ProxyHandler, build_opener
 
 
@@ -85,6 +86,13 @@ class Installation:
     """A throwaway checkout holding a copy of desktop/manage.py, and the local 'GitHub' it fetches."""
 
     def __init__(self, case):
+        # The synthetic repositories use their own configuration, even when the test
+        # runner supplies Git credentials or the user's profile installs a signing hook.
+        case.enterContext(patch.dict(os.environ, {
+            "GIT_CONFIG_COUNT": "0",
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_CONFIG_NOSYSTEM": "1",
+        }))
         folder = tempfile.TemporaryDirectory(prefix="update-qa-")
         case.addCleanup(folder.cleanup)
         self.case, self.folder = case, Path(folder.name).resolve()
@@ -487,21 +495,22 @@ class DesktopUpdates(unittest.TestCase):
         site = Installation(self)
         remote = site.remote
         # Seed the local remote from the sources under test, including edits made since HEAD.
-        # This also works in an unpacked release without Git history. Only the server modules,
-        # public website and application foundation are needed; settings and stores stay out.
+        # This also works in an unpacked release without Git history.
         for module in ROOT.glob("*.py"):
             shutil.copyfile(module, remote / module.name)
         shutil.copyfile(ROOT / "FOUNDATION.md", remote / "FOUNDATION.md")
         shutil.copytree(ROOT / "web", remote / "web")
-        git(remote, "-c", "core.autocrlf=false", "add", ":(top)*.py", "web", "FOUNDATION.md")
+        shutil.copytree(ROOT / "vendor", remote / "vendor")
+        git(remote, "-c", "core.autocrlf=false", "add", ":(top)*.py", "web", "vendor", "FOUNDATION.md")
         git(remote, *IDENTITY, "commit", "--quiet", "-m", "Current Process Collector sources")
         # Produce a second revision of the real application in this private local repository.
         initial = git(remote, "rev-parse", "HEAD")
         git(remote, "read-tree", initial)
-        probe = site.folder / "probe.js"
-        probe.write_text("// desktop update smoke test\n")
-        blob = git(remote, "hash-object", "-w", str(probe))
-        git(remote, "update-index", "--add", "--cacheinfo", "100644", blob, "web/probe.js")
+        # The public build ID covers served assets. Change a real page script for the new build.
+        script = remote / "web" / "theme.js"
+        with script.open("ab") as file:
+            file.write(b"\n// desktop update smoke test\n")
+        git(remote, "-c", "core.autocrlf=false", "add", "web/theme.js")
         tree = git(remote, "write-tree")
         second = git(remote, *IDENTITY, "commit-tree", tree, "-p", initial, "-m", "Synthetic desktop advance")
         git(remote, "update-ref", "refs/heads/main", initial)

@@ -549,11 +549,6 @@ class Coordinator:
         return open_keys
 
     @staticmethod
-    def _source_binding(context, supporting):
-        data = json.dumps([context, capture_facts.supporting_identity(supporting)], sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-        return hashlib.sha256(data.encode()).hexdigest()
-
-    @staticmethod
     def _capture_alive(state, now):
         kind = state["capture"].get("speech_authorization", {}).get("kind")
         lifetime = 4 * 3600 if kind in ("final_check", "complete") else 1800
@@ -684,7 +679,7 @@ class Coordinator:
                              if value["running"] or now - value["at"] < 1800}
             if len(self._captures) >= 256:
                 self._captures.pop(next(iter(self._captures)))
-            self._captures[capability] = {"at": now, "binding": self._source_binding(context, supporting),
+            self._captures[capability] = {"at": now, "binding": capture_facts.source_binding(context, supporting),
                 "documents": self._selected_documents(supporting),
                 "context": copy.deepcopy(context), "turns": copy.deepcopy(turns), "capture": copy.deepcopy(capture), "token": token,
                 "run": run, "ticket": ticket, "valid": True, "family": family, "generation": generation,
@@ -803,7 +798,7 @@ class Coordinator:
         with self._lock:
             state = self._captures.get(capability)
             if (not state or not state["valid"] or not self._capture_alive(state, time.monotonic())
-                    or state["binding"] != self._source_binding(context, supporting)
+                    or state["binding"] != capture_facts.source_binding(context, supporting)
                     or self._family_generations.get(state["family"]) != state["generation"]):
                 return None
             base = state["turns"]
@@ -835,7 +830,7 @@ class Coordinator:
         if state["run"].public_status()["cancelled"] or state["run"].public_status()["stale"]:
             return None, None
         base = state["turns"]
-        if (state["binding"] != self._source_binding(context, supporting)
+        if (state["binding"] != capture_facts.source_binding(context, supporting)
                 or not self._capture_prefix_matches(state, turns)):
             self._invalidate_capture(state)
             return None, None
@@ -1236,7 +1231,7 @@ class Coordinator:
             old = self._captures.get(payload.get("capture_token")) if isinstance(payload.get("capture_token"), str) else None
             changed_review = (old is not None and old.get("valid") and
                               old["capture"]["speech_authorization"]["kind"] in ("final_check", "complete") and
-                              old["binding"] != self._source_binding(context, supporting))
+                              old["binding"] != capture_facts.source_binding(context, supporting))
         prior, extension = (None, None) if facts_only else self._prior_capture(payload, context, turns, supporting)
         # A stop request is answered once. An explicit Wrap up or Skip after it
         # captures the account. The concurrent path runs such work as an ordinary
@@ -1566,7 +1561,7 @@ class Coordinator:
                     "run_tokens": {token}, "original_token": token, "attempt": 1, "event_offset": 0,
                     "supporting": copy.deepcopy(supporting), "capture": copy.deepcopy(capture),
                     "fact_state": copy.deepcopy(fact_state),
-                    "binding": self._source_binding(context, supporting), "failure_messages": []}
+                    "binding": capture_facts.source_binding(context, supporting), "failure_messages": []}
         else:
             question = capture["question"]
             reason = self._question_rejection(question)
@@ -1686,7 +1681,7 @@ class Coordinator:
         return file_parts.join(reading, request_schema["properties"]["base_revision"]["enum"][0], replies, account, topics)
 
     def _ticket_matches(self, entry, context, turns, supporting):
-        if entry["binding"] != self._source_binding(context, supporting):
+        if entry["binding"] != capture_facts.source_binding(context, supporting):
             return False
         return self._ticket_turns_match(entry, turns)
 
@@ -1864,7 +1859,7 @@ class Coordinator:
             raise api.APIError("No current capture is available to check. Continue the interview first.", 409)
         capture = state["capture"]
         extra = turns[len(state["turns"]):]
-        same_sources = state["binding"] == self._source_binding(context, supporting)
+        same_sources = state["binding"] == capture_facts.source_binding(context, supporting)
         late_captions = state["run"].live_notes and all(turn["role"] == "assistant" for turn in extra)
         if not same_sources or not self._capture_prefix_matches(state, turns) or (extra and not late_captions and not (
                 len(extra) == 1 and extra[0]["role"] == "assistant" and extra[0]["text"] == capture.get("question"))):

@@ -299,7 +299,7 @@ class LiveContractTests(unittest.TestCase):
     def test_live_access_denied_has_actionable_error_without_key(self):
         error = urllib.error.HTTPError('https://api.openai.com/v1/live/sessions', 403, 'Forbidden', {}, io.BytesIO(b'{}'))
         client = server.OpenAIClient({'OPENAI_API_KEY': KEY})
-        with patch.object(server, 'urlopen', side_effect=error), self.assertRaises(server.APIError) as caught:
+        with patch.object(server.openai_transport, 'urlopen', side_effect=error), self.assertRaises(server.APIError) as caught:
             client.live_session(live_payload())
         self.assertIn('live voice', str(caught.exception))
         self.assertIn('continue by typing', str(caught.exception))

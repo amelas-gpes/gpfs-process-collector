@@ -2,7 +2,7 @@
 
 A cut-off answer, a content filter and a provider failure are different problems with different
 remedies. Each gets its own wording and a diagnostic row of its own, because the transport row for
-the same call legitimately reads outcome=success, status=200. Offline: server.urlopen is replaced.
+the same call legitimately reads outcome=success, status=200. Offline: server.openai_transport.urlopen is replaced.
 """
 
 import importlib.util
@@ -43,7 +43,7 @@ class Causes(unittest.TestCase):
         diagnostics = Mock()
         client = server.OpenAIClient({"OPENAI_API_KEY": KEY}, diagnostics)
         raw = answer if isinstance(answer, io.BytesIO) else io.BytesIO(json.dumps(answer).encode())
-        with patch.object(server, "urlopen", return_value=raw):
+        with patch.object(server.openai_transport, "urlopen", return_value=raw):
             try:
                 outcome = client.structured("Synthetic instructions.", {"question": PRIVATE}, SCHEMA,
                                             "conversation_question", 600, **options)
@@ -201,13 +201,13 @@ class Causes(unittest.TestCase):
     def test_a_failing_diagnostic_sink_never_changes_the_message(self):
         client = server.OpenAIClient({"OPENAI_API_KEY": KEY}, Mock(side_effect=RuntimeError("sink failed")))
         answer = {"status": "incomplete", "incomplete_details": {"reason": "max_output_tokens"}, "output": []}
-        with patch.object(server, "urlopen", return_value=io.BytesIO(json.dumps(answer).encode())):
+        with patch.object(server.openai_transport, "urlopen", return_value=io.BytesIO(json.dumps(answer).encode())):
             with self.assertRaises(server.APIError) as raised:
                 client.structured("Synthetic instructions.", {"question": PRIVATE}, SCHEMA, "conversation_question", 600)
         self.assertIn("longer than this step allows", str(raised.exception))
         # A client that has no sink (a standalone script) behaves the same.
         client = server.OpenAIClient({"OPENAI_API_KEY": KEY})
-        with patch.object(server, "urlopen", return_value=io.BytesIO(json.dumps(answer).encode())):
+        with patch.object(server.openai_transport, "urlopen", return_value=io.BytesIO(json.dumps(answer).encode())):
             with self.assertRaises(server.APIError):
                 client.structured("Synthetic instructions.", {"question": PRIVATE}, SCHEMA, "conversation_question", 600)
 
@@ -219,7 +219,7 @@ class Causes(unittest.TestCase):
                                          lambda event, **fields: server.record_diagnostic(path, event, **fields))
             answer = {"status": "incomplete", "incomplete_details": {"reason": "max_output_tokens"},
                       "output": text_output('{"note": "' + PRIVATE), "usage": USAGE}
-            with patch.object(server, "urlopen", return_value=io.BytesIO(json.dumps(answer).encode())):
+            with patch.object(server.openai_transport, "urlopen", return_value=io.BytesIO(json.dumps(answer).encode())):
                 with self.assertRaises(server.APIError):
                     client.structured("Synthetic instructions.", {"question": PRIVATE}, SCHEMA, "process_draft_audit", 600)
             rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]

@@ -3,8 +3,10 @@
 The ledger prevents omission from deleting prior facts. It does not certify a
 model's interpretation: independent coverage/process review still owns that job.
 """
-from datetime import datetime, timezone
 from collections import defaultdict
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import datetime, timezone
 import copy
 import hashlib
 import json
@@ -21,6 +23,27 @@ MAX_ACTIVE_FACTS = 256
 MAX_FACT_RECORDS = 512
 MAX_OPERATIONS = 128
 MAX_FACT_TEXT = 1600
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+@dataclass(frozen=True)
+class RecordMetadataSource:
+    """Provide identity and UTC time when creating a private ledger record."""
+
+    new_uuid: Callable[[], uuid.UUID] = uuid.uuid4
+    utc_now: Callable[[], datetime] = _utc_now
+
+    def new_id(self, kind: str) -> str:
+        return f"{kind}_{self.new_uuid().hex}"
+
+    def timestamp(self) -> str:
+        return self.utc_now().isoformat(timespec="milliseconds")
+
+
+_SYSTEM_RECORDS = RecordMetadataSource()
 
 
 def _object(properties):
@@ -441,18 +464,18 @@ def reconcile_document_versions(state, active_versions, seeded=None):
     return _refresh(state)
 
 
-def _new_fact(topic, kind, text, refs, catalog, origin="lead", *, allow_empty=False):
+def _new_fact(topic, kind, text, refs, catalog, origin="lead", *, allow_empty=False, records: RecordMetadataSource = _SYSTEM_RECORDS):
     if (not isinstance(text, str) or (not allow_empty and not text.strip()) or len(text) > MAX_FACT_TEXT
             or not isinstance(refs, list) or not refs or len(refs) > 100
             or any(not isinstance(ref, str) for ref in refs)
             or not set(refs) <= set(catalog)):
         raise ValueError("A fact requires bounded text and exact authorized evidence.")
-    return {"id": "fact_" + uuid.uuid4().hex, "topic": topic, "kind": kind,
+    return {"id": records.new_id("fact"), "topic": topic, "kind": kind,
             "text": text.strip(), "evidence_turns": list(dict.fromkeys(refs)),
             "sources": {ref: copy.deepcopy(catalog[ref]) for ref in refs},
             "created_at_participant": max((value["position"] for value in catalog.values()
                 if value["authority"] == "participant"), default=-1),
-            "state": "active", "origin": origin, "recorded_at": datetime.now(timezone.utc).isoformat(timespec="milliseconds")}
+            "state": "active", "origin": origin, "recorded_at": records.timestamp()}
 
 
 def _sentences(answer):
@@ -492,7 +515,7 @@ def _source_proof(fact, passages, texts):
     fact.update(support=support, unverified=list(dict.fromkeys(checks)))
 
 
-def seed_legacy(capture, context, turns, documents):
+def seed_legacy(capture, context, turns, documents, *, records: RecordMetadataSource = _SYSTEM_RECORDS):
     """Explicit migration of a server-owned capture; never browser/provider fallback."""
     state, catalog = empty_state(), sources(context, turns, documents, include_retained=True)
     retired = {item["id"] for item in documents or [] if item.get("retained_only") or item.get("provenance_only")}
@@ -506,7 +529,7 @@ def seed_legacy(capture, context, turns, documents):
         for text in parts:
             if finding["status"] != "unknown":
                 fact = _new_fact(finding["key"], "detail", text,
-                                 finding["evidence_turns"], catalog, "legacy_aid")
+                                 finding["evidence_turns"], catalog, "legacy_aid", records=records)
                 if set(finding["evidence_turns"]) & retired:
                     fact["state"] = "retired_source"
                 state["facts"].append(fact)
@@ -818,7 +841,7 @@ def _names(text, counterpart):
     return bool(name) and (name in plain or bool(code and re.search(r"(?<![\w-])" + re.escape(code.group(0)) + r"(?![\w-])", plain)))
 
 
-def _note_structured_connections(result, catalog, texts):
+def _note_structured_connections(result, catalog, texts, records: RecordMetadataSource):
     """Keep the Connections note in step with the structured links of the same capture.
 
     The links to other processes are recorded as structured connections and, separately,
@@ -851,7 +874,7 @@ def _note_structured_connections(result, catalog, texts):
         text = (text if text.endswith((".", "!", "?")) else text + ".")[:MAX_FACT_TEXT]
         if count >= MAX_ACTIVE_FACTS or size + len(text) + 1 > 12000:
             break
-        fact = _new_fact("connections", "detail", text, refs, catalog, STRUCTURED_LINK)
+        fact = _new_fact("connections", "detail", text, refs, catalog, STRUCTURED_LINK, records=records)
         fact["connection_id"] = identity
         _source_proof(fact, [], texts)
         fact["unverified"] = []  # It restates an accepted link; the link carries the citation.
@@ -887,7 +910,8 @@ def _settle_objective_as_purpose(result, context):
             fact.update(kind="gap", text=OBJECTIVE_GAP, support=[], unverified=[])
 
 
-def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve_on_limit=False):
+def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve_on_limit=False,
+                records: RecordMetadataSource = _SYSTEM_RECORDS):
     """Apply an already schema-checked transaction atomically to private state."""
     if delta["base_revision"] != state["revision"]:
         raise ValueError("Fact transaction refers to a stale capture revision.")
@@ -931,7 +955,7 @@ def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve
             tags.remove(old)
             tag_seen.add(target)
         if operation["op"] != "remove" and not any(all(item[k] == v for k, v in candidate.items()) for item in tags):
-            tags.append({"id": "tag_" + uuid.uuid4().hex, **candidate,
+            tags.append({"id": records.new_id("tag"), **candidate,
                          "sources": {ref: copy.deepcopy(catalog[ref]) for ref in candidate["evidence_turns"]}})
     if len(tags) > 128:
         raise ValueError("Too many active taxonomy records.")
@@ -954,7 +978,7 @@ def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve
         merged.update({ref: copy.deepcopy(catalog[ref]) for ref in item["evidence_turns"]})
         before = connections.get(key, {})
         connections[key] = {**copy.deepcopy(item), "sources": merged, "evidence_turns": list(merged),
-                            "id": before.get("id") or "connection_" + uuid.uuid4().hex,
+                            "id": before.get("id") or records.new_id("connection"),
                             "created_at_participant": before.get("created_at_participant", max(
                                 (value["position"] for value in catalog.values() if value["authority"] == "participant"), default=-1))}
     # The same handoff described twice in other words is one link with both citations.
@@ -997,7 +1021,7 @@ def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve
             raise ValueError("Invalid fact operation.")
         # Validate the correction's authority too, even when it removes a fact.
         new = _new_fact(topic, operation["kind"], operation["text"], operation["evidence_turns"], catalog,
-                        allow_empty=op == "remove")
+                        allow_empty=op == "remove", records=records)
         if op == "add":
             if target or operation["reason"] != "new_evidence":
                 raise ValueError("An added fact cannot replace an existing record.")
@@ -1036,7 +1060,7 @@ def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve
     # Two things one capture must not say at once: a purpose that is only the interview's
     # objective, and a link to another process that its own Connections note does not know.
     _settle_objective_as_purpose(result, context)
-    _note_structured_connections(result, catalog, texts)
+    _note_structured_connections(result, catalog, texts, records)
     if preserve_on_limit:
         # Keep the last supported version of an overflowing section while
         # publishing the other sections in this same accepted transaction.
@@ -1181,7 +1205,7 @@ def public_capture(state, delta, labels):
             "active_modules": delta.get("active_modules", []), "recap_due": delta.get("recap_due", "none")}
 
 
-def _repaired_facts(active, kind, section, refs, topic, catalog, statement_evidence=None):
+def _repaired_facts(active, kind, section, refs, topic, catalog, statement_evidence, records: RecordMetadataSource):
     """The repaired section (its statements, in order) as facts.
 
     A lead fact whose whole text the repair kept word for word, as consecutive
@@ -1200,11 +1224,11 @@ def _repaired_facts(active, kind, section, refs, topic, catalog, statement_evide
                 placed[start:start + len(own)] = [fact] + [True] * (len(own) - 1)
                 break
     return [item if isinstance(item, dict) else _new_fact(topic, kind, section[index],
-                (statement_evidence or {}).get(section[index], refs), catalog, "coverage_repair")
+                (statement_evidence or {}).get(section[index], refs), catalog, "coverage_repair", records=records)
             for index, item in enumerate(placed) if item is not True]
 
 
-def sync_review(state, capture, context, turns, documents):
+def sync_review(state, capture, context, turns, documents, *, records: RecordMetadataSource = _SYSTEM_RECORDS):
     """Persist explicit validated coverage repairs; never infer edits from prose."""
     state, catalog = copy.deepcopy(state), sources(context, turns, documents)
     # A repair the review proposed but did not apply (the process reviewer did not clear
@@ -1220,7 +1244,7 @@ def sync_review(state, capture, context, turns, documents):
         kind = "not_applicable" if finding["status"] == "not_applicable" else "detail"
         active = [fact for fact in state["facts"] if fact["topic"] == key and fact["state"] == "active"]
         repaired = _repaired_facts(active, kind, _sentences(repair["answer"]), repair["evidence_turns"], key, catalog,
-                                   repair.get("statement_evidence"))
+                                   repair.get("statement_evidence"), records)
         kept = {id(fact) for fact in repaired}
         # Only the statements the repair changed or dropped are retired, and they stay
         # in the ledger as superseded_review. The kept facts move behind them so the
@@ -1249,6 +1273,11 @@ def sync_review(state, capture, context, turns, documents):
                     topic["held_for_wording"] = {"fact_id": fact["id"], "wording": wording}
                     break
     return _refresh(state)
+
+
+def source_binding(context, supporting) -> str:
+    """Identify the input behind a capture, review ticket, or in-flight HTTP reply."""
+    return _digest([context, supporting_identity(supporting)])
 
 
 def supporting_identity(supporting):

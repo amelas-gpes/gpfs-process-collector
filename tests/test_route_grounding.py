@@ -407,7 +407,7 @@ class RouteRecheckRequestTests(unittest.TestCase):
                              'incomplete': {'status': 'incomplete', 'output': []}}.items():
             with self.subTest(answer=name):
                 client = server.OpenAIClient({'OPENAI_API_KEY': 'synthetic-key'})
-                with patch.object(server, 'urlopen', return_value=io.BytesIO(json.dumps(answer).encode())) as sent:
+                with patch.object(server.openai_transport, 'urlopen', return_value=io.BytesIO(json.dumps(answer).encode())) as sent:
                     self.assertIsNone(self.recheck(client).ask(self.ROWS))
                 sent.assert_called_once()
 
@@ -432,7 +432,7 @@ class RouteRecheckRequestTests(unittest.TestCase):
         diagnostics = Mock()
         client = server.OpenAIClient({'OPENAI_API_KEY': 'synthetic-key'}, diagnostics)
         answer = {'status': 'completed', 'output': []}
-        with patch.object(server, 'urlopen', return_value=io.BytesIO(json.dumps(answer).encode())):
+        with patch.object(server.openai_transport, 'urlopen', return_value=io.BytesIO(json.dumps(answer).encode())):
             client.request('responses', {'text': {'format': {'name': 'route_support_recheck'}}})
         self.assertEqual(diagnostics.call_args.kwargs['stage'], 'route_support_recheck')
 

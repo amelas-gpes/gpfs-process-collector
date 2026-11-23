@@ -3,7 +3,17 @@
 No provider work occurs until the graph worker invokes the returned callable.
 The graph store independently validates exact source quotes and review status.
 """
+from __future__ import annotations
+
 from copy import deepcopy
+from typing import Protocol
+
+
+class StructuredAnalysisClient(Protocol):
+    """The only provider operation the matching worker needs."""
+
+    def structured(self, instructions: str, payload: dict, schema: dict, name: str, max_tokens: int, /) -> dict: ...
+
 
 RELATIONSHIPS = ["provides_input_to", "produces", "consumes", "hands_off_to",
                  "requires_approval_from", "happens_after", "uses_system",
@@ -116,7 +126,7 @@ def _excerpt(record):
     return result
 
 
-def build_analyzer(client):
+def build_analyzer(client: StructuredAnalysisClient):
     if not callable(getattr(client, "structured", None)):
         raise TypeError("The configured provider does not support structured knowledge analysis.")
 

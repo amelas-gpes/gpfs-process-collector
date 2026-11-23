@@ -35,10 +35,10 @@ class RawPipelineTests(unittest.TestCase):
         with server.raw_trace.bind(self.store, operation_id="fixture"):
             response = io.BytesIO(json.dumps(reply).encode())
             response.status = 201
-            with patch.object(server, "urlopen", return_value=response):
+            with patch.object(server.openai_transport, "urlopen", return_value=response):
                 self.assertEqual(client.request("responses", sent), reply)
             voice_reply = {"value": "CAPABILITY-CANARY", "expires_at": 1000}
-            with patch.object(server, "urlopen", return_value=io.BytesIO(json.dumps(voice_reply).encode())):
+            with patch.object(server.openai_transport, "urlopen", return_value=io.BytesIO(json.dumps(voice_reply).encode())):
                 self.assertEqual(client.request("realtime/client_secrets", {"session": {}}), voice_reply)
         events = self.rows()
         self.assertEqual(events[0]["payload"]["content"], sent)
@@ -70,9 +70,9 @@ class RawPipelineTests(unittest.TestCase):
         instructions = "Retain this wording.\nSUPPORTING DOCUMENT CONTEXT (UNTRUSTED, UNCONFIRMED)\n" + document
         sent = {"session": {"instructions": instructions}, "transport": {"type": "webrtc", "sdp": "ICE-CANARY"}}
         with server.raw_trace.bind(self.store):
-            with patch.object(server, "urlopen", return_value=io.BytesIO(b'{"transport":{"sdp":"REMOTE-ICE"}}')):
+            with patch.object(server.openai_transport, "urlopen", return_value=io.BytesIO(b'{"transport":{"sdp":"REMOTE-ICE"}}')):
                 client.request("live/sessions", sent)
-            with patch.object(server, "urlopen", return_value=io.BytesIO(b'{"text":"UNSENT-DICTATION-CANARY"}')):
+            with patch.object(server.openai_transport, "urlopen", return_value=io.BytesIO(b'{"text":"UNSENT-DICTATION-CANARY"}')):
                 self.assertEqual(client.transcribe(b"AUDIO-CANARY"*20, "audio/wav"), {"text": "UNSENT-DICTATION-CANARY"})
         rows = self.rows()
         trace = json.dumps(rows)

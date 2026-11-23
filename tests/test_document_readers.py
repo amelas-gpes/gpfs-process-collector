@@ -56,7 +56,7 @@ class MissingReader(unittest.TestCase):
                     self.assertEqual(message, documents.missing_reader_message(kind))
                     self.assertIn(documents.READERS[kind][2], message)
         with patch.object(documents.importlib.util, 'find_spec', side_effect=ValueError('a half-installed package')):
-            self.assertEqual(set(documents.unavailable_readers()), {'pdf', 'png', 'xlsx', 'xlsm'})
+            self.assertEqual(set(documents.unavailable_readers()), {'png', 'xlsx', 'xlsm'})
 
     def test_upload_of_a_kind_without_its_reader_names_the_package_and_recovers_once_it_is_there(self):
         files = (('procedure.pdf', visual.pdf_bytes('text'), 'pypdf', 'pypdf', 'PDF files'),
@@ -71,8 +71,9 @@ class MissingReader(unittest.TestCase):
                     failed = self.store.extract(self.scope, record['id'])
                 self.assertEqual(failed['status'], 'error')
                 self.assertNotEqual(failed['error'], GENERIC, 'a missing package was reported as a damaged file')
-                for words in (f'cannot read {called}', f'no usable {package} package', 'requirements-documents.txt',
-                              "own site-packages", 'isolated mode', 'restart the app', 'The original is retained.'):
+                remedy = ('approved release', 'verified PDF reader') if module == 'pypdf' else (
+                    'requirements-documents.txt', 'own site-packages', 'isolated mode', 'restart the app')
+                for words in (f'cannot read {called}', f'no usable {package} package', *remedy, 'The original is retained.'):
                     self.assertIn(words, failed['error'])
                 self.assertEqual(self.events, [('dependency_missing', {'reason': module, 'stage': record['kind'], 'error_type': 'ImportError'})])
                 self.assertEqual(self.store.original_bytes(self.scope, record['id']), data)
@@ -136,10 +137,12 @@ class ServerSaysWhatItCannotRead(unittest.TestCase):
         offered, events = self.serve()
         self.assertEqual(offered['types'], ['pdf', 'png', 'xlsx', 'xlsm', 'csv'])
         self.assertEqual(offered['unavailable'], {})
+        self.assertEqual(offered['pdf_reader_version'], '6.21.4')
         self.assertEqual(events, [])
         offered, events = self.serve('pypdf')
         self.assertEqual(offered['types'], ['png', 'xlsx', 'xlsm', 'csv'])
         self.assertEqual(offered['unavailable'], {'pdf': documents.missing_reader_message('pdf')})
+        self.assertIsNone(offered['pdf_reader_version'])
         self.assertEqual([(event['reason'], event['stage']) for event in events], [('pypdf', 'pdf')])
         offered, events = self.serve('pypdf', 'PIL', 'openpyxl')
         self.assertEqual(offered['types'], ['csv'])

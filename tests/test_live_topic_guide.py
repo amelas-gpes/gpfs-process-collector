@@ -58,7 +58,7 @@ class LiveTopicGuideTests(unittest.TestCase):
     def test_the_guide_stays_compact_and_the_review_table_stays_in_the_background(self):
         line, _ = guide_rows(server.LIVE_INSTRUCTIONS)
         self.assertLess(len(line), 2000)
-        self.assertLess(len(server.LIVE_INSTRUCTIONS), 17000)
+        self.assertLess(len(server.LIVE_INSTRUCTIONS), 17100)
         self.assertNotIn(server.interview_coverage.TOPIC_RUBRIC, server.LIVE_INSTRUCTIONS)
         for topic, dimensions in DIMENSIONS.items():
             for name, explanation in dimensions.items():

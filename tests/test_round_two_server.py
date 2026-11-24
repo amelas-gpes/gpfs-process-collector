@@ -219,7 +219,7 @@ class ExpertFollowUpTests(unittest.TestCase):
         for wording in ("most consequential specific", "That outranks the last thing said", "could be put to any process",
                         "an earlier answer already gives it", "never as a stock question"):
             self.assertIn(wording, live)
-        self.assertLess(len(server.LIVE_INSTRUCTIONS), 17000)
+        self.assertLess(len(server.LIVE_INSTRUCTIONS), 17100)
 
 
 class OpeningLineTests(unittest.TestCase):

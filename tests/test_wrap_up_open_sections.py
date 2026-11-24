@@ -46,7 +46,7 @@ class OpenSectionsDetailTests(unittest.TestCase):
     def test_the_wrap_up_reply_says_the_account_is_saved_and_what_can_be_done(self):
         labels = list(server.COVERAGE.values())
         reply = server.PARTIAL_CHECK_PREFIX + server.open_sections_detail(labels, partly=12) + server.PARTIAL_CHECK_CLOSE
-        self.assertTrue(reply.startswith("Your account so far is saved."))
+        self.assertTrue(reply.startswith("Your account so far is captured."))
         self.assertTrue(reply.endswith("You can create a draft from what is here, or keep answering."))
         self.assertNotIn("still has open sections", reply)
         self.assertLess(len(reply), 220)

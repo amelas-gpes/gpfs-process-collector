@@ -73,7 +73,7 @@ class SkippedQuestionTests(unittest.TestCase):
         service = self.service()
         turns = [
             {"id": "t1", "role": "assistant", "text": "Who approves the invoice?"},
-            {"id": "t2", "role": "assistant", "text": "Your account so far is saved. 2 of 16 topics are complete and 14 are partly covered; the Notes list shows what is missing. You can create a draft from what is here, or keep answering."},
+            {"id": "t2", "role": "assistant", "text": "Your account so far is captured. 2 of 16 topics are complete and 14 are partly covered; the Notes list shows what is missing. You can create a draft from what is here, or keep answering."},
             {"id": "t3", "role": "assistant", "text": "Let me check that I have everything before we finish."},
             {"id": "t4", "role": "assistant", "text": "Before we finish, is there anything else needed to understand this process?"},
             {"id": "t5", "role": "user", "text": "One more thing: the analyst files the approval email."},

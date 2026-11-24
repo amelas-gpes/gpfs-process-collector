@@ -24,7 +24,6 @@
     // applies reach listeners before the next poll is scheduled, and must not read as "nothing running".
     get active(){return this.timer!==null||this.controllers.size>0||this.settling>0;}
     notify(value){
-      global.CollectorRawTrace?.record("analysis.status",{state:value.state,revision:value.revision,kept:value.kept});
       try{this.options.onStatus?.(value);}catch{/* Advisory status cannot alter interview state. */}
     }
     notifyCheckError(result){
@@ -127,7 +126,7 @@
           ...(snapshot.document_scope?{document_scope:snapshot.document_scope}:{})} : this.withToken(snapshot);
         const result=await this.send("/api/conversation/status",query,{signal:controller.signal});
         if(controller.signal.aborted||!this.current(captured)){
-          global.CollectorRawTrace?.record("analysis.poll_discarded",{revision:captured.revision,aborted:controller.signal.aborted});return;
+          return;
         }
         this.rememberToken(result); captured.retryWait=0; captured.retryCount=0;
         // The topic states of notes that are still being written. They are shown as written and
@@ -157,7 +156,6 @@
           if(key!==this.appliedMap){
             this.options.applyWorkflow?.(behind.workflow_capture,{snapshot:{...snapshot,turns:behind.turns},revision:behind.revision,
               checkpoint:true,check:behind.checked===false?"working":""});
-            global.CollectorRawTrace?.record("analysis.workflow_checkpoint_applied",{revision:behind.revision,through_turn_id:behind.through_turn_id});
             this.appliedMap=key;
           }
         }
@@ -165,7 +163,6 @@
         if(!captured.mapOnly && checkpoint && checkpoint.capture && checkpoint.revision &&
            checkpoint.revision!==this.checkpointRevision && earlier(checkpoint)){
           this.options.applyCapture(checkpoint.capture,{snapshot:{...snapshot,turns:checkpoint.turns},revision:checkpoint.revision,checkpoint:true});
-          global.CollectorRawTrace?.record("analysis.checkpoint_applied",{revision:checkpoint.revision,through_turn_id:checkpoint.through_turn_id});
           this.checkpointRevision=checkpoint.revision;
         }
         if(result.agent_team&&(captured.mapOnly||result.state!=="error")){
@@ -179,7 +176,6 @@
           if(mapKey){
             if(mapKey!==this.appliedMap){
               this.options.applyWorkflow?.(result.workflow_capture,{snapshot,revision:result.revision,check:mapCheck});
-              global.CollectorRawTrace?.record("analysis.workflow_applied",{revision:result.revision,check:mapCheck});
               this.appliedMap=mapKey;
             }
             // The map is on screen. While its source check runs the page keeps asking for the result.
@@ -195,7 +191,6 @@
         // The map of this answer can be drawn before its notes are captured: it is shown as soon as it is there.
         if(mapKey&&mapKey!==this.appliedMap&&result.state!=="ready"){
           this.options.applyWorkflow?.(result.workflow_capture,{snapshot,revision:result.revision,check:mapCheck});
-          global.CollectorRawTrace?.record("analysis.workflow_applied",{revision:result.revision,check:mapCheck,before_notes:true});
           this.appliedMap=mapKey;
         }
         if(result.state==="ready"){
@@ -208,11 +203,9 @@
           if(appliedKey!==this.appliedRevision){
             this.options.applyCapture({...(kept?{preserve_capture:true}:result.capture),...(result.workflow_capture?{workflow_capture:result.workflow_capture}:{})},{snapshot,revision:result.revision,check:mapCheck});this.appliedRevision=appliedKey;
             if(mapKey)this.appliedMap=mapKey;
-            global.CollectorRawTrace?.record("analysis.capture_applied",{revision:result.revision,kept,workflow:Boolean(result.workflow_capture)});
           }else if(mapKey&&mapKey!==this.appliedMap){
             // The notes are in; the map changed (its check finished, or Wrap up's second look replaced it).
             this.options.applyWorkflow?.(result.workflow_capture,{snapshot,revision:result.revision,check:mapCheck});
-            global.CollectorRawTrace?.record("analysis.workflow_applied",{revision:result.revision,check:mapCheck});
             this.appliedMap=mapKey;
           }
           captured.notesApplied=true;

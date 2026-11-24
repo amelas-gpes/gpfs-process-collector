@@ -17,7 +17,7 @@ WEB_FILES = (
     'agent-team.css', 'agent-team.js', 'app.js',
     'assets/gpfs-logo.svg', 'assets/gpfs-symbol.svg',     'concurrent-interview.js', 'context-help.js', 'document-intake.js', 'documents.css',
     'documents.js', 'gpfs-presence.css', 'gpfs-presence.js', 'index.html', 'knowledge-ui.css', 'knowledge-ui.js',
-    'live-voice-tap.js', 'live-voice.js', 'raw-trace.js', 'settings-ui.js', 'settings.css', 'style.css',
+    'live-voice-tap.js', 'live-voice.js', 'settings-ui.js', 'settings.css', 'style.css',
     'theme.js', 'vendor/elk.bundled.js', 'workflow-exports.js',
     'workflow-graph.js', 'workflow-layout-worker.js',     'workflow-toolbar.css', )
 
@@ -26,7 +26,7 @@ def source_files(root):
     """The files that name a build: the server's modules and rules, and the page files it serves."""
     root = Path(root)
     files = [root / name for name in (
-        'server.py', 'draft_audit.py', 'provider_schema.py', 'provider_usage.py', 'raw_trace.py', 'launcher.py', 'runtime_build.py', 'documents.py',
+        'server.py', 'draft_audit.py', 'provider_schema.py', 'provider_usage.py', 'launcher.py', 'runtime_build.py', 'documents.py',
         'document_service.py', 'knowledge_graph.py', 'knowledge_ai.py', 'openai_transport.py',
         'interview_stop.py', 'collector_settings.py', 'gpfs_interview.py', 'interview_coverage.py', 'agent_team.py', 'interview_orchestrator.py', 'capture_facts.py', 'file_parts.py', 'concurrent_interview.py', 'FOUNDATION.md')]
     # Never include settings, saved interviews, private stores, logs, or Git data. The page files are

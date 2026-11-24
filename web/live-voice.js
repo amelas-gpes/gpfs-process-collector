@@ -4,14 +4,8 @@
 // Captions: https://developers.openai.com/api/docs/guides/live-conversations
 // This controller retains only text fragments in memory. The project API key stays on the server.
 (() => {
-  const trace = (...args) => window.CollectorRawTrace?.record(...args);
-  const channelEventId = value => typeof value === "string" && /^[A-Za-z0-9_-]{1,100}$/.test(value) ? value : undefined;
   function sendEvent(op, packet) {
     op.channel.send(JSON.stringify(packet));
-    const context = packet.type === "session.thinking.append";
-    trace("live.channel_sent", {event_type:packet.type, client_event_id:packet.event_id,
-      value_omitted:context ? "document_or_notes_context" : undefined, chars:packet.content?.length},
-      !context && packet.content !== undefined ? {text:packet.content} : undefined);
   }
   // Live append content is limited to 500 tokens. UTF-8 bytes give a conservative
   // upper bound for byte-tokenized text, including non-Latin text and JSON escapes.
@@ -206,17 +200,6 @@
       window.document?.addEventListener?.("visibilitychange", this.visibility);
     }
     notify(name, value) {
-      if (name === "onTranscript") {
-        trace("live.caption", {caption_id:value.id, role:value.role, final:value.final,
-          start_ms:value.start_ms, end_ms:value.end_ms, fragments:value.fragments.length}, {text:value.text});
-      } else if (name === "onWithheld") {
-        trace("live.caption_withheld", {caption_id:value.id, start_ms:value.start_ms, end_ms:value.end_ms,
-          muted:value.muted, fragments:value.fragments, value_omitted:"transient_caption"});
-      } else if (name === "onStatus") trace("live.status", {state:value});
-      else if (name === "onContext" || name === "onGreeting") {
-        trace("live.command_receipt", {callback:name, state:value.status, acknowledged_chunks:value.acknowledged_chunks,
-          total_chunks:value.total_chunks, start_ms:value.start_ms, end_ms:value.end_ms});
-      }
       try {this.options[name]?.(value);}
       catch {
         // Consumer UI callbacks must not interrupt media cleanup or leave
@@ -303,7 +286,6 @@
           }});
         });
         peer.addEventListener("connectionstatechange", () => {
-          trace("live.connection_state", {state:peer.connectionState});
           if (!current()) return;
           if (["failed","closed"].includes(peer.connectionState)) {this.fail(op,"The live voice connection ended. Your transcript is retained; select Continue talking to reconnect.");return;}
           // Each outage gets its own recovery window. A stale timer from an
@@ -393,10 +375,6 @@
       let event;
       try {event = JSON.parse(data);} catch {return this.fail(op,"Live voice returned an unreadable event. Your transcript is retained.");}
       if (!event || typeof event !== "object" || Array.isArray(event)) return this.fail(op,"Live voice returned an unreadable event. Your transcript is retained.");
-      trace("live.channel_received", {event_type:/^[a-z][a-z0-9._]{0,79}$/.test(event.type) ? event.type : "unrecognized",
-        event_id:channelEventId(event.event_id), client_event_id:channelEventId(event.client_event_id ?? event.error?.client_event_id),
-        start_ms:event.start_ms, end_ms:event.end_ms, chars:typeof event.delta === "string" ? event.delta.length : undefined,
-        value_omitted: typeof event.delta === "string" ? "before_caption_gate" : undefined});
       if (event.type === "session.closed") {
         op.finalized = true;
         if (!op.closing) this.notify("onError","The live voice session ended. Your transcript is retained. Start talking again or continue by typing.");
@@ -934,7 +912,7 @@
             item:{type:"function_call_output",call_id:call.call_id,output:JSON.stringify(result)}});
         }
         sendEvent(op,{type:"response.create",event_id:"continue_"+(++this.sequence)});
-      }catch{trace("live.lookup_unavailable",{count:calls.length});}
+      }catch{/* A lookup that cannot be answered leaves the conversation as it is. */}
     }
     appendContext(text, {id,kind="document_findings",replaceKey,plain=false} = {}) {
       // plain: one short note sent as a single event without the chunk wrapper,
@@ -1043,7 +1021,6 @@
     watchPlayback(op) {
       for (const type of ["playing","waiting","stalled","pause","ended","emptied","volumechange"]) {
         this.listenAudio(op,op.audio,type,() => {
-          trace("live.audio_callback", {event_type:type});
           if (type === "playing") {op.sound.playing = true;op.sound.buffering = false;}
           // A stalled fetch can coexist with buffered audio that is still playing.
           if (type === "waiting" || (type === "stalled" && op.audio.readyState < 3)) op.sound.buffering = true;
@@ -1337,10 +1314,8 @@
         // A suspended audio clock stops while the page clock runs on: the next
         // block sets the clock offset afresh, and no block joins across the pause.
         this.listenAudio(op,context,"statechange",() => {if (op.tap === tap && context.state !== "running") Object.assign(tap,{offset:null,history:null,counted:null});});
-        trace("live.caption_tap",{state:"ready",kind});
       } catch {
         try {node?.disconnect();silent?.disconnect();} catch { /* Already disconnected. */ }
-        if (this.operation === op) trace("live.caption_tap",{state:"unavailable"});
       }
     }
     releaseTap(op) {

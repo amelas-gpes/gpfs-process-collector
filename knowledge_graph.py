@@ -37,7 +37,6 @@ def _sibling(name):
 
 
 gpfs_interview = _sibling("gpfs_interview")
-raw_trace = _sibling("raw_trace")
 validate_generation_records = _sibling("provider_usage").validate_generation_records
 
 RELATIONSHIPS = frozenset(('provides_input_to', 'produces', 'consumes', 'hands_off_to',
@@ -1134,29 +1133,21 @@ class KnowledgeGraph:
             if not self.scheduling or job_id in self.queued_jobs: return False
             self.queued_jobs.add(job_id)
             try:
-                raw_trace.emit("knowledge.job_queued", {"job_id":job_id})
-                self.executor.submit(raw_trace.wrap(self._execute),job_id)
+                self.executor.submit(self._execute,job_id)
             except Exception:
                 self.queued_jobs.discard(job_id)
                 raise
             return True
 
     def _execute(self, job_id):
-        completed = False
         try:
-            raw_trace.emit("knowledge.job_started", {"job_id":job_id})
             self._run(job_id)
-            completed = True
         except Exception:
             with self.lock,self.db:
                 self.db.execute("UPDATE jobs SET status='failed',owner_pid=NULL,error='The knowledge job could not start. Check local storage.' WHERE id=? AND status IN ('processing','pending')",(job_id,))
         finally:
             with self.lock:
                 self.queued_jobs.discard(job_id)
-                raw_trace.emit("knowledge.job_returned", {"job_id":job_id, "returned":completed})
-                if completed and self.scheduling:
-                    row=self.db.execute('SELECT status FROM jobs WHERE id=?',(job_id,)).fetchone()
-                    raw_trace.emit("knowledge.job_status_read", {"job_id":job_id, "status":row['status'] if row else None})
 
     def stop_scheduling(self):
         with self.lock:

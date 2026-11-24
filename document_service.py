@@ -167,7 +167,7 @@ def _shorten(context, size, limit):
 
 
 class DocumentService:
-    def __init__(self, store, analyze_callback, trace=None, workers=1):
+    def __init__(self, store, analyze_callback, workers=1):
         if not callable(analyze_callback):
             raise TypeError('A document analysis callback is required.')
         self.store, self.analyze = store, analyze_callback
@@ -177,7 +177,6 @@ class DocumentService:
             self._takes_header = 'on_header' in inspect.signature(analyze_callback).parameters
         except (TypeError, ValueError):
             self._takes_header = False
-        self.trace = trace
         self.request_scope = nullcontext
         self._interviews = {}
         self._condition = threading.Condition(threading.RLock())
@@ -343,14 +342,10 @@ class DocumentService:
             if obsolete:
                 for task in obsolete:
                     self._queued.pop(task)
-                    if self.trace:
-                        self.trace.emit("document.superseded", {"document_id":document_id, "revision":task[2], "phase":task[3]})
                 self._urgent = deque(task for task in self._urgent if task not in obsolete)
                 self._deep = deque(task for task in self._deep if task not in obsolete)
             (self._urgent if phase == 'quick' else self._deep).append(item)
-            self._queued[item] = self.trace.wrap(self._execute_task) if self.trace else self._execute_task
-            if self.trace:
-                self.trace.emit("document.queued", {"document_id":document_id, "revision":generation, "phase":phase})
+            self._queued[item] = self._execute_task
             self._condition.notify()
 
     def _current(self, scope, document_id, generation):
@@ -385,9 +380,6 @@ class DocumentService:
             run(scope, document_id, generation, phase)
 
     def _execute_task(self, scope, document_id, generation, phase):
-        observed = {"document_id":document_id, "revision":generation, "phase":phase}
-        if self.trace:
-            self.trace.emit("document.dequeued", observed)
         continuation = None
         try:
             lease = getattr(self.store, 'review_lease', None)
@@ -396,14 +388,8 @@ class DocumentService:
                     current = self._current(scope, document_id, generation)
                     state = (current or {}).get('analysis') or {}
                     if current and (phase == 'reindex' or current.get('status') in ('pending','indexing') or not state.get('phase') or state.get('phase') == phase):
-                        if self.trace:
-                            self.trace.emit("document.review_started", observed)
                         continuation = self._run(scope, document_id, generation, phase)
-                        if self.trace:
-                            self.trace.emit("document.review_returned", {**observed, "continuation":continuation})
         except Exception as error:
-            if self.trace:
-                self.trace.emit("document.review_failed", {**observed, "error_type":type(error).__name__})
             # Provider/parser exceptions may contain private document text. Keep
             # ordinary status output controlled and preserve cursor/originals.
             with self._condition:
@@ -861,8 +847,6 @@ class DocumentService:
                 return
             if opening['relevance'] != 'relevant':
                 return  # A file the reviewer is unsure of is settled on its whole reply.
-            if self.trace:
-                self.trace.emit("document.review_header", {"document_id":document_id, "revision":generation, "phase":phase})
             self._settle(scope, document_id, generation, phase, batch, visual, kept, opening, offset, reviewed, settled, only, full,
                          header_only=True)
             published.append(True)
@@ -961,7 +945,7 @@ class DocumentService:
                                 thread_name_prefix='document-review-wave') as pool:
             for index, item in enumerate(prepared):
                 if item:
-                    # Each request runs with this thread's context: its interview, trace binding and
+                    # Each request runs with this thread's context: its interview and
                     # background marking, as a request from this thread would.
                     futures[index] = pool.submit(contextvars.copy_context().run, ask, index)
             outcome = None
@@ -1069,13 +1053,10 @@ class DocumentService:
         timeout, provider-side error). An invalid reply is never sent again by
         itself. Returns None when the file's intent changed while waiting.
         """
-        for attempt, delay in enumerate((*RETRY_DELAYS, None), 1):
+        for delay in (*RETRY_DELAYS, None):
             reserve=getattr(self.store,'reserve_review_request',None)
             if reserve and not reserve(scope,document_id,generation): return None
             try:
-                if self.trace:
-                    self.trace.emit("document.review_attempt", {"document_id":document_id, "revision":generation,
-                        "phase":phase, "attempt":attempt, "source_ids":[chunk.get("id") for chunk in batch]})
                 with self.request_scope(self._interviews.get(scope)):
                     return self.analyze(context, callback_record, copy.deepcopy(batch), phase,
                                         **({'on_header': on_header} if on_header else {}))
@@ -1449,17 +1430,8 @@ class DocumentService:
             with self._support_lock:
                 known = self._support_memo.get(key) if key is not None else None
             if known is not None:
-                if self.trace:
-                    self.trace.emit("document.selection_reused", {"source_versions":known.get("source_versions", []),
-                        "document_ids":[row.get("id") for row in known.get("documents", [])]})
                 return copy.deepcopy(known)
             result = self._supporting_context(reader, query, source_ids, required_documents, frozen, selected_documents, pinned_first)
-        if self.trace:
-            self.trace.emit("document.selection", {"query":query, "requested_source_ids":list(source_ids),
-                "required_document_ids":list(required_documents), "frozen":frozen,
-                "documents":[{"id":row.get("id"), "source_revision":row.get("source_revision"),
-                              "source_ids":[chunk["id"] for chunk in row.get("excerpts", []) if "id" in chunk]}
-                             for row in result.get("documents", [])]})
         if key is not None:
             with self._support_lock:
                 self._support_memo[key] = copy.deepcopy(result)

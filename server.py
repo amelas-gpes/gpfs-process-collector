@@ -105,7 +105,6 @@ def local_module(name, filename):
 
 runtime_build = local_module("runtime_build", "runtime_build.py")
 VERSION = runtime_build.VERSION
-raw_trace = local_module("raw_trace", "raw_trace.py")
 openai_transport = local_module("openai_transport", "openai_transport.py")
 provider_usage = local_module("provider_usage", "provider_usage.py")
 documents = local_module("documents", "documents.py")
@@ -2623,8 +2622,6 @@ def one_request(question):
 
 def question_rejection(text, limit=1200, single=False):
     reason = _question_rejection(text, limit, single)
-    raw_trace.emit("interview.question.guard", {"limit": limit, "single": single, "reason": reason,
-                                               "content": {"candidate": text}})
     return reason
 
 
@@ -4924,7 +4921,7 @@ def settle_generated_citations(update, previous, turns, documents=None, carried=
             continue
         step["evidence_turns"] = refs
         kept_steps.append(step)
-    dropped = gpfs_interview.settle_operating_details(
+    gpfs_interview.settle_operating_details(
         kept_steps, turns, documents, context, carried,
         {identity: step.get("operating_details") or [] for identity, step in accepted.items()})
     kept_edges = []
@@ -4942,16 +4939,11 @@ def settle_generated_citations(update, previous, turns, documents=None, carried=
             continue
         edge["evidence_turns"] = refs
         kept_edges.append(edge)
-    removed = len(steps) - len(kept_steps), len(edges) - len(kept_edges)
     settled["upsert_steps"], settled["upsert_connections"] = kept_steps, kept_edges
     if questions and isinstance(settled.get("open_questions"), list):
         settled["open_questions"] = ([question for question in dict.fromkeys(questions)
                                       if question not in settled["open_questions"]][:max(0, 500 - len(settled["open_questions"]))]
                                      + settled["open_questions"])
-    if dropped or any(removed):
-        # Counts only: never the step, the route or any wording.
-        raw_trace.emit("workflow.generated_citations_settled",
-                       {"details_dropped": dropped, "steps_left_out": removed[0], "connections_left_out": removed[1]})
     return settled
 
 
@@ -5488,38 +5480,13 @@ class OpenAIClient:
         return ("wss://api.openai.com",)
 
     @staticmethod
-    def _trace_response(result):
-        # The provider can echo the input envelope. The dispatch observation holds
-        # that input already. Keep the returned response identity, outputs and status.
-        return {key: result[key] for key in ("id", "created_at", "completed_at", "model", "status", "usage",
-                "incomplete_details", "error", "output", "output_text") if key in result}
-
-    @staticmethod
-    def _trace_live_request(body):
-        session = copy.deepcopy(body.get("session", {}))
-        if not isinstance(session, dict):
-            return {"content": {"omitted_fields": ["session"]}}
-        delegate = session.get("delegation", {})
-        backend = delegate.get("responses", {}) if isinstance(delegate, dict) else {}
-        # File excerpts are JSON appended to instruction text. Expose the exact
-        # string parts separately, so the common scrubber can recognize nested file fields.
-        for target, delimiter in ((session, "\nSUPPORTING DOCUMENT CONTEXT (UNTRUSTED, UNCONFIRMED)\n"),
-                (backend, "\nINITIAL SUPPORTING DOCUMENT CONTEXT (UNTRUSTED; latest live snapshots may supersede this)\n")):
-            instructions = target.get("instructions") if isinstance(target, dict) else None
-            if isinstance(instructions, str) and delimiter in instructions:
-                prefix, marker, encoded_files = instructions.rpartition(delimiter)
-                target["instructions"] = {"_trace": "joined_strings", "parts": [prefix + marker, encoded_files]}
-        return {"content": {"session": session}, "omitted_fields": ["transport.sdp"]}
-
-    @staticmethod
-    def _read_stream(response, on_text, check_active=None, request_id=None):
+    def _read_stream(response, on_text, check_active=None):
         """Collect Responses API server-sent events into the final response object.
 
         on_text receives the output text accumulated so far after each delta and
         returns True once it has seen what it needs; it is not called again.
         """
         pieces, pending, final, announced, total = [], [], None, False, 0
-        trace_streams = {}
 
         def dispatch():
             nonlocal final, announced
@@ -5528,35 +5495,11 @@ class OpenAIClient:
             raw = "\n".join(pending)
             pending.clear()
             if raw == "[DONE]":
-                raw_trace.emit("provider.stream.done", {"request_id": request_id})
                 return
             event = json.loads(raw)
             if not isinstance(event, dict):
                 raise ValueError("Unexpected stream event.")
             kind = event.get("type", "")
-            if raw_trace.active():
-                fields = {key: event[key] for key in ("type", "sequence_number", "output_index", "content_index") if key in event}
-                if kind in ("response.output_text.delta", "response.refusal.delta") and isinstance(event.get("delta"), str):
-                    # A credential or a protected JSON field can be split across deltas. Persist offsets
-                    # immediately; store the reassembled string through the content scrubber at completion.
-                    key = (kind, *(event.get(i) if type(event.get(i)) is int else None for i in ("output_index", "content_index")))
-                    stream = trace_streams.setdefault(key, {"length": 0, "pieces": []})
-                    fields.update(offset=stream["length"], characters=len(event["delta"]))
-                    stream["length"] += fields["characters"]
-                    if raw_trace.content_enabled():
-                        stream["pieces"].append(event["delta"])
-                elif kind in ("response.created", "response.in_progress", "response.completed", "response.failed",
-                              "response.incomplete") and isinstance(event.get("response"), dict):
-                    fields["content"] = OpenAIClient._trace_response(event["response"])
-                elif kind in ("response.output_item.added", "response.output_item.done"):
-                    fields["content"] = {"item": event.get("item")}
-                elif kind in ("response.content_part.added", "response.content_part.done"):
-                    fields["content"] = {"part": event.get("part")}
-                elif kind in ("response.output_text.done", "response.refusal.done", "error"):
-                    fields["content"] = {key: event[key] for key in ("text", "refusal", "code", "message", "error") if key in event}
-                else:
-                    fields["omitted_fields"] = [key for key in event if key not in fields]
-                raw_trace.emit("provider.stream.event", {"request_id": request_id, **fields})
             if kind == "response.output_text.delta" and isinstance(event.get("delta"), str):
                 pieces.append(event["delta"])
                 if not announced:
@@ -5587,11 +5530,6 @@ class OpenAIClient:
         dispatch()
         if final is None:
             raise ValueError("The stream ended before the response completed.")
-        for (kind, output_index, content_index), stream in trace_streams.items():
-            complete = final.get("status") == "completed" and raw_trace.content_enabled()
-            captured = {"text": "".join(stream["pieces"])} if complete else {"omitted_fields": ["text"]}
-            raw_trace.emit("provider.stream.buffer", {"request_id": request_id, "type": kind, "output_index": output_index,
-                "content_index": content_index, "characters": stream["length"], **captured})
         return final
 
     @staticmethod
@@ -5659,23 +5597,12 @@ class OpenAIClient:
         output_limit = body.get("max_output_tokens") if isinstance(body, dict) else None
         if type(output_limit) is int and output_limit > 0:
             metrics["requested_output_token_ceiling"] = output_limit
-        tracing = raw_trace.active()
-        http_status = None
-
-        def trace_headers(status):
-            # urllib has received the response headers at this point. Its real status
-            # is independent of the app's later parse result or diagnostics category.
-            nonlocal http_status
-            http_status = status if type(status) is int else None
-            raw_trace.emit("provider.http.response_headers", {"request_id": metrics["request_id"], "stage": stage,
-                **({"http_status": http_status} if http_status is not None else {})})
         if isinstance(body, dict) and isinstance(body.get("instructions"), str):
             # Digest the fixed system instructions only. Never persist prompts or interview inputs.
             metrics["prompt_id"] = provider_usage.prompt_id(body["instructions"])
             effort = (body.get("reasoning") or {}).get("effort")
             if effort in ("low", "medium", "high", "minimal", "none"):
                 metrics["reasoning_effort"] = effort
-        label = provider_usage.active_interview.get()
         check_abort = provider_usage.active_abort.get()
         deadline = started + timeout
 
@@ -5711,15 +5638,6 @@ class OpenAIClient:
         try:
             try:
                 with slot():
-                    if tracing:
-                        if path in ("responses", "realtime/client_secrets") and isinstance(body, dict):
-                            sent = {"content": body}
-                        elif path == "live/sessions" and isinstance(body, dict):
-                            sent = self._trace_live_request(body)
-                        else:
-                            sent = {"omitted_fields": ["body"]}
-                        raw_trace.emit("provider.request.dispatch", {"request_id": metrics["request_id"], "stage": stage,
-                            "path": path, "byte_count": len(data), "timeout_seconds": timeout, **sent})
                     remaining = max(.01, deadline - time.monotonic())
                     if role_binding:
                         run, role = role_binding
@@ -5730,32 +5648,24 @@ class OpenAIClient:
                         path, data, key=self.key, content_type=content_type, timeout=remaining,
                         check_active=check_active, should_abort=check_abort,
                     ) as response:
-                        if tracing:
-                            trace_headers(getattr(response, "status", None))
                         check_active()
                         if streaming:
                             try:
-                                raw = self._read_stream(response, on_text, check_active, metrics["request_id"])
+                                raw = self._read_stream(response, on_text, check_active)
                             except (ValueError, UnicodeError):
                                 check_active()
                                 metrics.update(error_category="invalid_response")
                                 raise APIError("The AI service returned an unreadable response. Please try again.") from None
                         else:
                             raw = response.read(4 * 1024 * 1024 + 1)
-                            if tracing:
-                                raw_trace.emit("provider.http.body_read", {"request_id": metrics["request_id"], "bytes": len(raw)})
                             if len(raw) > 4 * 1024 * 1024:
                                 raise APIError("The AI service returned more data than this operation can accept.")
                         check_active()
             except HTTPError as error:
                 code = ""
                 error_type = ""
-                if tracing:
-                    trace_headers(error.code)
                 try:
                     error_body = error.read(30000)
-                    if tracing:
-                        raw_trace.emit("provider.http.body_read", {"request_id": metrics["request_id"], "bytes": len(error_body)})
                     details = json.loads(error_body).get("error", {})
                     code = details.get("code", "") or ""
                     error_type = details.get("type", "") or ""
@@ -5808,8 +5718,6 @@ class OpenAIClient:
                 else:
                     message = f"The AI service could not complete the request (HTTP {error.code}). Your session is retained; try again."
                 metrics.update(status=error.code, error_category=category, error_type="HTTPError")
-                raw_trace.emit("provider.http.error", {"request_id": metrics["request_id"], "stage": stage,
-                    "http_status": error.code, "category": category, "provider_code": code, "provider_type": error_type})
                 # A rate limit or a provider-side failure can pass by itself; nothing else here can.
                 transient = category == "rate_limit" or 500 <= error.code < 600
                 wait_seconds = int(retry_after) if category == "provider_unavailable" and retry_after else None
@@ -5871,27 +5779,8 @@ class OpenAIClient:
             metrics.update(outcome="success", status=200)
             if path == "responses":
                 metrics.update(self._usage_metrics(result, body))
-            if not tracing:
-                return result
-            if path == "responses":
-                received = self._trace_response(result)
-            elif path == "audio/transcriptions":
-                # A dictated answer may be edited or discarded. Its committed turn
-                # records the submitted wording; provider transcription stays transient.
-                received = {"characters": len(result["text"])} if isinstance(result.get("text"), str) else {}
-            else:
-                # Live sessions return ICE credentials and playback returns a bearer credential in 'value'.
-                received = {key: result[key] for key in ("expires_at",) if key in result}
-            raw_trace.emit("provider.response.decoded", {"request_id": metrics["request_id"], "stage": stage,
-                "content": received, "omitted_fields": [key for key in result if key not in received]})
             return result
         finally:
-            if tracing:
-                observed = dict(metrics)
-                observed["diagnostic_status"] = observed.pop("status")
-                if http_status is not None:
-                    observed["http_status"] = http_status
-                raw_trace.emit("provider.request.finished", {**observed, "duration_ms": int((time.monotonic() - started) * 1000)})
             duration = int((time.monotonic() - started) * 1000)
             if role_dispatched:
                 role_binding[0].finish_provider_request(role_binding[1], duration, metrics)
@@ -5935,29 +5824,23 @@ class OpenAIClient:
         prioritized = bool(fast and getattr(self, "fast_tier", False) and not getattr(self, "_fast_tier_refused", False))
         if prioritized:
             body["service_tier"] = "priority"
-        operation_id = uuid.uuid4().hex
-        raw_trace.emit("provider.structured.prepared", {"stage": name, "operation_id": operation_id})
         options = {**({"timeout": request_timeout} if request_timeout is not None else {}),
                    **({"on_text": on_text} if on_text is not None else {})}
-        with raw_trace.bind(operation_id=operation_id):
-            try:
-                result = self.request("responses", body, **options)
-            except APIError as error:
-                if not prioritized or getattr(error, "category", None) != "invalid_configuration":
-                    raise
-                # This project or model does not offer the tier. The request is the same without
-                # it: send it the ordinary way, and stop asking for the tier in this process.
-                self._fast_tier_refused = True
-                raw_trace.emit("provider.fast_tier.refused", {"stage": name})
-                body.pop("service_tier", None)
-                result = self.request("responses", body, **options)
+        try:
+            result = self.request("responses", body, **options)
+        except APIError as error:
+            if not prioritized or getattr(error, "category", None) != "invalid_configuration":
+                raise
+            # This project or model does not offer the tier. The request is the same without
+            # it: send it the ordinary way, and stop asking for the tier in this process.
+            self._fast_tier_refused = True
+            body.pop("service_tier", None)
+            result = self.request("responses", body, **options)
         def unusable(category, message, reason=None):
             # The transport record for this call rightly says success, status 200. This second
             # record says why the response that arrived could not be used: a category, a
             # listed reason code and sizes only, never any of the response's text.
             report = getattr(self, "diagnostic_callback", None)
-            raw_trace.emit("provider.structured.rejected", {"stage": name, "category": category, "reason": reason},
-                           operation_id=operation_id)
             if report is not None:
                 try:
                     report("provider_response_unusable", stage=name, outcome="error",
@@ -6016,7 +5899,6 @@ class OpenAIClient:
                                                  **({"build_id": self.build_id} if getattr(self, "build_id", "") else {}),
                                                  "prompt_id": provider_usage.prompt_id(instructions),
                                                  "reasoning_effort": (body.get("reasoning") or {}).get("effort", "default")}])
-            raw_trace.emit("provider.structured.parsed", {"stage": name, "content": parsed}, operation_id=operation_id)
             return parsed
         except ValueError:
             raise unusable("invalid_json", UNUSABLE_RESULT_MESSAGE) from None
@@ -6740,14 +6622,9 @@ class OpenAIClient:
         parts.extend([f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"answer.{types[base_type]}\"\r\nContent-Type: {base_type}\r\n\r\n".encode(),
                  audio, f"\r\n--{boundary}--\r\n".encode()]
         )
-        raw_trace.emit("voice.transcription.prepared", {"media_type": base_type, "byte_count": len(audio),
-            "model": self.transcription_model, "language": self.transcription_language,
-            **({"stage": "live_caption_check"} if glossary is not None else {}),
-            "content": {"keywords": keywords}, "omitted_fields": ["audio"]})
         result = self.request("audio/transcriptions", b"".join(parts), "multipart/form-data; boundary=" + boundary)
         text = result.get("text", "")
         def report(outcome, category):
-            raw_trace.emit("voice.transcription.result", {"outcome": outcome, "category": category})
             if self.diagnostic_callback:
                 try:
                     self.diagnostic_callback('transcription_result', stage='transcription',
@@ -6914,7 +6791,7 @@ class InterviewServer(ThreadingHTTPServer):
                  knowledge_settings=None, knowledge_authorizer=None, knowledge_analyzer=None):
         if address[0] != "127.0.0.1":
             raise ValueError("This prototype can only bind to 127.0.0.1.")
-        # Existing integrations can override knowledge/trace settings independently of the
+        # Existing integrations can override knowledge settings independently of the
         # provider. A fully injected server does not consult the host's private settings.
         runtime_settings = load_settings() if client is None or knowledge_settings is None else {}
         settings = knowledge_settings if knowledge_settings is not None else runtime_settings
@@ -6951,10 +6828,6 @@ class InterviewServer(ThreadingHTTPServer):
         self._assets = {}
         self._assets_lock = threading.Lock()
         self.diagnostics_path = (Path(documents_root).parent if documents_root else APP_DIR / "work") / "server-lifecycle.jsonl"
-        self.trace = raw_trace.TraceStore(self.diagnostics_path.parent, settings)
-        self.trace.register_secret(self.csrf_token)
-        self.trace.register_secret(getattr(self.client, "key", None))
-        self.trace.emit("server.bound", {"port":self.server_port}, build=self.build_id)
         if isinstance(self.client, OpenAIClient):
             self.client.diagnostic_callback = self.record_event
         # A turn may run the lead, the working map, an advisory coverage check and
@@ -6989,7 +6862,6 @@ class InterviewServer(ThreadingHTTPServer):
             else:
                 self.documents_store.diagnostic = self.record_event
                 service = local_module("document_service", "document_service.py")
-                self.documents_store.trace = raw_trace
                 try:
                     # An injected client may review no files at all, or take the four original arguments.
                     hands_over_header = "on_header" in inspect.signature(self.client.analyze_document).parameters
@@ -7002,7 +6874,7 @@ class InterviewServer(ThreadingHTTPServer):
                     provider_usage.background_work.set(phase != "quick")
                     return self.client.analyze_document(context, record, chunks, phase, self.documents_store,
                                                         **({"on_header": on_header} if on_header and hands_over_header else {}))
-                self.documents = service.DocumentService(self.documents_store, review_document, trace=raw_trace,
+                self.documents = service.DocumentService(self.documents_store, review_document,
                                                          workers=limits.document_workers)
                 if getattr(self.client, "coordinator", None) is not None:
                     # The first notes from a file read the whole file in parallel parts (file_parts.py).
@@ -7018,10 +6890,9 @@ class InterviewServer(ThreadingHTTPServer):
                 if self.client.public_config().get("api_configured") is True:
                     knowledge_analyzer = knowledge_ai.build_analyzer(self.client)
             base = Path(knowledge_root) if knowledge_root else (Path(documents_root).parent / "knowledge" if documents_root else APP_DIR / "work" / "knowledge")
-            with raw_trace.bind(self.trace, build=self.build_id):
-                self.knowledge = self._open_store("knowledge", base / "knowledge.sqlite3", lambda: graph.KnowledgeGraph(
-                    base / "knowledge.sqlite3", analyzer=knowledge_analyzer, document_resolver=self.knowledge_document_source,
-                    request_scope=getattr(self.client, "request_scope", None)))
+            self.knowledge = self._open_store("knowledge", base / "knowledge.sqlite3", lambda: graph.KnowledgeGraph(
+                base / "knowledge.sqlite3", analyzer=knowledge_analyzer, document_resolver=self.knowledge_document_source,
+                request_scope=getattr(self.client, "request_scope", None)))
             # A failed matching job writes its kind and exception class (no content) to the lifecycle log.
             self.knowledge.diagnostic = self.record_event
             if isinstance(self.client, OpenAIClient):
@@ -7120,8 +6991,6 @@ class InterviewServer(ThreadingHTTPServer):
             # A packaged release is named by its commit; a working tree has its build_id only.
             fields.setdefault("commit", getattr(self, "release", {}).get("release_commit", ""))
         record_diagnostic(self.diagnostics_path, event, port=self.server_port, **fields)
-        if hasattr(self, "trace"):
-            self.trace.emit("server." + event, fields, build=self.build_id)
 
     def linger_after(self, request, unread):
         """Mark a connection whose response was written with `unread` body bytes still to come."""
@@ -7261,15 +7130,11 @@ class InterviewServer(ThreadingHTTPServer):
                 graph.close()
             super().server_close()
             self._closed_server = True
-            if hasattr(self, "trace"):
-                self.trace.emit("server.closed", {"port":self.server_port}, build=self.build_id)
-                self.trace.close()
 
 
 STATIC_FILES = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/index.html": ("index.html", "text/html; charset=utf-8"),
                  "/theme.js": ("theme.js", "text/javascript; charset=utf-8"),
-                 "/raw-trace.js": ("raw-trace.js", "text/javascript; charset=utf-8"),
                  "/context-help.js": ("context-help.js", "text/javascript; charset=utf-8"),
                  "/settings-ui.js": ("settings-ui.js", "text/javascript; charset=utf-8"),
                  "/settings.css": ("settings.css", "text/css; charset=utf-8"),
@@ -7294,17 +7159,6 @@ STATIC_FILES = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/assets/gpfs-logo.svg": ("assets/gpfs-logo.svg", "image/svg+xml"),
                  "/assets/gpfs-symbol.svg": ("assets/gpfs-symbol.svg", "image/svg+xml"),
                  "/style.css": ("style.css", "text/css; charset=utf-8")}
-
-
-TRACE_UUID = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
-TRACE_API_PATHS = {"/api/" + name for name in """
-config admin/agent-prompts usage/check shutdown interview workflow draft transcribe voice-session live-session
-agent-team/interview agent-team/review agent-team/workflow agent-team/coverage agent-team/status agent-team/cancel
-conversation/turn conversation/status conversation/sync conversation/discard
-documents/session documents/upload documents/status documents/action documents/source documents/context
-knowledge/submit knowledge/status
-recovery/status recovery/setting recovery/load recovery/save recovery/discard
-""".split()}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -7384,8 +7238,6 @@ class Handler(BaseHTTPRequestHandler):
             self.close_connection = True
             self.server.record_event("client_disconnected", status=status, error_type=type(error).__name__)
             return False
-        if getattr(self, "_traced_path", None) in STATIC_FILES:
-            raw_trace.emit("http.asset_write", {"path":self._traced_path, "status":status, "bytes":len(raw)})
         return True
 
     def _failed_request(self, stage, error, message):
@@ -7396,34 +7248,10 @@ class Handler(BaseHTTPRequestHandler):
 
     def _json(self, value, status=200, *, ensure_ascii=False):
         raw = json.dumps(value, ensure_ascii=ensure_ascii).encode("utf-8")
-        written = self._write_response(raw, "application/json; charset=utf-8", status)
-        if getattr(self, "_traced_path", None):
-            raw_trace.emit("http.response_write", {"path":self._traced_path, "status":status,
-                           "bytes":len(raw), "written":written, **self._trace_fields(value)})
-        return written
-
-    def _trace_fields(self, value):
-        # Recovery copies, capability responses and document bodies have their own retention boundary.
-        # Pick application fields explicitly: a restoration file can contain an unsent answer.
-        if not isinstance(value, dict):
-            return {}
-        route = self._traced_path
-        if route == "/api/transcribe":
-            return {"content_omitted":"transient_transcription"}
-        if route.startswith(("/api/documents/", "/api/knowledge/")) or route == "/api/config":
-            keys = ("action", "enabled", "stored", "document_id", "submission_id", "revision", "job_id",
-                    "status", "base_revision", "latest_revision", "deleted", "scope_omitted", "code")
-        else:
-            keys = ("action", "turns", "context", "revision", "question", "request_review", "sync_required",
-                    "completion", "closure", "workflow", "draft", "memo_findings", "coverage", "summary",
-                    "focus", "parking_lot", "text", "status", "error", "code", "discarded", "capture_preserved")
-        return {"fields":{key:value[key] for key in keys if key in value}}
+        return self._write_response(raw, "application/json; charset=utf-8", status)
 
     def _received_json(self, raw):
-        value = json.loads(raw.decode("utf-8"))
-        if getattr(self, "_traced_path", None):
-            raw_trace.emit("http.json_parsed", {"path":self._traced_path, "bytes":len(raw), **self._trace_fields(value)})
-        return value
+        return json.loads(raw.decode("utf-8"))
 
     def _same_origin(self):
         port = self.server.server_port
@@ -7498,35 +7326,8 @@ class Handler(BaseHTTPRequestHandler):
             except OSError:
                 pass
 
-    def _dispatch_observed(self, callback):
-        store = getattr(self.server, "trace", None)
-        if not isinstance(store, raw_trace.TraceStore) or not store.enabled:
-            return callback()
-        path = urlsplit(self.path).path
-        if path in ("/api/trace/events", "/api/trace/logs"):
-            return callback()
-        # Unknown paths, query strings and headers can contain arbitrary credentials.
-        label = path if path in STATIC_FILES or path in TRACE_API_PATHS else "unrecognized"
-        context = {"build":self.server.build_id, "operation_id":uuid.uuid4().hex}
-        if self._same_origin():
-            for header, field in (("X-Trace-Operation","operation_id"), ("X-Trace-Producer","tab_id"),
-                                  ("X-Trace-Interview","interview_id")):
-                value = self.headers.get(header, "")
-                if TRACE_UUID.fullmatch(value):
-                    context[field] = value
-            turn = self.headers.get("X-Trace-Turn", "")
-            if re.fullmatch(r"t[0-9]{1,8}", turn):
-                context["turn_id"] = turn
-        self._traced_path = label
-        try:
-            with raw_trace.bind(store, **context):
-                raw_trace.emit("http.received", {"path":label, "method":self.command})
-                return callback()
-        finally:
-            self._traced_path = None
-
     def do_GET(self):
-        return self._dispatch_observed(self._get)
+        return self._get()
 
     def _get(self):
         if not self._same_origin():
@@ -7541,11 +7342,6 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/config":
             client = self.server.client
             config = dict(client.public_config())
-            config["raw_trace"] = {**self.server.trace.status(), "app_run_id":self.server.trace.run_id}
-            if self.server.trace.content:
-                config["data_notice"] = ("Application logging is enabled on this computer. It saves interview wording, "
-                    "model prompts, replies and application events in private local logs as you work. "
-                    + config.get("data_notice", ""))
             unreadable = getattr(self.server, "documents_unavailable", {})
             storage_problems = getattr(self.server, "storage_problems", {})
             config.update({"app_id": "voice-interviewer", "version": VERSION,"build_id":self.server.build_id,
@@ -7571,17 +7367,6 @@ class Handler(BaseHTTPRequestHandler):
             config['concurrent_interview'] = {'enabled': self.server.conversation is not None}
             config["knowledge_submit_max_bytes"] = MAX_KNOWLEDGE_SUBMIT
             return self._json(config)
-        if path == "/api/trace/logs":
-            token = self.headers.get("X-CSRF-Token", "")
-            if not token.isascii() or not secrets.compare_digest(token, self.server.csrf_token):
-                return self._json({"error": TOKEN_REJECTED_MESSAGE, "code": "request_token_rejected"}, 403)
-            query = urlsplit(self.path).query
-            if query not in ("scope=all", "scope=current"):
-                return self._json({"error": "Choose recent sessions or the current session."}, 400)
-            try:
-                return self._json(self.server.trace.recent_events(current_run=query == "scope=current"))
-            except OSError:
-                return self._json({"error": "The local logs could not be read. Try again."}, 503)
         files = STATIC_FILES
         if path not in files:
             return self._json({"error": "Not found."}, 404)
@@ -7678,7 +7463,7 @@ class Handler(BaseHTTPRequestHandler):
         return result
 
     def do_POST(self):
-        return self._dispatch_observed(self._post)
+        return self._post()
 
     def _post(self):
         self._body_declared, self._body_received = self._declared_body(), 0
@@ -7695,8 +7480,6 @@ class Handler(BaseHTTPRequestHandler):
         if len(lengths) != 1 or not re.fullmatch(r"[0-9]{1,12}", lengths[0]):
             return self._json({"error": "Invalid Content-Length."}, 400)
         path = urlsplit(self.path).path
-        if path == "/api/trace/events":
-            return self._browser_trace(int(lengths[0]))
         label = provider_usage.interview_id(self.headers.get("X-Interview-Id"))
         provider_usage.active_interview.set(label)
         if path.startswith("/api/documents/"):
@@ -7740,7 +7523,6 @@ class Handler(BaseHTTPRequestHandler):
             purpose = None
             if path == "/api/transcribe":
                 payload = raw
-                raw_trace.emit("http.audio_read", {"bytes":len(raw), "content_omitted":"recorded_audio"})
                 # A live caption check asks for its glossary (caption_check_terms); it is refused, before
                 # it takes a place, unless this server runs that check.
                 purpose = transcription_purpose(self.headers.get_all("X-Transcription-Purpose"))
@@ -8044,46 +7826,6 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as error:
             self._failed_request("interview_request", error, "The request could not be completed. Your browser session is retained.")
 
-    def _browser_trace(self, size):
-        if size <= 0 and not self.headers.get("Transfer-Encoding"):
-            return self._json({"error": EMPTY_REQUEST_MESSAGE}, 400)
-        if self.headers.get("Transfer-Encoding") or not 0 < size <= 262144:
-            return self._json({"error":"Trace batch exceeds its limit."}, 413)
-        if self.headers.get("Content-Type", "").split(";", 1)[0].strip() != "application/json":
-            return self._json({"error":"Trace batches require JSON."}, 415)
-        try:
-            batch = json.loads(self._read_body(size, self.server.body_timeout))
-            if not isinstance(batch, dict) or not isinstance(batch.get("producer_id"), str) or not TRACE_UUID.fullmatch(batch["producer_id"]):
-                raise ValueError
-            events = batch.get("events")
-            if not isinstance(events, list) or not 1 <= len(events) <= 64:
-                raise ValueError
-            valid = []
-            for row in events:
-                if not isinstance(row, dict) or set(row) - {"type", "seq", "at", "payload", "interview_id", "turn_id", "operation_id"}:
-                    raise ValueError
-                if (not isinstance(row.get("type"), str) or not re.fullmatch(r"[a-z][a-z0-9_.]{0,79}", row["type"])
-                        or type(row.get("seq")) is not int or not 1 <= row["seq"] <= 2**53-1
-                        or not isinstance(row.get("at"), str) or not re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z", row["at"])
-                        or not isinstance(row.get("payload"), dict)):
-                    raise ValueError
-                context = {"producer":"browser", "producer_id":batch["producer_id"], "source_sequence":row["seq"],
-                           "observed_at":row["at"], "build":self.server.build_id}
-                for key in ("operation_id", "interview_id", "turn_id"):
-                    value = row.get(key)
-                    if value is not None:
-                        if not isinstance(value, str) or not (re.fullmatch(r"[A-Za-z0-9_-]{1,80}", value) if key == "turn_id" else TRACE_UUID.fullmatch(value)):
-                            raise ValueError
-                        context[key] = value
-                valid.append((row, context))
-        except (ValueError, RecursionError, TimeoutError, UnicodeError):
-            return self._json({"error":"Invalid trace batch."}, 400)
-        accepted = 0
-        for row, context in valid:
-            if self.server.trace.emit("browser." + row["type"], row["payload"], **context):
-                accepted += 1
-        return self._json({"accepted":accepted, "received":len(valid)})
-
     def _knowledge(self, path):
         if path not in {"/api/knowledge/submit", "/api/knowledge/status"}:
             self._discard_rejected_body()
@@ -8330,7 +8072,6 @@ class Handler(BaseHTTPRequestHandler):
                 service = self.server.documents
                 if upload:
                     scope = self.headers.get("X-Document-Scope", "")
-                    raw_trace.emit("document.upload_read", {"bytes":len(raw), "content_omitted":"file_original"})
                     if hasattr(service, "attribute_scope") and provider_usage.active_interview.get():
                         service.attribute_scope(scope, provider_usage.active_interview.get())
                     return self._json({"document": service.upload(scope, name, raw)}, 202)
@@ -8447,11 +8188,8 @@ def main():
     url = f"http://127.0.0.1:{server.server_port}/"
     print(f"AI Process Collector {VERSION}: {url}", flush=True)
     # Explain the storage modes selected for this listener.
-    kept = "Interviews are not saved automatically."
-    if getattr(getattr(server, "trace", None), "content", False) is True:
-        kept = "Developer event logs retain interview wording, model exchanges and application events."
-    print("Bound to this computer only. Documents persist privately on this computer. " + kept
-          + " Save the interview separately to retain its transcript.", flush=True)
+    print("Bound to this computer only. Documents persist privately on this computer. Interviews are not saved automatically."
+          " Save the interview separately to retain its transcript.", flush=True)
     # A provider key that was discarded leaves a trace outside the page too: one fixed
     # sentence on the console and one fixed name in the start row, never any key text.
     key_unusable = getattr(getattr(server, "client", None), "key_problem", "") == UNUSABLE_KEY_MESSAGE
@@ -8472,8 +8210,6 @@ def main():
         raise
     finally:
         try:
-            if getattr(server, "trace", None):
-                server.trace.emit("server.serve_loop_ended", {"reason":exit_reason, "error_type":exit_error})
             server.server_close()
         except BaseException as error:
             exit_reason, exit_error = "server_close_exception", type(error).__name__

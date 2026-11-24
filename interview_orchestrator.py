@@ -14,7 +14,6 @@ import capture_facts
 import file_parts
 import gpfs_interview
 import provider_usage
-import raw_trace
 from interview_coverage import finding_reports_unavailable_knowledge, refused_repair
 
 # Seconds a working map's two requests may take: drawing it, and its source audit.
@@ -149,7 +148,7 @@ class Coordinator:
         models = dict(self.client.agent_models)
         if lead_model is not None:
             models["lead_interviewer"] = lead_model
-        run = agent_team.TeamRun(ledger, models=models, trace=raw_trace.emit,
+        run = agent_team.TeamRun(ledger, models=models,
                                 include_document_analyst=include_document_analyst,
                                 **({"roles": roles} if roles else {}))
         if callable(getattr(self.client, "request_scope", None)):
@@ -465,8 +464,6 @@ class Coordinator:
             if any(item.get("review", {}).get("phase") == "reindex_required" for item in supporting.get("documents", [])):
                 # Named separately: such a file waits for a re-index after an application update, not for a running review.
                 permit["blockers"].append("documents_reindex_required")
-        raw_trace.emit("coordinator.completion.permit", {"revision": run.ledger.revision,
-            "documents_pending": documents_pending, "content": {"withdrawn_repairs": withdrawn, "permit": permit}})
         return permit
 
     def _publish(self, token, run, capture, supporting, *, verified=False):
@@ -1192,8 +1189,6 @@ class Coordinator:
         capture["question"] = question
         capture["speech_authorization"] = {"approved": True, "kind": kind, "text": question,
             "revision": run.ledger.revision, "completion_allowed": capture["completion"]["complete"]}
-        raw_trace.emit("coordinator.speech.authorized", {"revision": run.ledger.revision, "kind": kind,
-            "completion_allowed": capture["completion"]["complete"], "content": {"text": question}})
 
     def background_interview(self, payload, fact_token=None):
         """A mode handoff can continue only a matching fact ledger, never its review authority."""
@@ -1250,20 +1245,17 @@ class Coordinator:
             # Part of an answer decides nothing: words that read as a request to stop, or as
             # a reply the held capture would answer, are decided when the answer has ended.
             # Refused before any run or model call, and the held capture stays valid.
-            raw_trace.emit("coordinator.interview.route", {"route": "live_partial_refused", "action": action})
             raise api.APIError("This answer is still being given. Its notes follow when it ends.", 409)
         # A request to stop in reply to a final check that passed pauses like any other
         # ("held") and confirms nothing, but the review stays: Wrap up asks the same
         # check again, and an explicit "no" then completes the account without new calls.
         held = step == "held"
         if step and not held:
-            raw_trace.emit("coordinator.interview.route", {"route": "confirmed_capture", "step": step, "action": action})
             return self._confirmed_capture(prior, extension, context, turns, supporting, step)
         if (prior and not stopped and not extension and
                 (action == "answer" or action == "close" and self._verified_pause(prior["capture"]))):
             cached = copy.deepcopy(prior["capture"])
             cached["no_new_run"] = True
-            raw_trace.emit("coordinator.interview.route", {"route": "cached_capture", "action": action})
             return cached
         # A partial capture leaves the held capture valid: the capture of the whole answer
         # continues from it (its previous_capture context, the excerpt and incremental paths).
@@ -1284,10 +1276,6 @@ class Coordinator:
                       if capture_facts.reconciliation_targets(fact_state, focus) else "lead_interviewer")
         lead_model = self.client.agent_models[model_role]
         token, run = self._new_run(payload, context, turns, evidence, lead_model=lead_model)
-        raw_trace.emit("coordinator.interview.model_selected", {"revision": run.ledger.revision, "action": action,
-            "role": model_role, "model": lead_model, "large_rebuild": large_rebuild,
-            "new_document_baseline": new_document_baseline, "facts_only": facts_only,
-            "continued": continued, "held": held, "stopped": stopped})
         run.defer_roles(("coverage_reviewer", "process_reviewer"))
         if partial:
             # Beside the family, not in place of its last capture: the next whole capture retires it.
@@ -1298,7 +1286,6 @@ class Coordinator:
         # Remembered on the run: its completion review and final check come later.
         run.stop_answered = stop_answered
         if stopped:
-            raw_trace.emit("coordinator.interview.route", {"route": "participant_stop", "revision": run.ledger.revision})
             run.cancel()
             question = "Of course. We can stop here. Your account is retained, with any unfinished sections still open."
             return {"question": question, "preserve_capture": True, "ready_for_draft": False,
@@ -1310,7 +1297,6 @@ class Coordinator:
                                              "revision": run.ledger.revision, "completion_allowed": False}}
         if (action == "start" and not any(turn["role"] == "user" and not turn.get("document_event") for turn in turns)
                 and not evidence and not supporting.get("documents") and not supporting.get("pending_documents")):
-            raw_trace.emit("coordinator.interview.route", {"route": "opening", "revision": run.ledger.revision})
             # No process facts exist to review yet. Ask a deterministic opening
             # and leave every specialist pending rather than spending model calls
             # or pretending that a review has taken place.
@@ -1492,9 +1478,6 @@ class Coordinator:
             existing_ids = {row["id"] for row in fact_state["facts"]}
             fact_state = capture_facts.apply_delta(fact_state, transaction, context, turns, evidence, focus, preserve_on_limit=True)
             fact_state["pending_live_excerpts"] = pending_excerpts + 1 if used_excerpts else 0
-            if live_memory:
-                raw_trace.emit("live.capture_method", {"excerpt": used_excerpts, "turns_read":len(suffix if used_excerpts else model_turns),
-                    "total_turns":len(turns), "fact_operations":len(transaction["fact_operations"])})
             stage = next((row for row in reversed(provider_usage.generated_by()) if row["stage"] == "team_interview_capture"), None)
             if stage:
                 for fact in fact_state["facts"]:
@@ -1590,7 +1573,6 @@ class Coordinator:
             provider_usage.stamp_generation(capture, api.VERSION)
             self._attach_provenance(capture, fact_state)
             capture["live_partial"] = True
-            raw_trace.emit("coordinator.interview.route", {"route": "live_partial", "revision": run.ledger.revision})
             return capture
         return self._remember(capture, context, turns, supporting, token, run, ticket_id, fact_state)
 
@@ -1650,7 +1632,6 @@ class Coordinator:
 
         parts = file_parts.part_requests(reading, base_payload)
         wholes = file_parts.whole_requests(reading, base_payload, request_schema)
-        raw_trace.emit("coordinator.interview.file_parts", file_parts.describe(reading))
         pool = ThreadPoolExecutor(max_workers=len(parts) + len(wholes) + 1, thread_name_prefix="file-parts")
         try:
             account = [pool.submit(contextvars.copy_context().run, ask, payload, suffix, schema, 4000,
@@ -1678,8 +1659,6 @@ class Coordinator:
         except Exception as error:
             if getattr(error, "category", None) == "cancelled":
                 raise
-            raw_trace.emit("coordinator.interview.file_parts_failed", {"error_type": type(error).__name__,
-                                                                     "category": getattr(error, "category", None)})
             return None
         finally:
             pool.shutdown(wait=False, cancel_futures=True)
@@ -2027,10 +2006,7 @@ class Coordinator:
             found = difference(())
             if found is None:
                 raise ValueError("The drawn map does not validate against its sources.")
-        update, held = found
-        raw_trace.emit("coordinator.workflow.check", {"revision": job.run.ledger.revision, "whole_map": whole,
-            "steps": len(update["upsert_steps"]), "connections": len(update["upsert_connections"]),
-            **({"held_as_drawn": held} if held else {})})
+        update = found[0]
         capture = job.check(update)
         api.keep_drawn_order(capture["workflow"], drawn["workflow"])
         return job.publish(capture)
@@ -2167,8 +2143,6 @@ class _MapJob:
                 # replaced run cannot publish, so it does not pay for that request.
                 if not (self.map_only and isinstance(error, getattr(api, "OutputTruncated", ())) and self.live()):
                     raise
-                raw_trace.emit("coordinator.workflow.draw_retry", {"revision": self.run.ledger.revision,
-                                                                   "max_output_tokens": MAP_DRAW_RETRY_OUTPUT_TOKENS})
                 self.deadline += BACKGROUND_MAP_RETRY_SECONDS
                 update = request(MAP_DRAW_RETRY_OUTPUT_TOKENS, BACKGROUND_MAP_RETRY_SECONDS)
             if self.map_only:

@@ -6,7 +6,6 @@ review still belongs to the existing Coordinator and its opaque capabilities.
 import collections
 import copy
 import provider_usage
-import raw_trace
 import gpfs_interview
 
 from capture_facts import supporting_identity
@@ -483,10 +482,7 @@ class ConcurrentInterview:
                 session["generation"] += 1
                 # One pending snapshot replaces all intermediate pending answers.
                 # Each snapshot contains the complete participant account.
-                if session["pending"]:
-                    raw_trace.emit("worker.capture.replaced", {"revision": session["pending"][1], "by_revision": revision})
-                raw_trace.emit("worker.capture.queued", {"revision": revision, "generation": session["generation"], "force": force})
-                session["pending"] = (session["generation"], revision, copy.deepcopy(payload), raw_trace.wrap(self._capture_snapshot))
+                session["pending"] = (session["generation"], revision, copy.deepcopy(payload), self._capture_snapshot)
                 session["source_payload"] = copy.deepcopy(payload)
                 session.update(state="queued", error=None, error_code=None, error_status=None)
                 session["workflow_error"] = None
@@ -502,8 +498,6 @@ class ConcurrentInterview:
 
     def _drop_pending_map(self, session):
         """Forget the map that has not been started. The one being drawn is left to finish."""
-        if session["graph_pending"]:
-            raw_trace.emit("worker.workflow.discarded", {"revision": session["graph_pending"][1], "state": "queued"})
         session["graph_pending"] = None
 
     def _cancel_session_work(self, session):
@@ -703,7 +697,6 @@ class ConcurrentInterview:
                 self._changed.notify_all()
 
     def _capture_snapshot(self, session, generation, revision, payload, previous, continued):
-        raw_trace.emit("worker.capture.started", {"revision": revision, "generation": generation})
         work = None
         try:
             self._sources(payload)
@@ -711,7 +704,6 @@ class ConcurrentInterview:
             work["agent_run_id"] = uuid.uuid4().hex
             with self._lock:
                 if self._closed or session["generation"] != generation:
-                    raw_trace.emit("worker.capture.discarded", {"revision": revision, "generation": generation})
                     return
                 session.update(capture_run_id=work["agent_run_id"], capture_run_revision=revision)
             background = getattr(self.client.coordinator, "background_interview", None)
@@ -720,11 +712,9 @@ class ConcurrentInterview:
             else:
                 capture = self.client.coordinator.interview(work)
             self._sources(payload)
-            disposition = "discarded"
             with self._lock:
                 current = not self._closed and session["generation"] == generation
                 if current and capture.get("preserve_capture") is True:
-                    disposition = "preserved"
                     # The Coordinator answered a request to stop. Its pause
                     # reply carries no notes and must never replace them: the
                     # revision is settled, the earlier capture and basis stay.
@@ -739,13 +729,11 @@ class ConcurrentInterview:
                         participant = next((turn["id"] for turn in reversed(payload["turns"])
                             if turn["role"] == "user" and not turn.get("document_event")), None)
                         if participant:
-                            disposition = "checkpoint"
                             session.update(capture=copy.deepcopy(capture), capture_revision=revision,
                                 capture_turns=copy.deepcopy(payload["turns"]), capture_basis=copy.deepcopy(payload),
                                 checkpoint={"revision":revision, "turns":copy.deepcopy(payload["turns"]),
                                             "capture":copy.deepcopy(capture), "through_turn_id":participant})
                 elif current:
-                    disposition = "published"
                     session.pop("checkpoint", None)
                     session.update(capture=copy.deepcopy(capture), capture_revision=revision,
                                    capture_preserved=False, rebuild_notes=False,
@@ -756,12 +744,7 @@ class ConcurrentInterview:
                 if current and (not (any(turn.get("role") == "user" for turn in work["turns"]) or self._documented(payload))
                                 or capture.get("preserve_capture")):
                     session["workflow_state"] = "ready"
-            raw_trace.emit("worker.capture." + disposition, {"revision": revision, "generation": generation,
-                "content": {key: capture[key] for key in ("memo_findings", "fact_history", "fact_provenance",
-                    "coverage", "focus", "parking_lot", "summary", "closure", "completion") if key in capture}})
         except Exception as error:
-            raw_trace.emit("worker.capture.error", {"revision": revision, "generation": generation,
-                "error_type": type(error).__name__, "error_category": getattr(error, "category", None)})
             with self._lock:
                 self._note_refusal(session, work, error)
                 if not self._closed and session["generation"] == generation:
@@ -801,11 +784,7 @@ class ConcurrentInterview:
         with self._lock:
             if self._closed or session["generation"] != generation:
                 return
-            if session["graph_pending"]:
-                raw_trace.emit("worker.workflow.replaced", {"revision": session["graph_pending"][1], "by_revision": revision})
-            raw_trace.emit("worker.workflow.queued", {"revision": revision, "generation": generation,
-                                                      **({"reconcile": True} if reconcile else {})})
-            session["graph_pending"] = (generation, revision, work, payload, raw_trace.wrap(self._build_graph), reconcile)
+            session["graph_pending"] = (generation, revision, work, payload, self._build_graph, reconcile)
             if not reconcile:
                 # The second look at Wrap up (see _reconcile) leaves the state of the map alone:
                 # the map of this revision is there, and stays unless the second look replaces it.
@@ -892,8 +871,6 @@ class ConcurrentInterview:
         return all(callable(getattr(coordinator, name, None)) for name in ("workflow_draw", "workflow_check", "workflow_rebase"))
 
     def _build_graph(self, session, generation, revision, work, payload, baseline, reconcile=False):
-        raw_trace.emit("worker.workflow.started", {"revision": revision, "generation": generation,
-            "uses_baseline": bool(baseline), **({"reconcile": True} if reconcile else {})})
         try:
             self._sources(payload)
             graph, checked = self._draw(work)
@@ -925,14 +902,7 @@ class ConcurrentInterview:
                         session.update(checked=None, workflow_corrections=[])
                     if current:
                         session.update(workflow_state="ready", workflow_error=None)
-                disposition = ("published" if current else "checkpoint") if kept else "discarded"
-            raw_trace.emit("worker.workflow." + disposition,
-                {"revision": revision, "generation": generation, **({"reconcile": True} if reconcile else {}),
-                 "content": {key: graph[key] for key in ("workflow", "summary", "focus", "memo_findings", "parking_lot") if key in graph}})
         except Exception as error:
-            raw_trace.emit("worker.workflow.error", {"revision": revision, "generation": generation,
-                "error_type": type(error).__name__, "error_category": getattr(error, "category", None),
-                **({"reconcile": True} if reconcile else {})})
             with self._lock:
                 if baseline and isinstance(error, ValueError):
                     # An update that cannot be applied to this baseline (a removal of a
@@ -1025,13 +995,11 @@ class ConcurrentInterview:
             # the map is the one that was checked, and there is nothing to send for review.
             session.update(workflow_checked=True, workflow_corrections=[], check_failed_version=None)
             session["workflow_version"] += 1
-            raw_trace.emit("worker.workflow.checked", {"revision": session["workflow_revision"],
-                                                       "version": session["workflow_version"], "unchanged": True})
             return
         corrections = [copy.deepcopy(row) for _version, row in session["workflow_corrections"]]
         session.update(check_running=True, check_state="working", check_error=None, check_error_code=None,
                        check_run_id=work["agent_run_id"])
-        perform = raw_trace.wrap(self._check_map)
+        perform = self._check_map
         arguments = (session, session["workflow_version"], session["workflow_lineage"], session["workflow_revision"],
                      work, drawn, corrections, copy.deepcopy(payload))
         self._checks.submit(lambda: perform(*arguments))
@@ -1043,8 +1011,6 @@ class ConcurrentInterview:
             with self._lock:
                 if self._closed or session["workflow_lineage"] != lineage or not self._follows(session, payload):
                     return
-            raw_trace.emit("worker.workflow.check_started", {"revision": revision, "version": version,
-                                                             "continues_check": "previous_capture" in work})
             self._sources(payload)
             checked = self.client.coordinator.workflow_check(work, drawn, corrections)
             self._sources(payload)
@@ -1054,11 +1020,7 @@ class ConcurrentInterview:
                     session["check_result"] = {"capture": copy.deepcopy(checked), "drawn": drawn, "version": version,
                                                "lineage": lineage}
                 session["check_state"] = "idle"
-            raw_trace.emit("worker.workflow.check_finished" if kept else "worker.workflow.check_discarded",
-                           {"revision": revision, "version": version})
         except Exception as error:
-            raw_trace.emit("worker.workflow.check_error", {"revision": revision, "version": version,
-                "error_type": type(error).__name__, "error_category": getattr(error, "category", None)})
             with self._lock:
                 if not self._closed and session["workflow_lineage"] == lineage and self._follows(session, payload):
                     if isinstance(error, ValueError):
@@ -1087,7 +1049,7 @@ class ConcurrentInterview:
         if (not result or self._closed or session.get("abandoned") or result["lineage"] != session["workflow_lineage"]
                 or not session.get("workflow_capture")):
             return
-        capture, revision = result["capture"], session["workflow_revision"]
+        capture = result["capture"]
         try:
             if session["workflow_version"] == result["version"]:
                 checked, same, later = capture, True, []
@@ -1104,15 +1066,10 @@ class ConcurrentInterview:
             base = self._baseline_form(capture)
             checked = self._carry_record(copy.deepcopy(checked), session["workflow_capture"], capture)
         except Exception as error:
-            raw_trace.emit("worker.workflow.check_discarded", {"revision": revision, "version": result["version"],
-                                                               "reason": "rebase", "error_type": type(error).__name__})
             return
         session.update(workflow_capture=checked, workflow_checked=same, checked=base,
                        workflow_corrections=later, check_failed_version=None)
         session["workflow_version"] += 1
-        raw_trace.emit("worker.workflow.checked", {"revision": revision, "version": session["workflow_version"],
-            "through_latest_draw": same,
-            "content": {key: checked[key] for key in ("workflow", "summary", "focus", "memo_findings", "parking_lot") if key in checked}})
 
     def _map_view(self, session, revision, current):
         """What a status reply says about the map. Caller holds the lock."""
@@ -1433,7 +1390,6 @@ class ConcurrentInterview:
         bare = getattr(self.api, "bare_walkthrough", None)
         if not callable(bare) or not bare(question):
             return question
-        raw_trace.emit("interview.fast_question.rebuild", {"revision": revision, "content": {"question": question}})
         try:
             again = ask(QUESTION_OUTPUT_TOKENS, REBUILD_DIRECTIVE.format(question=question[:300].replace("{", "(").replace("}", ")")))
             again = again.get("question") if isinstance(again, dict) and not again.get("request_review") else None
@@ -1646,7 +1602,6 @@ class ConcurrentInterview:
             self._cancel_session_work(session)
             session.pop("pause", None)
             session.update(abandoned=True, revision=None, source_payload=None)
-            raw_trace.emit("interview.session.abandoned", {"generation": session["generation"]})
             session["generation"] += 1
             self._changed.notify_all()
 
@@ -1760,7 +1715,6 @@ class ConcurrentInterview:
         # After the completion line a request to stop is a goodbye. Like every reply
         # there it goes to the Coordinator, which keeps the completed account.
         if not completed and stopping:
-            route = "participant_stop"
             question = "Of course. We can pause here and keep the unfinished parts open."
             kind, sync_required = "pause", False
             if needs_sync:
@@ -1772,28 +1726,22 @@ class ConcurrentInterview:
                                        state="ready", error=None, error_code=None, error_status=None, workflow_state="ready", workflow_error=None)
                         self._changed.notify_all()
         elif needs_sync:
-            route = "synchronize"
             question, kind, sync_required = "", "question", True
         elif not any(turn.get("role") == "user" for turn in turns) and not payload.get("_supporting_documents", {}).get("documents"):
-            route = "opening"
             named = getattr(self.api, "spoken_process_name", lambda value: "")(context)
             question = (f"Let's walk through {named}. Talk me through the most recent time you did it, starting with what set it off." if named else
                         "What starts this work?" if context.get("process_name") else "What work would you like to walk through?")
             if payload.get("action") == "skip":
-                route = "skip_fallback"
                 question = self._fallback_question(session, payload, context, turns, "skip")
             kind, sync_required = "question", False
         else:
             # Compact output makes question generation independent of the size of
             # the fact transaction, workflow schema and reviewer responses.
-            route = "fast_question"
             # The first question after a file was added (see FILE_QUESTION_POLICY). It never
             # fails and never turns into a review: when the model's reply is missing or cannot
             # be asked, the file review's own excerpt-bound question is asked instead.
             file_followup = payload.get("action") == "document_followup"
             model_input = self._question_input(session, payload, context, turns)
-            raw_trace.emit("interview.fast_question.input", {"revision": revision,
-                "content": {"turns": model_input["turns"], "analysis_advice": model_input["analysis_advice"]}})
             cut_off = getattr(self.api, "OutputTruncated", None)
 
             def ask(allowance, extra=""):
@@ -1810,7 +1758,6 @@ class ConcurrentInterview:
                     if not (cut_off and isinstance(error, cut_off)):
                         raise
                     # Nothing else was wrong with the request: ask once more with more room.
-                    raw_trace.emit("interview.fast_question.retry", {"revision": revision, "reason": "output_truncated"})
                     response = ask(QUESTION_RETRY_OUTPUT_TOKENS)
                 # The provider's schema constrains question length. If an adapter
                 # still returns an oversized string, the local wording fallback
@@ -1825,15 +1772,13 @@ class ConcurrentInterview:
                 # A reply cut off twice never fails the turn: the answer is retained and queued.
                 if not file_followup and not (cut_off and isinstance(error, cut_off)):
                     raise
-                raw_trace.emit("interview.fast_question.error", {"revision": revision, "error_type": type(error).__name__,
-                                                                "error_category": getattr(error, "category", None)})
                 response = None
             kind = "question"
             if response is None and file_followup:
-                route, sync_required, reason = "file_fallback", False, ""
+                sync_required, reason = False, ""
                 question = self._file_question(payload, turns)
             elif response is None:
-                route, sync_required, reason = "truncated_fallback", False, ""
+                sync_required, reason = False, ""
                 question = self._fallback_question(session, payload, context, turns, "output_truncated")
             else:
                 sync_required = response["request_review"] and not file_followup
@@ -1859,10 +1804,7 @@ class ConcurrentInterview:
                     # The same question word for word, usually straight after an answer that spoke of
                     # something else. It is not asked twice: the turn gets another question.
                     reason = "repeated_question"
-                raw_trace.emit("interview.fast_question.candidate", {"revision": revision, "request_review": sync_required,
-                    "guard_evaluated": not sync_required, "reason": reason, "content": {"question": response["question"]}})
             if reason:
-                route = "guard_fallback"
                 # Wording never fails a turn whose answer is already retained and queued.
                 # The rejected text is not spoken; only its reason code is counted.
                 self.api.record_question_rejection(self.client, "fast_question", reason)
@@ -1883,8 +1825,6 @@ class ConcurrentInterview:
                                                "revision": revision, "completion_allowed": False}
         if kind == "pause":
             result["analysis"] = {"state": "paused", "settling": bool(settling)}
-        raw_trace.emit("interview.fast_question.result", {"revision": revision, "route": route,
-            "sync_required": sync_required, "kind": kind, "content": {"question": question}})
         return result
 
     def status_for_revision(self, payload):
@@ -2141,8 +2081,6 @@ class ConcurrentInterview:
                 workflow = view.get("workflow_capture", workflow)
                 status.update({key: view[key] for key in ("workflow_version", "workflow_checked", "workflow_check_state",
                                                            "workflow_check_error") if key in view})
-        raw_trace.emit("interview.session.synchronized", {"revision": revision, "has_workflow": workflow is not None,
-                                                          **({"workflow_state": status["workflow_state"]} if status else {})})
         return {**capture, "conversation_token": session["token"], "revision": revision, "sync_required": False, **status,
                 **({"workflow_capture": workflow} if workflow is not None else {})}
 

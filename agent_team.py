@@ -386,14 +386,13 @@ class TeamBlockedError(RuntimeError):
 class TeamRun:
     """One bounded invocation; callbacks may run sequentially or concurrently."""
 
-    def __init__(self, ledger, models=None, include_document_analyst=False, max_calls=None, roles=None, trace=None):
+    def __init__(self, ledger, models=None, include_document_analyst=False, max_calls=None, roles=None):
         if not isinstance(ledger, EvidenceLedger):
             raise ValueError("A team invocation requires an evidence ledger.")
         if not isinstance(include_document_analyst, bool) or not isinstance(models or {}, dict):
             raise ValueError("Invalid specialist configuration.")
         self.ledger = ledger
         self.run_id = uuid.uuid4().hex
-        self._trace = trace
         self.roles = tuple(roles) if roles is not None else CORE_ROLES + (("document_analyst",) if include_document_analyst else ())
         if (not self.roles or any(role not in ROLE_CONTRACTS for role in self.roles)
                 or len(set(self.roles)) != len(self.roles)):
@@ -428,8 +427,6 @@ class TeamRun:
         with self._status_changed:
             self._status_cursor += 1
             self._status_changed.notify_all()
-        if self._trace:
-            self._trace(event, {"team_id": self.run_id, "revision": self.ledger.revision, **fields})
 
     def start_provider_request(self, role, requested_output):
         with self._lock:

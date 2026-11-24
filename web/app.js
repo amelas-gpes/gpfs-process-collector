@@ -2,22 +2,6 @@
 
 (() => {
   const $ = (id) => document.getElementById(id);
-  const rawTrace = (...args) => window.CollectorRawTrace?.record(...args);
-  const rawRefs = value => window.CollectorRawTrace?.references?.(value);
-  function configureTrace(config) {
-    window.CollectorRawTrace?.configure(config.raw_trace, () => state.config?.csrf_token,
-      () => state.interviewId || (state.started && !state.importing ? interviewIdentity() : null));
-    rawTrace("settings.theme_observed",{mode:$("theme-select")?.value,state:document.documentElement?.dataset?.theme});
-  }
-  function traceTurn(type, turn, metadata) {
-    rawTrace(type, {role:turn.role, ...metadata}, {text:turn.text}, {...rawRefs(turn),turn_id:turn.id});
-  }
-  function traceNotes(source) {
-    rawTrace("notes.applied", {source, count:state.memo_findings.length}, () => ({
-      memo_findings:state.memo_findings, coverage:state.coverage, summary:state.summary,
-      focus:state.focus, parking_lot:state.parking_lot, closure:state.closure
-    }));
-  }
   const TOPICS = [
     ["name", "Process name"], ["purpose", "Purpose"], ["trigger", "Starting point"],
     ["completion", "End point"], ["accountable", "Owner"], ["lifecycle", "Flow of work"],
@@ -206,7 +190,6 @@
     if(voiceStreamTopics&&voiceTopicPreview?.text!==turn.text)voiceStreamTopics=null;
     voiceTopicPreview={id:turn.id,text:turn.text,keys,generation:state.generation};
     if(changed){
-      rawTrace("live.topic_preview",{turn_id:turn.id,topics:[...keys]});
       renderCoverage();
     }
   }
@@ -432,7 +415,6 @@
     liveCatchUpDue=false;liveOpen=false;completionHeld=false;
     // Caption checks belong to their live session: they are given up, and their results not used.
     for(const check of captionChecks){
-      if(!check.dropped)traceCaptionCheck(check,"discarded",{reason:"session_changed"});
       check.dropped="session_changed";check.controller.abort();
       if(!check.sent){captionChecks.delete(check);clearTimeout(check.timer);}
     }
@@ -869,8 +851,6 @@
     $("notice-text").textContent = message;
     toast.classList.toggle("error", error);
     toast.hidden = false;
-    rawTrace("notice.rendered", {kind,error,lasting,in_dialog:Boolean(host),hidden:toast.hidden},
-      {text:$("notice-text").textContent});
     $("live-status").setAttribute("aria-live",error?"assertive":"polite");$("live-status").textContent = message;
     let mirrored=false;
     if(error||lasting){
@@ -896,7 +876,6 @@
   function dismissNotice() {
     clearTimeout(noticeTimer);noticeTimer=null;noticeHeld=false;noticeHover=false;noticeFocus=false;
     const region=noticeRegion(),restore=region.contains(document.activeElement),host=region.closest?.("dialog");region.hidden=true;
-    rawTrace("notice.dismissed",{kind:noticeKind,in_dialog:Boolean(host),hidden:region.hidden});
     if(!restore)return;
     if(host?.open)([...host.querySelectorAll("button:not([disabled])")].find(button=>!region.contains(button)&&!button.closest("[hidden]"))||host).focus({preventScroll:true});
     else focusWorkspace($("review-view").hidden?"interview":"review");
@@ -951,7 +930,6 @@
     if(name!=="interview")setTranscriptExport(false,false);
     $("interview-view").hidden = name !== "interview";
     $("review-view").hidden = name !== "review";
-    rawTrace("workspace.selected", {name});
     document.body?.classList.toggle("review-mode", name === "review");
     if (name === "review") {setMemoSheet(false,false);selectReviewSection(reviewUI.section);}
     document.querySelectorAll("[data-tab]").forEach(button => {
@@ -1171,15 +1149,13 @@
     $("draft-stale").hidden = !staleReason;
     if (staleReason && $("draft-stale").textContent !== staleText) $("draft-stale").textContent = staleText;
     if ($("draft-confirm-current")) {$("draft-confirm-current").hidden = !staleReason; $("draft-confirm-current").disabled = working;}
-    const thinking=$("thinking"), thinkingText=$("thinking-text"), previouslyHidden=thinking.hidden;
+    const thinking=$("thinking"), thinkingText=$("thinking-text");
     thinking.hidden = !working;
     if ($("current-question")) $("current-question").setAttribute("aria-busy", String(state.busy));
     const waitingStep = pendingCompletionReview?.promise ? COMPLETION_REVIEW_LABEL : "";
     const thinkingLine = waitingStep || (state.provisionalQuestion ? `Up next: ${state.provisionalQuestion} — finishing the notes…` : state.busyMessage || "Thinking of the next question…");
     const lineChanged=thinkingText.textContent!==thinkingLine;
     if(lineChanged)thinkingText.textContent=thinkingLine;
-    if(lineChanged||previouslyHidden!==thinking.hidden)rawTrace("interview.progress_rendered",
-      {hidden:thinking.hidden,provisional:Boolean(state.provisionalQuestion)&&!waitingStep}, {text:thinkingText.textContent});
     announceWorking(working, waitingStep || state.busyMessage || "Thinking of the next question…");
     if($("pause-completion-review"))$("pause-completion-review").hidden=!pendingCompletionReview?.promise||Boolean(conversationUI.live?.active);
     const voiceReady = canSpeakChoice();
@@ -1263,7 +1239,6 @@
     if(value)backgroundTitle("Working");
     else if(state.busy)backgroundTitle("Ready");
     state.busy = value;
-    rawTrace("interview.busy", {busy:value}, {message});
     state.busyMessage = message;
     if(!value)state.provisionalQuestion=null;
     updateControls();
@@ -1747,7 +1722,7 @@
     settingsRestoreFocus=restoreFocus;
     const dialog=$("interview-settings"); if(!dialog)return;
     if(open)closeMenu();
-    if(open&&!dialog.open){dialog.showModal();window.CollectorSettings?.opened();rawTrace("settings.dialog_opened",{open:dialog.open});}
+    if(open&&!dialog.open){dialog.showModal();window.CollectorSettings?.opened();}
     if(!open&&dialog.open)dialog.close();
   }
   function showSettingsPanel(id) {
@@ -1758,7 +1733,6 @@
   }
   let settingsOpener=null;
   function settingsClosed() {
-    rawTrace("settings.dialog_closed",{open:$("interview-settings").open});
     const opener=settingsOpener?.isConnected&&!settingsOpener.closest("[hidden]")?settingsOpener:$("session-menu-toggle");settingsOpener=null;
     if(sourceOrigin && $("settings-source-return")?.hidden===false){returnToSource();return;}
     if(settingsRestoreFocus)opener.focus({preventScroll:true});
@@ -2191,12 +2165,10 @@
       if(!row){
         row=createTranscriptRow(turn,caption,playDisabled);
         root.append(row.item);transcriptRows.push(row);
-        traceTurn("transcript.rendered", turn, {index, view:conversationUI.view});
         firstChanged=Math.min(firstChanged,index);
       }else{
         if(row.text!==turn.text){
           row.paragraph.textContent=turn.text;row.text=turn.text;
-          traceTurn("transcript.rendered", turn, {index, view:conversationUI.view});
           firstChanged=Math.min(firstChanged,index);
         }
         if(row.play&&row.play.disabled!==playDisabled)row.play.disabled=playDisabled;
@@ -2422,7 +2394,6 @@
     if(view!=="transcript")setTranscriptExport(false,false);
     const dockFocus=!focus&&$("conversation-dock")?.contains(document.activeElement)?document.activeElement:null;
     conversationUI.view=view;
-    rawTrace("conversation.view_selected", {view});
     if(view!=="workflow" && $("interview-view").classList.contains("workflow-expanded"))setWorkflowExpanded(false);
     document.querySelectorAll("[data-conversation-view]").forEach(button=>{
       const active=button.dataset.conversationView===view;
@@ -2521,7 +2492,6 @@
     if(state.started)return true;
     if(!validStartingContext())return false;
     state.context=readContext();state.started=true;state.example=false;
-    rawTrace("interview.started", {}, () => ({context:state.context}));
     recordInput();updateControls();return true;
   }
   function documentContext() {
@@ -2533,8 +2503,6 @@
   function rememberTurn(turn,channel,kind,source){
     if(!state.turnMetadata)state.turnMetadata={};
     state.turnMetadata[turn.id]={channel,at:new Date().toISOString(),...(interviewLines.includes(kind)?{kind}:{})};
-    window.CollectorRawTrace?.link?.(turn,source);
-    traceTurn("turn.created", turn, {channel, kind:state.turnMetadata[turn.id].kind, document_event:turn.document_event});
     return turn;
   }
   function appendDocumentMessage(message, document, isQuestion=false) {
@@ -2805,10 +2773,6 @@
     });
   }
   function onDocumentEvent(event) {
-    rawTrace("document.event", {event:event.type, action:event.action, files:event.state?.documents?.length,
-      uploading:event.state?.uploading, mutating:event.state?.mutating}, () => ({
-        document_id:event.document?.id, name:event.document?.name, question:event.question?.text
-      }));
     if(state.example)return;
     const document=event.document,analysis=event.analysis||document?.analysis||{};
     if(event.type==="remote_file"){
@@ -3033,8 +2997,7 @@
   // time: the catch-up, Wrap up or a draft then read the transcript as it stands. Whenever
   // anything is uncertain (no audio, a failed or refused request, a reading that corrects no
   // term, a caption that changed meanwhile, the closing sequence) the caption stays exactly as
-  // the live transcriber sent it. Nothing is said to the participant about a check; the raw
-  // trace records each outcome without any text.
+  // the live transcriber sent it. Nothing is said to the participant about a check.
   // At most CAPTION_CHECK_FLIGHT requests at once and CAPTION_CHECK_QUEUE waiting; none is
   // repeated. A caption of fewer than CAPTION_CHECK_WORDS words is left as it is. A caption
   // that goes on after a quiet checkpoint keeps the checked wording of its words so far, and
@@ -3082,7 +3045,6 @@
     draftInFlight||state.busy&&!liveBusyHeld());
   // A check that began less than CAPTION_CHECK_HOLD ago and can still be used holds the notes captures and the map.
   const captionCheckHolds=()=>captionChecks.size>0&&!captionCheckClosed()&&[...captionChecks].some(check=>!check.dropped&&Date.now()-check.started<CAPTION_CHECK_HOLD);
-  const traceCaptionCheck=(check,outcome,details={})=>rawTrace("live.caption_check",{caption_id:check.id,turn_id:check.turn,outcome,...details});
   function captionRecord(key,caption){
     if(!captionCheckOn())return null;
     let record=captionRecords.get(key);
@@ -3111,18 +3073,17 @@
     if(typeof live?.captionAudio!=="function"||state.example||intakeActive())return;
     record.tried=text;
     const part=text.slice(record.base.length);
-    const skip=reason=>rawTrace("live.caption_check",{caption_id:caption.id,turn_id:ids[0],outcome:"skipped",reason});
-    if(ids.length!==1)return skip("split");
-    if(captionTokens(part).length<CAPTION_CHECK_WORDS)return skip("short");
-    if(captionCheckClosed()||voiceStopPrefix(text)!==null)return skip("closing");
-    if(captionChecks.size>=CAPTION_CHECK_FLIGHT+CAPTION_CHECK_QUEUE)return skip("busy");
+    if(ids.length!==1)return;
+    if(captionTokens(part).length<CAPTION_CHECK_WORDS)return;
+    if(captionCheckClosed()||voiceStopPrefix(text)!==null)return;
+    if(captionChecks.size>=CAPTION_CHECK_FLIGHT+CAPTION_CHECK_QUEUE)return;
     // The audio of the words not yet checked: the whole caption the first time, then from the
     // first fragment after the checked part.
     const fragments=Array.isArray(caption.fragments)?caption.fragments:[],since=record.base?fragments[record.frags]?.start_ms:null;
-    if(record.base&&!Number.isFinite(since))return skip("no_audio");
+    if(record.base&&!Number.isFinite(since))return;
     let audio=null;
     try{audio=record.base?live.captionAudio(caption.id,since):live.captionAudio(caption.id);}catch{audio=null;}
-    if(!(audio?.wav?.byteLength>44))return skip("no_audio");
+    if(!(audio?.wav?.byteLength>44))return;
     const check={key,id:caption.id,turn:ids[0],caption:text,part,frags:fragments.length,prefix:record.shown,shown:captionShown(record),
       blob:new Blob([audio.wav],{type:"audio/wav"}),audio_ms:audio.duration_ms,
       generation:state.generation,session:liveSession,controller:new AbortController(),started:Date.now(),timer:null,sent:false,dropped:null};
@@ -3147,7 +3108,6 @@
   }
   async function sendCaptionCheck(check){
     check.sent=true;captionChecksSent++;
-    traceCaptionCheck(check,"sent",{audio_ms:check.audio_ms,bytes:check.blob.size});
     let result=null,failure=null;
     try{
       // Marked as a check: its hints are the server's glossary, not the transcript's terms (see request).
@@ -3155,7 +3115,7 @@
     }catch(error){failure=error;}
     finally{captionChecksSent--;check.blob=null;}
     // A refusal (429, 503) or any other failure keeps the caption: nothing is repeated or announced.
-    if(failure){if(!check.dropped)traceCaptionCheck(check,"failed",{status:Number.isInteger(failure.status)?failure.status:undefined,reason:failure.name==="AbortError"?"aborted":failure.transient?"transient":"error"});}
+    if(failure){}
     else applyCaptionCheck(check,result);
     settleCaptionCheck(check);
     pumpCaptionChecks();
@@ -3163,7 +3123,6 @@
   function dropCaptionCheck(check,reason){
     if(!check||check.dropped)return;
     check.dropped=reason;check.controller.abort();
-    traceCaptionCheck(check,"discarded",{reason});
     // A check on its way settles when its request ends.
     if(!check.sent)settleCaptionCheck(check);
   }
@@ -3255,7 +3214,7 @@
   const CAPTION_COMMON=new Set(("a an and any are as at be but by each eh for from he her his i if in is it its me my no of oh ok on or our "+
     "she so than that the their them then there they this to us was we were what when which who why with yes you your").split(" "));
   // The caption with the terms a reading of its own audio corrects ({text, count, fixes: where, in
-  // the caption's order}), or why it corrects none ({reason}); word counts for the trace either
+  // the caption's order}), or why it corrects none ({reason}); word counts either
   // way. The reading is aligned word by word with the caption (alignCaption, on the words' keys;
   // words of the reading before or after the caption's cost nothing, they come from the padding
   // of the audio). Unless at least CAPTION_CHECK_ALIGNED of the caption's words (by letters) are
@@ -3384,13 +3343,13 @@
   function applyCaptionCheck(check,result){
     if(check.dropped)return;
     const record=captionRecords.get(check.key);
-    if(check.generation!==state.generation||check.session!==liveSession||record?.check!==check)return traceCaptionCheck(check,"discarded",{reason:"session_changed"});
+    if(check.generation!==state.generation||check.session!==liveSession||record?.check!==check)return;
     const ids=conversationUI.captions.get(check.key),turn=state.turns.find(item=>item.id===check.turn);
     if(record.caption!==check.caption||!record.final||conversationUI.pendingParticipantCaptions.has(check.key)||
-       ids?.length!==1||ids[0]!==check.turn||turn?.text!==check.shown)return traceCaptionCheck(check,"discarded",{reason:"caption_changed"});
-    if(captionCheckClosed())return traceCaptionCheck(check,"discarded",{reason:"closing"});
+       ids?.length!==1||ids[0]!==check.turn||turn?.text!==check.shown)return;
+    if(captionCheckClosed())return;
     // After voice a result counts only while the notes still wait for it (see expireCaptionCheck).
-    if(!conversationUI.live?.active&&Date.now()-check.started>=CAPTION_CHECK_HOLD)return traceCaptionCheck(check,"discarded",{reason:"late"});
+    if(!conversationUI.live?.active&&Date.now()-check.started>=CAPTION_CHECK_HOLD)return;
     // The words not yet checked, with the terms the reading corrects (correctCaption).
     const reading=correctCaption(check.part,typeof result?.text==="string"?result.text:"",result?.terms,result?.misheard);
     const candidate=reading.text===undefined?null:check.prefix+reading.text;
@@ -3403,10 +3362,9 @@
     }
     // The part is settled either way: it is not checked again, and its wording is kept when the caption goes on.
     record.base=check.caption;record.frags=check.frags;record.shown=reason?check.prefix+check.part:candidate;
-    if(reason)return traceCaptionCheck(check,"kept",{reason,...reading.counts});
-    turn.text=candidate;traceTurn("turn.amended",turn,{channel:"live_caption_check"});
+    if(reason)return;
+    turn.text=candidate;
     keepLiveLead(check,reading.fixes);
-    traceCaptionCheck(check,"replaced",{...reading.counts,count:reading.count,chars_before:charCount(check.shown),chars_after:charCount(candidate)});
     state.version++;state.dirty=true;renderTranscript(true);
     // The participant's evidence changed, as when a caption is corrected (receiveLiveCaption).
     previewVoiceTopics(turn);
@@ -3527,7 +3485,7 @@
     chunks.forEach((chunk,i)=>{
       let turn=state.turns.find(t=>t.id===ids[i]);
       if(!turn){turn=rememberTurn({id:nextTurnId(),role:caption.role,text:chunk},"live_voice");ids[i]=turn.id;state.turns.push(turn);}
-      else {turn.text=chunk;traceTurn("turn.amended",turn,{channel:"live_voice"});}
+      else {turn.text=chunk;}
     });
     conversationUI.captions.set(key,ids);state.version++;state.dirty=true;
     renderTranscript(true);
@@ -3611,7 +3569,6 @@
       liveCapture.outgrown=true;
       if(liveMidAnswer?.key!==resumed)liveMidAnswer={key:resumed,count:0,resumed:false};
       liveMidAnswer.count++;liveMidAnswer.resumed=true;
-      rawTrace("live.notes_outgrown",{count:liveMidAnswer.count});
     }
     if(liveCapture||liveRetryTimer!==null)return;
     // The answer being spoken is the newest open caption; a caption that resumes after a pause is the same answer.
@@ -3633,7 +3590,7 @@
     // A check that holds is on an answer that ended (one whose caption goes on gives its check
     // up), and every capture reads every answer.
     if(captionCheckHolds()){
-      if(!liveMidAnswerHeld){liveMidAnswerHeld=true;rawTrace("live.notes_held",{count:captionChecks.size,mid_answer:true});}
+      if(!liveMidAnswerHeld){liveMidAnswerHeld=true;}
       return;
     }
     liveMidAnswerHeld=false;
@@ -3738,12 +3695,10 @@
     const on=Date.now()-check.sent,took=liveCaptureTook[check.midAnswer?"part":"whole"],due=took===null?0:took*(2-LIVE_KEEP_SHARE);
     if(took!==null&&on>=took*LIVE_KEEP_SHARE&&on<due){
       liveCaptureQueued=true;armLiveCapture(due-on);
-      rawTrace("live.notes_part_awaited",{on_its_way_ms:on,expected_ms:took});
       return false;
     }
     liveCapture=null;liveCaptureQueued=true;check.controller.abort();
     if(voiceStreamTopics?.check===check){voiceStreamTopics=null;renderCoverage();}
-    rawTrace("live.notes_mid_answer_superseded",{through_turn:check.captured.turns.findLast(turn=>turn.role==="user")?.id||null,on_its_way_ms:on});
     return true;
   }
   function reportLiveNotesFailure(error){
@@ -3774,7 +3729,7 @@
       if(liveAnswerPending()){liveCaptureQueued=true;if(!liveCaptionOpen())scheduleLiveCapture(LIVE_CAPTURE_QUIET);return;}
       // A caption check may still correct the words this capture would read: it waits for the
       // check, for a few seconds at most (releaseCaptionHold sends it).
-      if(captionCheckHolds()){liveCaptureQueued=true;rawTrace("live.notes_held",{count:captionChecks.size});return;}
+      if(captionCheckHolds()){liveCaptureQueued=true;return;}
       if(liveCapture&&!overtakeLiveCapture())return;
     }
     if(liveCapture)return;
@@ -3785,7 +3740,6 @@
     const generation=state.generation,controller=new AbortController(),check={controller,generation,captured,midAnswer,sent:Date.now()};
     // A capture taken mid-answer leaves the capture of the whole answer owed.
     liveCapture=check;liveCaptureQueued=midAnswer;renderAnalysisThrough();
-    if(midAnswer)rawTrace("live.notes_mid_answer",{through_turn:latest.id,unnoted_chars:participantChars(captured.turns)-liveNotesChars,count:liveMidAnswer?.count||0});
     try{
       const {live:_,liveSession:sessionId,generation:__,revision:___,openAnswers:____,...payload}=captured;
       // concurrentBypass: with voice off this is still the live front's notes
@@ -3922,12 +3876,10 @@
       Object.assign(state,memo);notesProgress=captureProgressMark(captured.turns);keepMapProgress(result,captured.turns);liveNotesChars=participantChars(captured.turns);
       if(voiceTopicPreview&&captured.turns.some(t=>t.id===voiceTopicPreview.id&&t.text===voiceTopicPreview.text))voiceTopicPreview=null;
       const midAnswer=lagging&&readPartOfAnswer(captured);
-      rawTrace("live.notes_checkpoint",{through_turn:notesProgress.through,answer_count:notesProgress.count,...(midAnswer?{mid_answer:true}:{})});
       // Leads from part of an answer are not kept: offered to the interviewer
       // when the answer ends, they would take the place of those from the
       // whole answer (sendLiveLead offers one lead per two answers).
       if(!midAnswer)rememberLiveLeads("notes",result.question_candidates,captured.turns);
-      traceNotes("live_capture");
       rememberCoverageCheckpoint(captured.turns,captured.revision,captured.document_revision,result.coverage_assessment,result.process_review,result.coverage_adjudication);
       rewritten=acceptRepairs(repairs,memo.memo_findings);
       // The notes now include these answers; the notes line reads from this.
@@ -4190,7 +4142,7 @@
         const id="lead_withdraw_"+state.generation+"_"+(++conversationUI.liveCoverageSequence);
         Promise.resolve(live.appendContext("Private context. The previous process lead is outdated. Use the participant's current account.",
           {id,kind:"process_gap",replaceKey:"interview_coverage",plain:true})).catch(()=>{});
-        rawTrace("live.gap_withdrawn",{lead_id:last.id});return true;
+        return true;
       }
     }
     if(count<memory.lastCount+2)return true;
@@ -4218,9 +4170,7 @@
           answers:new Map(current.filter(t=>t.role==="user").map(t=>[t.id,t.text]))};
         memory.last=offered;
         const id="lead_"+state.generation+"_"+(++conversationUI.liveCoverageSequence);
-        rawTrace("live.gap_offered",{source_turn:lead.source,through_turn:batch.turns.at(-1).id,lead_id:lead.id});
         const delivered=receipt=>{
-          rawTrace("live.gap_delivery",{lead_id:lead.id,status:receipt?.status||"unknown"});
           if(memory.last!==offered||conversationUI.live!==live||!["rejected","unavailable"].includes(receipt?.status))return;
           memory.last=null;
           if(!memory.retried.has(key)){
@@ -4326,7 +4276,6 @@
       applyProcessTitle(workflow.title);
       if(memo){
         Object.assign(state,memo);
-        traceNotes("workflow");
         if(options.documentIntake){
           const basis=participantCoverageBasis(captured.turns);
           analysisCheckpoint={basis:JSON.stringify(basis),count:basis.length,documents:captured.document_revision??activeDocumentSignature()};
@@ -4451,7 +4400,6 @@
     }
     conversationUI.workflow=graph;
     if(!check)rememberLiveLeads("map",response?.question_candidates,turns);
-    rawTrace("workflow.applied", {step_count:graph.steps?.length, turn_count:turns.length}, () => ({graph}));
   }
   function currentDocumentState(){return documentController?.peekState?.()||documentController?.exportState();}
   function renderWorkingMap() {
@@ -4505,7 +4453,6 @@
         if(!current||typeof current.csrf_token!=="string"||!current.csrf_token||current.csrf_token===sent)return false;
         if(current.build_id!==state.config.build_id){const error=new Error(PAGE_OUTDATED);error.status=403;throw error;}
         state.config.csrf_token=current.csrf_token;
-        state.config.raw_trace=current.raw_trace;configureTrace(state.config);
         return true;
       })();
       tokenRenewal=renewal;
@@ -4609,9 +4556,6 @@
     }
     try {
       const headers = {...usageHeaders(),"X-CSRF-Token": state.config?.csrf_token || ""};
-      const turn = data?.action === "answer" && data.turns?.at(-1);
-      if(state.config?.raw_trace?.enabled && turn?.role === "user" && /^[\w-]{1,80}$/.test(turn.id))
-        headers["X-Trace-Turn"] = turn.id;
       let body;
       if (data instanceof Blob) {
         headers["Content-Type"] = data.type || "audio/webm";
@@ -4665,8 +4609,6 @@
       let result;
       try{result=options.audio?await response.blob():await response.json();}
       catch{throw Error("The local app returned an unreadable response. Try the request again.");}
-      window.CollectorRawTrace?.link?.(result,response);
-      rawTrace("http.body_parsed",{path,format:options.audio?"blob":"json"},undefined,rawRefs(response));
       if(replacedByIntake())throw new DOMException("File intake replaced this request","AbortError");
       if(controller.signal.aborted)throw new DOMException("Request cancelled","AbortError");
       // A notes capture is kept while the answers it read still stand
@@ -4842,7 +4784,6 @@
       const sendInput=()=>{
         if(inputSent||settled)return;inputSent=true;clearTimeout(connectionTimer);
         socket.send(JSON.stringify({type:"conversation.item.create",item:{id:itemId,type:"message",role:"user",content:[{type:"input_text",text:message}]}}));
-        rawTrace("reader.input_sent", {item_id:itemId}, {text:message});
       };
       connectionTimer=setTimeout(()=>fail("The voice reader did not connect. The question is on screen.","reader_timeout"),12000);
       try {
@@ -4853,10 +4794,6 @@
         if(settled)return;
         if(typeof event.data!=="string"||event.data.length>12*1024*1024){fail("The AI voice returned an unsupported audio response.");return;}
         let packet;try{packet=JSON.parse(event.data);}catch{fail("The AI voice returned an unreadable response.");return;}
-        const transcriptPacket = packet?.type === "response.output_audio_transcript.delta" || packet?.type === "response.output_audio_transcript.done";
-        rawTrace("reader.packet_received", {event_type:/^[a-z][a-z0-9._]{0,79}$/.test(packet?.type) ? packet.type : "unrecognized",
-          chars:typeof packet?.delta === "string" ? packet.delta.length : packet?.transcript?.length,
-          value_omitted:packet?.type === "response.output_audio.delta" ? "transient_audio" : transcriptPacket ? "before_playback_gate" : undefined});
         try {
           if(packet.type==="session.created"&&!inputSent){
             sendInput();
@@ -4875,8 +4812,6 @@
           } else if(packet.type==="response.done"){
             if(packet.response?.status!=="completed"){fail("The AI voice did not finish this question. Please try again.");return;}
             const matched=normalizedSpeech(transcript)===normalizedSpeech(message);
-            rawTrace("reader.transcript_checked",{matched,chars:transcript.length,
-              value_omitted:matched?undefined:"withheld_playback"},matched?{text:transcript}:undefined);
             if(!matched){fail("The AI voice did not read the question exactly, so playback was withheld. Try Listen again; the original question remains on screen.","reader_mismatch");return;}
             finish(null,pcmWave(chunks,bytes));
           } else if(packet.type==="error"){
@@ -4909,8 +4844,6 @@
       operation.url=URL.createObjectURL(blob);
       operation.audio=new Audio(operation.url);
       const ended=()=>{if(version===state.speechVersion)stopSpeaking();};
-      for(const event_type of ["playing","waiting","pause","ended","error"])
-        operation.audio.addEventListener(event_type,()=>rawTrace("reader.audio_callback",{event_type}));
       operation.audio.addEventListener("ended",ended,{once:true});
       operation.audio.addEventListener("playing",()=>{if(version===state.speechVersion){auxiliaryVoiceState="speaking";updatePresence();}});
       operation.audio.addEventListener("waiting",()=>{if(version===state.speechVersion){auxiliaryVoiceState="processing";updatePresence();}});
@@ -5007,12 +4940,10 @@
     $("stop-speaking").hidden = false;
     $("stop-speaking").textContent = "Stop playback";
     utterance.onend = () => {
-      rawTrace("reader.utterance_callback",{event_type:"end"});
       if (version === state.speechVersion) {state.utterance = null;auxiliaryVoiceState="idle";updatePresence(); $("stop-speaking").hidden = true;setReading(null);}
     };
-    utterance.onstart=()=>{rawTrace("reader.utterance_callback",{event_type:"start"});if(version===state.speechVersion){auxiliaryVoiceState="speaking";updatePresence();if(reading)setReading({...reading,phase:"speaking"});}};
+    utterance.onstart=()=>{if(version===state.speechVersion){auxiliaryVoiceState="speaking";updatePresence();if(reading)setReading({...reading,phase:"speaking"});}};
     utterance.onerror = event => {
-      rawTrace("reader.utterance_callback",{event_type:"error",reason:event.error});
       if (version !== state.speechVersion || ["canceled","interrupted"].includes(event.error)) return;
       stopSpeaking();
       notice("The installed voice could not play this question. You can read it above and continue by voice or text.", true);
@@ -5161,7 +5092,6 @@
         summary:text(result.summary,6000),focus:text(result.focus,500),parking_lot:strings(result.parking_lot,50),documentEvidence:evidence};
       const facts=normalizedFacts(result.fact_provenance,captured.turns,evidence);
       Object.assign(state,update);notesProgress=captureProgressMark(captured.turns);
-      traceNotes("background");
       rememberDiscussion(result,captured,facts);
     }
     // Background observations are provisional until the current transcript
@@ -5366,7 +5296,6 @@
     state.focus = focus;
     state.parking_lot = parked;
     state.closure = {asked:result.closure?.asked === true&&(!full||result.closure?.confirmed===true),confirmed:!state.captureProvenance&&result.closure?.confirmed === true&&coverageVerified()&&(!state.config?.agent_team?.enabled||result.completion?.complete===true),...partialClosure(result,findings)};
-    traceNotes("interview");
     rememberCoverageCheckpoint(state.turns,conversationUI.revision,activeDocumentSignature(),result.coverage_assessment,result.process_review,result.coverage_adjudication);
     const rewritten = acceptRepairs(repairs,findings);
     state.dirty = true;
@@ -6056,7 +5985,6 @@
   }
   function draftChanged(map = false) {
     state.draftEdited = true;
-    rawTrace("draft.edited", {map}, () => ({draft:state.draft}));
     state.dirty = true;
     updateSaveHint();
     if (map) scheduleMap();
@@ -6300,7 +6228,6 @@
     updateControls();
     if (!state.draft) return;
     const draft = state.draft;
-    rawTrace("draft.rendered", {step_count:draft.steps?.length}, () => ({draft}));
     const fields = {"draft-open-questions": "open_questions", "draft-validation-notes": "validation_notes", "draft-exceptions": "exceptions", "draft-controls": "controls"};
     Object.entries(fields).forEach(([id, key]) => { $(id).value = Array.isArray(draft[key]) ? draft[key].join("\n") : draft[key]; });
     scheduleMap();
@@ -7011,7 +6938,6 @@
   function download(content, filename, type) {
     const url = URL.createObjectURL(new Blob([content], {type}));
     const link = el("a"); link.href = url; link.download = filename; document.body.append(link); link.click(); link.remove();
-    rawTrace("file.download_clicked", {mime_type:type}, {filename});
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
   // Which code wrote a file or is running: the release number, and the build the server
@@ -7068,10 +6994,8 @@
         writable=await handle.createWritable();
         await writable.write(content);
         await writable.close();
-        rawTrace("file.write_closed", {kind:"interview_copy"}, {filename});
         written=true;
       }catch(error){
-        rawTrace("file.write_interrupted", {handle_acquired:Boolean(handle), aborted:error?.name==="AbortError"});
         // Cancel: nothing was written, nothing changes and there is nothing to announce.
         if(!handle&&error?.name==="AbortError"&&Date.now()-asked>=SAVE_DIALOG_MIN_MS)return;
         refused=Boolean(handle);
@@ -7330,7 +7254,6 @@
   }
   function clearState(context = null) {
     if($("voice-start-dialog")?.open)$("voice-start-dialog").close();
-    rawTrace("interview.clearing", {turn_count:state.turns.length, generation:state.generation});
     state.historicalDraft=false;owedFiles=null;renderOwedFiles();
     state.savedClosure=null;state.resumedReviewAck=null;state.resumeFileIntake=null;state.previousMap=null;state.mapCorrections=[];
     state.savedOwnerFollowups=[];state.fileTopicReviews={};state.fileTopicHistory=[];
@@ -7565,7 +7488,6 @@
       // An opened file is a known copy of this interview.
       lastFile={at:new Date(),opened:true};
       opened=true;
-      rawTrace("interview.opened", {synthetic:state.example, turn_count:turns.length});
       resumeReply=Boolean(unsent.trim());
       if(resumeReply||(unanswered&&!draft)){
         tab("interview");selectConversationView("transcript");scrollConversation();
@@ -7950,8 +7872,6 @@
       }else{
         window.localStorage?.setItem(key,JSON.stringify({voice:state.voiceChoice,"speak-questions":$("speak-questions").checked}));
       }
-      rawTrace("settings.voice_controls_observed",{action:restore?"restore":"save_requested",
-        speak_questions:$("speak-questions").checked}, {voice:state.voiceChoice});
     }catch{/* The browser may disable local preferences. */}
   }
   async function loadConfiguration(){
@@ -7961,7 +7881,6 @@
       const config = await response.json();
       if (typeof config.csrf_token !== "string") throw new Error("The interviewer isn’t available right now. Try again in a moment.");
       state.config = config;
-      configureTrace(config);
       showBuildIdentity();
       knowledgeUI?.configure(config);
       $("data-notice").textContent = text(config.data_notice,4000) || "Data handling information is unavailable. Check the service configuration before submitting interview content.";

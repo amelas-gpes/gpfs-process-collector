@@ -2763,19 +2763,6 @@ def load_settings():
     return collector_settings.load_settings(APP_DIR, os.environ)
 
 
-REVIEWED_PAUSE_MS = 1800  # the pause that ends a turn in reviewed voice; it is part of every reply's wait
-REVIEWED_PAUSE_RANGE_MS = (1000, 5000)
-
-
-def reviewed_pause_ms(value):
-    """VOICE_PAUSE_MS as whole milliseconds within the supported range; the default when unusable."""
-    try:
-        number = int(str(value).strip())
-    except (TypeError, ValueError):
-        return REVIEWED_PAUSE_MS
-    return min(max(number, REVIEWED_PAUSE_RANGE_MS[0]), REVIEWED_PAUSE_RANGE_MS[1])
-
-
 def live_caption_check(value):
     """LIVE_CAPTION_CHECK: on (the default) or off.
 
@@ -2899,14 +2886,14 @@ def term_glossary(configured, context, limit=40, max_chars=900):
 
 
 # The live caption check (LIVE_CAPTION_CHECK, web/app.js sendCaptionCheck) marks its recordings with
-# this header; dictation and reviewed voice never send it, and their requests are read as before.
+# this header; a request without it is transcribed plainly, with the page's spelling hints.
 CAPTION_CHECK_PURPOSE = "live-caption-check"
 
 
 def transcription_purpose(values):
-    """X-Transcription-Purpose: absent (dictation, reviewed voice) or exactly CAPTION_CHECK_PURPOSE, once.
+    """X-Transcription-Purpose: absent (a plain transcription) or exactly CAPTION_CHECK_PURPOSE, once.
 
-    Anything else is refused rather than read as dictation: only the caption check asks for its glossary."""
+    Anything else is refused rather than read as a plain transcription: only the caption check asks for its glossary."""
     if not values:
         return None
     if len(values) != 1 or values[0] != CAPTION_CHECK_PURPOSE:
@@ -5423,15 +5410,13 @@ class OpenAIClient:
         self.draft_audit_model = settings.get("DRAFT_AUDIT_MODEL") or self.draft_model
         self.draft_coverage_model = settings.get("DRAFT_COVERAGE_MODEL") or self.draft_model
         self.team_map_audit_model = settings.get("WORKFLOW_AUDIT_MODEL") or self.agent_models["process_reviewer"]
-        # "live": GPT-Live carries the spoken conversation while the managed team
-        # keeps the notes, map and completion gates from the transcript.
-        # "reviewed": every spoken line is a reviewed lead turn read by a TTS voice.
-        mode = str(settings.get("VOICE_MODE") or "live").strip().lower()
+        # Voice is GPT-Live: it carries the spoken conversation while the managed team keeps the
+        # notes, map and completion gates from the transcript. It is the only voice mode in this
+        # version; VOICE_MODE is still read so that a settings file asking for another one is
+        # refused instead of being ignored.
+        if str(settings.get("VOICE_MODE") or "live").strip().lower() != "live":
+            raise SettingsError("VOICE_MODE must be live in this version.", reason="unknown_backend", key="VOICE_MODE")
         self.interview_memory_enabled = str(settings.get("INTERVIEW_MEMORY_ENABLED", "1")).strip().lower() not in ("0","false","off")
-        if mode not in ("live", "reviewed", "reviewed_turns", "controlled"):
-            raise SettingsError("VOICE_MODE must be live or reviewed.", reason="unknown_backend", key="VOICE_MODE")
-        self.voice_mode = "live" if mode == "live" else "reviewed"
-        self.voice_pause_ms = reviewed_pause_ms(settings.get("VOICE_PAUSE_MS"))
         self.live_caption_check = live_caption_check(settings.get("LIVE_CAPTION_CHECK"))
         self.coordinator = interview_orchestrator.Coordinator(self, sys.modules[__name__])
         # Only a running server or an explicit test supplies a diagnostic sink.
@@ -5444,8 +5429,6 @@ class OpenAIClient:
             "Live voice streams microphone audio to the AI service until you mute or stop. "
             + ("Each finished answer's audio is also sent again, to correct fund terms and configured names in its caption. "
                if self.live_caption_check else "")
-            if self.voice_mode == "live" else
-            "Reviewed voice records your answer, waits for a pause, then sends the recording to the AI service for transcription. "
         )
         return {
             "api_configured": bool(self.key),
@@ -5461,29 +5444,27 @@ class OpenAIClient:
                        "speech": SPEECH_MODEL},
             "agent_team": {"enabled": True, "models": self.agent_models,
                            "interview_memory": self.interview_memory_enabled,
-                           "voice_mode": "live_front" if self.voice_mode == "live" else "reviewed_turns",
+                           "voice_mode": "live_front",
                            "one_interviewer_voice": True, "review_mode": "on_completion",
                            # The page may ask for a live map as drawn and for its check afterwards.
                            "live_map_draw_first": True,
                            "stop_intent_patterns": list(STOP_INTENT_PATTERNS),
                            "stop_named_intent_patterns": list(STOP_NAMED_INTENT_PATTERNS),
-                           "stop_sign_off_pattern": STOP_SIGN_OFF_PATTERN,
-                           **({"turn_pause_ms": self.voice_pause_ms} if self.voice_mode != "live" else {})},
+                           "stop_sign_off_pattern": STOP_SIGN_OFF_PATTERN},
             "speech": {"enabled": bool(self.key), "model": SPEECH_MODEL,
                        "default_voice": "marin", "voices": AI_VOICES,
                        "provider": "openai", "transport": "openai-realtime-websocket"},
             "live": {"enabled": bool(self.key),
-                     "model": LIVE_MODEL if self.voice_mode == "live" else self.agent_models["lead_interviewer"],
+                     "model": LIVE_MODEL,
                      "voice": "marin", "provider": "openai",
-                     "transport": "gpt-live-webrtc" if self.voice_mode == "live" else "reviewed-turns",
+                     "transport": "gpt-live-webrtc",
                      # Lets the page say before the click that voice will resume with condensed history.
-                     **({"history_limit": {"messages": LIVE_HISTORY_MESSAGES, "bytes": LIVE_HISTORY_BYTES},
-                         # LIVE_CAPTION_CHECK: the page corrects fund terms and configured names in each
-                         # final participant caption from its own audio (web/app.js checkLiveCaption).
-                         "caption_check": self.live_caption_check}
-                        if self.voice_mode == "live" else {})},
+                     "history_limit": {"messages": LIVE_HISTORY_MESSAGES, "bytes": LIVE_HISTORY_BYTES},
+                     # LIVE_CAPTION_CHECK: the page corrects fund terms and configured names in each
+                     # final participant caption from its own audio (web/app.js checkLiveCaption).
+                     "caption_check": self.live_caption_check},
             "data_notice": (
-                "Submitted interview text and recorded answer audio are sent to the AI service. "
+                "Submitted interview text is sent to the AI service. "
                 + microphone_notice
                 + "The interview team receives the submitted transcript to update your notes and review the account. "
                 + "Submit process saves a revision in local company knowledge. Matching can send excerpts of that revision "
@@ -5498,7 +5479,7 @@ class OpenAIClient:
                 "your choice, and Save for later or Remove stops further review. Selected file text also "
                 "accompanies later interview requests. After a file is saved for later or removed, "
                 "those requests carry only the excerpts the notes already cite. "
-                "Recordings are not saved automatically. Save a copy to reopen the full interview with its local "
+                "Audio is not saved. Save a copy to reopen the full interview with its local "
                 "file references."
             ),
         }
@@ -7300,7 +7281,6 @@ STATIC_FILES = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/vendor/elk.bundled.js": ("vendor/elk.bundled.js", "text/javascript; charset=utf-8"),
                  "/live-voice.js": ("live-voice.js", "text/javascript; charset=utf-8"),
                  "/live-voice-tap.js": ("live-voice-tap.js", "text/javascript; charset=utf-8"),
-                 "/controlled-voice.js": ("controlled-voice.js", "text/javascript; charset=utf-8"),
                  "/concurrent-interview.js": ("concurrent-interview.js", "text/javascript; charset=utf-8"),
                  "/agent-team.js": ("agent-team.js", "text/javascript; charset=utf-8"),
                  "/agent-team.css": ("agent-team.css", "text/css; charset=utf-8"),
@@ -7764,8 +7744,7 @@ class Handler(BaseHTTPRequestHandler):
                 # A live caption check asks for its glossary (caption_check_terms); it is refused, before
                 # it takes a place, unless this server runs that check.
                 purpose = transcription_purpose(self.headers.get_all("X-Transcription-Purpose"))
-                if purpose and not (isinstance(self.server.client, OpenAIClient) and self.server.client.voice_mode == "live"
-                                    and self.server.client.live_caption_check):
+                if purpose and not (isinstance(self.server.client, OpenAIClient) and self.server.client.live_caption_check):
                     raise ValueError("Live captions are not checked in this app. Refresh the page.")
             else:
                 payload = self._received_json(raw)
@@ -7959,8 +7938,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(self.server.client.coordinator.status(token, scope))
             if path.startswith("/api/agent-team/") and getattr(self.server.client, "coordinator", None) is None:
                 return self._json({"error": "This provider does not support coordinated interview review."}, 501)
-            if path == "/api/live-session" and getattr(self.server.client, "voice_mode", "reviewed") != "live":
-                return self._json({"error": "This interview uses reviewed voice turns. Refresh the page to continue with the current interviewer."}, 409)
+            if path == "/api/live-session" and not callable(getattr(self.server.client, "live_session", None)):
+                return self._json({"error": "This provider does not offer live voice."}, 501)
             # A draft head start is optional work that runs for minutes: it takes a free place or none,
             # and never waits for one ahead of a request someone is waiting on.
             head_start = path == "/api/draft" and isinstance(payload, dict) and payload.get("prepare_only") is True

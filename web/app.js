@@ -68,7 +68,6 @@
     provisionalQuestion:null, advisory:{}, liveSuggestedQuestion:"", fileTopicReviews:{}, fileTopicHistory:[],
     captureRepairs:{memo:{},draft:{}}, draftCoverage:null, savedOwnerFollowups:[],
     localVoices: [], voiceChoice: null, voiceChoiceUser: false, speechOperation: null,
-    recording: null, requestingMic: false, transcribing: false,
     taxonomy:[],connections_out:[],active_modules:[],recap_due:"none",memo_findings: [], focus: "", parking_lot: [], closure: {asked:false,confirmed:false}, coverageNeedsReview:false, captureProvenance:null, documentEvidence:[],
   };
   const conversationUI = {view:"voice", typing:false, live:null, status:"idle", muted:false, captions:new Map(), pendingParticipantCaptions:new Set(), workflow:null, checkedWorkflow:null, drawnAhead:false, checksPutOff:0, flowRetried:false, workflowCheckPending:false, revision:0, applied:-1, flowBusy:false, flowTimer:null, flowAbort:null, flowErrorNotified:false, coverageCheckpoint:null, coverageCheckpointSequence:0, liveCoverageKey:null, liveCoverageSequence:0};
@@ -173,7 +172,7 @@
   }
   const INTERVIEW_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   let gpfsPresence=null, auxiliaryVoiceState="idle", voiceEnded=false;
-  let agentTeamUI=null, activeTeamRun=null, reviewedPlaybackLevel=0, reviewedPlaybackActive=false;
+  let agentTeamUI=null, activeTeamRun=null;
   let pendingCompletionReview=null;
   let concurrentInterview=null;
   let topicDiscussion=[],analysisCheckpoint=null,analysisState={state:"idle"},pendingFinalCheck=null;
@@ -221,9 +220,6 @@
   const COMPLETION_REVIEW_LABEL="Checking the recorded topics and process…";
   // What #retry-question reads while it offers the completion review; "Try again" is the ordinary turn.
   const REVIEW_RETRY_LABELS=["Retry completion review","Resume review"];
-  // Reviewed-turn voice: the pause that ends a turn is said out loud on screen, and the
-  // microphone stays open while the reply is prepared, so the participant knows both.
-  const REVIEWED_TURN_LABEL="Thinking… keep talking if you weren’t finished",REVIEWED_TURN_HEARD="Answer received. Keep talking if you weren’t finished.";
   const coverageVerified=()=>!state.config?.agent_team?.enabled||state.coverageVerified===true;
   function currentClosure() {
     return {asked:state.closure.asked===true,
@@ -945,14 +941,10 @@
   }
   function dismissInlineError(id) {
     const region=$(id);if(!region)return;
-    // A dictation kept for a retry is offered only in this banner, so
-    // dismissing the banner gives that recording up.
-    if(id==="interview-error")discardFailedDictation();
     const restore=region.contains(document.activeElement);region.hidden=true;
     if(restore)focusWorkspace(id==="review-error"?"review":"interview");
   }
   function tab(name, focus = false) {
-    if(name==="review"&&(state.recording||state.requestingMic)){notice("Finish or discard the dictation before opening Review.");return;}
     if(name==="review"&&(conversationUI.live?.active||conversationUI.status==="closing")){notice("Stop talking before you open Review.");return;}
     if(name==="review"&&sourceOrigin?.review)clearSourceReturn();
     if(name!=="interview")cancelFileVoiceStart();
@@ -1110,7 +1102,7 @@
   // Called by the state.dirty setter and by nothing else.
   // What the server reports after a status, setting or discard request.
   const intakeWaiters=new Set();
-  function intakeBlocked(){return state.busy||state.recording||state.transcribing||state.requestingMic||conversationUI.flowBusy;}
+  function intakeBlocked(){return state.busy||conversationUI.flowBusy;}
   function notifyIntakeWaiters(){if(!intakeBlocked())for(const ready of [...intakeWaiters])ready();}
   function waitForIntakeIdle(signal){
     if(signal.aborted)return Promise.reject(new DOMException("Cancelled","AbortError"));
@@ -1127,23 +1119,21 @@
     // Add files follows state.example, state.importing and a draft in flight, none of which redraws the file list.
     documentController?.syncAttach?.();
     const ready = Boolean(state.config?.api_configured);
-    const working = state.busy || state.transcribing || state.requestingMic;
-    if($('retry-transcription'))$('retry-transcription').disabled=working||Boolean(state.recording)||Boolean(conversationUI.live?.operation?.processing);
-    const recording = Boolean(state.recording);
+    const working = state.busy;
     const limit = transcriptLimit();
     document.body?.classList.toggle("interview-started", state.started);
     if ($("setup-summary")) $("setup-summary").textContent = state.started ? processDisplayName() || "Interview" : "New interview";
     // Goal and background are cited by the notes as the "context" source, so
     // they are fixed once the interview starts; the lock is explained beside
     // them. The process owner, like the title, can be corrected at any time.
-    ["objective", "background"].forEach(id => { $(id).disabled = state.started || working || recording; });
-    $("process-owner").disabled = state.importing || !state.started && (working || recording);
+    ["objective", "background"].forEach(id => { $(id).disabled = state.started || working; });
+    $("process-owner").disabled = state.importing || !state.started && working;
     const lockNote = $("context-lock-note"), lockText = state.started
       ? "Goal and background are locked once the interview starts; add corrections as an answer. Process owner can still be changed."
       : "Goal and background lock when the interview starts. Process owner can be changed at any time.";
     if (lockNote && lockNote.textContent !== lockText) lockNote.textContent = lockText;
     $("process-name").disabled=state.importing||state.busy||Boolean(conversationUI.live?.active&&["processing","speaking","closing"].includes(conversationUI.status));
-    $("answer-text").disabled = working || recording || !ready;
+    $("answer-text").disabled = working || !ready;
     const replyBox=$("answer-text");
     if(window.CSS?.supports&&!CSS.supports("field-sizing","content")&&replyBox?.offsetWidth){
       replyBox.style.height="auto";
@@ -1151,11 +1141,10 @@
     }
     if($("process-name"))$("process-name").title=$("process-name").value.trim()||"Rename this process";
     const replyTooLong = Boolean(showFieldLimit(REPLY_FIELD));
-    $("send-answer").disabled = working || recording || !ready || limit.answersBlocked || !turnText($("answer-text").value) || replyTooLong;
-    $("record-answer").disabled = working || !ready || limit.answersBlocked || (!recording && charCount(replyBox.value.trim())>=REPLY_FIELD.limit);
-    $("skip-question").disabled = !state.started || working || recording || !ready || limit.answersFull;
+    $("send-answer").disabled = working || !ready || limit.answersBlocked || !turnText($("answer-text").value) || replyTooLong;
+    $("skip-question").disabled = !state.started || working || !ready || limit.answersFull;
     const finalReviewReady=state.config?.concurrent_interview?.enabled||!state.config?.agent_team?.enabled||state.completion?.ready_for_final_check===true;
-    $("final-check").disabled = !state.started || working || recording || !ready || limit.wrapFull || !finalReviewReady || !state.turns.some(t => t.role === "user");
+    $("final-check").disabled = !state.started || working || !ready || limit.wrapFull || !finalReviewReady || !state.turns.some(t => t.role === "user");
     // Nothing is gained by wrapping up the same evidence again: after a confirmed
     // or a verified partial ending Wrap up returns when an answer is added.
     $("final-check").hidden = (state.closure.confirmed || state.closure.partial === true) && !state.coverageNeedsReview;
@@ -1164,14 +1153,14 @@
     const limitLine=$("interview-limit");
     if(limitLine){const message=limitMessage(limit),line=limitLine.querySelector("span");if(line.textContent!==message)line.textContent=message;limitLine.hidden=!message;}
     renderAnalysisStatus();
-    if($("retry-question"))$("retry-question").disabled=working||recording||Boolean(conversationUI.live?.active);
+    if($("retry-question"))$("retry-question").disabled=working||Boolean(conversationUI.live?.active);
     const hasDraftSource = state.turns.some(t => t.role === "user") || hasDocumentEvidence();
     if(documentReading.evidence!==state.documentEvidence||documentReading.phase!==documentIntake?.phase)syncDocumentReading();
     if ($("memo-footer")) $("memo-footer").hidden = !state.started && !hasDraftSource && !state.draft;
-    const canDraft = ready && hasDraftSource && !working && !recording &&
+    const canDraft = ready && hasDraftSource && !working &&
       !intakeActive() && !conversationUI.live?.active && conversationUI.status !== "closing";
     if(!(draftInFlight&&!state.draft))$("generate-draft").textContent = state.draft ? "Open draft" : "Create draft";
-    $("generate-draft").disabled = state.draft ? working || recording : !canDraft;
+    $("generate-draft").disabled = state.draft ? working : !canDraft;
     $("regenerate-draft").disabled = !canDraft;
     $("export-markdown").disabled = !state.draft||Boolean(draftInFlight);
     if($("draft-busy")){$("draft-busy").hidden=!draftInFlight;$("draft-busy").textContent=draftInFlight?"Updating the report and checking its evidence…":"";}
@@ -1181,11 +1170,11 @@
     const staleReason = draftStaleReason(), staleText = staleReason === "saved" ? "This draft was saved as out of date." : staleReason === "files" ? "This draft doesn’t include the latest change to your files." : "This draft doesn’t include your latest answers.";
     $("draft-stale").hidden = !staleReason;
     if (staleReason && $("draft-stale").textContent !== staleText) $("draft-stale").textContent = staleText;
-    if ($("draft-confirm-current")) {$("draft-confirm-current").hidden = !staleReason; $("draft-confirm-current").disabled = working || recording;}
+    if ($("draft-confirm-current")) {$("draft-confirm-current").hidden = !staleReason; $("draft-confirm-current").disabled = working;}
     const thinking=$("thinking"), thinkingText=$("thinking-text"), previouslyHidden=thinking.hidden;
     thinking.hidden = !working;
     if ($("current-question")) $("current-question").setAttribute("aria-busy", String(state.busy));
-    const waitingStep = state.requestingMic ? "Waiting for microphone access…" : state.transcribing ? "Transcribing…" : pendingCompletionReview?.promise ? COMPLETION_REVIEW_LABEL : "";
+    const waitingStep = pendingCompletionReview?.promise ? COMPLETION_REVIEW_LABEL : "";
     const thinkingLine = waitingStep || (state.provisionalQuestion ? `Up next: ${state.provisionalQuestion} — finishing the notes…` : state.busyMessage || "Thinking of the next question…");
     const lineChanged=thinkingText.textContent!==thinkingLine;
     if(lineChanged)thinkingText.textContent=thinkingLine;
@@ -1193,20 +1182,9 @@
       {hidden:thinking.hidden,provisional:Boolean(state.provisionalQuestion)&&!waitingStep}, {text:thinkingText.textContent});
     announceWorking(working, waitingStep || state.busyMessage || "Thinking of the next question…");
     if($("pause-completion-review"))$("pause-completion-review").hidden=!pendingCompletionReview?.promise||Boolean(conversationUI.live?.active);
-    $("record-answer").classList.toggle("recording", recording);
-    $("record-answer").setAttribute("aria-label",recording?"Finish recording":"Dictate a reply to review before sending");
-    $("record-answer").querySelector("span").textContent = recording ? "Finish" : "Dictate";
-    $("recording-status").hidden = !recording&&!state.requestingMic;
-    if(state.requestingMic)$("recording-label").textContent="Waiting for microphone permission. You can cancel here.";
     const voiceReady = canSpeakChoice();
-    const reviewed=Boolean(state.config?.agent_team?.enabled&&state.config.agent_team.voice_mode!=="live_front");
-    if($("review-voice-transcript-option"))$("review-voice-transcript-option").hidden=!reviewed;
-    if($("review-voice-audio-notice"))$("review-voice-audio-notice").hidden=!reviewed;
-    if($("voice-mode-note"))$("voice-mode-note").hidden=reviewed;
     $("speak-questions").disabled = !voiceReady;
     $("speak-questions").title = voiceReady ? `Selected voice: ${voiceLabel()}` : "Choose an available voice. Questions remain readable on screen.";
-    $("voice-select").disabled = recording || state.requestingMic;
-    $("preview-voice").disabled = !voiceReady || working || recording;
     $("welcome").hidden = state.started || state.turns.length > 0 || working || intakeActive();
     $("review-empty").hidden = Boolean(state.draft);
     if ($("review-heading")) $("review-heading").hidden = !state.draft;
@@ -1228,7 +1206,7 @@
     updateConversationControls();
     updateDocumentIntakeUI();
     if(state.example){
-      for(const id of ["start-live","type-instead","send-answer","answer-text","record-answer","skip-question","final-check","generate-draft","regenerate-draft","retry-question","coverage-recheck","update-notes"])
+      for(const id of ["start-live","type-instead","send-answer","answer-text","skip-question","final-check","generate-draft","regenerate-draft","retry-question","coverage-recheck","update-notes"])
         if($(id))$(id).disabled=true;
       // Its prepared draft can be opened like any other.
       if(state.draft&&$("generate-draft"))$("generate-draft").disabled=false;
@@ -1249,10 +1227,10 @@
     const control=$("confirm-nothing");
     if(!control)return;
     control.hidden=state.coverageNeedsReview||!state.closure.asked||state.closure.confirmed;
-    control.disabled=state.busy||state.transcribing||state.requestingMic||Boolean(state.recording)||!state.config?.api_configured||
+    control.disabled=state.busy||!state.config?.api_configured||
       intakeActive()||Boolean(conversationUI.live?.active)||conversationUI.status==="closing";
   }
-  // The "thinking" line is not a live region, and a typed or dictated interview has no audio, so
+  // The "thinking" line is not a live region, and a typed interview has no audio, so
   // its wording is said once through the polite status line: when work starts and when the wording
   // changes (never the provisional "Up next" text, which the arriving question repeats). Live voice
   // is heard and a file review has its own status panel. In the Voice view the presence label is a
@@ -1597,7 +1575,7 @@
   // moment an answer is sent; notes and the working map follow by a provider round trip, so a snapshot
   // taken in between files a revision that stops at an earlier answer.
   //   waiting: work that is still running (Submit waits for it)
-  //   action:  what the submitter must do when that work does not end by itself (voice, a recording),
+  //   action:  what the submitter must do when that work does not end by itself (voice),
   //            or the sentence that says what waiting is for (a draft request)
   //   missing: what a snapshot taken now would lack although nothing is running (Submit anyway)
   //   capture: the marker stored with every saved or submitted interview
@@ -1614,9 +1592,7 @@
     // A snapshot taken while Create draft or Update draft runs would be filed without the draft, or with the
     // one that is about to be replaced (gap3-submit-in-flight-5): Submit waits, and says what for.
     const drafting="A draft is being created.";
-    const waiting=state.recording||state.requestingMic?"A recording is in progress.":
-      state.transcribing?"Your recording is still being transcribed.":
-      conversationUI.live?.active?"Voice is still on.":
+    const waiting=conversationUI.live?.active?"Voice is still on.":
       conversationUI.status==="closing"?"The last part of your conversation is still being saved.":
       intakeActive()&&!intakeStopped?"Your files are still being read.":
       draftInFlight?drafting:
@@ -1624,8 +1600,7 @@
       pendingCompletionReview?.promise?"The completion review is still running.":
       concurrentInterview?.active||conversationUI.flowBusy||conversationUI.flowTimer!==null&&analysisState.state!=="error"?"Notes and the working map are still updating for your latest answer.":"";
     // The Submit dialog is modal, so the instruction starts with closing it. Button names as on the page.
-    const action=state.recording||state.requestingMic?"Close this window and finish the recording, then submit.":
-      !state.transcribing&&conversationUI.live?.active?"Close this window and choose Stop talking, then submit.":
+    const action=conversationUI.live?.active?"Close this window and choose Stop talking, then submit.":
       waiting===drafting?"Submit when it is ready so the draft is included.":"";
     const missing=[];
     if(!waiting){
@@ -2140,7 +2115,7 @@
       closeFoundationTopic();
     });
   }
-  // A question being read aloud by Listen, by "Read questions aloud when typing" or by Preview voice
+  // A question being read aloud by Listen or by "Read questions aloud when typing"
   // (not the interviewer's voice in a live conversation, which has Stop talking): which turn it is,
   // if any, and whether the voice is still being prepared. It is shown where the participant is: the
   // turn's Listen button becomes Stop, and a line above the reply box says so with its own Stop.
@@ -2402,8 +2377,8 @@
   }
   function returnToSource(){
     const origin=sourceOrigin;
-    if(origin?.review && (state.recording||state.requestingMic||conversationUI.live?.active||conversationUI.status==="closing")){
-      notice("Finish recording or stop talking before going back to Review.");return;
+    if(origin?.review && (conversationUI.live?.active||conversationUI.status==="closing")){
+      notice("Stop talking before going back to Review.");return;
     }
     clearSourceReturn();if(!origin||origin.generation!==state.generation)return;
     setInterviewSettings(false,false);
@@ -2462,20 +2437,15 @@
     updateConversationControls();
     updatePresence();
   }
-  function preparingReviewedVoice() {
-    return Boolean(state.config?.agent_team?.enabled&&!liveFrontActive()&&conversationUI.live?.active&&conversationUI.status==="speaking"&&!reviewedPlaybackActive);
-  }
   function presenceState() {
     if(intakeActive())return documentIntake.phase==="error"?"file-issue":auxiliaryVoiceState!=="idle"?auxiliaryVoiceState:"processing";
-    if(conversationUI.live?.active||conversationUI.status==="closing")return preparingReviewedVoice()?"processing":conversationUI.status;
-    if(state.requestingMic)return "connecting";
-    if(state.recording)return "listening";
+    if(conversationUI.live?.active||conversationUI.status==="closing")return conversationUI.status;
     if(auxiliaryVoiceState!=="idle")return auxiliaryVoiceState;
-    if(state.busy||state.transcribing)return "processing";
+    if(state.busy)return "processing";
     return voiceEnded?"ended":"idle";
   }
   function updatePresence() {
-    const status=presenceState(),labels={idle:"Ready when you are","file-issue":"File review needs attention",permission:"Waiting for microphone access…",connecting:"Connecting…",listening:"Listening",speaking:"Speaking",processing:preparingReviewedVoice()?"Preparing voice…":pendingCompletionReview?.promise?COMPLETION_REVIEW_LABEL:conversationUI.live?.overlapOpen?REVIEWED_TURN_LABEL:"Thinking…",muted:"Mic muted",closing:"Saving the transcript…",ended:"Voice off"};
+    const status=presenceState(),labels={idle:"Ready when you are","file-issue":"File review needs attention",permission:"Waiting for microphone access…",connecting:"Connecting…",listening:"Listening",speaking:"Speaking",processing:pendingCompletionReview?.promise?COMPLETION_REVIEW_LABEL:"Thinking…",muted:"Mic muted",closing:"Saving the transcript…",ended:"Voice off"};
     gpfsPresence?.setState(status==="closing"?"ended":status);
     gpfsPresence?.setVisible(conversationUI.view==="voice"&&!$("interview-view")?.hidden&&!document.hidden);
     const statusText=status==="speaking"&&conversationUI.muted?"Speaking · mic muted":labels[status]||labels.idle;
@@ -2511,21 +2481,17 @@
     const example=state.example===true;
     $("start-live").hidden=active||closing||example;
     if($("example-start"))$("example-start").hidden=!example;
-    $("start-live").disabled=!state.config?.live?.enabled||state.busy||Boolean(state.recording)||state.requestingMic||state.transcribing;
+    $("start-live").disabled=!state.config?.live?.enabled||state.busy;
     $("stop-live").hidden=!active&&!closing; $("stop-live").disabled=closing&&typeof conversationUI.live?.say!=="function";
     $("stop-live").textContent=closing?(typeof conversationUI.live?.say==="function"?"Stop now":"Saving…"):"Stop talking";
     $("mute-live").hidden=!conversationUI.live?.connected||Boolean(conversationUI.live?.inputClosed);
-    // Reviewed voice closes the microphone itself while it prepares the opening question, runs
-    // the completion review and speaks. The control says so, instead of implying a live microphone.
-    const micHeld=!conversationUI.muted&&conversationUI.live?.microphoneHeld===true;
-    $("mute-live").textContent=conversationUI.muted?"Unmute mic":micHeld?(conversationUI.status==="speaking"?"Mic paused while I speak":"Mic paused while I think"):"Mute mic";
-    $("mute-live").title=micHeld?"The microphone is paused and reopens at Listening. Select to keep it muted after that.":"";
+    $("mute-live").textContent=conversationUI.muted?"Unmute mic":"Mute mic";
     $("mute-live").setAttribute("aria-pressed",String(conversationUI.muted));
     // With the reply box already open, voice is the alternative on offer, not typing.
     const typing=!transcript&&!active&&!closing&&conversationUI.typing===true;
     $("type-instead").hidden=transcript||active||closing||example||typing;
     if($("live-controls")?.dataset)$("live-controls").dataset.typing=String(typing);
-    $("type-instead").disabled=!state.config?.api_configured||state.busy||Boolean(state.recording)||state.requestingMic||state.transcribing;
+    $("type-instead").disabled=!state.config?.api_configured||state.busy;
     $("type-instead").textContent="Type instead";
     $("composer-area").hidden=active||closing||example||(!transcript&&!conversationUI.typing);
     syncDockQuestion();
@@ -2536,12 +2502,11 @@
     const condensedNext=!active&&!closing&&liveHistoryCondensed(),resumed=active&&(conversationUI.liveCondensed===true||conversationUI.liveDocumentsCondensed===true);
     if($("transcript-live-hint")){$("transcript-live-hint").hidden=!condensedNext&&!resumed&&(!transcript||(!active&&!closing));$("transcript-live-hint").textContent=closing?"Saving the last part of your conversation…":condensedNext?liveCondensedHint():resumed?liveCondensedActive(transcript):"Voice is on. Stop talking to type a reply.";}
     $("start-live").title=condensedNext?liveCondensedHint():"";
-    $("voice-select").disabled=active||closing||Boolean(state.recording);
-    $("preview-voice").disabled=active||closing||!canSpeakChoice()||state.busy||Boolean(state.recording);
-    if(active||closing) for(const id of ["answer-text","send-answer","record-answer","skip-question","final-check","generate-draft","regenerate-draft"]) $(id).disabled=true;
+    $("voice-select").disabled=active||closing;
+    if(active||closing) for(const id of ["answer-text","send-answer","skip-question","final-check","generate-draft","regenerate-draft"]) $(id).disabled=true;
     updatePresence();
     $("start-live").querySelector("span").textContent=transcript?"Talk live":typing?"Talk instead":state.turns.length?"Continue talking":"Start talking";
-    if(intakeActive())for(const id of ["start-live","type-instead","send-answer","record-answer","skip-question","final-check","generate-draft","regenerate-draft","retry-question","preview-voice"])if($(id))$(id).disabled=true;
+    if(intakeActive())for(const id of ["start-live","type-instead","send-answer","skip-question","final-check","generate-draft","regenerate-draft","retry-question"])if($(id))$(id).disabled=true;
     if(returnFromVoice)$(transcript?"answer-text":"start-live").focus({preventScroll:true});
   }
   function validStartingContext() {
@@ -2762,14 +2727,12 @@
         const reviewed=Boolean(pendingCompletionReview||state.closure.asked||state.closure.confirmed||state.coverageVerified===true);
         if($("memo-sheet")?.open)setMemoSheet(false,false);
         concurrentInterview?.reset();
-        conversationUI.live?.discardPendingAudio?.();discardFailedDictation();
         intakeWasLive=Boolean(conversationUI.live?.active)||(retry&&intakeWasLive);stopSpeaking();
         for(const controller of interviewRequests)controller.abort();
         clearTimeout(conversationUI.flowTimer);conversationUI.flowTimer=null;conversationUI.flowAbort?.abort();
         suppressWorkflowReadiness();pendingDocumentReason=null;
         const paused=conversationUI.live?.stop()||Promise.resolve({finalized:true});
         if(intakeWasLive)voiceEnded=true;
-        if(state.recording){notice("Dictation stopped for the file review. Your words so far will appear in the reply box.",false,"dictation",true);finishRecording();}
         const acknowledgement=documentId?"Reviewing "+(names?.[0]||"the file")+" again.":provisionalFileQuestion()?"Thanks for sharing. Give me a moment to digest the file. Then I’ll follow up with a question."
           :"Thanks for sharing. Give me a moment to digest the file and update the process. Then I’ll follow up with a question.";
         intakeAnnouncement=()=>{
@@ -2965,10 +2928,8 @@
   }
   async function startLiveConversation(fileQuestion) {
     if(exampleIsReadOnly())return;
-    if(intakeActive()||state.busy||state.recording||state.transcribing||state.requestingMic||conversationUI.live?.active)return;
+    if(intakeActive()||state.busy||conversationUI.live?.active)return;
     if(!ensureConversation())return;
-    // Retry recording belongs to the voice session from here on.
-    discardFailedDictation();
     // A running draft head start holds one of the server's AI request places, which voice needs to
     // connect. It is paused, not dropped: voice may end without a word, and the account is then the same.
     cancelDraftAhead(false);
@@ -2977,66 +2938,6 @@
     // while voice connects; the participant's first spoken answer takes over below.
     if(state.config?.agent_team?.voice_mode==="live_front"&&!fileQuestion)concurrentInterview?.reset({handoff:true});
     if(!conversationUI.live) {
-      if(state.config?.agent_team?.enabled&&state.config.agent_team.voice_mode!=="live_front"){
-        if(!window.CollectorControlledVoice){notice("Voice couldn’t start. Refresh the page, or type instead.",true);return;}
-        conversationUI.live=new window.CollectorControlledVoice({request,getSnapshot:snapshot,
-          opening:async({signal})=>{
-            const last=state.turns.findLast(turn=>!turn.document_event);
-            if(last?.role==="assistant"||state.closure.confirmed||pendingCompletionReview)return null;
-            return request("/api/interview",{...snapshot(),action:last?"answer":"start"},{signal});
-          },
-          silenceMs:state.config.agent_team.turn_pause_ms,
-          onEndpoint:()=>{$("live-status").textContent=REVIEWED_TURN_HEARD;},
-          reviewBeforeSending:()=>Boolean($("review-voice-transcript")?.checked),
-          onEditableAnswer:answer=>{
-            const box=$("answer-text");box.value=[box.value.trim(),answer].filter(Boolean).join("\n\n");
-            rawTrace("voice.editor_updated",{channel:"reviewed_voice",chars:answer.length,value_omitted:"transient_input"});
-            state.dictatedAnswer=box.value.trim();state.dirty=true;voiceEnded=true;
-            conversationUI.typing=true;selectConversationView("transcript");updateControls();
-            notice("Voice paused. Check the transcribed answer, then choose Send.",false,"voice",true);
-            setTimeout(()=>box.focus({preventScroll:true}),0);
-          },
-          onAnswer:(answer,info)=>{
-            // The participant went on after the pause that ended the turn: the rest joins the
-            // answer that has no reply yet, so the interviewer is asked about the whole of it.
-            const open=info?.continuation?state.turns.at(-1):null,joined=open?.role==="user"&&!open.document_event&&charCount(open.text)+charCount(answer)<6000?`${open.text} ${answer}`:null;
-            if(charCount(answer)>6000||!(joined===null?answerHasRoom(answer):transcriptHasRoom(answer,1)))throw new Error(transcriptLimit().answersBlocked?limitReason(transcriptLimit()):"This answer exceeds the remaining interview space. Save a copy or continue with a shorter typed answer.");
-            if(joined===null)state.turns.push(rememberTurn({id:nextTurnId(),role:"user",text:answer},"reviewed_voice"));
-            else {open.text=joined;traceTurn("turn.amended",open,{channel:"reviewed_voice"});}
-            state.version++;participantEvidenceChanged();state.dirty=true;
-            conversationUI.revision++;suppressWorkflowReadiness();renderTranscript(true);
-            // Map scheduling runs alongside the lead; reader preparation already began.
-            scheduleWorkflow();
-          },
-          onResult:result=>{applyInterview(result);scheduleWorkflow();},
-          onTranscriptionRecovery:info=>{
-            if($('retry-transcription'))$('retry-transcription').hidden=!info.available;
-            if(info.available)notice(info.message||"Your recording is available to retry.",true,"transcription",true);
-            if(!info.available&&$('interview-error')?.dataset.errorKind==='transcription')$('interview-error').hidden=true;
-          },
-          onReviewAcknowledged:result=>{if(pendingCompletionReview?.ticket===result.review_ticket)pendingCompletionReview.acknowledged=true;},
-          review:(_result,options)=>requestCompletionReview(options),
-          speak:speakReviewed,stopPlayback:stopSpeaking,
-          prepareSpeech:({signal})=>{
-            const voice=selectedNaturalVoice();
-            return voice&&window.CollectorSpeechPreparation?new window.CollectorSpeechPreparation(
-              (id,signal)=>takeVoiceSession({id},signal),voice.id,{signal}):null;
-          },
-          onTurnTiming:record=>{
-            const timing={...record,answer_number:state.turns.filter(t=>t.role==="user"&&!t.document_event).length};
-            voiceTimingRecords.push(timing);rawTrace("reviewed.turn_timing",timing);
-            if(voiceTimingRecords.length>100)voiceTimingRecords.shift();if($("export-voice-timing"))$("export-voice-timing").hidden=false;
-          },
-          onStatus:status=>{conversationUI.status=status;updateControls();if(status==="listening"){const panel=$("interview-error");if(panel?.dataset.errorKind==="voice"&&!conversationUI.live?.hasPendingAudio)panel.hidden=true;scheduleWorkflow();}},
-          onError:message=>{if(pendingCompletionReview){$("retry-question").hidden=false;$("retry-question").textContent="Retry completion review";}notice(message+(/\bstill here\b/.test(message)?unsavedReminder():""),true,conversationUI.live?.hasPendingAudio?'transcription':'voice');},
-          onNotice:message=>notice(message),
-          onMicHint:message=>notice(message,false,"voice",true),
-          // The question is on screen and the session goes on; the reason stays visible until dismissed.
-          onPlaybackProblem:message=>notice(message,true,'voice'),
-          onAudioFrame:frame=>gpfsPresence?.setAudio({...frame,output:reviewedPlaybackLevel,
-            outputActive:reviewedPlaybackActive&&reviewedPlaybackLevel>.01,playbackActive:reviewedPlaybackActive})
-        });
-      }else{
       // GPT-Live is the spoken front; the managed team runs on its captions.
       if(!window.CollectorLiveVoice){notice("Voice couldn’t start. Refresh the page, or type instead.",true);return;}
       conversationUI.live=new window.CollectorLiveVoice({request,requestTimeout,
@@ -3050,7 +2951,6 @@
         onCondensed:announceCondensedVoice,
         onAudioFrame:frame=>{gpfsPresence?.setAudio(frame);if(currentVoiceEnding&&(frame.playbackActive||frame.outputActive))currentVoiceEnding.playedAt=voiceClock();if(conversationUI.liveCoverageDeferred&&!frame.inputActive&&!frame.playbackActive&&!frame.outputActive)syncLiveCoverage();}
       });
-      }
     }
     resetLiveFront();
     selectConversationView(conversationUI.view);
@@ -3061,7 +2961,6 @@
     conversationUI.liveCoverageKey=null;conversationUI.liveCondensed=false;conversationUI.liveDocumentsCondensed=false;
     const chosen=selectedNaturalVoice();
     const topicReviews = fileTopicReviewContext();
-    if(fileQuestion)live.rememberUnplayed?.(fileQuestion);
     await live.start({...(chosen&&state.config?.agent_team?.voice_mode==="live_front"?{voice:chosen.id}:{}),context:clone(state.context),turns:clone(state.turns.filter(turn=>!turn.document_event)),document_scope:currentDocumentState()?.scope,notes:liveResumeNotes(),...(topicReviews.length ? {file_topic_reviews:topicReviews} : {})});
     if(generation===state.generation&&conversationUI.live===live){
       syncLiveCoverage();
@@ -4615,7 +4514,7 @@
     }
     return tokenRenewal;
   }
-  // Spelling hints for a recording: the process name and the names, acronyms and codes the
+  // Spelling hints for the caption check: the process name and the names, acronyms and codes the
   // participant has already used, most frequent first. A term the transcriber has not met is
   // otherwise spelt by ear, differently each time.
   const HINT_LEAD=new Set("the a an we i it they he she you then when if after before once in on at for our my this that these those each every any all no yes and but or so to from with as by not there here what who how why where which".split(" "));
@@ -4824,7 +4723,6 @@
     }
   }
   function stopSpeaking() {
-    reviewedPlaybackLevel=0;reviewedPlaybackActive=false;
     auxiliaryVoiceState="idle";gpfsPresence?.setAudio({input:0,output:0,inputActive:false,outputActive:false});updatePresence();
     state.speechVersion++;
     const operation = state.speechOperation;
@@ -4906,10 +4804,6 @@
       /rate.?limit|too many requests|already processing/i.test(detail)?"The AI voice was temporarily rate limited. Wait briefly, then try again.":
       /model.not.found|configured model is unavailable|model\b.*\b(?:does not exist|not available|unavailable)/i.test(detail)?"The configured AI voice model is unavailable to this API project. Check its model access, or choose an installed computer voice.":"";
   }
-  const voiceTimingRecords=[];
-  // Local metadata only: no audio, transcript, credentials or API telemetry.
-  // Browser playback events are an approximation, not physical-speaker proof.
-  window.CollectorVoiceDiagnostics={snapshot:()=>clone(voiceTimingRecords)};
   function pcmWave(chunks, length) {
     if (length < 2 || length % 2) throw new Error("The AI voice returned incomplete audio. Please try again.");
     const bytes = new Uint8Array(44 + length);
@@ -4950,11 +4844,9 @@
         socket.send(JSON.stringify({type:"conversation.item.create",item:{id:itemId,type:"message",role:"user",content:[{type:"input_text",text:message}]}}));
         rawTrace("reader.input_sent", {item_id:itemId}, {text:message});
       };
-      const prepared=operation.preparedSocket;
       connectionTimer=setTimeout(()=>fail("The voice reader did not connect. The question is on screen.","reader_timeout"),12000);
-      operation.preparedSocket=null;
       try {
-        socket=prepared||new WebSocket(`wss://api.openai.com/v1/realtime?model=${encodeURIComponent(session.model)}`,["realtime",`openai-insecure-api-key.${session.client_secret}`]);
+        socket=new WebSocket(`wss://api.openai.com/v1/realtime?model=${encodeURIComponent(session.model)}`,["realtime",`openai-insecure-api-key.${session.client_secret}`]);
         operation.socket=socket;
       } catch {fail("The natural AI voice could not connect. Please try again or choose an installed computer voice.");return;}
       socket.addEventListener("message",event => {
@@ -4972,7 +4864,7 @@
             responseSent=true;
             socket.send(JSON.stringify({type:"response.create",response:{output_modalities:["audio"],max_output_tokens:2048}}));
           } else if(packet.type==="response.output_audio.delta"){
-            if(typeof packet.delta!=="string"||packet.delta.length*3/4+bytes>8*1024*1024){fail("This spoken question exceeds the audio limit. Read it on screen or try a shorter preview.");return;}
+            if(typeof packet.delta!=="string"||packet.delta.length*3/4+bytes>8*1024*1024){fail("This spoken question exceeds the audio limit. Read it on screen.");return;}
             const raw=atob(packet.delta),chunk=new Uint8Array(raw.length);
             for(let i=0;i<raw.length;i++)chunk[i]=raw.charCodeAt(i);
             bytes+=chunk.length;chunks.push(chunk);
@@ -4985,7 +4877,7 @@
             const matched=normalizedSpeech(transcript)===normalizedSpeech(message);
             rawTrace("reader.transcript_checked",{matched,chars:transcript.length,
               value_omitted:matched?undefined:"withheld_playback"},matched?{text:transcript}:undefined);
-            if(!matched){fail("The AI voice did not read the question exactly, so playback was withheld. Try Preview or Listen again; the original question remains on screen.","reader_mismatch");return;}
+            if(!matched){fail("The AI voice did not read the question exactly, so playback was withheld. Try Listen again; the original question remains on screen.","reader_mismatch");return;}
             finish(null,pcmWave(chunks,bytes));
           } else if(packet.type==="error"){
             // Name the cause the provider gave (no quota, a rejected key, a rate limit) in fixed wording.
@@ -4996,7 +4888,6 @@
       });
       socket.addEventListener("error",()=>fail("The natural AI voice connection failed. Please try again or choose an installed computer voice."));
       socket.addEventListener("close",()=>{if(!settled)fail("The natural AI voice connection closed before the question was ready. Please try again.");});
-      if(prepared){try{sendInput();}catch{fail("The prepared voice connection closed. Please try again.");}}
     });
   }
   async function speakNatural(message, voice, version) {
@@ -5030,23 +4921,18 @@
     } catch(error) {
       if(version!==state.speechVersion)return;
       stopSpeaking();
-      if(timedOut)notice("The natural AI voice took too long. Try Preview or Listen again, or choose an installed computer voice.",true);
-      else if(error.name!=="AbortError")notice(error.name==="NotAllowedError"?"Your browser paused voice playback. Select Listen or Preview voice to try again.":error.message,true);
+      if(timedOut)notice("The natural AI voice took too long. Try Listen again, or choose an installed computer voice.",true);
+      else if(error.name!=="AbortError")notice(error.name==="NotAllowedError"?"Your browser paused voice playback. Select Listen to try again.":error.message,true);
     }
   }
-  async function speakReviewed(message, options={}) {
-    // Controlled conversation waits for the END of playback, not just play().
+  async function speakReviewed(message) {
+    // Resolves at the END of playback, not when it starts.
     // The reader buffers and verifies its transcript before any audio is heard.
     stopSpeaking();
-    if(options.signal?.aborted)throw new DOMException("Playback cancelled","AbortError");
-    if(!canSpeakChoice())throw Object.assign(new Error("Choose an available interviewer voice to continue talking."),{voiceMessage:"No interviewer voice is available, so this question was not read aloud. Choose a voice in the voice settings."});
+    if(!canSpeakChoice())throw new Error("Choose an available interviewer voice to continue talking.");
     const operation={controller:new AbortController(),socket:null,audio:null,url:null,timer:null};
     state.speechOperation=operation;
-    const abort=()=>operation.controller.abort();
-    options.signal?.addEventListener("abort",abort,{once:true});
-    let timedOut=false;
-    operation.timer=setTimeout(()=>{timedOut=true;abort();},120000);
-    let meter=null,meterFrame=null;
+    operation.timer=setTimeout(()=>operation.controller.abort(),120000);
     try{
       const voice=selectedNaturalVoice();
       if(voice){
@@ -5059,10 +4945,7 @@
           if(typeof session?.client_secret!=="string"||typeof session?.model!=="string")throw new Error("The AI voice session could not be opened. Please try again.");
           return session;
         };
-        const prepared=await options.preparation?.take(voice.id);
-        if(prepared)operation.preparedSocket=prepared.socket;
-        if(operation.controller.signal.aborted){prepared?.socket.close();throw new DOMException("Playback cancelled","AbortError");}
-        const session=prepared?.session||await openSession();
+        const session=await openSession();
         if(operation.controller.signal.aborted)throw new DOMException("Playback cancelled","AbortError");
         if(typeof session?.client_secret!=="string"||typeof session?.model!=="string")throw new Error("The AI voice session could not be opened. Please try again.");
         let blob;
@@ -5075,25 +4958,13 @@
         }
         if(operation.controller.signal.aborted)throw new DOMException("Playback cancelled","AbortError");
         operation.url=URL.createObjectURL(blob);operation.audio=new Audio(operation.url);
-        const AudioContext=window.AudioContext||window.webkitAudioContext;
-        if(AudioContext){
-          try{
-            meter=new AudioContext();const source=meter.createMediaElementSource(operation.audio),analyser=meter.createAnalyser();
-            analyser.fftSize=1024;source.connect(analyser);analyser.connect(meter.destination);
-            const samples=new Float32Array(analyser.fftSize);
-            const measure=()=>{analyser.getFloatTimeDomainData(samples);reviewedPlaybackLevel=Math.min(1,Math.sqrt(samples.reduce((sum,v)=>sum+v*v,0)/samples.length)*4);meterFrame=requestAnimationFrame(measure);};
-            await meter.resume();measure();
-          }catch{/* Playback can proceed without an audio meter. */}
-        }
         await new Promise((resolve,reject)=>{
           const cancelled=()=>finish(new DOMException("Playback cancelled","AbortError"));
           const finish=error=>{operation.controller.signal.removeEventListener("abort",cancelled);error?reject(error):resolve();};
           operation.controller.signal.addEventListener("abort",cancelled,{once:true});
           operation.audio.addEventListener("ended",()=>finish(),{once:true});
           operation.audio.addEventListener("error",()=>finish(new Error("The reviewed question could not play. It remains in the transcript.")),{once:true});
-          operation.audio.addEventListener("playing",()=>{if(state.speechOperation!==operation||operation.controller.signal.aborted)return;clearTimeout(operation.timer);reviewedPlaybackActive=true;options.onPlaybackStart?.();updatePresence();});
-          operation.audio.addEventListener("waiting",()=>{if(state.speechOperation!==operation||operation.controller.signal.aborted)return;reviewedPlaybackActive=false;updatePresence();});
-          operation.audio.addEventListener("pause",()=>{if(state.speechOperation!==operation)return;reviewedPlaybackActive=false;reviewedPlaybackLevel=0;updatePresence();});
+          operation.audio.addEventListener("playing",()=>{if(state.speechOperation!==operation||operation.controller.signal.aborted)return;clearTimeout(operation.timer);});
           if(operation.controller.signal.aborted){cancelled();return;}
           operation.audio.play().catch(finish);
         });
@@ -5104,23 +4975,13 @@
           const cancelled=()=>finish(new DOMException("Playback cancelled","AbortError"));
           const finish=error=>{operation.controller.signal.removeEventListener("abort",cancelled);error?reject(error):resolve();};
           operation.controller.signal.addEventListener("abort",cancelled,{once:true});
-          utterance.onstart=()=>{if(state.speechOperation!==operation||operation.controller.signal.aborted)return;clearTimeout(operation.timer);reviewedPlaybackActive=true;options.onPlaybackStart?.();updatePresence();};utterance.onend=()=>finish();
+          utterance.onstart=()=>{if(state.speechOperation!==operation||operation.controller.signal.aborted)return;clearTimeout(operation.timer);};utterance.onend=()=>finish();
           utterance.onerror=()=>finish(new Error("The selected voice could not play the reviewed question."));
           if(operation.controller.signal.aborted){cancelled();return;}
           window.speechSynthesis.speak(utterance);
         });
       }
-    }catch(error){
-      // Reviewed voice shows voiceMessage in place of one generic sentence. Every Error raised above
-      // carries wording written here; a browser exception does not, so it gets fixed wording.
-      if(error&&!(error.name==="AbortError"&&!timedOut))error.voiceMessage=timedOut?"The interviewer’s voice took too long to prepare this question.":
-        error.name==="NotAllowedError"?"Your browser blocked voice playback for this question.":
-        error.name==="Error"&&typeof error.message==="string"&&error.message?error.message:"The interviewer’s voice could not play this question.";
-      throw error;
     }finally{
-      options.signal?.removeEventListener("abort",abort);
-      if(meterFrame!==null)cancelAnimationFrame(meterFrame);
-      if(meter)void meter.close().catch(()=>{});
       clearTimeout(operation.timer);
       if(state.speechOperation===operation)stopSpeaking();
     }
@@ -5132,7 +4993,6 @@
       if (!automatic) notice("Choose an available interviewer voice. The question remains available as text.", true);
       return false;
     }
-    if (state.recording || state.requestingMic) { if (!automatic) notice("Finish recording your answer before playing a question."); return false; }
     stopSpeaking();
     const version = state.speechVersion;
     const natural=selectedNaturalVoice();
@@ -5520,7 +5380,6 @@
     // After the notices above, which share the status line: the question is what was asked last.
     if(!issued&&!repeated&&!full){
       presentQuestion(question,result);
-      if(!conversationUI.live?.active)conversationUI.live?.rememberUnplayed?.(result);
     }
     if(result.speech_authorization?.kind==="question")scheduleAdvisoryCoverage();
   }
@@ -5555,7 +5414,7 @@
     // rename: leave the field and keep the interview. Start over in Menu
     // is the way to replace it, and it checks live voice and pending submissions.
     if (state.started) { $("process-name").blur(); return; }
-    if (state.busy || state.recording || state.transcribing || state.requestingMic) return;
+    if (state.busy) return;
     if (!$("context-form").reportValidity()) return;
     state.context = readContext();
     state.example = false;
@@ -5578,7 +5437,7 @@
     const answer = turnText(typeof preset==="string"?preset:$("answer-text").value);
     // Only invisible separators in the box: there is nothing to send, so the box is cleared.
     if(!answer&&typeof preset!=="string"&&$("answer-text").value){$("answer-text").value="";updateControls();return;}
-    if (intakeActive() || !answer || state.busy || state.recording || state.transcribing || state.requestingMic || conversationUI.live?.active || conversationUI.status==="closing") return;
+    if (intakeActive() || !answer || state.busy || conversationUI.live?.active || conversationUI.status==="closing") return;
     // The Send button is disabled at the limit; the keyboard shortcut arrives here all the same.
     if (transcriptLimit().answersBlocked) {notice(limitReason(transcriptLimit()), true); return;}
     if (exceeds(answer, REPLY_FIELD.limit)) {notice(fieldLimitProblem(REPLY_FIELD), true, "limit"); return;}
@@ -5590,8 +5449,8 @@
     const turn = {id: nextTurnId(), role: "user", text: answer};
     // What sending changes before the reply, so that an answer the server refuses can be taken back whole.
     const unsent={completion:state.completion,pendingFinalCheck,closure:state.closure,coverageVerified:state.coverageVerified,
-      savedOwnerFollowups:state.savedOwnerFollowups,evidenceVersion:state.evidenceVersion,completionHeld,dictatedAnswer:state.dictatedAnswer};
-    state.turns.push(rememberTurn(turn,state.dictatedAnswer===answer?"dictated":"typed"));state.dictatedAnswer=null;
+      savedOwnerFollowups:state.savedOwnerFollowups,evidenceVersion:state.evidenceVersion,completionHeld};
+    state.turns.push(rememberTurn(turn,"typed"));
     // After the completion line the reply to this message decides whether the
     // account changed; until then nothing is revoked (see completionHeld).
     if(completionStands())completionHeld=true;
@@ -5618,7 +5477,7 @@
       if(error.status===400&&!preset&&generation===state.generation&&state.turns.at(-1)===turn){
         state.turns.pop();if(state.turnMetadata)delete state.turnMetadata[turn.id];state.version++;
         ({completion:state.completion,pendingFinalCheck,closure:state.closure,coverageVerified:state.coverageVerified,
-          savedOwnerFollowups:state.savedOwnerFollowups,evidenceVersion:state.evidenceVersion,completionHeld,dictatedAnswer:state.dictatedAnswer}=unsent);
+          savedOwnerFollowups:state.savedOwnerFollowups,evidenceVersion:state.evidenceVersion,completionHeld}=unsent);
         if(!$("answer-text").value)$("answer-text").value=answer;
         renderTranscript();
         notice((error.message||"That answer could not be sent.")+" Your answer is back in the box.",true,"question");
@@ -5716,7 +5575,7 @@
 
   async function skipQuestion() {
     if(exampleIsReadOnly())return;
-    if (intakeActive() || !state.started || state.busy || state.recording || state.transcribing || state.requestingMic) return;
+    if (intakeActive() || !state.started || state.busy) return;
     if (turnText($("answer-text").value) && !confirm("Skip this question? Your unsent answer will stay in the answer box.")) return;
     stopSpeaking();
     const generation = state.generation,pauseSequence=reviewPauseSequence;
@@ -5731,7 +5590,7 @@
   }
   async function finalCheck() {
     if(exampleIsReadOnly())return;
-    if (intakeActive() || !state.started || state.busy || state.recording || state.transcribing || state.requestingMic) return;
+    if (intakeActive() || !state.started || state.busy) return;
     if (turnText($("answer-text").value)) {notice("Send your answer first, then wrap up."); return;}
     stopSpeaking();
     const generation = state.generation,pauseSequence=reviewPauseSequence,origin=document.activeElement;
@@ -5748,225 +5607,6 @@
     if(replied&&generation===state.generation)armDraftAhead();
   }
 
-  // Dictate. The level monitor reads DICTATION_WINDOW samples (about a third of a
-  // second, longer than one 250 ms recorder slice) in blocks of DICTATION_BLOCK; two
-  // samples further apart than DICTATION_SAMPLE_GAP_MS leave an unobserved stretch.
-  const DICTATION_WINDOW=16384,DICTATION_BLOCK=2048,DICTATION_SAMPLE_GAP_MS=500;
-  // A recording whose transcription failed is kept for a retry within the bounds
-  // the voice session uses (controlled-voice.js): one recording, 12 MiB, 10 minutes.
-  const DICTATION_RETRY_BYTES=12*1024*1024,DICTATION_RETRY_MS=10*60*1000;
-  let failedDictation=null;
-  async function startRecording() {
-    if(exampleIsReadOnly())return;
-    if (state.recording) { finishRecording(); return; }
-    if (intakeActive() || state.busy || state.transcribing || state.requestingMic || conversationUI.live?.active || conversationUI.status==="closing") return;
-    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-      notice("This browser can’t record audio. Try Chrome or Edge, or type your answer.", true);
-      return;
-    }
-    if(!ensureConversation())return;
-    stopSpeaking();
-    const generation = state.generation,intakeSequence=documentIntake?.sequence;
-    const permission = {};
-    state.micPermission = permission;
-    state.requestingMic = true;
-    updateControls();
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true, autoGainControl: true}});
-      if (!state.requestingMic || state.micPermission!==permission || generation !== state.generation || intakeActive() || intakeSequence!==documentIntake?.sequence || state.busy || state.transcribing || !state.started) { stream.getTracks().forEach(t => t.stop()); return; }
-      const mimeType = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"].find(type => MediaRecorder.isTypeSupported(type));
-      const recorder = new MediaRecorder(stream, mimeType ? {mimeType} : undefined);
-      const recording = {recorder, stream, chunks: [], startedAt: performance.now(), lastSound: performance.now(), lastSample: performance.now(), hasSpeech: false, discard: false, timer: null, frame: null, context: null, sample: null, unwatch: null, generation};
-      state.recording = recording;
-      state.requestingMic = false;
-      // The recorder delivers a slice every 250 ms whether or not the page is being
-      // drawn, so each slice also takes a level sample (see monitorSilence).
-      recorder.addEventListener("dataavailable", event => { if (event.data.size) recording.chunks.push(event.data); recording.sample?.(); });
-      recorder.addEventListener("error", () => { recording.discard = true; notice("Recording didn’t work. Try again, or type your answer.", true); finishRecording(); });
-      recorder.addEventListener("stop", () => completeRecording(recording));
-      recorder.start(250);
-      rawTrace("dictation.recorder_started", {state:recorder.state, audio_omitted:"transient_audio"});
-      // The clock is written when the second changes, not on every tick. It is a timer that is
-      // never announced: the start of the recording is said once through the status line below,
-      // and speech from a screen reader would be picked up by the open microphone.
-      let shownSeconds = 0;
-      recording.timer = setInterval(() => {
-        const seconds = Math.floor((performance.now() - recording.startedAt) / 1000);
-        if (seconds !== shownSeconds) {shownSeconds = seconds; $("recording-time").textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;}
-        if (seconds >= 90) { notice("That’s 90 seconds, the most for one answer. Send this part, then keep going."); finishRecording(); }
-      }, 200);
-      $("recording-time").textContent = "0:00";
-      $("recording-label").textContent = "Listening · finish when you’re ready";
-      monitorSilence(recording);
-      updateControls();
-      $("live-status").textContent = "Recording your answer. Select Finish to stop.";
-    } catch (error) {
-      stream?.getTracks().forEach(t => t.stop());
-      state.recording = null;
-      const messages = {
-        NotAllowedError: "Microphone access was not granted. Allow it in your browser’s site settings, or type your answer.",
-        NotFoundError: "No microphone was found. Connect one or type your answer.",
-        NotReadableError: "The microphone could not be opened. Check whether another application is using it, or type your answer."
-      };
-      notice(messages[error.name] || `Recording could not start: ${error.message}`, true);
-      updateControls();
-    } finally {
-      if (generation === state.generation && state.micPermission===permission) {state.requestingMic = false;delete state.micPermission;updateControls();}
-    }
-  }
-  function monitorSilence(recording) {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    try {
-      const context = new AudioContext();
-      recording.context = context;
-      context.resume().catch(() => {});
-      const source = context.createMediaStreamSource(recording.stream);
-      const analyser = context.createAnalyser();
-      // The pause rule counts only silence that was heard. A sample is the level of
-      // each DICTATION_BLOCK of the analyser's window, so a sample taken on a 250 ms
-      // recorder slice covers the whole time since the previous one; a sample on an
-      // animation frame (while the page is drawn) just reads the newest block more
-      // often. A stretch with no sample at all (a suspended or throttled page) is
-      // not silence: the pause is counted again from the next sample.
-      analyser.fftSize = DICTATION_WINDOW;
-      source.connect(analyser);
-      const data = new Uint8Array(analyser.fftSize), blocks = data.length / DICTATION_BLOCK;
-      const blockMs = DICTATION_BLOCK / (context.sampleRate || 48000) * 1000;
-      const live = () => state.recording === recording && recording.recorder.state === "recording";
-      const sample = () => {
-        if (!live()) return false;
-        analyser.getByteTimeDomainData(data);
-        let rms = 0, heard = -1;
-        for (let block = 0; block < blocks; block++) {
-          let squared = 0;
-          for (let i = block * DICTATION_BLOCK, end = i + DICTATION_BLOCK; i < end; i++) squared += ((data[i] - 128) / 128) ** 2;
-          rms = Math.sqrt(squared / DICTATION_BLOCK);
-          if (rms > .018) heard = block;
-        }
-        // rms is now the newest block's level, which is what the meter shows.
-        gpfsPresence?.setAudio({input:Math.min(1,Math.max(0,(rms-.006)/.12)),output:0,inputActive:rms>.009,outputActive:false});
-        const now = performance.now();
-        if (now - recording.lastSample > DICTATION_SAMPLE_GAP_MS) recording.lastSound = now;
-        recording.lastSample = now;recording.meterRan=true;
-        if (heard >= 0) { recording.hasSpeech = true; recording.lastSound = Math.max(recording.lastSound, now - (blocks - 1 - heard) * blockMs); }
-        const elapsed = now - recording.startedAt;
-        if (!recording.hasSpeech && elapsed>15000 && now-recording.lastSound>12000){finishRecording();return false;}
-        if ($("stop-on-silence").checked && recording.hasSpeech && elapsed > 1800 && now - recording.lastSound > 2200) {
-          $("recording-label").textContent = "Finishing…";
-          finishRecording();
-          return false;
-        }
-        return true;
-      };
-      const measure = () => { if (sample()) recording.frame = requestAnimationFrame(measure); };
-      // Coming back to the page never ends a recording on the spot: whatever was
-      // not sampled while it was away is not counted as a pause.
-      const visible = () => { if (!document.hidden && live()) recording.lastSound = recording.lastSample = performance.now(); };
-      document.addEventListener("visibilitychange", visible);
-      recording.unwatch = () => document.removeEventListener("visibilitychange", visible);
-      recording.sample = sample;
-      recording.frame = requestAnimationFrame(measure);
-    } catch { /* Recording still works when a browser cannot provide the level monitor. */ }
-  }
-  // Everything a recording holds besides its audio: timers, the level monitor and
-  // the microphone. Runs on every way a recording can end, more than once safely.
-  function releaseRecording(recording) {
-    clearInterval(recording.timer);
-    cancelAnimationFrame(recording.frame);
-    recording.sample = null;
-    recording.unwatch?.(); recording.unwatch = null;
-    const context = recording.context; recording.context = null;
-    if (context) {
-      // The meter shows the last level it was given until told otherwise.
-      gpfsPresence?.setAudio({input:0,output:0,inputActive:false,outputActive:false});
-      try { context.close()?.catch?.(() => {}); } catch { /* Already closed. */ }
-    }
-    recording.stream.getTracks().forEach(track => track.stop());
-  }
-  function finishRecording(discard = false) {
-    const recording = state.recording;
-    if (!recording) return;
-    gpfsPresence?.setAudio({input:0,output:0,inputActive:false,outputActive:false});
-    recording.discard ||= discard;
-    if (recording.recorder.state !== "inactive") recording.recorder.stop();
-    releaseRecording(recording);
-  }
-  async function completeRecording(recording) {
-    rawTrace("dictation.recorder_stopped", {state:recording.recorder?.state, discarded:Boolean(recording.discard)});
-    if (state.recording === recording) state.recording = null;
-    const measured = Boolean(recording.meterRan);
-    releaseRecording(recording);
-    const elapsed = performance.now() - recording.startedAt;
-    if (recording.discard || recording.generation !== state.generation) { updateControls(); if(recording.generation===state.generation)$("answer-text").focus({preventScroll:true}); return; }
-    if (measured && !recording.hasSpeech) { notice("No speech was detected. Check your microphone, then dictate again or type your reply.",false,"dictation",true);updateControls();$("answer-text").focus({preventScroll:true});return; }
-    if (elapsed < 550 || !recording.chunks.length) { notice("That recording was too short. Try again, or type your answer.", true); updateControls(); return; }
-    const blob = new Blob(recording.chunks, {type: recording.recorder.mimeType || "audio/webm"});
-    recording.chunks = [];
-    await transcribeDictation(blob, recording.generation);
-  }
-  // One dictated recording becomes text in the reply box. When the request fails
-  // in a way another attempt can cure (no connection, a timeout, a rate limit, a
-  // server or provider error) the audio is kept so that it can be sent again:
-  // the latest recording only, within the bounds the voice session uses for its
-  // own retry. An empty transcript or a rejected recording is not kept, because
-  // sending the same audio again cannot succeed.
-  async function transcribeDictation(blob, generation) {
-    discardFailedDictation();
-    state.transcribing = true;
-    updateControls();
-    try {
-      const result = await request("/api/transcribe", blob);
-      if (generation !== state.generation) return;
-      const answer = text(result.text).trim();
-      if (!answer) throw new Error("We didn’t catch that. Try again, or type your answer.");
-      const existing = $("answer-text").value.trim();
-      const combined = existing ? `${existing}\n\n${answer}` : answer;
-      $("answer-text").value = combined;state.dictatedAnswer=combined.trim();
-      rawTrace("voice.editor_updated",{channel:"dictated",chars:answer.length,value_omitted:"transient_input"});
-      state.dirty = true;
-      if (exceeds(combined, REPLY_FIELD.limit)) {
-        notice(fieldLimitProblem(REPLY_FIELD),true,"limit");
-        return;
-      }
-      // Transcription can merge a spoken amount (a wire of $4,250,000.17 came back as $4,250,017), so
-      // when the text holds one the reminder names it.
-      const figures=/[$€£¥]\s?\d|\d[\d,]*\.\d|\d{1,3}(?:,\d{3})+|%|\b(?:dollars?|cents?|euros?|pounds?|percent|hundred|thousand|million|billion|USD|EUR|GBP|CHF|JPY)\b/i.test(answer);
-      notice(intakeActive()?"Your dictated text is in the reply box. Send it after the file has been read.":
-        figures?"Check the text and every amount, then choose Send.":"Check the text, then choose Send.");
-    } catch (error) {
-      if (generation !== state.generation) return;
-      const retryable = error.transient === true || [408, 429].includes(error.status) || error.status >= 500;
-      if (retryable && !intakeActive() && blob.size <= DICTATION_RETRY_BYTES) {
-        failedDictation = {blob, generation, timer: setTimeout(discardFailedDictation, DICTATION_RETRY_MS)};
-        showDictationRetry();
-        notice(`Couldn’t transcribe that. ${error.message} Your recording is kept for now: choose Retry recording, or Discard recording.`, true, "dictation");
-      } else notice(`Couldn’t transcribe that. ${error.message}${retryable ? " The recording could not be kept; record it again, or type your answer." : ""}`, true);
-    }
-    finally {
-      if (generation === state.generation) { state.transcribing = false; updateControls(); $("answer-text").focus(); }
-    }
-  }
-  // The Retry recording and Discard recording controls sit in the interview's
-  // error banner; Retry recording is shared with the voice session's own retry.
-  function showDictationRetry() {
-    if ($("retry-transcription")) $("retry-transcription").hidden = !failedDictation && !conversationUI.live?.hasPendingAudio;
-    if ($("discard-recording")) $("discard-recording").hidden = !failedDictation;
-  }
-  function discardFailedDictation() {
-    if (!failedDictation) return;
-    clearTimeout(failedDictation.timer);
-    failedDictation = null;
-    showDictationRetry();
-    if ($("interview-error")?.dataset.errorKind === "dictation") $("interview-error").hidden = true;
-  }
-  function retryDictation() {
-    const kept = failedDictation;
-    if (!kept || state.busy || state.recording || state.transcribing || state.requestingMic || intakeActive()) return;
-    if (kept.generation !== state.generation) { discardFailedDictation(); return; }
-    return transcribeDictation(kept.blob, kept.generation);
-  }
 
   function normalizeCoverage(value) {
     if (!Array.isArray(value)) return [];
@@ -6276,7 +5916,7 @@
     if(exampleIsReadOnly())return;
     if(intakeActive())return;
     if (conversationUI.live?.active) {notice("Stop talking before you create a draft.");return;}
-    if (state.busy || state.recording || state.transcribing || state.requestingMic || (!state.turns.some(t => t.role === "user")&&!hasDocumentEvidence())) return;
+    if (state.busy || (!state.turns.some(t => t.role === "user")&&!hasDocumentEvidence())) return;
     if (state.draftEdited && state.draft && !confirm("Update the draft from the interview? Your edits to the current draft will be replaced.")) return;
     if (turnText($("answer-text").value) && !confirm("You have an unsent answer. Create the draft from your sent answers only? Your unsent text stays in the box.")) return;
     stopSpeaking();
@@ -7494,7 +7134,7 @@
       app_build:appStamp().app_build,...(state.generatedBy?.length?{generated_by:state.generatedBy}:{}),
       process:{name:processDisplayName(context)||"Untitled process",owner_role:context.process_owner||"",objective:context.objective||"",background:context.background||""},
       synthetic_example:state.example===true,
-      capture:{in_progress:Boolean(state.busy||state.recording||state.transcribing||conversationUI.live?.active||conversationUI.status==="closing"||conversationUI.flowBusy||concurrentInterview?.active||liveCapture),
+      capture:{in_progress:Boolean(state.busy||conversationUI.live?.active||conversationUI.status==="closing"||conversationUI.flowBusy||concurrentInterview?.active||liveCapture),
         scope_note:"Snapshot of all stored transcript text in order, verbatim and unredacted. Live captions may be provisional. Unsent text, recordings and supporting documents are not included. Export time is not an interview or turn timestamp.",
         memo_note:"Latest recorded memo assessment, not a per-turn history or independent verification. It may lag the newest answers. Captured status and participant confirmation must still be checked against the transcript."},
       counts:{messages:turns.length,interviewer_messages:turns.filter(t=>t.role==="assistant"&&t.kind==="interview_message").length,
@@ -7666,7 +7306,7 @@
   }
   function canReplaceSession(action="Open a different interview") {
     if (conversationUI.live?.active || conversationUI.status==="closing") {notice("Stop talking before you open another interview.");return false;}
-    if (state.recording || state.busy || state.transcribing || state.requestingMic) { notice("Wait for the current answer to finish first."); return false; }
+    if (state.busy) { notice("Wait for the current answer to finish first."); return false; }
     return (!state.dirty&&!knowledgeUI?.hasPending) || confirm(action+"? Anything you haven’t saved will be cleared. "+(knowledgeUI?.hasPending?"A process submission is awaiting confirmation; replacing this session loses its retry information and does not cancel a server save. Recover its status first if needed.":saveAdvice())+(documentController?.keptFilesNote?.()||""));
   }
   async function startNewInterview() {
@@ -7692,11 +7332,11 @@
     if($("voice-start-dialog")?.open)$("voice-start-dialog").close();
     rawTrace("interview.clearing", {turn_count:state.turns.length, generation:state.generation});
     state.historicalDraft=false;owedFiles=null;renderOwedFiles();
-    state.savedClosure=null;state.resumedReviewAck=null;state.resumeFileIntake=null;state.previousMap=null;state.mapCorrections=[];state.dictatedAnswer=null;
+    state.savedClosure=null;state.resumedReviewAck=null;state.resumeFileIntake=null;state.previousMap=null;state.mapCorrections=[];
     state.savedOwnerFollowups=[];state.fileTopicReviews={};state.fileTopicHistory=[];
     deferredDiagrams.clear();
     concurrentInterview?.reset();
-    conversationUI.live?.discardPendingAudio?.();discardFailedDictation();topicDiscussion=[];provisionalTopics=null;analysisCheckpoint=null;notesProgress=null;mapProgress=null;
+    topicDiscussion=[];provisionalTopics=null;analysisCheckpoint=null;notesProgress=null;mapProgress=null;
     reviewPauseSequence++;
     invalidateCompletionReview();state.captureToken=null;state.coverageVerified=false;
     state.captureRepairs={memo:{},draft:{}};state.draftCoverage=null;
@@ -7721,7 +7361,6 @@
     mapNote("");
     if($("jump-latest"))$("jump-latest").hidden=true;
     stopSpeaking();
-    finishRecording(true);
     state.generation++;
     activeTeamRun=null;agentTeamUI?.render({run_id:`idle-${state.generation}`,status:"idle",agents:[],events:[]});
     state.completion=null;
@@ -8081,13 +7720,6 @@
     });
     $("settings-source-return").addEventListener("click",returnToSource);
     for(const id of ["interview-error","review-error"])$(id).querySelector("button").addEventListener("click",()=>dismissInlineError(id));
-    $('discard-recording')?.addEventListener('click',()=>{discardFailedDictation();$("answer-text").focus({preventScroll:true});});
-    $('retry-transcription')?.addEventListener('click',async()=>{
-      if(failedDictation){await retryDictation();return;}
-      const live=conversationUI.live;if(!live?.hasPendingAudio)return;
-      $('retry-transcription').disabled=true;
-      try{await live.retryTranscription();}finally{updateControls();}
-    });
     for(const [prefix,id] of [["workflow","live-workflow"],["map","process-map"]]){
       $(prefix+"-step-select").addEventListener("change",()=>{const canvas=workflowCanvases.get(id),step=$(prefix+"-step-select").value;if(canvas?.getPathNavigation?.().following)canvas.followPath(step);else canvas?.focusStep(step,{readable:true,keyboard:false,select:true});});
       $(prefix+"-follow").addEventListener("click",()=>{const canvas=workflowCanvases.get(id);if(canvas?.getPathNavigation?.().following)canvas.leavePath();else canvas?.followPath($(prefix+"-step-select").value);});
@@ -8183,21 +7815,11 @@
     $("answer-form").addEventListener("submit",sendAnswer);
     $("answer-text").addEventListener("input",() => {recordInput();updateControls();});
     $("answer-text").addEventListener("keydown",event => {if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {event.preventDefault(); sendAnswer(event);}});
-    $("record-answer").addEventListener("click",startRecording);
-    $("cancel-recording").addEventListener("click",()=>{
-      if(state.requestingMic){state.requestingMic=false;updateControls();$("answer-text").focus({preventScroll:true});return;}
-      finishRecording(true);
-    });
     $("stop-speaking").addEventListener("click",stopSpeaking);
     $("voice-select").addEventListener("change",()=>{
       stopSpeaking();state.voiceChoice=$("voice-select").value;state.voiceChoiceUser=true;populateVoiceOptions();
       if(state.started)state.dirty=true;
       updateSaveHint();
-    });
-    $("export-voice-timing").addEventListener("click",()=>download(JSON.stringify({version:state.config?.version,measurement:"Browser events; not physical audio or perceived responsiveness",turns:voiceTimingRecords},null,2),"voice-timings.json","application/json"));
-    $("preview-voice").addEventListener("click",()=>{
-      state.voiceChoiceUser=true;
-      speak("Hello. I am your process interviewer. Tell me how the work begins, and we can take it one step at a time.");
     });
     $("speak-questions").addEventListener("change",() => {if (!$("speak-questions").checked) stopSpeaking();});
     $("skip-question").addEventListener("click",skipQuestion);
@@ -8213,7 +7835,7 @@
     $("session-menu-toggle").addEventListener("click",() => {const open = $("session-menu").hidden; $("session-menu").hidden = !open; $("session-menu-toggle").setAttribute("aria-expanded",String(open));});
     document.addEventListener("click",event => {if (!$("session-menu").contains(event.target) && !$("session-menu-toggle").contains(event.target)) closeMenu();});
     document.addEventListener("keydown",event => {if (event.key === "Escape") closeMenu(true);});
-    // Escape also silences a question that is being read aloud (Listen, read-aloud or Preview voice).
+    // Escape also silences a question that is being read aloud (Listen or read-aloud).
     // The interviewer's voice in a live conversation is not touched: Stop talking ends that.
     document.addEventListener("keydown",event => {if (event.key === "Escape" && reading) stopSpeaking();});
     $("stop-reading").addEventListener("click",stopSpeaking);
@@ -8267,7 +7889,7 @@
       updateControls();
     });
     $("process-name").addEventListener("change",()=>{if(conversationUI.workflow)renderWorkingMap();if(conversationUI.live?.active)conversationUI.live.appendContext(`The participant edited the process title to: ${$("process-name").value}`,{id:`title_${Date.now()}`,kind:"process_title"});});
-    window.addEventListener("beforeunload",event => {if (state.dirty || knowledgeUI?.hasPending || state.recording || state.requestingMic || state.transcribing) {event.preventDefault(); event.returnValue = "";}});
+    window.addEventListener("beforeunload",event => {if (state.dirty || knowledgeUI?.hasPending) {event.preventDefault(); event.returnValue = "";}});
     // Ctrl+S (Cmd+S) is Save copy: the browser's own Save Page would store an empty shell of the app.
     document.addEventListener("keydown",event => {if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && String(event.key).toLowerCase() === "s") {event.preventDefault(); if (!event.repeat) exportSession();}});
     // Keeps the age in the unsaved cue true while nothing else redraws it. (unref: a test runner's timer must not keep its process alive.)
@@ -8275,7 +7897,7 @@
     document.addEventListener("visibilitychange",restoreTabTitle);
     document.addEventListener("visibilitychange",updatePresence);
     document.addEventListener("visibilitychange",()=>{syncWorkflowVisibility();armNotice();});
-    window.addEventListener("pagehide",event => {if(!event.persisted)discardBackgroundWork(true).catch(()=>{});stopSpeaking(); finishRecording(true);gpfsPresence?.setVisible(false);syncWorkflowVisibility(false);});
+    window.addEventListener("pagehide",event => {if(!event.persisted)discardBackgroundWork(true).catch(()=>{});stopSpeaking();gpfsPresence?.setVisible(false);syncWorkflowVisibility(false);});
     window.addEventListener("pageshow",event=>{if(event.persisted){updatePresence();syncWorkflowVisibility();}});
     bindDraftFields();
   }
@@ -8306,7 +7928,7 @@
     if(window.CollectorDocuments)documentController=window.CollectorDocuments.create({requestJSON:request,getContext:documentContext,onWithdrawnConfirmations:refs=>retireFileReviews(null,refs),config:()=>state.config,renewToken:renewRequestToken,usageHeaders,voiceActive:()=>Boolean(conversationUI.live?.active),
       canUpload:()=>Boolean(state.config?.api_configured)&&!state.example&&!state.importing&&!draftInFlight,
       uploadBlockedReason:()=>state.example?"Choose Start your own before adding a real file.":draftInFlight?"Wait for the draft to finish, then add the file.":state.importing?"Wait for the interview to finish opening.":!state.config?.api_configured?"File review needs a configured AI service.":"File uploads are temporarily unavailable.",
-      canDiscuss:()=>conversationUI.live?.active&&!liveFrontActive()?"Stop talking to discuss this file question. It is still available in Assets.":!intakeActive()&&!state.busy&&!state.recording&&!state.transcribing&&!state.requestingMic,
+      canDiscuss:()=>conversationUI.live?.active&&!liveFrontActive()?"Stop talking to discuss this file question. It is still available in Assets.":!intakeActive()&&!state.busy,
       revealUploads:()=>!pendingFileVoiceStart&&!($("memo-rail")?.parentElement===$("memo-sheet-body")),onOpen:openDocumentAssets,onCountChange:updateAssetCount,onDiscuss:()=>{setMemoSheet(false,false);focusWorkspace("interview");},
       // The file intake waits on file status in these two stages; the file list keeps polling for it.
       reviewAwaited:()=>intakeActive()&&["uploading","reviewing"].includes(documentIntake.phase),
@@ -8323,13 +7945,13 @@
       if(restore){
         const value=JSON.parse(window.localStorage?.getItem(key)||"null");
         if(!value||typeof value!=="object")return;
-        for(const name of ["speak-questions","stop-on-silence"])if(typeof value[name]==="boolean")$(name).checked=value[name];
+        if(typeof value["speak-questions"]==="boolean")$("speak-questions").checked=value["speak-questions"];
         if(typeof value.voice==="string"&&/^(ai:[a-z]+|local:.{1,390})$/.test(value.voice)){state.voiceChoice=value.voice;state.voiceChoiceUser=true;populateVoiceOptions();}
       }else{
-        window.localStorage?.setItem(key,JSON.stringify({voice:state.voiceChoice,"speak-questions":$("speak-questions").checked,"stop-on-silence":$("stop-on-silence").checked}));
+        window.localStorage?.setItem(key,JSON.stringify({voice:state.voiceChoice,"speak-questions":$("speak-questions").checked}));
       }
       rawTrace("settings.voice_controls_observed",{action:restore?"restore":"save_requested",
-        speak_questions:$("speak-questions").checked,stop_on_silence:$("stop-on-silence").checked}, {voice:state.voiceChoice});
+        speak_questions:$("speak-questions").checked}, {voice:state.voiceChoice});
     }catch{/* The browser may disable local preferences. */}
   }
   async function loadConfiguration(){

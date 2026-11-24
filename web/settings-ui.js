@@ -16,10 +16,7 @@
   const index = [
     ["Appearance", "System, light or dark theme", "preferences-details", "theme-select", "appearance theme light dark system display look"],
     ["Interviewer voice", "Choose a natural AI or installed computer voice", "preferences-details", "voice-picker-toggle", "voice speaker sound audio computer natural playback"],
-    ["Preview voice", "Hear the voice selected for question playback", "preferences-details", "preview-voice", "voice preview test sound listen"],
     ["Read questions aloud when typing", "Hear each question during the text interview", "preferences-details", "speak-questions", "read questions aloud typing speech playback"],
-    ["Stop recording when I pause", "Finish a dictated reply after a natural pause", "preferences-details", "stop-on-silence", "dictation silence recording pause microphone"],
-    ["Edit each reviewed-voice answer", "Review transcribed answers before sending", "preferences-details", "review-voice-transcript", "reviewed voice answer transcript edit transcription"],
     ["Participant", "Name or role of the person sharing the process", "context-details", "interview-participant", "participant person name role interview"],
     ["Process owner", "Who is responsible for this process?", "context-details", "process-owner", "owner responsible person context"],
     ["Interview goal", "What you want to learn about the process", "context-details", "objective", "goal objective purpose context"],

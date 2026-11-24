@@ -15,7 +15,7 @@ def instance_id(root):
 # The page files the server serves (server.py STATIC_FILES), relative to web/.
 WEB_FILES = (
     'agent-team.css', 'agent-team.js', 'app.js',
-    'assets/gpfs-logo.svg', 'assets/gpfs-symbol.svg',     'concurrent-interview.js', 'context-help.js', 'controlled-voice.js', 'document-intake.js', 'documents.css',
+    'assets/gpfs-logo.svg', 'assets/gpfs-symbol.svg',     'concurrent-interview.js', 'context-help.js', 'document-intake.js', 'documents.css',
     'documents.js', 'gpfs-presence.css', 'gpfs-presence.js', 'index.html', 'knowledge-ui.css', 'knowledge-ui.js',
     'live-voice-tap.js', 'live-voice.js', 'raw-trace.js', 'settings-ui.js', 'settings.css', 'style.css',
     'theme.js', 'vendor/elk.bundled.js', 'workflow-exports.js',

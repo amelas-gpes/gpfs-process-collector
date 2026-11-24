@@ -1535,5 +1535,25 @@
       return this.stop({immediate:true});
     }
   }
+  // The check every line the application approves must pass before the page treats it as spoken:
+  // the approved text is the question itself, and a completion or review line agrees with the
+  // capture it came with. (It used to live with the reviewed-voice controller, which V1 does not ship.)
+  const SPEECH_KINDS = new Set(["question","final_check","complete","pause","review_pending"]);
+  const REVIEW_ACK = "Let me check that I have everything before we finish.";
+  const PARTIAL_REVIEW_ACK = "Let me check what we have and keep the unanswered parts open.";
+  function speechAuthorization(result) {
+    const authorization=result?.speech_authorization;
+    if(typeof result?.question!=="string"||!result.question.trim()||result.question.length>6000||authorization?.approved!==true||!SPEECH_KINDS.has(authorization.kind)||authorization.text!==result.question||typeof authorization.revision!=="string"||!/^[A-Za-z0-9_.:-]{1,128}$/.test(authorization.revision)){
+      throw new Error("Unapproved speech");
+    }
+    if((["final_check","complete"].includes(authorization.kind)&&result.coverage_verified!==true)||
+       (authorization.kind==="final_check"&&result.completion?.ready_for_final_check!==true)||
+       (authorization.kind==="complete"&&(result.completion?.complete!==true||authorization.completion_allowed!==true))){
+      throw new Error("Inconsistent completion authorization");
+    }
+    if(authorization.kind==="review_pending"&&((result.question!==REVIEW_ACK&&!(result.review_purpose==="partial"&&result.question===PARTIAL_REVIEW_ACK))||typeof result.review_ticket!=="string"||!result.review_ticket||result.review_ticket.length>4096||result.coverage_verified===true||result.completion?.complete===true||result.completion?.ready_for_final_check===true))throw new Error("Invalid review acknowledgement");
+    return authorization;
+  }
+  window.CollectorSpeechAuthorization = speechAuthorization;
   window.CollectorLiveVoice = CollectorLiveVoice;
 })();

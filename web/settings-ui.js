@@ -24,11 +24,7 @@
     ["Process owner", "Who is responsible for this process?", "context-details", "process-owner", "owner responsible person context"],
     ["Interview goal", "What you want to learn about the process", "context-details", "objective", "goal objective purpose context"],
     ["Background", "Useful context, boundaries and areas to focus on", "context-details", "background", "background context focus scope"],
-    ["Recovery copy", "Keep unfinished work on this computer", "data-details", "recovery-enabled", "recovery save copy unsaved restore autosave backup crash restart"],
     ["Data handling", "What stays here and what goes to the AI service", "data-details", "data-notice", "privacy data handling retention files service policies"],
-    ["AI usage", "Daily and interview token counts and workspace limits", "usage-details", "usage-check", "AI usage tokens daily limits quota count"],
-    ["Agents", "See the app workflow and read or copy agent prompts", "agents-details", "agents-details", "AI agent prompt library instructions workflow administrator"],
-    ["Application logs", "Search recent or current-session activity", "logs-details", "logs-search", "application activity logs logging history events trace"],
     ["How this works", "A short guide to the interview and review", "help-guide", "help-guide", "help guide how works interview review workflow"],
     ["Definition of done", "When an interview is complete and what goes to the process owner", "help-guide", "definition-of-done", "completion gaps hold handoff partial wrap up approval coverage topics follow-ups"],
     ["Keyboard shortcuts", "Keys for Settings, saving and sending a reply", "help-guide", "keyboard-shortcuts", "keyboard shortcuts keys hotkeys send escape"],
@@ -140,19 +136,6 @@
     if(voiceItems.length&&!voiceItems.some(item=>item.tabIndex===0))voiceItems[0].tabIndex=0;
     if (!voiceItems.length) { const empty = document.createElement("p"); empty.textContent = query ? "No voices match your search." : "No voices are available right now."; list.append(empty); }
   }
-  function setUsage(usage) {
-    $("usage-check").disabled = !usage;
-    for (const [scope, used, cap] of [["day", usage?.day_tokens, usage?.daily_token_cap], ["interview", usage?.interview_tokens, usage?.interview_token_cap]]) {
-      const known = typeof used === "number" && Number.isFinite(used);
-      $("usage-" + scope + "-value").textContent = known ? used.toLocaleString("en-US") : "—";
-      $("usage-" + scope + "-limit").textContent = !usage ? "Usage unavailable" : Number(cap) > 0 ? `Limit: ${Number(cap).toLocaleString("en-US")} tokens` : "No workspace limit set";
-      const meter = $("usage-" + scope + "-meter"), limited = known && Number(cap) > 0;
-      meter.hidden = !limited; meter.max = Math.max(1, Number(cap) || 1); meter.value = known ? Math.min(used, meter.max) : 0;
-      // Past three quarters the bar turns to the caution color, and past nine tenths to the alert color.
-      meter.optimum = 0; meter.low = meter.max * .75; meter.high = meter.max * .9;
-      $("usage-" + scope + "-percent").textContent = limited ? Math.min(999, Math.round(used / Number(cap) * 100)) + "%" : "";
-    }
-  }
   for (const tab of tabs) {
     tab.addEventListener("click", () => show(tab.dataset.settingsTarget));
     tab.addEventListener("keydown", event => {
@@ -200,11 +183,6 @@
     if (event.key === "Enter" && finder.value.trim()) { event.preventDefault(); $("settings-search-matches").querySelector("button")?.click(); }
     if (event.key === "ArrowDown" && finder.value.trim()) { event.preventDefault(); $("settings-search-matches").querySelector("button")?.focus(); }
   });
-  for (const button of dialog.querySelectorAll("[data-log-scope]")) button.addEventListener("click", () => {
-    for (const item of dialog.querySelectorAll("[data-log-scope]")) item.setAttribute("aria-pressed", String(item === button));
-    $("logs-scope").value = button.dataset.logScope;
-    $("logs-scope").dispatchEvent(new Event("change", {bubbles:true}));
-  });
-  window.CollectorSettings = {show, syncTheme, refreshVoice:renderVoices, setUsage, opened:() => { show(active); syncTheme(); renderVoices(); }};
+  window.CollectorSettings = {show, syncTheme, refreshVoice:renderVoices, opened:() => { show(active); syncTheme(); renderVoices(); }};
   syncTheme(); renderVoices();
 })();

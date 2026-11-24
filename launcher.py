@@ -159,15 +159,10 @@ def main(observe=None):
             time.sleep(.1)
         else:
             raise SystemExit("The shutdown request was sent, but the server is still responding on this port.")
-        # The optional recovery copy (Settings in the page) is the only other place an unsaved session can be.
-        recovery = current.get("recovery") if isinstance(current.get("recovery"), dict) else {}
-        kept = recovery.get("enabled") is True or recovery.get("stored") is True
         if (current.get("raw_trace") or {}).get("content") is True:
-            print("AI Process Collector stopped. Developer event logs remain in the private work folder."
-                  + (" The local recovery copy may also be available." if kept else ""))
+            print("AI Process Collector stopped. Developer event logs remain in the private work folder.")
             return
-        print("AI Process Collector stopped. Unsaved sessions remain only in any open browser tab"
-              + (", and in the recovery copy on this computer if one was being kept." if kept else "."))
+        print("AI Process Collector stopped. Unsaved sessions remain only in any open browser tab.")
         return
     expected_build = _build_module.build_id(APP_DIR)
     if current and current.get('build_id') != expected_build:

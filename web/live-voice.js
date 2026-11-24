@@ -187,14 +187,6 @@
   }
 
   class CollectorLiveVoice {
-    static promptTemplates() {
-      return [
-        {id:"live-connected-opening", label:"Speak the opening greeting", when:"The browser sends the server-selected opening once when the connection is ready. This is the fallback for an older server.", text:OPENING_GREETING},
-        {id:"live-authorized-line", label:"Speak an approved line", when:"The app has approved a follow-up or final check. It supplies the quoted line at runtime.", text:authorizedLine("{quoted line}")},
-        {id:"live-reference-update", label:"Receive reference material", when:"A source update arrives while Live voice is connected. Each part carries its source and position.", text:referenceUpdate("{source update as JSON}")}
-      ];
-    }
-
     constructor(options = {}) {
       if (typeof options.request !== "function") throw new TypeError("A same-origin request function is required.");
       this.options = options;

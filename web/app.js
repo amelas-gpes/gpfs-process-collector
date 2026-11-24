@@ -1061,17 +1061,11 @@
   // Save copy bookkeeping. Every `state.dirty = true` counts as a change, so a
   // save that finishes later can tell whether the interview moved on meanwhile,
   // and a download whose outcome is unknown can be told apart from newer edits.
-  // This setter is also the one place every change passes, so the optional recovery
-  // copy is scheduled, and withdrawn, from here and from nowhere else.
   let unsaved=false,changeCount=0,lastDownload=null;
   // What is known about a file of this interview (a confirmed Save copy, or the file it
   // was opened from) and when the unsaved changes began.
   let lastFile=null,unsavedSince=null;
-  // The optional recovery copy (see "Recovery copy" below). enabled is the person's
-  // choice as the local server holds it; stored: this interview's copy is on the
-  // server; offer: a copy of another interview that waits for Restore or Discard.
-  const recovery={available:false,enabled:false,id:"",stored:false,failed:false,offer:null,timer:null,waitingSince:0,queue:Promise.resolve()};
-  Object.defineProperty(state,"dirty",{enumerable:true,get:()=>unsaved,set(value){const was=unsaved;unsaved=Boolean(value);if(unsaved){changeCount++;if(!was)unsavedSince=new Date();}else{lastDownload=null;lastFile=null;unsavedSince=null;}recoveryChanged();}});
+  Object.defineProperty(state,"dirty",{enumerable:true,get:()=>unsaved,set(value){const was=unsaved;unsaved=Boolean(value);if(unsaved){changeCount++;if(!was)unsavedSince=new Date();}else{lastDownload=null;lastFile=null;unsavedSince=null;}}});
   const changeMark=()=>`${state.generation}:${state.version}:${changeCount}`;
   const downloadIsCurrent=()=>Boolean(lastDownload)&&lastDownload.mark===changeMark();
   const clockTime=date=>date.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
@@ -1084,8 +1078,6 @@
     // A started download is not proof of a file. The cue stays visible and says
     // what is known; the leave and replace checks keep asking.
     if(downloadIsCurrent())return `Last copy downloaded ${clockTime(lastDownload.at)}`;
-    const copy=recoveryCue();
-    if(copy)return `Unsaved changes · ${copy}`;
     if(lastFile){const age=minutesSince(lastFile.at);return `Unsaved changes · ${lastFile.opened?"file opened":"last saved"} ${age?`${minutesLabel(age)} ago`:"less than 5 min ago"}`;}
     if(lastDownload)return `Unsaved changes · last download ${clockTime(lastDownload.at)}`;
     // Nothing is known of any copy. The first minutes read as before; after that the cue says how much is at risk.
@@ -1119,183 +1111,8 @@
   // in this tab only, so a message that reassures after a failure says they are
   // "still here", and adds this while no copy of the interview is current.
   const unsavedReminder=()=>state.dirty&&!downloadIsCurrent()?" Not saved yet — use Save copy.":"";
-  // Recovery copy. Off unless the person turns it on in Settings; the local server keeps
-  // that choice with its private data, so the browser and the desktop window share it.
-  // While it is on, the unsaved interview goes to the LOCAL server a moment after each
-  // change, exactly as Save copy would write it. The server stores one copy in its
-  // private work folder and sends it nowhere. A stored copy is offered when the app
-  // opens and is restored through the same checks as Open saved interview. It is deleted
-  // after a confirmed Save copy, a confirmed replacement, Discard or seven days.
-  // Nothing here runs on page exit: the copy relies on the write that follows each change.
-  const RECOVERY_QUIET_MS=2000,RECOVERY_LATEST_MS=10000,RECOVERY_MAX_BYTES=16*1024*1024;
-  function recoveryCue() {
-    if(!recovery.enabled||state.example)return "";
-    if(recovery.offer)return "recovery copy paused";
-    if(recovery.failed)return "recovery copy not updated";
-    return recovery.stored?"recovery copy kept":"";
-  }
-  // What the server says about a stored copy, kept only in the expected shape.
-  function recoverySummary(value) {
-    if(!value||typeof value!=="object"||typeof value.id!=="string"||!value.id||value.id.length>80)return null;
-    const at=new Date(typeof value.saved_at==="string"?value.saved_at:NaN);
-    return {id:value.id,at:Number.isNaN(at.getTime())?null:at,name:typeof value.process_name==="string"?value.process_name.slice(0,180):"",
-      messages:Number.isInteger(value.messages)&&value.messages>=0?value.messages:null,readable:value.readable!==false};
-  }
-  async function recoveryCall(action,body={}) {
-    const sent=JSON.stringify(body);
-    if(sent.length>RECOVERY_MAX_BYTES){const error=new Error("This interview is larger than 16 MB, the largest the app opens.");error.status=413;throw error;}
-    let response;
-    try{
-      response=await fetch("/api/recovery/"+action,{method:"POST",credentials:"same-origin",
-        headers:{"X-CSRF-Token":state.config?.csrf_token||"","Content-Type":"application/json"},body:sent});
-    }catch{throw new Error("The app on this computer did not answer.");}
-    const result=await response.json().catch(()=>null);
-    if(!response.ok){
-      const error=new Error(typeof result?.error==="string"&&result.error.length<=600?result.error:"The recovery copy is unavailable right now.");
-      error.status=response.status;error.draft=recoverySummary(result?.draft);throw error;
-    }
-    return result&&typeof result==="object"?result:{};
-  }
-  // One request at a time, in order: a write that is still on its way can never land
-  // after the delete that follows it.
-  function recoveryTask(task) {
-    const run=recovery.queue.then(task);
-    recovery.queue=run.catch(()=>{});
-    return run;
-  }
   // Called by the state.dirty setter and by nothing else.
-  function recoveryChanged() {
-    if(!recovery.enabled&&!recovery.stored)return;
-    if(unsaved){scheduleRecoveryCopy();return;}
-    // Saved to a confirmed file, started over or replaced: this interview's copy is no longer wanted.
-    clearTimeout(recovery.timer);recovery.timer=null;recovery.waitingSince=0;
-    const id=recovery.id;
-    void recoveryTask(async()=>{
-      if(!recovery.stored||recovery.id!==id)return;
-      try{await recoveryCall("discard",{id});recovery.stored=false;recovery.failed=false;}
-      catch{/* It stays stored, is offered when the app next opens and can be discarded there. */}
-      renderRecovery();
-    });
-  }
-  function scheduleRecoveryCopy(delay=RECOVERY_QUIET_MS) {
-    if(!recovery.enabled||recovery.offer||!unsaved)return;
-    const now=Date.now();
-    if(!recovery.waitingSince)recovery.waitingSince=now;
-    clearTimeout(recovery.timer);
-    // A moment after the last change, and at most ten seconds after the first change not
-    // yet written: live captions can keep changing without ever pausing.
-    recovery.timer=setTimeout(writeRecoveryCopy,Math.max(0,Math.min(delay,recovery.waitingSince+RECOVERY_LATEST_MS-now)));
-  }
-  function writeRecoveryCopy() {
-    clearTimeout(recovery.timer);recovery.timer=null;recovery.waitingSince=0;
-    void recoveryTask(async()=>{
-      // A copy of another interview that waits for Restore or Discard is never replaced, and the fictional example is never copied.
-      if(!recovery.enabled||recovery.offer||!unsaved||state.example)return;
-      // An interview that is still being opened is copied once it is whole.
-      if(state.importing){scheduleRecoveryCopy();return;}
-      const id=recovery.id||(recovery.id=crypto.randomUUID().replaceAll("-",""));
-      try{
-        await recoveryCall("save",{id,session:sessionObject({includePresentation:true})});
-        if(recovery.id===id){recovery.stored=true;recovery.failed=false;}
-      }catch(error){
-        if(error.status===409&&error.draft){
-          // Another interview's copy holds the place (written through another window): offer it, leave it as it is.
-          recovery.stored=false;recovery.offer=error.draft;
-        }else if(error.status===409){
-          recovery.enabled=false;recovery.stored=false;recovery.failed=false;
-          notice("Recovery copies were turned off in another window. This interview is no longer being copied to this computer.");
-        }else{
-          if(!recovery.failed)notice(`${error.message} The recovery copy on this computer was not updated. Choose Save copy to keep this interview.`,true);
-          recovery.failed=true;
-          // The local app may be restarting: try again without waiting for another change.
-          if(!error.status||error.status>=500)scheduleRecoveryCopy(RECOVERY_LATEST_MS);
-        }
-      }
-      renderRecovery();
-    });
-  }
   // What the server reports after a status, setting or discard request.
-  function applyRecoveryStatus(result) {
-    recovery.enabled=result?.enabled===true;
-    const draft=recoverySummary(result?.draft);
-    recovery.stored=Boolean(draft)&&draft.id===recovery.id;
-    recovery.offer=draft&&!recovery.stored?draft:null;
-    if(!recovery.enabled){clearTimeout(recovery.timer);recovery.timer=null;recovery.waitingSince=0;recovery.failed=false;}
-    else if(!recovery.offer)scheduleRecoveryCopy();
-    renderRecovery();
-  }
-  function recoveryWhen(date) {
-    const time=clockTime(date);
-    return date.toDateString()===new Date().toDateString()?time:`${date.toLocaleDateString([],{day:"numeric",month:"short"})}, ${time}`;
-  }
-  function renderRecovery() {
-    const offer=recovery.offer,banner=$("recovery-offer");
-    if(banner){
-      banner.hidden=!offer;
-      if(offer){
-        const when=offer.at?recoveryWhen(offer.at):"an earlier session";
-        const count=offer.messages===null?"":`, ${offer.messages} ${offer.messages===1?"message":"messages"}`;
-        $("recovery-offer-text").textContent=offer.readable
-          ?`An unsaved interview from ${when} (${offer.name||"untitled"}${count}) is stored on this computer. Restore it, or discard it to delete the copy.${recovery.enabled?" No copy of another interview is kept until you choose.":""}`
-          :`A recovery copy from ${when} is stored on this computer, but this version of the app cannot read it. Discard it to delete it, or open the app version that wrote it.`;
-        $("recovery-restore").hidden=!offer.readable;
-      }
-    }
-    if($("recovery-setting"))$("recovery-setting").hidden=!recovery.available;
-    if($("recovery-enabled"))$("recovery-enabled").checked=recovery.enabled;
-    if($("recovery-status"))$("recovery-status").textContent=!recovery.enabled?"":offer?"A stored copy is waiting: choose Restore or Discard at the top of the page.":recovery.failed?"The copy could not be updated. Choose Save copy to keep this interview.":recovery.stored?"A copy of this interview is stored on this computer.":"No copy is stored right now.";
-    updateSaveHint();
-  }
-  async function restoreRecoveryCopy() {
-    const offer=recovery.offer;
-    if(!offer?.readable||state.importing||!canReplaceSession())return;
-    const opened=await applySavedSession(async()=>{
-      let result;
-      try{result=await recoveryTask(()=>recoveryCall("load",{id:offer.id}));}
-      catch(error){
-        // Deleted or replaced through another window since it was offered.
-        if(error.status===404)recovery.offer=null;else if(error.draft)recovery.offer=error.draft;
-        throw error;
-      }
-      if(result.draft?.id!==offer.id||!result.draft.session||typeof result.draft.session!=="object")throw new Error("The recovery copy could not be read.");
-      return result.draft.session;
-    },true);
-    if(opened){
-      // The restored interview goes on under the same copy, and no file holds it yet.
-      recovery.offer=null;recovery.id=offer.id;recovery.stored=true;recovery.failed=false;
-      state.dirty=true;
-    }
-    renderRecovery();
-    if(!opened&&!recovery.offer)scheduleRecoveryCopy();
-  }
-  async function discardRecoveryCopy() {
-    const offer=recovery.offer;
-    if(!offer||!confirm(`Delete the recovery copy${offer.at?` from ${recoveryWhen(offer.at)}`:""}? The unsaved interview in it cannot be brought back.`))return;
-    try{
-      applyRecoveryStatus(await recoveryTask(()=>recoveryCall("discard",{id:offer.id})));
-      notice(recovery.offer?"A different recovery copy is stored on this computer now.":"Recovery copy deleted.");
-    }catch(error){notice(`The recovery copy couldn’t be deleted. ${error.message}`,true);}
-  }
-  async function setRecoveryEnabled(on) {
-    const held=recovery.offer||recovery.stored;
-    if(!on&&held&&!confirm(`Turn off recovery copies? The copy stored on this computer${recovery.offer?.name?` (${recovery.offer.name})`:""} will be deleted and cannot be brought back.`)){renderRecovery();return;}
-    try{
-      applyRecoveryStatus(await recoveryTask(()=>recoveryCall("setting",{enabled:Boolean(on)})));
-      notice(recovery.enabled?"Recovery copy on. One copy of the unsaved interview is kept on this computer until you save it, start over, discard it or seven days pass.":
-        "Recovery copy off. No unsaved interview is being kept for recovery.");
-    }catch(error){renderRecovery();notice(`The setting was not changed. ${error.message}`,true);}
-  }
-  async function initRecovery(config) {
-    const reported=config?.recovery;
-    recovery.available=Boolean(reported)&&typeof reported==="object";
-    recovery.enabled=recovery.available&&reported.enabled===true;
-    // Asked only when the option is on or a copy is stored: with it off, opening the page asks nothing more.
-    if(recovery.enabled||(recovery.available&&reported.stored===true)){
-      try{applyRecoveryStatus(await recoveryTask(()=>recoveryCall("status")));return;}
-      catch{/* Nothing is known about a stored copy; a write that meets one will offer it. */}
-    }
-    renderRecovery();
-  }
   const intakeWaiters=new Set();
   function intakeBlocked(){return state.busy||state.recording||state.transcribing||state.requestingMic||conversationUI.flowBusy;}
   function notifyIntakeWaiters(){if(!intakeBlocked())for(const ready of [...intakeWaiters])ready();}
@@ -4423,14 +4240,6 @@
     const status = openTopics ? `Still open: ${openTopics}.` + (notRaised ? ` Not raised yet: ${notRaised}.` : "") : "Nothing is open; the application will say when to close.";
     return `Private capture status; silent, no speech requested. Notes cover the current ${answerCount} participant answers. ${status} These are provisional coverage labels, not questions or a topic order. Follow the conversation; do not react to this update.`;
   }
-  function browserVoicePrompts() {
-    return [
-      ...(window.CollectorLiveVoice?.promptTemplates?.() || []),
-      {id:"live-open-topics", label:"Update open topics", when:"Background capture sends a brief status update after the speaker pauses.", text:liveCoverageNote("{answer count}", "{open topics}", "{topics with no notes yet}")},
-      {id:"live-no-open-topics", label:"Report no open topics", when:"The latest capture lists no open topics. The app still controls the final check.", text:liveCoverageNote("{answer count}", "")},
-      {id:"live-file-withdrawn", label:"Withdraw a reference file", when:"A file is removed or parked during a live interview.", text:withdrawnFileNote("{file name}")}
-    ];
-  }
   function syncLiveCoverage() {
     const live=conversationUI.live;
     if(!live?.active||typeof live.appendContext!=="function")return;
@@ -4800,31 +4609,6 @@
       if(/^[0-9a-f]{32}$/.test(id||""))state.usageId=id;
     }
     return state.usageId?{"X-Interview-Id":state.usageId}:{};
-  }
-  function showUsage(usage){
-    const panel=$("usage-details"),line=$("usage-summary");
-    if(!panel||!line)return;
-    window.CollectorSettings?.setUsage(usage);
-    if(!usage){line.textContent="Usage is not available from this connection.";return;}
-    const tokens=value=>Number(value).toLocaleString("en-US");
-    const amount=(used,cap)=> (used===null||used===undefined?"Usage unavailable":tokens(used)+" tokens used")+
-      (Number(cap)>0?" (limit "+tokens(cap)+")":"");
-    line.textContent="Today: "+amount(usage.day_tokens,usage.daily_token_cap)+". This interview: "+
-      amount(usage.interview_tokens,usage.interview_token_cap)+"."+(usage.quota_blocked?" The provider has paused requests because its quota was reached.":"");
-  }
-  async function checkUsage(){
-    const button=$("usage-check"),generation=state.generation; if(!button||button.disabled)return;
-    const hadFocus=document.activeElement===button;
-    button.disabled=true;
-    try{
-      const current=await request("/api/usage/check",{});
-      if(generation===state.generation){state.config.usage=current.usage||current;showUsage(state.config.usage);}
-    }catch(error){if(generation===state.generation)notice(error.message||"Could not check AI usage.",true);}
-    finally{
-      button.disabled=false;
-      if(hadFocus&&$("interview-settings").open&&!$("usage-details").hidden&&
-        (document.activeElement===document.body||document.activeElement===$("interview-settings")))button.focus({preventScroll:true});
-    }
   }
   function reportServerSource(config){
     if(config?.source_changed===true)notice("The app files have changed since this local server started. Save a copy of your interview, then restart the app to use the update.",false,"server-source",true);
@@ -8442,15 +8226,14 @@
       catch{throw new Error("The file is not valid UTF-8. Open a JSON interview file created by Save copy.");}
     });
   }
-  // Open saved interview and Restore (the recovery copy) share every check below. `read`
-  // supplies the saved interview, as the file's text or as the stored object; nothing
+  // Open saved interview. `read` supplies the saved interview as the file's text; nothing
   // replaces the open interview until all of it has been validated. Resolves to true
   // when the saved interview is the open one.
-  async function applySavedSession(read,recovered=false) {
+  async function applySavedSession(read) {
     let generation=state.generation;
     let resumeReply=false;
     let opened=false;
-    state.importing=true;setBusy(true,recovered?"Restoring the recovery copy…":"Opening the saved interview…");documentController?.render();
+    state.importing=true;setBusy(true,"Opening the saved interview…");documentController?.render();
     try {
       const loaded = await read();
       let saved;
@@ -8570,17 +8353,17 @@
         const retry=$("retry-question");retry.hidden=false;retry.dataset.resumeReview="true";retry.textContent="Resume review";
         if($("current-question"))$("current-question").hidden=true;
       }
-      // An opened file is a known copy of this interview; a recovery copy is not a file.
-      if(!recovered)lastFile={at:new Date(),opened:true};
+      // An opened file is a known copy of this interview.
+      lastFile={at:new Date(),opened:true};
       opened=true;
-      rawTrace("interview.opened", {recovered, synthetic:state.example, turn_count:turns.length});
+      rawTrace("interview.opened", {synthetic:state.example, turn_count:turns.length});
       resumeReply=Boolean(unsent.trim());
       if(resumeReply||(unanswered&&!draft)){
         tab("interview");selectConversationView("transcript");scrollConversation();
       }else if(draft)tab("review");
       // After the view is chosen, so the lasting copy lands on the line of the view that is shown.
-      notice((recovered?"Interview restored from the recovery copy. Choose Save copy to keep it in a file. ":"Interview opened. ")+(interruptedReview?"The saved review was interrupted. Choose Resume review to finish checking the account.":finalCheckPending?"The saved final question needs a fresh review. Choose Resume review before answering it.":state.savedClosure?"The saved copy records a previously "+state.savedClosure.kind+" account. Current coverage is provisional. Choose Recheck coverage in Workflow.":unanswered?"Saved coverage and completion are provisional. Your last answer did not receive a reply. Choose Ask the next question, or Recheck coverage in Workflow.":turns.some(turn=>turn.role==="user"&&!turn.document_event)?"Saved coverage and completion are provisional. Continue the interview, or choose Recheck coverage in Workflow.":"The saved interview has no participant answers yet.")+(documentController?.attentionNote?.()||""),false,"opened",true);
-    } catch (error) { if(generation===state.generation)notice(`${recovered?"Couldn’t restore the recovery copy.":"Couldn’t open that interview."} ${error.message}`, true); }
+      notice("Interview opened. "+(interruptedReview?"The saved review was interrupted. Choose Resume review to finish checking the account.":finalCheckPending?"The saved final question needs a fresh review. Choose Resume review before answering it.":state.savedClosure?"The saved copy records a previously "+state.savedClosure.kind+" account. Current coverage is provisional. Choose Recheck coverage in Workflow.":unanswered?"Saved coverage and completion are provisional. Your last answer did not receive a reply. Choose Ask the next question, or Recheck coverage in Workflow.":turns.some(turn=>turn.role==="user"&&!turn.document_event)?"Saved coverage and completion are provisional. Continue the interview, or choose Recheck coverage in Workflow.":"The saved interview has no participant answers yet.")+(documentController?.attentionNote?.()||""),false,"opened",true);
+    } catch (error) { if(generation===state.generation)notice(`Couldn’t open that interview. ${error.message}`, true); }
     finally {
       if(generation===state.generation){
         state.importing=false;setBusy(false);documentController?.render();
@@ -8825,7 +8608,6 @@
       if(window.CollectorComponentLibrary?.open)window.CollectorComponentLibrary.open({opener:$("session-menu-toggle")});
       else notice("The component library could not load. You can still explore the map.",true);
     });
-    $("usage-check")?.addEventListener("click",checkUsage);
     $("close-interview-settings").addEventListener("click",()=>setInterviewSettings(false));
     $("interview-settings").addEventListener("close",settingsClosed);
     initFoundationDialog();
@@ -8948,11 +8730,6 @@
     window.addEventListener("beforeunload",event => {if (state.dirty || knowledgeUI?.hasPending || state.recording || state.requestingMic || state.transcribing) {event.preventDefault(); event.returnValue = "";}});
     // Ctrl+S (Cmd+S) is Save copy: the browser's own Save Page would store an empty shell of the app.
     document.addEventListener("keydown",event => {if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && String(event.key).toLowerCase() === "s") {event.preventDefault(); if (!event.repeat) exportSession();}});
-    $("recovery-restore")?.addEventListener("click",restoreRecoveryCopy);
-    $("recovery-discard")?.addEventListener("click",discardRecoveryCopy);
-    $("recovery-enabled")?.addEventListener("change",()=>setRecoveryEnabled($("recovery-enabled").checked));
-    // A tab that goes to the background may be discarded later: write a waiting change now. Page exit is not relied on.
-    document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&recovery.timer!==null)writeRecoveryCopy();});
     // Keeps the age in the unsaved cue true while nothing else redraws it. (unref: a test runner's timer must not keep its process alive.)
     window.setInterval?.(()=>{if(state.dirty)updateSaveHint();},30000)?.unref?.();
     document.addEventListener("visibilitychange",restoreTabTitle);
@@ -9022,7 +8799,6 @@
       const config = await response.json();
       if (typeof config.csrf_token !== "string") throw new Error("The interviewer isn’t available right now. Try again in a moment.");
       state.config = config;
-      window.CollectorAgentSettings?.configure(config, renewRequestToken, browserVoicePrompts);
       configureTrace(config);
       showBuildIdentity();
       knowledgeUI?.configure(config);
@@ -9037,9 +8813,8 @@
         notice([message,...storage].join(" "),true);
       }
       else if (storage.length) notice(storage.join(" "),true);
-      reportServerSource(config);showUsage(config.usage);if(!state.started)voicePreferences(true);
+      reportServerSource(config);if(!state.started)voicePreferences(true);
     } catch(error) {
-      window.CollectorAgentSettings?.configure(null, renewRequestToken, browserVoicePrompts);
       const message="The app could not read its local configuration. Choose Check configuration to try again.";
       if($("configuration-status"))$("configuration-status").hidden=false;
       if($("configuration-message"))$("configuration-message").textContent=message;
@@ -9047,8 +8822,6 @@
     }
     updateControls();
     documentController?.render();
-    // Last, and apart from the interviewer's own start: it does not depend on the provider.
-    if(state.config)void initRecovery(state.config).catch(()=>{});
   }
   init();
 })();

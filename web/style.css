@@ -420,11 +420,6 @@ body { height: 100vh; height: 100dvh; display: flex; flex-direction: column; ove
 .example-banner > span::before { content: ""; width: 15px; height: 15px; background: currentColor; -webkit-mask: var(--i-sparkle) center/contain no-repeat; mask: var(--i-sparkle) center/contain no-repeat; }
 .example-banner .text-button { color: inherit; font-size:var(--text-sm); padding: 4px 6px; }
 .example-banner .text-button:hover { color: var(--ink); background: var(--warm-line); }
-/* The offer of a stored recovery copy shares the example banner's strip. */
-.recovery-offer > #recovery-offer-text { display: block; min-width: 0; padding: 4px 0; line-height: 1.4; }
-.recovery-offer > span::before { content: none; }
-.recovery-offer-actions { flex: none; }
-.recovery-offer #recovery-restore { font-weight: 600; }
 .workspace { width: 100%; flex: 1; min-height: 0; overflow: hidden; }
 
 /* ─── Interview workspace ────────────────────────────────────────────────── */

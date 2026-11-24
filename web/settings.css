@@ -172,8 +172,7 @@
 .settings-panel input::placeholder, .settings-panel textarea::placeholder { color: var(--faint); }
 .settings-fields .field-limit { margin: 8px 0 0; }
 
-/* ─── Data & recovery ────────────────────────────────────────────────────── */
-.interview-settings .recovery-setting .settings-status-line { padding: 11px 20px; color: var(--ink-2); background: var(--surface-2); }
+/* ─── Data handling ──────────────────────────────────────────────────────── */
 .settings-data-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .settings-data-grid article { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-2); }
 .settings-data-grid h4 { margin-top: 14px; }
@@ -211,14 +210,6 @@
 #agents-retry { margin-top: 14px; }
 .agent-views { margin: 28px 0 24px; }
 #agents-library { display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr); gap: 24px 32px; align-items: start; }
-.agent-prompt-picker { margin: 0 0 18px; }
-.interview-settings .agent-prompt-picker label { display: block; margin: 0 0 7px; color: var(--ink); font: 600 13px/1.4 var(--font); }
-.interview-settings .agent-prompt-picker select { display: block; width: 100%; min-height: 42px; margin: 0; border-color: var(--line-strong); border-radius: 9px; color: var(--ink); }
-.interview-settings .agent-prompt-picker p { margin: 8px 0 0; font-size: 13px; }
-.agent-prompt-source { min-width: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm); overflow: hidden; }
-.agent-prompt-source header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 18px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
-.agent-prompt-source .settings-action { min-height: 36px; padding: 6px 12px; }
-.agent-prompt-source pre { max-height: min(54vh, 520px); margin: 0; padding: 18px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; color: var(--ink); font: 400 13px/1.7 ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace; }
 
 /* ─── Application logs ───────────────────────────────────────────────────── */
 .log-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 28px 0 14px; }

@@ -14,11 +14,11 @@ def instance_id(root):
 
 # The page files the server serves (server.py STATIC_FILES), relative to web/.
 WEB_FILES = (
-    'agent-flow.css', 'agent-flow.js', 'agent-settings.js', 'agent-team.css', 'agent-team.js', 'app.js',
+    'agent-team.css', 'agent-team.js', 'app.js',
     'assets/gpfs-logo.svg', 'assets/gpfs-symbol.svg', 'component-library.css', 'component-library.js',
     'concurrent-interview.js', 'context-help.js', 'controlled-voice.js', 'document-intake.js', 'documents.css',
     'documents.js', 'gpfs-presence.css', 'gpfs-presence.js', 'index.html', 'knowledge-ui.css', 'knowledge-ui.js',
-    'live-voice-tap.js', 'live-voice.js', 'log-viewer.js', 'raw-trace.js', 'settings-ui.js', 'settings.css', 'style.css',
+    'live-voice-tap.js', 'live-voice.js', 'raw-trace.js', 'settings-ui.js', 'settings.css', 'style.css',
     'theme.js', 'vendor/elk.bundled.js', 'workflow-component-art.js', 'workflow-components.js', 'workflow-exports.js',
     'workflow-graph.js', 'workflow-layout-worker.js', 'workflow-stage.css', 'workflow-stage.js',
     'workflow-walkthrough.css', 'workflow-walkthrough.js',
@@ -31,7 +31,7 @@ def source_files(root):
     files = [root / name for name in (
         'server.py', 'draft_audit.py', 'provider_schema.py', 'provider_usage.py', 'raw_trace.py', 'launcher.py', 'runtime_build.py', 'documents.py',
         'document_service.py', 'knowledge_graph.py', 'knowledge_ai.py', 'openai_transport.py',
-        'interview_stop.py', 'recovery_store.py', 'collector_settings.py', 'gpfs_interview.py', 'interview_coverage.py', 'agent_team.py', 'interview_orchestrator.py', 'capture_facts.py', 'file_parts.py', 'concurrent_interview.py', 'prompt_catalog.py', 'FOUNDATION.md')]
+        'interview_stop.py', 'collector_settings.py', 'gpfs_interview.py', 'interview_coverage.py', 'agent_team.py', 'interview_orchestrator.py', 'capture_facts.py', 'file_parts.py', 'concurrent_interview.py', 'FOUNDATION.md')]
     # Never include settings, saved interviews, private stores, logs, or Git data. The page files are
     # exactly the ones the server serves (its STATIC_FILES; a test keeps the two equal), not whatever
     # lies in web/: a stray copy such as an iCloud "app 2.js" is never served, so it must neither change

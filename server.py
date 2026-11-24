@@ -105,12 +105,6 @@ def local_module(name, filename):
 
 runtime_build = local_module("runtime_build", "runtime_build.py")
 VERSION = runtime_build.VERSION
-recovery_store = local_module("recovery_store", "recovery_store.py")
-RecoveryStore = recovery_store.RecoveryStore
-RecoveryConflict = recovery_store.RecoveryConflict
-RECOVERY_DAYS = recovery_store.RECOVERY_DAYS
-RECOVERY_FORMAT = recovery_store.RECOVERY_FORMAT
-MAX_RECOVERY = recovery_store.MAX_RECOVERY
 raw_trace = local_module("raw_trace", "raw_trace.py")
 openai_transport = local_module("openai_transport", "openai_transport.py")
 provider_usage = local_module("provider_usage", "provider_usage.py")
@@ -131,7 +125,6 @@ from interview_stop import (
 interview_orchestrator = local_module("interview_orchestrator", "interview_orchestrator.py")
 concurrent_interview = local_module("concurrent_interview", "concurrent_interview.py")
 knowledge_ai = local_module("knowledge_ai", "knowledge_ai.py")
-prompt_catalog = local_module("prompt_catalog", "prompt_catalog.py")
 MAX_JSON = 600_000
 # A process submission carries the whole interview: transcript, notes, working map and draft. Its limit
 # is the knowledge store's own (KnowledgeGraph.submit refuses a submission over 1,000,000 bytes), so an
@@ -5372,7 +5365,6 @@ class OpenAIClient:
         if key and not re.fullmatch(r"[\x21-\x7e]+", key):
             key, self.key_problem = "", UNUSABLE_KEY_MESSAGE
         self.key = key
-        self.usage = provider_usage.UsageLedger(settings)
         # Requests to the AI service in flight at once, and how many of them may be work that
         # nobody is waiting on. Background work (notes, maps, their source checks) leaves
         # PROVIDER_FOREGROUND_RESERVE slots free, so that a question, a transcription or a
@@ -5507,12 +5499,7 @@ class OpenAIClient:
                 "accompanies later interview requests. After a file is saved for later or removed, "
                 "those requests carry only the excerpts the notes already cite. "
                 "Recordings are not saved automatically. Save a copy to reopen the full interview with its local "
-                "file references. With the optional “Keep a recovery copy on this computer” setting on, one copy of the unsaved "
-                "interview (transcript, notes, working map, draft, file references and the unsent answer; never "
-                "recordings) is written to this app's private work folder on this computer a few seconds after each "
-                "change. That copy stays on this computer. It is offered again when the app next "
-                "opens, and it is deleted after a confirmed Save copy, when you start over or open another "
-                "interview, when you discard it, when you turn the option off, and after seven days."
+                "file references."
             ),
         }
 
@@ -5710,9 +5697,6 @@ class OpenAIClient:
         label = provider_usage.active_interview.get()
         check_abort = provider_usage.active_abort.get()
         deadline = started + timeout
-        background = stage in ("team_working_process_map", "team_working_map_source_audit", "working_process_map", "working_process_map_audit")
-        # JSON bytes conservatively bound possible input tokens. Use the model's maximum output too.
-        estimate = len(data) + int(body.get("max_output_tokens", 0)) if path == "responses" and isinstance(body, dict) else 0
 
         def check_active():
             if check_abort and check_abort():
@@ -5744,10 +5728,6 @@ class OpenAIClient:
                     pool.release()
 
         try:
-            reason = self.usage.start(metrics["request_id"], label, estimate, background)
-            if reason:
-                metrics.update(error_category=reason, status=429)
-                raise APIError(QUOTA_MESSAGE if reason == "quota" else "This request would pass the local token budget. Save your interview or adjust the limit in local settings.", 429, reason)
             try:
                 with slot():
                     if tracing:
@@ -5931,13 +5911,6 @@ class OpenAIClient:
                 if http_status is not None:
                     observed["http_status"] = http_status
                 raw_trace.emit("provider.request.finished", {**observed, "duration_ms": int((time.monotonic() - started) * 1000)})
-            try:
-                self.usage.finish(metrics["request_id"], label, metrics)
-            except sqlite3.Error:
-                if self.diagnostic_callback:
-                    self.diagnostic_callback("usage_write_failed", stage=stage, status=503)
-                # A tracking failure cannot undo a reply already paid for. New
-                # requests with a configured cap recheck the store before sending.
             duration = int((time.monotonic() - started) * 1000)
             if role_dispatched:
                 role_binding[0].finish_provider_request(role_binding[1], duration, metrics)
@@ -7001,15 +6974,6 @@ class InterviewServer(ThreadingHTTPServer):
         self.trace.register_secret(self.csrf_token)
         self.trace.register_secret(getattr(self.client, "key", None))
         self.trace.emit("server.bound", {"port":self.server_port}, build=self.build_id)
-        # Beside the other private stores, so every server on this work folder shares it.
-        self.recovery = RecoveryStore(self.diagnostics_path.with_name("recovery"))
-        try:
-            self.recovery.purge()
-            if isinstance(self.client, OpenAIClient):
-                self.client.usage.attach(self.diagnostics_path.with_name("provider-usage.sqlite3"))
-        except BaseException:
-            self.server_close()
-            raise
         if isinstance(self.client, OpenAIClient):
             self.client.diagnostic_callback = self.record_event
         # A turn may run the lead, the working map, an advisory coverage check and
@@ -7325,12 +7289,8 @@ STATIC_FILES = {"/": ("index.html", "text/html; charset=utf-8"),
                  "/index.html": ("index.html", "text/html; charset=utf-8"),
                  "/theme.js": ("theme.js", "text/javascript; charset=utf-8"),
                  "/raw-trace.js": ("raw-trace.js", "text/javascript; charset=utf-8"),
-                 "/log-viewer.js": ("log-viewer.js", "text/javascript; charset=utf-8"),
                  "/context-help.js": ("context-help.js", "text/javascript; charset=utf-8"),
                  "/settings-ui.js": ("settings-ui.js", "text/javascript; charset=utf-8"),
-                 "/agent-settings.js": ("agent-settings.js", "text/javascript; charset=utf-8"),
-                 "/agent-flow.js": ("agent-flow.js", "text/javascript; charset=utf-8"),
-                 "/agent-flow.css": ("agent-flow.css", "text/css; charset=utf-8"),
                  "/settings.css": ("settings.css", "text/css; charset=utf-8"),
                  "/app.js": ("app.js", "text/javascript; charset=utf-8"),
                  "/workflow-exports.js": ("workflow-exports.js", "text/javascript; charset=utf-8"),
@@ -7477,7 +7437,7 @@ class Handler(BaseHTTPRequestHandler):
         route = self._traced_path
         if route == "/api/transcribe":
             return {"content_omitted":"transient_transcription"}
-        if route.startswith(("/api/recovery/", "/api/documents/", "/api/knowledge/")) or route == "/api/config":
+        if route.startswith(("/api/documents/", "/api/knowledge/")) or route == "/api/config":
             keys = ("action", "enabled", "stored", "document_id", "submission_id", "revision", "job_id",
                     "status", "base_revision", "latest_revision", "deleted", "scope_omitted", "code")
         else:
@@ -7613,8 +7573,6 @@ class Handler(BaseHTTPRequestHandler):
                 config["data_notice"] = ("Application logging is enabled on this computer. It saves interview wording, "
                     "model prompts, replies and application events in private local logs as you work. "
                     + config.get("data_notice", ""))
-            if isinstance(client, OpenAIClient):
-                config["usage"] = client.usage.summary(provider_usage.interview_id(self.headers.get("X-Interview-Id")))
             unreadable = getattr(self.server, "documents_unavailable", {})
             storage_problems = getattr(self.server, "storage_problems", {})
             config.update({"app_id": "voice-interviewer", "version": VERSION,"build_id":self.server.build_id,
@@ -7634,26 +7592,12 @@ class Handler(BaseHTTPRequestHandler):
             if hasattr(self.server, "knowledge_auth"):
                 auth = self.server.knowledge_auth
                 admin = auth.revision_owner(self)
-                config["agent_prompts_available"] = bool(admin)
                 config["revisions_available"] = bool(admin or auth.submitter(self))
             # Why Assets or Submit process is off: a saved store was damaged at start-up.
             config.update({name + "_unavailable": problem for name, problem in storage_problems.items()})
             config['concurrent_interview'] = {'enabled': self.server.conversation is not None}
-            # Whether the optional recovery copy is on and whether one is stored; never its content.
-            config["recovery"] = self.server.recovery.public_state()
             config["knowledge_submit_max_bytes"] = MAX_KNOWLEDGE_SUBMIT
             return self._json(config)
-        if path == "/api/admin/agent-prompts":
-            token = self.headers.get("X-CSRF-Token", "")
-            if not token.isascii() or not secrets.compare_digest(token, self.server.csrf_token):
-                return self._json({"error": TOKEN_REJECTED_MESSAGE, "code": "request_token_rejected"}, 403)
-            if not self.server.knowledge_auth.revision_owner(self):
-                return self._json({"error": "Administrator access is required to view agent prompts.",
-                                   "code": "admin_required"}, 403)
-            try:
-                return self._json(prompt_catalog.agent_prompts(sys.modules[__name__]))
-            except APIError as error:
-                return self._json({"error": str(error)}, error.status)
         if path == "/api/trace/logs":
             token = self.headers.get("X-CSRF-Token", "")
             if not token.isascii() or not secrets.compare_digest(token, self.server.csrf_token):
@@ -7782,19 +7726,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._browser_trace(int(lengths[0]))
         label = provider_usage.interview_id(self.headers.get("X-Interview-Id"))
         provider_usage.active_interview.set(label)
-        if path == "/api/usage/check" and isinstance(self.server.client, OpenAIClient):
-            if self.headers.get("Transfer-Encoding") or int(lengths[0]) > 1024:
-                return self._json({"error": "Invalid usage request."}, 400)
-            if int(lengths[0]):
-                self._read_body(int(lengths[0]), self.server.body_timeout)
-            self.server.client.usage.clear_quota()
-            return self._json({"usage": self.server.client.usage.summary(label)})
         if path.startswith("/api/documents/"):
             return self._documents(path)
         if path.startswith("/api/knowledge/"):
             return self._knowledge(path)
-        if path.startswith("/api/recovery/"):
-            return self._recovery(path)
         if path == "/api/shutdown":
             self.server.shutdown_reason = "local_shutdown_request"
             self.server.record_event("shutdown_requested", reason=self.server.shutdown_reason)
@@ -8384,57 +8319,6 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             return {}
 
-    def _recovery(self, path):
-        """The optional local recovery copy. These routes call no provider and log no content."""
-        if path not in {"/api/recovery/status", "/api/recovery/setting", "/api/recovery/save",
-                        "/api/recovery/load", "/api/recovery/discard"}:
-            return self._json({"error": "Not found."}, 404)
-        store = self.server.recovery
-        try:
-            if self.headers.get("Transfer-Encoding"):
-                raise ValueError("Chunked request bodies are not supported.")
-            size = int(self.headers.get("Content-Length", "0"))
-            if size <= 0:
-                return self._json({"error": EMPTY_REQUEST_MESSAGE}, 400)
-            if size > (MAX_RECOVERY if path.endswith("/save") else MAX_JSON):
-                return self._json({"error": "The recovery copy is larger than 16 MB, the largest interview "
-                                            "this app opens. Nothing was stored."}, 413)
-            if self.headers.get("Content-Type", "").split(";", 1)[0].strip() != "application/json":
-                return self._json({"error": "This endpoint requires JSON."}, 415)
-            payload = self._received_json(self._read_body(size, self.server.body_timeout))
-            if not isinstance(payload, dict):
-                raise ValueError("A recovery request object is required.")
-            if path.endswith("/status"):
-                return self._json(store.status())
-            if path.endswith("/setting"):
-                return self._json(store.set_enabled(payload.get("enabled")))
-            draft_id = payload.get("id")
-            if path.endswith("/load"):
-                if draft_id is not None:
-                    draft_id = bounded_text(draft_id, "Recovery copy ID", 80, True)
-                draft = store.load(draft_id)
-                if draft is None:
-                    return self._json({"error": "No recovery copy is stored on this computer."}, 404)
-                # Escaped, so half of a character pair in the stored text reaches the page as it was sent.
-                return self._json({"draft":draft}, ensure_ascii=True)
-            draft_id = bounded_text(draft_id, "Recovery copy ID", 80, True)
-            if path.endswith("/discard"):
-                return self._json(store.discard(draft_id))
-            return self._json(store.save(draft_id, payload.get("session")))
-        except recovery_store.RecoveryOff:
-            self._json({"error": recovery_store.RECOVERY_OFF_MESSAGE, "enabled": False}, 409)
-        except RecoveryConflict as conflict:
-            self._json({"error": "A different recovery copy is stored on this computer. It was left as it is.",
-                        "draft": conflict.summary}, 409)
-        except (ValueError, UnicodeError) as error:
-            self._json({"error": "Invalid JSON body." if isinstance(error, json.JSONDecodeError) else own_wording(error, UNREADABLE_REQUEST_MESSAGE)}, 400)
-        except TimeoutError:
-            self._json({"error": "The request body timed out. Your interview remains in the browser; the recovery copy was not updated."}, 408)
-        except ConnectionError:
-            self.close_connection = True
-        except Exception:
-            self._json({"error": "The recovery copy could not be updated on this computer. Your interview remains in the browser."}, 500)
-
     @staticmethod
     def _with_document_reading(result, payload):
         """Add this request's reading disclosure without altering a cached result."""
@@ -8591,13 +8475,9 @@ def main():
     url = f"http://127.0.0.1:{server.server_port}/"
     print(f"AI Process Collector {VERSION}: {url}", flush=True)
     # Explain the storage modes selected for this listener.
-    kept = ("The recovery copy option is on: one copy of an unsaved interview is kept privately on this computer "
-            "until it is saved, discarded or seven days old."
-            if server.recovery.enabled() is True else
-            "Interviews are not saved automatically (the recovery copy option in Settings is off).")
+    kept = "Interviews are not saved automatically."
     if getattr(getattr(server, "trace", None), "content", False) is True:
-        kept = ("Developer event logs retain interview wording, model exchanges and application events. "
-                + ("The recovery copy option is on." if server.recovery.enabled() else "The recovery copy option is off."))
+        kept = "Developer event logs retain interview wording, model exchanges and application events."
     print("Bound to this computer only. Documents persist privately on this computer. " + kept
           + " Save the interview separately to retain its transcript.", flush=True)
     # A provider key that was discarded leaves a trace outside the page too: one fixed

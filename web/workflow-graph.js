@@ -295,7 +295,8 @@
   function stopLayoutWorker() {
     const worker=layouts.worker;layouts.worker=null;
     if(!worker)return;
-    worker.onmessage=null;worker.onerror=null;
+    // A worker that is stopped while it still loads the engine reports that load as failed: nobody waits for it.
+    worker.onmessage=null;worker.onerror=event=>event?.preventDefault?.();
     try{worker.terminate();}catch{/* The worker had already ended. */}
   }
   function settleLayout(request,error,layout) {

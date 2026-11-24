@@ -13,20 +13,13 @@
   <link rel="stylesheet" href="/knowledge-ui.css">
   <link rel="stylesheet" href="/gpfs-presence.css">
   <link rel="stylesheet" href="/agent-team.css">
-  <link rel="stylesheet" href="/workflow-walkthrough.css">
-  <link rel="stylesheet" href="/workflow-stage.css">
-  <link rel="stylesheet" href="/component-library.css">
+  <link rel="stylesheet" href="/workflow-toolbar.css">
   <link rel="icon" href="/assets/gpfs-symbol.svg" type="image/svg+xml">
   <script src="/raw-trace.js" defer></script>
   <script src="/context-help.js" defer></script>
   <script src="/settings-ui.js" defer></script>
   <script src="/workflow-exports.js" defer></script>
   <script src="/workflow-graph.js" defer></script>
-  <script src="/workflow-components.js" defer></script>
-  <script src="/workflow-component-art.js" defer></script>
-  <script src="/workflow-stage.js" defer></script>
-  <script src="/component-library.js" defer></script>
-  <script src="/workflow-walkthrough.js" defer></script>
   <script src="/live-voice.js" defer></script>
   <script src="/controlled-voice.js" defer></script>
   <script src="/documents.js" defer></script>
@@ -56,7 +49,6 @@
       <button type="button" id="export-transcript-menu" aria-description="Download the conversation and notes in a shareable format." data-icon="file" disabled>Export transcript</button>
       <button type="button" id="submit-process-menu" aria-description="Review what will be filed in company knowledge." data-icon="send">Submit process</button>
       <hr>
-      <button type="button" id="open-component-library" aria-description="Browse the symbols and designs used in process maps." data-icon="workflow">Component library</button>
       <button type="button" id="load-example" aria-description="Explore a fictional invoice approval interview and its draft." data-icon="sparkle">See an example</button>
       <hr>
       <button type="button" id="reset-session" aria-description="Clear this interview and start a new one." class="danger-text" data-icon="trash">Start over</button>
@@ -179,10 +171,6 @@
             </div>
             <div id="workflow-panel" class="conversation-view" role="tabpanel" aria-labelledby="conversation-tab-workflow" tabindex="0" hidden>
               <div class="workflow-mode-bar">
-                <div id="workflow-mode" class="workflow-mode-switch" role="group" aria-label="Workflow presentation">
-                  <button type="button" id="workflow-mode-diagram" aria-description="See the steps, decisions and connections in a diagram." data-mode="diagram" aria-pressed="true" aria-controls="workflow-diagram" data-icon="workflow">Diagram</button>
-                  <button type="button" id="workflow-mode-walkthrough" aria-description="Explore the map visually and inspect individual steps and routes." data-mode="walkthrough" aria-pressed="false" aria-controls="workflow-walkthrough" data-icon="play">Cinematic</button>
-                </div>
                 <button type="button" class="text-button small" title="Expand workflow workspace" id="workflow-expand" data-icon="expand" aria-pressed="false" aria-label="Expand workflow workspace">Expand</button>
                 <div id="workflow-diagram-tools" class="map-tools" hidden>
                   <button type="button" class="map-tools-toggle" id="workflow-tools-toggle" aria-description="Adjust the layout, change the scale or download the diagram." data-icon="sliders" popovertarget="workflow-tools">Map tools</button>
@@ -207,7 +195,6 @@
                   <div class="workflow-navigation" id="workflow-navigation" hidden><label for="workflow-step-select">Step</label><select id="workflow-step-select" aria-description="Locate a step by its name in the map." aria-label="Find a workflow step"></select><button id="workflow-follow" aria-description="Highlight the routes connected to the selected step." type="button" data-icon="route" aria-pressed="false">Follow path</button><select id="workflow-path-previous" aria-description="Choose a step that leads into the selected step." aria-label="Previous step on path" hidden></select><select id="workflow-path-next" aria-description="Choose a step reached from the selected step." aria-label="Next step on path" hidden></select><output id="workflow-path-status" role="status"></output></div>
                 </div>
               </div>
-              <div id="workflow-walkthrough" class="workflow-walkthrough" hidden></div>
               <details id="working-map-history" hidden><summary aria-description="Inspect differences between the working map and its previous version.">Map changes</summary><ul id="working-map-changes"></ul><button id="working-map-previous" aria-description="Replace the current working map with its previous version." class="text-button" type="button" hidden>Restore previous map</button></details>
               <div class="workflow-update"><p class="workflow-status" id="workflow-status" role="status"></p><button class="text-button small" id="retry-workflow" aria-description="Build the working map again from the captured answers." type="button" data-icon="refresh" hidden>Try again</button></div>
             </div>
@@ -340,7 +327,7 @@
       </header>
       <div id="review-empty" class="empty-state"><div class="empty-icon" aria-hidden="true"></div><h1>No draft yet</h1><p id="review-next-step">Describe your process or add a file to start a draft.</p><p id="review-elapsed" class="elapsed" aria-hidden="true" hidden></p><button class="button primary" id="empty-start" aria-description="Return to the interview to build the account for a draft." data-icon-end="arrow-right">Go to interview</button><button class="button primary" id="review-create-draft" aria-description="Produce a procedure and report from the interview for owner review." data-icon-end="arrow-right" hidden>Create draft</button></div>
       <div id="draft-content" hidden>
-        <nav class="review-tabs" role="tablist" aria-label="Review sections"><button type="button" id="review-tab-report" aria-description="Read the complete process report and its supporting evidence." role="tab" aria-controls="review-report" aria-selected="true" tabindex="0" data-review-target="review-report">Report</button><button type="button" id="review-tab-memo" aria-description="Inspect the interview findings organized by topic." role="tab" aria-controls="review-memo" aria-selected="false" tabindex="-1" data-review-target="review-memo">Notes</button><button type="button" id="review-tab-map" aria-description="Trace the steps and routes in the draft." role="tab" aria-controls="review-map" aria-selected="false" tabindex="-1" data-review-target="review-map">Workflow</button><button type="button" id="review-tab-procedure" aria-description="Edit the draft’s steps, responsibilities and connections." role="tab" aria-controls="review-procedure" aria-selected="false" tabindex="-1" data-review-target="review-procedure">Steps</button><button type="button" id="review-tab-lifecycles" aria-description="Track how a work item changes from start to finish." role="tab" aria-controls="review-lifecycles" aria-selected="false" tabindex="-1" data-review-target="review-lifecycles">Items</button><button type="button" id="review-tab-variations" aria-description="Review where the work differs by client, team or circumstance." role="tab" aria-controls="review-variations" aria-selected="false" tabindex="-1" data-review-target="review-variations">Variations</button><button type="button" id="review-tab-questions" aria-description="Review unresolved questions, exceptions and controls." role="tab" aria-controls="review-questions" aria-selected="false" tabindex="-1" data-review-target="review-questions">Open questions</button></nav>
+        <nav class="review-tabs" role="tablist" aria-label="Review sections"><button type="button" id="review-tab-report" aria-description="Read the complete process report and its supporting evidence." role="tab" aria-controls="review-report" aria-selected="true" tabindex="0" data-review-target="review-report">Report</button><button type="button" id="review-tab-memo" aria-description="Inspect the interview findings organized by topic." role="tab" aria-controls="review-memo" aria-selected="false" tabindex="-1" data-review-target="review-memo">Notes</button><button type="button" id="review-tab-map" aria-description="Trace the steps and routes in the draft." role="tab" aria-controls="review-map" aria-selected="false" tabindex="-1" data-review-target="review-map">Workflow</button><button type="button" id="review-tab-questions" aria-description="Review unresolved questions, exceptions and controls." role="tab" aria-controls="review-questions" aria-selected="false" tabindex="-1" data-review-target="review-questions">Open questions</button></nav>
         <div class="review-panels">
           <article id="review-report" class="review-card report-panel review-panel" role="tabpanel" aria-labelledby="review-tab-report" tabindex="0">
             <div class="report-reading-tools">
@@ -363,10 +350,6 @@
           <article id="review-memo" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-memo" tabindex="0" hidden><div class="card-heading"><h2>Interview notes</h2><button class="button ghost small" id="export-memo" aria-description="Download the topic findings and their sources." data-icon="download">Download notes</button></div><div id="memo-summary" class="memo-summary"></div></article>
           <article id="review-map" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-map" tabindex="0" hidden><div class="card-heading"><h2>Process map</h2></div>
             <div class="workflow-mode-bar">
-              <div id="map-mode" class="workflow-mode-switch" role="group" aria-label="Workflow presentation">
-                <button type="button" id="map-mode-diagram" aria-description="See the steps, decisions and connections in a diagram." data-mode="diagram" aria-pressed="true" aria-controls="map-diagram" data-icon="workflow">Diagram</button>
-                <button type="button" id="map-mode-walkthrough" aria-description="Explore the map visually and inspect individual steps and routes." data-mode="walkthrough" aria-pressed="false" aria-controls="map-walkthrough" data-icon="play">Cinematic</button>
-              </div>
               <div id="map-diagram-tools" class="map-tools">
                 <button type="button" class="map-tools-toggle" id="map-tools-toggle" aria-description="Adjust the layout, change the scale or download the diagram." data-icon="sliders" popovertarget="map-tools">Map tools</button>
                 <div popover="auto" class="map-tool-panel" id="map-tools" role="group" aria-label="Map tools">
@@ -391,11 +374,7 @@
                 <div class="workflow-navigation" id="map-navigation" hidden><label for="map-step-select">Step</label><select id="map-step-select" aria-description="Locate a step by its name in the map." aria-label="Find a review map step"></select><button id="map-follow" aria-description="Highlight the routes connected to the selected step." type="button" data-icon="route" aria-pressed="false">Follow path</button><select id="map-path-previous" aria-description="Choose a step that leads into the selected step." aria-label="Previous review map step on path" hidden></select><select id="map-path-next" aria-description="Choose a step reached from the selected step." aria-label="Next review map step on path" hidden></select><output id="map-path-status" role="status"></output></div>
               </div>
             </div>
-            <div id="map-walkthrough" class="workflow-walkthrough" hidden></div>
           </article>
-          <article id="review-procedure" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-procedure" tabindex="0" hidden><div class="card-heading"><h2>Procedure</h2></div><div class="draft-fields"><label for="draft-title">Title</label><input id="draft-title" aria-description="Name this procedure in the report." maxlength="300" dir="auto"><label for="draft-overview">Overview</label><textarea id="draft-overview" aria-description="Summarize what the process does and why." rows="3" maxlength="12000" dir="auto"></textarea><label for="draft-trigger">What starts it</label><textarea id="draft-trigger" aria-description="Describe the event that sets the process in motion." rows="2" maxlength="6000" dir="auto"></textarea><div class="io-grid"><div><label for="draft-inputs">Inputs <small>One per line</small></label><textarea id="draft-inputs" aria-description="List the information or materials needed to begin, one per line." rows="3" maxlength="10000" dir="auto"></textarea></div><div><label for="draft-outputs">Outputs <small>One per line</small></label><textarea id="draft-outputs" aria-description="List the results the process produces, one per line." rows="3" maxlength="10000" dir="auto"></textarea></div></div></div><div class="steps-heading"><h3>Steps</h3><button class="text-button small" id="add-step" aria-description="Insert a new step into the draft procedure." data-icon="plus">Add step</button></div><div class="review-actions"><button type="button" class="text-button" id="undo-draft-edit" aria-description="Restore the previous structural edit." disabled>Undo edit</button><button type="button" class="text-button" id="redo-draft-edit" aria-description="Reapply the structural edit that was undone." disabled>Redo edit</button></div><details><summary aria-description="Inspect how the process is categorized and what other work it connects to.">Classification and connected work</summary><div id="draft-classification" tabindex="-1"></div></details><div id="draft-structure-questions" role="status"></div><div id="procedure-steps" class="procedure-steps"></div><details class="connections-editor"><summary aria-description="Review and edit routes between the steps in this procedure.">Connections between steps</summary><div id="connection-rows"></div><button class="text-button small" id="add-connection" aria-description="Link two existing steps, optionally under a condition." data-icon="plus">Add connection</button></details></article>
-          <article id="review-lifecycles" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-lifecycles" tabindex="0" hidden><div class="card-heading"><h2>Items in the process</h2><button class="button secondary small" id="add-lifecycle" aria-description="Describe the stages an item passes through." data-icon="plus">Add item</button></div><p class="map-help">Track an invoice, request or file from one stage to the next.</p><div id="lifecycle-items"></div></article>
-          <article id="review-variations" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-variations" tabindex="0" hidden><div class="card-heading"><h2>Process variations</h2><button class="button secondary small" id="add-variation" aria-description="Record a circumstance that changes the usual process." data-icon="plus">Add variation</button></div><p class="map-help">Differences by team, client, region or amount.</p><div id="variation-items"></div></article>
           <article id="review-questions" class="review-card review-panel" role="tabpanel" aria-labelledby="review-tab-questions" tabindex="0" hidden><div class="card-heading"><h2>Questions and controls</h2></div><div class="notes-columns"><section><label for="draft-open-questions">Questions for the process owner <small>One per line</small></label><textarea id="draft-open-questions" aria-description="List what the process owner still needs to confirm." rows="8" maxlength="18000" dir="auto"></textarea><label for="draft-validation-notes">Notes for reviewers <small>One per line</small></label><textarea id="draft-validation-notes" aria-description="List details a reviewer should check before using this draft." rows="6" maxlength="18000" dir="auto"></textarea></section><section><label for="draft-exceptions">Exceptions <small>One per line</small></label><textarea id="draft-exceptions" aria-description="Record cases that depart from the usual procedure." rows="6" maxlength="18000" dir="auto"></textarea><label for="draft-controls">Controls <small>One per line</small></label><textarea id="draft-controls" aria-description="List checks used to prevent or detect errors." rows="6" maxlength="18000" dir="auto"></textarea></section></div><div class="review-guidance"><p>Confirm open questions with the process owner before submitting.</p></div></article>
         </div>
       </div>
@@ -416,20 +395,6 @@
       <button type="button" id="voice-start-interview" class="text-button" data-icon-end="arrow-right" aria-description="Start talking without adding files.">Go to interview</button>
     </div>
     <input type="file" id="voice-start-files" multiple hidden>
-  </dialog>
-  <dialog id="connection-editor" class="connection-dialog" aria-labelledby="connection-editor-title">
-    <form id="connection-form">
-      <h2 id="connection-editor-title">Add connection</h2>
-      <label for="connection-from">From step</label><select id="connection-from" aria-description="Select the step where this route begins." required></select>
-      <label for="connection-to">To step</label><select id="connection-to" aria-description="Select the step reached by this route." required></select>
-      <label for="connection-condition">Condition <small>Optional</small></label>
-      <input id="connection-condition" aria-description="Describe when this route is taken." maxlength="300" placeholder="When does this route apply?" dir="auto">
-      <label id="connection-source-choice" hidden><input id="connection-keep-sources" aria-description="Keep the current citations for the edited route." type="checkbox"><span></span></label>
-      <label for="connection-new-source">Cite an answer or file excerpt</label><select id="connection-new-source" aria-description="Choose evidence that supports the route between these steps."></select>
-      <p id="connection-hint" role="status"></p>
-      <p id="connection-error" role="status" hidden></p>
-      <div class="connection-dialog-actions"><button type="button" class="button secondary" id="cancel-connection" aria-description="Close the route editor and discard its unsaved changes.">Cancel</button><button type="submit" class="button primary" id="save-connection" aria-description="Apply this route to the draft map.">Add connection</button></div>
-    </form>
   </dialog>
 <dialog id="knowledge-submit" class="knowledge-dialog" aria-labelledby="knowledge-submit-title"></dialog>
 <dialog id="interview-settings" class="interview-settings" aria-labelledby="settings-title">
@@ -560,7 +525,6 @@
     <div class="detail-body inspector-body">
       <header class="inspector-header">
         <div class="inspector-heading"><p id="workflow-step-kind" class="inspector-eyebrow"></p><h2 id="workflow-step-title" tabindex="-1"></h2></div>
-        <span id="workflow-step-preview" class="step-art" aria-hidden="true" hidden></span>
       </header>
       <div id="workflow-step-content" class="inspector-content"></div>
     </div>

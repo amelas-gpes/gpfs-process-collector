@@ -54,7 +54,7 @@
   let noticeHome=null, noticeHeld=false, noticeHover=false, noticeFocus=false, noticeTime=3000;
   const MEMO_SECTIONS = ["notes","summary","assets"];
   const memoUI = {section:"notes"};
-  const REVIEW_SECTIONS = ["review-report","review-memo","review-map","review-procedure","review-lifecycles","review-variations","review-questions"];
+  const REVIEW_SECTIONS = ["review-report","review-memo","review-map","review-questions"];
   const reviewUI = {section:"review-report"};
   const state = {
     context: null, turns: [], coverage: [], summary: "", draft: null, processNameManual:false, derivedProcessTitle:"",
@@ -74,8 +74,6 @@
   const conversationUI = {view:"voice", typing:false, live:null, status:"idle", muted:false, captions:new Map(), pendingParticipantCaptions:new Set(), workflow:null, checkedWorkflow:null, drawnAhead:false, checksPutOff:0, flowRetried:false, workflowCheckPending:false, revision:0, applied:-1, flowBusy:false, flowTimer:null, flowAbort:null, flowErrorNotified:false, coverageCheckpoint:null, coverageCheckpointSequence:0, liveCoverageKey:null, liveCoverageSequence:0};
   const workflowCanvases=new Map();
   const deferredDiagrams=new Map();
-  const workflowPlayers=new Map();
-  let draftComponentDesigns=new Map();
   const WORKFLOW_TYPES = {
     activity:["Activity","Work performed by a person or system."],
     decision:["Decision","Follow the route that matches the stated condition."],
@@ -722,7 +720,7 @@
     const field = event.target, dropped = event.type === "drop";
     if (!field || !["INPUT","TEXTAREA"].includes(field.tagName) || !(field.maxLength > 0) || field.type === "search") return;
     const identity = ["process-name","process-owner"].includes(field.id);
-    if (!identity && !field.closest("#review-view, #connection-editor")) return;
+    if (!identity && !field.closest("#review-view")) return;
     if (dropped && dragSource === field) return; // text moved within the field adds nothing
     const clipboard = (dropped ? event.dataTransfer : event.clipboardData)?.getData("text") || "";
     const pasted = field.tagName === "INPUT" ? clipboard.replace(/[\r\n]/g, "") : clipboard.replace(/\r\n?/g, "\n");
@@ -734,8 +732,7 @@
     event.preventDefault();
     const verb = dropped ? "dropped" : "pasted";
     const message = `The text you ${verb} is ${pasted.length.toLocaleString("en-US")} characters and this field has room for ${room.toLocaleString("en-US")} (its limit is ${limit}). Nothing was ${verb}, so nothing was cut. Shorten the text or split it across fields.`;
-    const inDialog = field.closest("#connection-editor") ? $("connection-error") : null;
-    if (inDialog) {inDialog.textContent = message; inDialog.hidden = false;} else notice(message, true);
+    notice(message, true);
   }
   const strings = (value, limit = 100) => {
     if (!Array.isArray(value)) return [];
@@ -869,7 +866,6 @@
   // an error it is copied to the line above the conversation (or the report),
   // which stays until it is dismissed; it is shown there as a warning.
   function notice(message, error = false, kind="general", lasting=false) {
-    if(error)workflowPlayers.get("live-workflow")?.player.closeTheater?.();
     clearTimeout(noticeTimer);noticeTimer=null;noticeKind=kind;
     const toast=noticeRegion();
     if(toast.hidden){noticeHover=false;noticeFocus=false;}
@@ -2374,9 +2370,9 @@
   function rememberSourceOrigin(focus=document.activeElement) {
     const turn=focus?.dataset?.sourceTurn;
     const mapId=(stepInspector()?.open&&workflowDetailSource?.containerId)||(!$("review-view").hidden?"process-map":"live-workflow");
-    const mode=workflowPlayers.get(mapId),surface=focus?.closest?.("dialog")||(!$("review-view").hidden?$(reviewUI.section):$(conversationUI.view+"-panel"));
+    const surface=focus?.closest?.("dialog")||(!$("review-view").hidden?$(reviewUI.section):$(conversationUI.view+"-panel"));
     sourceOrigin={
-      mapId,mode:mode?.selected?"walkthrough":"diagram",selection:mode?.player.currentSelection?.(),theater:mode?.player.isExpanded?.(),
+      mapId,
       expanded:$("interview-view").classList.contains("workflow-expanded"),
       generation:state.generation,review:!$("review-view").hidden,section:reviewUI.section,view:conversationUI.view,
       scroll:$("conversation-scroll").scrollTop,reviewScroll:$("review-view").scrollTop,
@@ -2389,7 +2385,6 @@
     if (!origin) return "Back";
     if (origin.topic) return "Back to note";
     if (origin.step) return `Back to step ${origin.step.stepId}`;
-    if (origin.cinematicId) return "Back to cinematic map";
     const destination=origin.review ? $("review-tab-"+origin.section.slice(7))?.textContent : origin.view;
     return destination?"Back to "+destination.toLowerCase():"Back";
   }
@@ -2414,19 +2409,13 @@
     setInterviewSettings(false,false);
     if(origin.review){selectConversationView(origin.view);tab("review");selectReviewSection(origin.section);$("review-view").scrollTop=origin.reviewScroll;}else{tab("interview");selectConversationView(origin.view);$("conversation-scroll").scrollTop=origin.scroll;}
     if(origin.expanded&&origin.view==="workflow")setWorkflowExpanded(true);
-    if(origin.step||origin.cinematicId){
-      const mapId=origin.step?.containerId||origin.cinematicId,player=workflowPlayers.get(mapId);
-      if((player?.selected||false)!==(origin.mode==="walkthrough"))selectWorkflowMode(mapId,origin.mode);
-      if(origin.selection)workflowPlayers.get(mapId)?.player.restoreSelection?.(origin.selection);
-      if(origin.theater)workflowPlayers.get(mapId)?.player.openTheater?.();
-    }
     if(origin.topic){
       if(origin.memoOpen&&$("memo-rail")?.parentElement===$("memo-sheet-body"))setMemoSheet(true);
       showFoundationTopic(origin.topic,document.querySelector(`[data-foundation-topic="${origin.topic}"]`));
       matchingCitations($("foundation-dialog"),origin.turn)[origin.citationIndex]?.focus();
     }
     else if(origin.step){
-      const {containerId,stepId,opener,title,type,refs}=origin.step,steps=workflowGraph(containerId)?.steps||[];
+      const {containerId,stepId,title,type,refs}=origin.step,steps=workflowGraph(containerId)?.steps||[];
       let step=steps.find(item=>item.id===stepId);
       if(title && (!step||step.title!==title||step.type!==type)){
         const matches=steps.filter(item=>item.title===title && item.type===type);
@@ -2434,19 +2423,10 @@
         step=matches.length===1?matches[0]:sameWork?step:null;
       }
       if(step){
-        if(workflowPlayers.get(containerId)?.selected){
-          const focus=opener?.isConnected?opener:$(workflowPrefix(containerId)+"-mode-walkthrough");
-          focus?.focus({preventScroll:true});
-        }else workflowCanvases.get(containerId)?.focusStep?.(step.id);
+        workflowCanvases.get(containerId)?.focusStep?.(step.id);
         showWorkflowStep(step,containerId);
         matchingCitations(stepInspector(),origin.turn)[origin.citationIndex]?.focus();
-      }else{notice("Step "+stepId+" is no longer on the map.");$(workflowPrefix(containerId)+"-mode-"+origin.mode)?.focus();}
-    }
-    else if(origin.cinematicId){
-      const surface=$(workflowPrefix(origin.cinematicId)+"-walkthrough");
-      const link=origin.focus?.isConnected&&surface.contains(origin.focus)?origin.focus:
-        matchingCitations(surface,origin.turn)[Math.max(0,origin.citationIndex)];
-      (link||$(workflowPrefix(origin.cinematicId)+"-mode-walkthrough"))?.focus();
+      }else{notice("Step "+stepId+" is no longer on the map.");$(workflowPrefix(containerId)+"-step-select")?.focus();}
     }
     else {const surface=origin.review?$(origin.section):$(origin.view+"-panel"),replacement=origin.turn?matchingCitations(surface,origin.turn)[Math.max(origin.citationIndex,0)]:null;const focus=replacement||(origin.focus?.isConnected&&surface.contains(origin.focus)?origin.focus:null)||$(origin.review?`review-tab-${origin.section.slice(7)}`:`conversation-tab-${origin.view}`);focus?.focus({preventScroll:true});}
   }
@@ -6297,7 +6277,7 @@
     if(intakeActive())return;
     if (conversationUI.live?.active) {notice("Stop talking before you create a draft.");return;}
     if (state.busy || state.recording || state.transcribing || state.requestingMic || (!state.turns.some(t => t.role === "user")&&!hasDocumentEvidence())) return;
-    if ((state.draftEdited||draftComponentDesigns.size) && state.draft && !confirm("Update the draft from the interview? Your edits to the current draft will be replaced.")) return;
+    if (state.draftEdited && state.draft && !confirm("Update the draft from the interview? Your edits to the current draft will be replaced.")) return;
     if (turnText($("answer-text").value) && !confirm("You have an unsent answer. Create the draft from your sent answers only? Your unsent text stays in the box.")) return;
     stopSpeaking();
     const generation = state.generation;
@@ -6331,7 +6311,6 @@
       const rewritten=normalizeRepairs(result.coverage_assessment?.capture_repairs,draft.memo_summary,state.turns,documentEvidence);
       const unreviewed=draftCoverageGap(result.coverage_assessment,draft.memo_summary);
       if(state.draft){
-        structuralCheckpoint();
         const retained=state.draft.steps.filter(step=>step.reviewed_fields?.length&&draft.steps.some(target=>target.id===step.id&&target.title===step.title));
         const memos=state.draft.memo_summary.filter(item=>item.reviewed_fields?.length);
         if((retained.length||memos.length)&&confirm("The updated draft matches "+retained.length+" edited steps and "+memos.length+" edited topics. Reapply their reviewed fields?")){
@@ -6345,7 +6324,6 @@
         }
       }
       rememberModels(draft.generated_by);state.documentEvidence=documentEvidence;state.draft=draft;state.historicalDraft=false;state.captureRepairs.draft=rewritten;state.draftCoverage=unreviewed;
-      draftComponentDesigns.clear();
       state.draftEvidence = evidence;
       state.draftEdited = draft.steps.some(step=>step.reviewed_fields?.length)||draft.memo_summary.some(row=>row.reviewed_fields?.length);state.draftGeneratedAt=new Date().toISOString();
       state.dirty = true;
@@ -6408,20 +6386,6 @@
   function editedLabel(item){
     return item?.reviewed_fields?.length?"Edited in review · "+item.reviewed_fields.map(field=>field.replaceAll("_"," ")).join(", ")+". Check the cited sources.":"";
   }
-  function structuralCheckpoint(){
-    state.draftUndo||=[];state.draftUndo.push(clone(state.draft));
-    if(state.draftUndo.length>5)state.draftUndo.shift();state.draftRedo=[];
-    updateDraftHistoryControls();
-  }
-  function updateDraftHistoryControls(){
-    for(const [id,history] of [["undo-draft-edit",state.draftUndo],["redo-draft-edit",state.draftRedo]])if($(id))$(id).disabled=!history?.length||state.busy;
-  }
-  function restoreStructure(from,to){
-    if(!state[from]?.length||state.busy)return;
-    state[to]||=[];state[to].push(clone(state.draft));
-    const high=stepHighWater(state.draft);state.draft=state[from].pop();state.draft.step_id_high_water=Math.max(high,stepHighWater(state.draft));
-    draftChanged(true);renderDraft();updateDraftHistoryControls();notice("Draft edit "+(from==="draftUndo"?"undone.":"restored."));
-  }
   function stepHighWater(draft){
     const recorded=Number.isSafeInteger(draft?.step_id_high_water)&&draft.step_id_high_water>=0&&draft.step_id_high_water<1e12?draft.step_id_high_water:0;
     return (draft?.steps||[]).reduce((n,step)=>{const match=/^S([0-9]{1,12})$/.exec(step.id);return match?Math.max(n,Number(match[1])):n;},recorded);
@@ -6435,14 +6399,14 @@
     wrap.append(title);
     const select=formControl("Cite an answer or file excerpt","select","",id=>{
       if(!id||item.evidence_turns.includes(id))return;
-      structuralCheckpoint();item.evidence_turns.push(id);markReviewed(item,"evidence_turns");draftChanged(true);after();
+      item.evidence_turns.push(id);markReviewed(item,"evidence_turns");draftChanged(true);after();
     },{choices:citationChoices()});
     wrap.append(select);
     for(const id of item.evidence_turns){
       const button=el("button","text-button","Clear "+sourceCaption(id));button.type="button";
       button.setAttribute("aria-description", "Remove this citation from the draft item.");
       button.addEventListener("click",()=>{
-        structuralCheckpoint();item.evidence_turns=item.evidence_turns.filter(ref=>ref!==id);
+        item.evidence_turns=item.evidence_turns.filter(ref=>ref!==id);
         if(item.rule_source_ref===id)item.rule_source_ref="";
         if(item.operating_details)item.operating_details=item.operating_details.map(row=>({...row,evidence_turns:row.evidence_turns.filter(ref=>ref!==id)})).filter(row=>row.evidence_turns.length);
         markReviewed(item,"evidence_turns");draftChanged(true);after();
@@ -6450,20 +6414,15 @@
     }
     return wrap;
   }
-  function focusNewItem(id){
-    const item=$(id)?.lastElementChild;if(!item)return;
-    scrollToElement(item,"start");item.querySelector("textarea,select,input")?.focus({preventScroll:true});
-  }
   function draftChanged(map = false) {
     state.draftEdited = true;
     rawTrace("draft.edited", {map}, () => ({draft:state.draft}));
     state.dirty = true;
     updateSaveHint();
     if (map) scheduleMap();
-    renderStructureQuestions();
   }
   function bindDraftFields() {
-    const fields = {"draft-title": "title", "draft-overview": "overview", "draft-trigger": "trigger", "draft-inputs": "inputs", "draft-outputs": "outputs", "draft-open-questions": "open_questions", "draft-validation-notes": "validation_notes", "draft-exceptions": "exceptions", "draft-controls": "controls"};
+    const fields = {"draft-open-questions": "open_questions", "draft-validation-notes": "validation_notes", "draft-exceptions": "exceptions", "draft-controls": "controls"};
     Object.entries(fields).forEach(([id, key]) => {
       $(id).addEventListener("input", () => {
         if (!state.draft) return;
@@ -6697,46 +6656,15 @@
     refreshReadingSearch("report",false);
     requestAnimationFrame(syncReportContents);
   }
-  const draftFacets={"entity_type": ["fund", "gp_carry", "manco", "feeder", "blocker", "holding", "spv", "co_invest", "enterprise", "other"], "applicability": ["single_entity", "multi_same", "multi_variant", "enterprise", "unknown"], "functional_area": ["capital_activity", "fund_accounting", "investor_reporting", "financial_reporting", "fees_and_carry", "allocations", "treasury_payments", "tax", "compliance_regulatory", "investor_services", "onboarding", "data_management", "hr", "it", "internal_operations", "other"], "process_level": ["process", "subprocess", "activity", "unknown"], "client_applicability": ["gpfs_standard", "client_specific", "multi_client_variant", "enterprise", "unknown"], "rule_source": ["lpa_governing_doc", "side_letter", "subscription_docs", "client_methodology", "gpfs_methodology", "accounting_policy", "regulatory", "tax", "system_configuration", "prior_period_practice", "spreadsheet", "institutional_knowledge", "other", "unknown"], "system": ["entrilia", "allvue", "excel_workbook", "email", "sharepoint_folder", "client_portal", "bank_platform", "other", "none"], "control_type": ["gpfs_operational", "gpfs_supervisory", "client_review", "client_approval", "system_enforced", "exception_escalation", "none_reported"], "variant_class": ["gold_standard", "structural", "client_specific", "presentation", "unclassified"]};
-  const draftRelations=["provides_input_to", "consumes", "hands_off_to", "requires_approval_from", "happens_after", "variant_of", "subprocess_of", "parallel_with", "shares_calculation_with"];
-  function renderClassifications(){
-    const root=$("draft-classification");if(!root||!state.draft)return;root.replaceChildren();
-    const draft=state.draft;
-    const options=choices=>choices.map(v=>[v,readableTerm(v)]);
-    for(const [key,list] of [["taxonomy",draft.taxonomy],["connections_out",draft.connections_out]]){
-      for(const item of list||[]){
-        const row=el("section","detail-item");
-        if(key==="taxonomy"){
-          row.append(el("h4","",facetLabels[item.facet]||readableTerm(item.facet)),formControl("Classification","select",item.value,v=>{item.value=v;draftChanged();},{choices:options(draftFacets[item.facet]||[item.value])}));
-          row.append(formControl("Classification note","textarea",item.note,v=>{item.note=v;draftChanged();},{max:12000}));
-        }else{
-          row.append(formControl("Relationship","select",item.relationship_type,v=>{item.relationship_type=v;draftChanged();},{choices:options(draftRelations)}),formControl("Connected process","input",item.counterpart,v=>{item.counterpart=v;draftChanged();},{max:500}),formControl("Condition","textarea",item.condition,v=>{item.condition=v;draftChanged();},{max:12000}));
-        }
-        const remove=el("button","remove-button","Remove");remove.type="button";
-        remove.setAttribute("aria-description",key==="taxonomy" ? "Remove this classification from the draft." : "Remove this link to the other process.");
-        remove.addEventListener("click",()=>{
-          if(!confirm("Remove this classification or connection from the draft?"))return;
-          structuralCheckpoint();list.splice(list.indexOf(item),1);draftChanged();renderClassifications();root.focus();
-        });row.append(evidenceRow(item.evidence_turns||[]),remove);root.append(row);
-      }
-    }
-    if(!root.children.length)root.append(el("p","muted","No classifications or connected processes were reported."));
-  }
   function renderDraft() {
     updateControls();
     if (!state.draft) return;
     const draft = state.draft;
-    updateDraftHistoryControls();
     rawTrace("draft.rendered", {step_count:draft.steps?.length}, () => ({draft}));
-    const fields = {"draft-title": "title", "draft-overview": "overview", "draft-trigger": "trigger", "draft-inputs": "inputs", "draft-outputs": "outputs", "draft-open-questions": "open_questions", "draft-validation-notes": "validation_notes", "draft-exceptions": "exceptions", "draft-controls": "controls"};
+    const fields = {"draft-open-questions": "open_questions", "draft-validation-notes": "validation_notes", "draft-exceptions": "exceptions", "draft-controls": "controls"};
     Object.entries(fields).forEach(([id, key]) => { $(id).value = Array.isArray(draft[key]) ? draft[key].join("\n") : draft[key]; });
-    renderSteps();
-    renderClassifications();
-    renderConnections();
     scheduleMap();
     renderMemo();
-    renderLifecycle();
-    renderVariations();
     selectReviewSection(reviewUI.section);
   }
   const draftFieldHelp = {
@@ -6927,202 +6855,6 @@
     };
     if(!documentEvidenceDialog.open)documentEvidenceDialog.showModal();close.focus({preventScroll:true});
   }
-  function focusAfterEditorRemoval(containerId,index,addId) {
-    const controls=$(containerId)?.querySelectorAll(".remove-button")||[];
-    (controls[Math.min(index,controls.length-1)]||$(addId))?.focus({preventScroll:true});
-  }
-  function renderStructureQuestions(){
-    const root=$("draft-structure-questions");if(!root)return;
-    const questions=window.CollectorWorkflowExports?.structureQuestions?.(state.draft)||[];
-    root.hidden=!questions.length;root.replaceChildren();
-    if(questions.length){root.append(el("h3","","Routing questions"));const list=el("ul","");for(const question of questions)list.append(el("li","",question));root.append(list);}
-    return questions;
-  }
-  const controlTypeHelp = {
-    gpfs_operational: "The operations team checks the work while carrying it out.",
-    gpfs_supervisory: "A supervisor reviews the work.",
-    client_review: "The client inspects the work.",
-    client_approval: "The client must authorize the work to proceed.",
-    system_enforced: "The system applies the check automatically.",
-    exception_escalation: "An exception must be referred to someone for a decision.",
-    none_reported: "The account identifies no control for this step."
-  };
-  function renderSteps() {
-    renderStructureQuestions();
-    const root = $("procedure-steps");
-    root.replaceChildren();
-    state.draft.steps.forEach((step, index) => {
-      const article = el("section", "procedure-step");
-      article.setAttribute("aria-label", `Step ${step.id}`);
-      const header = el("div", "step-header");
-      const title = el("input");
-      title.value = step.title;
-      title.maxLength = 500;
-      title.setAttribute("aria-label", `Title for step ${step.id}`);
-      title.addEventListener("input", () => { markReviewed(step,"title");step.title = title.value; draftChanged(true); });
-      title.addEventListener("change",()=>{if(!title.value.trim()){step.title=title.value="Untitled step";notice("Step "+step.id+" needs a title.");}renderConnections();renderVariations();});
-      const move=direction=>{
-        const button=el("button","text-button small",direction<0?"Move up":"Move down"),target=index+direction;
-        button.type="button";button.disabled=target<0||target>=state.draft.steps.length;
-        button.setAttribute("aria-label",button.textContent+" · step "+step.id);
-        button.setAttribute("aria-description", "Reorder this step in the procedure. Its routes stay connected.");
-        button.addEventListener("click",()=>{
-          if(button.disabled)return;
-          structuralCheckpoint();
-          [state.draft.steps[index],state.draft.steps[target]]=[state.draft.steps[target],step];
-          draftChanged(true);renderSteps();renderVariations();
-          $("procedure-steps").children[target]?.querySelector("input")?.focus({preventScroll:true});
-        });
-        return button;
-      };
-      const remove = el("button", "remove-button", "Remove");
-      remove.setAttribute("aria-description", "Remove this step and its connected routes from the draft.");
-      remove.setAttribute("aria-label", `Remove step ${step.id}`);
-      remove.addEventListener("click", () => {
-        if (!confirm(`Remove step ${step.id} and its connections?`)) return;
-        structuralCheckpoint();state.draft.step_id_high_water=stepHighWater(state.draft);
-        const mentions=new RegExp("(?<![A-Za-z0-9_-])"+step.id+"(?![A-Za-z0-9_-])");
-        const affected=state.draft.steps.filter(other=>other!==step&&mentions.test(other.handoff||"")).map(other=>other.id);
-        if(affected.length||state.draft.open_questions.some(q=>mentions.test(q))){
-          const gap="Removed step "+step.id+" is still mentioned in the handoff or open questions. Review "+(affected.join(", ")||"the open questions")+".";
-          if(!state.draft.validation_notes.includes(gap))state.draft.validation_notes.push(gap);
-          notice(gap,false,"draft",true);
-        }
-        draftComponentDesigns.delete(step.id);
-        state.draft.steps.splice(index, 1);
-        state.draft.connections = state.draft.connections.filter(c => c.from !== step.id && c.to !== step.id);
-        for(const variation of state.draft.variations||[])if(variation.standard_route_ref===step.id)variation.standard_route_ref="";
-        draftChanged(); renderSteps(); renderConnections(); renderVariations(); scheduleMap();focusAfterEditorRemoval("procedure-steps",index,"add-step");
-      });
-      header.append(el("span", "step-id", step.id), title, move(-1), move(1), remove);
-      const props = el("div", "step-properties");
-      props.append(
-        formControl("Owner / role", "input", step.actor, v => {markReviewed(step,"actor");step.actor = v; draftChanged(true);}, {aria: `Owner of step ${step.id}`}),
-        formControl("System / tool", "input", step.system, v => {markReviewed(step,"system");step.system = v; draftChanged(true);}, {aria: `System for step ${step.id}`}),
-        formControl("Step type", "select", step.type, v => {
-          markReviewed(step,"type");step.type=v;
-          if(draftComponentDesigns.has(step.id)&&!validDesign(step,draftComponentDesigns.get(step.id)))draftComponentDesigns.delete(step.id);
-          draftChanged(true);
-        }, {aria: `Type of step ${step.id}`, choices: Object.entries(WORKFLOW_TYPES).map(([value,[label]])=>[value,label])})
-      );
-      const description = el("textarea", "step-description");
-      description.value = step.description;
-      description.rows = 3;
-      description.maxLength = 12000;
-      description.setAttribute("aria-label", `Instructions for step ${step.id}`);
-      description.addEventListener("input", () => { markReviewed(step,"description");step.description = description.value; draftChanged(true); });
-      const evidence = el("div", "evidence-row");
-      evidence.append(el("span", "", "Sources:"));
-      if (!step.evidence_turns.length) evidence.append(el("span", "needs-evidence", "Needs confirming · no source answer"));
-      step.evidence_turns.forEach(id => {
-        const source = el("button", "evidence-link", sourceCaption(id));
-        source.title = `Source: ${id}`;
-        source.setAttribute("aria-label", `Read ${sourceCaption(id)} for step ${step.id}`);
-        source.addEventListener("click", () => jumpToTurn(id));
-        evidence.append(source);
-      });
-      const extra = el("details","step-extra");
-      const extraHeading=el("summary","","Inputs, outputs and handoff");
-      extraHeading.setAttribute("aria-description","Inspect what this step needs, produces and passes to the next owner.");
-      extra.append(extraHeading);
-      const extras = el("div","detail-two-columns");
-      [["input","Input"],["output","Output"],["completion_criteria","Completion criteria"],["handoff","Next handoff"],["data_origin","Data origin"],["parent_process","Parent process",500]].forEach(([key,label,max=6000]) => extras.append(formControl(label,"textarea",step[key],v => {markReviewed(step,key);step[key]=v;draftChanged(true);},{max,aria:`${label} for step ${step.id}`})));
-      const ruleSources=[["","No rule source selected"],...step.evidence_turns.map(id=>[id,sourceCaption(id)])];
-      if(step.rule_source_ref&&!step.evidence_turns.includes(step.rule_source_ref))ruleSources.push([step.rule_source_ref,`${step.rule_source_ref} · Source unavailable`]);
-      extras.append(formControl("Rule source","select",step.rule_source_ref,v=>{markReviewed(step,"rule_source_ref");step.rule_source_ref=v;draftChanged(true);},{choices:ruleSources,aria:`Rule source for step ${step.id}`}));
-      extras.append(formControl("Entry mode","select",step.entry_mode||"unknown",value=>{markReviewed(step,"entry_mode");step.entry_mode=value;draftChanged();},{choices:["manual","import","calculated","system_generated","unknown"].map(value=>[value,readableTerm(value)])}));
-      extras.append(formControl("Entity scope · one per line","textarea",(step.entity_scope||[]).join("\n"),value=>{markReviewed(step,"entity_scope");step.entity_scope=value.split(/\n/).map(row=>row.trim()).filter(Boolean).slice(0,20);draftChanged();},{max:6000}));
-      const controls=el("fieldset","step-control-types");controls.append(el("legend","","Type of control"));
-      for(const kind of draftFacets.control_type){
-        const input=el("input");input.type="checkbox";input.checked=step.control_type?.includes(kind)||false;
-        input.setAttribute("aria-description",controlTypeHelp[kind]);
-        input.addEventListener("change",()=>{markReviewed(step,"control_type");const items=new Set(step.control_type||[]);if(input.checked)items.add(kind);else items.delete(kind);step.control_type=[...items];draftChanged();});
-        const label=el("label");label.append(input,el("span","",readableTerm(kind)));controls.append(label);
-      }
-      extras.append(controls);extra.append(extras,editEvidence(step,renderSteps));
-      article.append(header,props,description,extra,evidence);if(editedLabel(step))article.append(el("p","report-evidence-note",editedLabel(step)));
-      root.append(article);
-    });
-    if (!state.draft.steps.length) root.append(el("p", "muted", "No steps yet. Keep talking, or add one."));
-  }
-  function renderConnections() {
-    const root = $("connection-rows");
-    root.replaceChildren();
-    const names=new Map(state.draft.steps.map(step=>[step.id,step.title||step.id]));
-    state.draft.connections.forEach((connection, index) => {
-      const row = el("div", "connection-row");
-      const description=el("div","connection-description");
-      description.append(el("strong","",`${names.get(connection.from)} → ${names.get(connection.to)}`));
-      if(connection.label)description.append(el("span","",connection.label));
-      const edit=el("button","text-button","Edit");
-      edit.setAttribute("aria-description", "Change the endpoints, condition or sources for this route.");
-      edit.setAttribute("aria-label",`Edit connection ${index+1}`);
-      edit.addEventListener("click",()=>openConnectionEditor(connection));
-      row.append(description,edit);
-      const remove = el("button", "remove-button", "×");
-      remove.setAttribute("aria-description", "Remove this route while keeping both steps.");
-      remove.setAttribute("aria-label", `Remove connection ${index + 1}`);
-      remove.addEventListener("click", () => {if(!confirm("Remove the connection from "+connection.from+" to "+connection.to+" and its citations?"))return;structuralCheckpoint();state.draft.connections.splice(index, 1); draftChanged(); renderConnections(); scheduleMap();focusAfterEditorRemoval("connection-rows",index,"add-connection");});
-      row.append(remove);
-      const evidence=evidenceRow(connection.evidence_turns||[]);
-      evidence.classList.add("connection-evidence");
-      row.append(evidence);
-      root.append(row);
-    });
-    if (!state.draft.connections.length) root.append(el("p", "muted", "No connections yet. Connect steps to show the flow."));
-  }
-  function openConnectionEditor(existing=null) {
-    const draft=state.draft;
-    if(!draft?.steps.length){notice("Add a step before creating a connection.");return;}
-    if(!existing && draft.connections.length>=150){notice("This workflow already has 150 connections.");return;}
-    const dialog=$("connection-editor"),form=$("connection-form"),from=$("connection-from"),to=$("connection-to"),condition=$("connection-condition");
-    const sourceChoice=$("connection-source-choice"),keepSources=$("connection-keep-sources"),error=$("connection-error");
-    const save=$("save-connection"),sources=existing?.evidence_turns||[];
-    for(const select of [from,to]) {
-      const placeholder=el("option","","Choose a step");placeholder.value="";placeholder.disabled=true;
-      select.replaceChildren(placeholder,...draft.steps.map(step=>{
-        const option=el("option","",`${step.id} · ${step.title||"Untitled step"}`);option.value=step.id;return option;
-      }));
-    }
-    from.value=existing?.from||"";to.value=existing?.to||"";condition.value=existing?.label||"";
-    $("connection-editor-title").textContent=existing?"Edit connection":"Add connection";
-    save.textContent=existing?"Save connection":"Add connection";
-    sourceChoice.querySelector("span").textContent="These sources still support this route: "+sources.map(sourceCaption).join(", ");
-    keepSources.checked=false;if($("connection-hint"))$("connection-hint").textContent="";
-    const cite=$("connection-new-source");
-    if(cite){
-      cite.replaceChildren(...citationChoices().map(([id,label])=>{const opt=el("option","",label);opt.value=id;return opt;}));cite.value="";
-    }
-    const unchanged=()=>!cite?.value&&existing && from.value===existing.from && to.value===existing.to && condition.value.trim()===existing.label.trim();
-    const update=()=>{
-      error.hidden=true;
-      sourceChoice.hidden=!sources.length || unchanged();
-      const hint=$("connection-hint");
-      if(hint&&from.value&&from.value===to.value)hint.textContent="This route returns to the same step. Keep it only for a reported repeat.";
-      save.disabled=!from.value || !to.value;
-    };
-    form.oninput=event=>{
-      if(event.target!==keepSources&&keepSources.checked){keepSources.checked=false;if($("connection-hint"))$("connection-hint").textContent="The route changed. Check the citations again before saving."; }
-      update();
-    };
-    form.onsubmit=event=>{
-      event.preventDefault();
-      if(draft!==state.draft || (existing && !draft.connections.includes(existing))){dialog.close();return;}
-      if(!from.value || !to.value)return;
-      if(unchanged()){dialog.close();return;}
-      const label=condition.value.trim();
-      if(draft.connections.some(edge=>edge!==existing && edge.from===from.value && edge.to===to.value && edge.label.trim()===label)) {
-        error.textContent="This route and condition already exist.";error.hidden=false;return;
-      }
-      const edge={from:from.value,to:to.value,label,evidence_turns:[...new Set([...(keepSources.checked||existing&&from.value===existing.from&&to.value===existing.to&&label===existing.label?sources:[]),...(cite?.value?[cite.value]:[])])]};
-      structuralCheckpoint();if(existing)draft.connections[draft.connections.indexOf(existing)]=edge;else draft.connections.push(edge);
-      dialog.close();
-      draftChanged(true);renderConnections();
-      const index=draft.connections.indexOf(edge);
-      $("connection-rows").querySelectorAll(".text-button")[index]?.focus();
-    };
-    update();dialog.showModal();from.focus();
-  }
   function evidenceRow(ids = [], beforeJump = null) {
     const evidence = el("div","evidence-row");
     evidence.append(el("span","","Sources:"));
@@ -7304,49 +7036,6 @@
       root.append(item);
     });
   }
-  function renderLifecycle() {
-    const root = $("lifecycle-items");
-    root.replaceChildren();
-    state.draft.lifecycle_items.forEach((item,index) => {
-      const card = el("section","detail-item");
-      const head = el("div","detail-item-head");
-      const remove = el("button","remove-button","Remove");
-      remove.setAttribute("aria-label",`Remove lifecycle item ${index+1}`);
-      remove.addEventListener("click",()=>{if(confirm("Remove this item?")){structuralCheckpoint();state.draft.lifecycle_items.splice(index,1);draftChanged();renderLifecycle();focusAfterEditorRemoval("lifecycle-items",index,"add-lifecycle");}});
-      head.append(el("h3","",`Item ${index+1}`),remove);
-      card.append(head,formControl("Work item / document","textarea",item.item,v=>{item.item=v;draftChanged();},{max:6000,aria:`Name of lifecycle item ${index+1}`}));
-      const fields = el("div","detail-two-columns");
-      [["stages","Stages, in order"],["locations","Locations / systems"],["handoffs","Handoffs"]].forEach(([key,label]) => fields.append(formControl(`${label} · one per line`,"textarea",item[key].join("\n"),(_,control)=>editDraftList(control,item,key),{max:18000,rows:3,aria:`${label} for lifecycle item ${index+1}`})));
-      card.append(fields,evidenceRow(item.evidence_turns));
-      root.append(card);
-    });
-    if (!state.draft.lifecycle_items.length) root.append(el("p","map-help","UNKNOWN / TBD — no item lifecycle was established. Continue the interview or add an item for review."));
-  }
-  function renderVariations() {
-    const root = $("variation-items");
-    root.replaceChildren();
-    state.draft.variations.forEach((item,index) => {
-      const card = el("section","detail-item");
-      const head = el("div","detail-item-head");
-      const remove = el("button","remove-button","Remove");
-      remove.setAttribute("aria-label",`Remove variation ${index+1}`);
-      remove.addEventListener("click",()=>{if(confirm("Remove this variation?")){structuralCheckpoint();state.draft.variations.splice(index,1);draftChanged();renderVariations();focusAfterEditorRemoval("variation-items",index,"add-variation");}});
-      head.append(el("h3","",`Variation ${index+1}`),remove);
-      card.append(head);
-      const fields = el("div","detail-two-columns");
-      const routes=[["","No standard step selected"],...state.draft.steps.map(step=>[step.id,`${step.id} · ${step.title||"Untitled step"}`])];
-      if(item.standard_route_ref&&!routes.some(([id])=>id===item.standard_route_ref))routes.push([item.standard_route_ref,`${item.standard_route_ref} · Step unavailable`]);
-      fields.append(formControl("Standard route step","select",item.standard_route_ref,v=>{item.standard_route_ref=v;draftChanged();},{choices:routes,aria:`Standard route step for variation ${index+1}`}));
-      [["source","Reported source"],["applies_to","Who / what it applies to"],["difference","What differs"],["reason","Why it exists"],["cost","What it costs us · attributed estimate"],["charging","Do we charge for it?"],["removability","Could it go away? · participant’s view"]].forEach(([key,label]) => fields.append(formControl(label,"textarea",item[key],v=>{item[key]=v;draftChanged();},{max:6000,rows:3,aria:`${label} for variation ${index+1}`})));
-      fields.append(formControl("Variation class","select",item.variant_class||"unclassified",v=>{item.variant_class=v;draftChanged();},{choices:["unclassified","structural","client_specific","presentation","gold_standard"].map(v=>[v,v.replaceAll("_"," ")]),aria:`Class for variation ${index+1}`}));
-      fields.append(formControl("Nature of difference","select",item.substantive_or_presentation||"unknown",v=>{item.substantive_or_presentation=v;draftChanged();},{choices:["unknown","substantive","presentation"].map(v=>[v,v]),aria:`Nature for variation ${index+1}`}));
-      fields.append(formControl("Process boundary","select",item.boundary,v=>{item.boundary=v;draftChanged();},{choices:[["untested","Untested boundary"],["variation","Variation of this process"],["possibly_separate_work","Possibly separate work"]],aria:`Boundary for variation ${index+1}`}));
-      fields.append(formControl("Reason for boundary assessment","textarea",item.boundary_reason,v=>{item.boundary_reason=v;draftChanged();},{max:6000,rows:3,aria:`Boundary reason for variation ${index+1}`}));
-      card.append(fields,evidenceRow(item.evidence_turns));
-      root.append(card);
-    });
-    if (!state.draft.variations.length) root.append(el("p","map-help","UNKNOWN / TBD — no variations were established. An empty list does not confirm that there are none."));
-  }
   const workflowPrefix=id=>id==="live-workflow"?"workflow":"map";
   // An older draft can cite the same named route more than once. Both views should
   // show one selectable arrow with all its sources, without rewriting the saved draft.
@@ -7365,22 +7054,6 @@
     return {...graph,connections};
   }
   const workflowGraph=id=>mapProjection(id==="live-workflow"?conversationUI.workflow:state.draft);
-  function validDesign(step,design){
-    return typeof design==="string"&&design.length<=64&&window.CollectorComponents?.forDisplay?.(step,design)?.id===design;
-  }
-  function savedDesigns(values,draft){
-    const designs=new Map();
-    if(!values||typeof values!=="object"||Array.isArray(values))return designs;
-    // Only visit the normalized draft's (at most 80) step IDs. Ignore obsolete local preferences.
-    for(const step of draft?.steps||[]){
-      if(Object.hasOwn(values,step.id)&&validDesign(step,values[step.id]))designs.set(step.id,values[step.id]);
-    }
-    return designs;
-  }
-  function cinematicGraph(id,graph){
-    return id==="process-map"&&graph&&draftComponentDesigns.size?
-      {...graph,component_designs:Object.fromEntries(draftComponentDesigns)}:graph;
-  }
 
   function mapInWorkspace(id) {
     return id==="live-workflow" ? !$("interview-view").hidden&&conversationUI.view==="workflow" :
@@ -7398,89 +7071,21 @@
     return renderMap(root,graph);
   }
   function syncWorkflowVisibility(pageVisible=true) {
-    for(const [id,view] of workflowPlayers){
-      const live=id==="live-workflow";
-      const visible=Boolean(pageVisible&&view.selected&&mapInWorkspace(id)&&!document.hidden);
-      if(visible===view.visible)continue;
-      view.visible=visible;
-      if(visible&&!deferredDiagrams.has(id))view.player.update(cinematicGraph(id,workflowGraph(id)),{live});
-      view.player.setVisible(visible,{pageHidden:(!pageVisible||document.hidden)&&view.selected&&mapInWorkspace(id)});
-    }
     if(pageVisible&&!document.hidden){
       for(const [id,graph] of deferredDiagrams){
         if(mapInWorkspace(id))scheduleMap($(id),graph);
       }
     }
   }
-  function selectWorkflowMode(id,mode,focus=false) {
-    const prefix=workflowPrefix(id),mount=$(prefix+"-walkthrough"),diagram=$(prefix+"-diagram");
-    if(!mount||!diagram)return;
-    const selected=mode==="walkthrough";
-    let view=workflowPlayers.get(id);
-    if(selected&&!view){
-      if(!window.CollectorWalkthrough?.create){
-        notice("Cinematic view could not load. You can explore the captured routes in Diagram.",true);
-        return;
-      }
-      const player=window.CollectorWalkthrough.create(mount,{
-        ...(id==="process-map"?{onSetDesign(stepId,design){
-          if(!view?.visible||workflowPlayers.get(id)!==view)return false;
-          const step=state.draft?.steps.find(item=>item.id===stepId);
-          if(!step)return false;
-          if(design===null){
-            if(!draftComponentDesigns.delete(stepId))return true;
-          }else{
-            if(!validDesign(step,design))return false;
-            if(draftComponentDesigns.get(stepId)===design)return true;
-            draftComponentDesigns.set(stepId,design);
-          }
-          state.dirty=true;updateSaveHint();
-          view.player.update(cinematicGraph(id,workflowGraph(id)),{live:false});
-          return true;
-        }}:{}),
-        sourceCaption,
-        renderEvidence(refs){
-          return evidenceRow(refs,()=>{if(sourceOrigin){sourceOrigin.cinematicId=id;sourceOrigin.mode="walkthrough";sourceOrigin.selection=view.player.currentSelection?.();sourceOrigin.theater=view.player.isExpanded?.();}});
-        },
-        onDetails(stepId){
-          const step=workflowGraph(id)?.steps.find(item=>item.id===stepId);
-          if(step)showWorkflowStep(step,id);
-        },
-        onExit(){selectWorkflowMode(id,"diagram",true);}
-      });
-      view={player,selected:false,visible:false,diagramDirty:false};
-      workflowPlayers.set(id,view);
-    }
-    const former=selected?workflowCanvases.get(id)?.selected:view?.player.currentSelection?.()?.stepId;
-    const restore=()=>{if(former&&!view?.selected)workflowCanvases.get(id)?.focusStep?.(former,{readable:true,keyboard:false,select:true});};
-    if(view)view.selected=selected;
-    diagram.hidden=selected;
-    mount.hidden=!selected;
-    if(id==="process-map")$("export-map").hidden=selected;
-    for(const choice of ["diagram","walkthrough"]){
-      const button=$(prefix+"-mode-"+choice);
-      button.setAttribute("aria-pressed",String(choice===mode));
-      if(focus&&choice===mode)button.focus({preventScroll:true});
-    }
-    syncWorkflowVisibility();
-    if(selected&&former)view?.player.restoreSelection?.({stepId:former});
-    if(!selected&&view?.diagramDirty){
-      view.diagramDirty=false;
-      return Promise.resolve(renderMap($(id),workflowGraph(id))).then(restore);
-    }
-    if(!selected)requestAnimationFrame(()=>{workflowCanvases.get(id)?.refresh();restore();});
-  }
   // A step's inspector docks beside the interview in the Workspace panel when that panel is
-  // on screen; otherwise in the frame of the diagram or walkthrough it was opened from.
-  // In Cinematic it docks in the stage, beside (and over) the walkthrough's own panel.
+  // on screen; otherwise in the frame of the diagram it was opened from.
   function stepInspectorHost(containerId) {
     if(containerId==="live-workflow"&&workspaceRailShown())return $("memo-rail");
     const prefix=workflowPrefix(containerId);
-    if(workflowPlayers.get(containerId)?.selected)return $(prefix+"-walkthrough")?.querySelector(".ww-workspace")||$(prefix+"-walkthrough");
     return $(prefix+"-diagram");
   }
-  // Kept by reference: a host can be rebuilt (Cinematic replaces its own content) and take
-  // the panel out of the page with it; the next step shown puts it back.
+  // Kept by reference: a host can be rebuilt and take the panel out of the page with it;
+  // the next step shown puts it back.
   let stepInspectorNode=null;
   const stepInspector=()=>stepInspectorNode||=$("workflow-step-dialog");
   function showWorkflowStep(step, containerId, refresh=false) {
@@ -7489,7 +7094,7 @@
     const sameStep=dialog.open && workflowDetailSource?.containerId===containerId && workflowDetailSource.stepId===step.id;
     const graph=workflowGraph(containerId);
     const routes=(graph?.connections||[]).filter(edge=>edge.from===step.id);
-    const signature=JSON.stringify([step,routes.map(edge=>[edge,graph.steps.find(node=>node.id===edge.to)?.title]),draftComponentDesigns.get(step.id)]);
+    const signature=JSON.stringify([step,routes.map(edge=>[edge,graph.steps.find(node=>node.id===edge.to)?.title])]);
     if(refresh&&sameStep&&workflowDetailSource.signature===signature)return;
     const focusedAction=sameStep?document.activeElement?.dataset?.stepAction:null;
     const readingPosition=sameStep?scroller.scrollTop:0;
@@ -7506,17 +7111,6 @@
     $("workflow-step-kind").textContent=`${step.id} · ${workflowTypeLabel(step.type)}`;
     const steps=graph?.steps||[];
     setInspectorStepper("workflow-step",steps.findIndex(item=>item.id===step.id),steps.map(item=>({key:item.id,name:item.title||item.id})),"step");
-    const artwork=$("workflow-step-preview");
-    if(artwork && window.CollectorWorkflowStage?.createComponentPreview) {
-      const design=containerId==="process-map"?draftComponentDesigns.get(step.id):null;
-      const variant=window.CollectorComponents?.forDisplay(step,design);
-      const signature=JSON.stringify([step.type,variant?.id]);
-      if(artwork.dataset.design!==signature) {
-        window.CollectorWorkflowStage.createComponentPreview(artwork,{type:step.type,variant});
-        artwork.dataset.design=signature;
-      }
-      artwork.hidden=false;
-    }
     const leaveForTranscript=()=>{workflowDetailReturn=null;dialog.close();};
     const fields=(className,entries)=>{
       const list=el("dl",className);
@@ -7570,18 +7164,12 @@
       }
       routeSection.append(list);body.append(routeSection);
     }
-    const inWalkthrough=workflowPlayers.get(containerId)?.selected;
-    const follow=el("button","button secondary small",inWalkthrough?"Follow in diagram":"Follow path on map");
+    const follow=el("button","button secondary small","Follow path on map");
     follow.dataset.stepAction="follow";follow.dataset.icon="route";follow.type="button";follow.addEventListener("click",async()=>{
       workflowDetailReturn=null;dialog.close();
-      if(inWalkthrough){
-        const generation=state.generation;
-        await selectWorkflowMode(containerId,"diagram",true);
-        if(generation!==state.generation||workflowPlayers.get(containerId)?.selected)return;
-      }
       workflowCanvases.get(containerId)?.followPath(step.id);
     });
-    if(inWalkthrough || (workflowCanvases.get(containerId)?.followPath && !$(workflowPrefix(containerId)+"-navigation")?.hidden)){
+    if(workflowCanvases.get(containerId)?.followPath && !$(workflowPrefix(containerId)+"-navigation")?.hidden){
       const actions=el("div","inspector-actions");actions.append(follow);body.append(actions);
     }
     if(!dialog.open){dialog.show();focusInspector(dialog,"close-workflow-step","workflow-step-title");}
@@ -7629,7 +7217,7 @@
     }
     updateWorkflowNavigation(id,info);
     const exportButton=$(id==="live-workflow"?"export-working-map":"export-map");
-    if(exportButton)exportButton.disabled=Boolean(workflowPlayers.get(id)?.diagramDirty)||!info.hasGraph||Boolean(info.updating)||info.exportReady===false;
+    if(exportButton)exportButton.disabled=!info.hasGraph||Boolean(info.updating)||info.exportReady===false;
   }
   function updateWorkflowNavigation(id,info) {
     const prefix=id==="live-workflow"?"workflow":"map";
@@ -7714,8 +7302,6 @@
     const root=target||$("process-map");renderWorkflowLegend(root.id,graph);
     const gap=$(root.id==="live-workflow"?"workflow-gaps":"map-gaps");
     if(gap){const routing=root.id==="process-map"&&state.draftEdited?window.CollectorWorkflowExports?.structureQuestions?.(graph)||[]:[];const message=[workflowGapSummary(graph),...routing,graph?.question_limit_notice].filter(Boolean).join(" ");gap.textContent=message;gap.hidden=!message;}
-    const walkthrough=workflowPlayers.get(root.id);
-    if(walkthrough?.visible)walkthrough.player.update(cinematicGraph(root.id,graph),{live:root.id==="live-workflow"});
     if(workflowDetailSource?.containerId===root.id&&stepInspector()?.open){
       let current=graph?.steps.find(step=>step.id===workflowDetailSource.stepId);
       if(!current||current.title!==workflowDetailSource.title||current.type!==workflowDetailSource.type){
@@ -7724,13 +7310,6 @@
         else if(current&&!(current.type===workflowDetailSource.type&&current.evidence_turns?.some(id=>workflowDetailSource.refs?.includes(id)))){const dialog=stepInspector();if(dialog.dataset.stepChanged!=="true"){dialog.dataset.stepChanged="true";$("workflow-step-content").append(el("p","report-warning","This step changed in the latest map. Close and select the updated step to inspect it."));}current=null;}
       }
       if(current)showWorkflowStep(current,root.id,true);else if(!graph?.steps.some(step=>step.id===workflowDetailSource.stepId)){workflowDetailReturn=null;stepInspector().close();}
-    }
-    if(walkthrough?.selected){
-      // The local cinematic renderer receives working captures above. Lay out the static
-      // diagram once, with the latest graph, when the reviewer returns to that view.
-      walkthrough.diagramDirty=true;
-      $(root.id==="live-workflow"?"export-working-map":"export-map").disabled=true;
-      return;
     }
     if(!graph?.steps.length){
       workflowCanvases.get(root.id)?.destroy();workflowCanvases.delete(root.id);root.classList.remove("workflow-fallback");root.classList.remove("workflow-canvas");Object.assign(root.style,{position:"",overflow:"",touchAction:""});
@@ -7743,7 +7322,7 @@
     try{
       root.classList.remove("workflow-fallback");
       if(!canvas){canvas=window.CollectorWorkflow.create(root,{presentation:true,onSelectStep:step=>showWorkflowStep(step,root.id),onViewChange:info=>updateCanvasControls(root.id,info)});workflowCanvases.set(root.id,canvas);}
-      const current=()=>state.generation===generation&&workflowCanvases.get(root.id)===canvas&&!deferredDiagrams.has(root.id)&&!workflowPlayers.get(root.id)?.diagramDirty;
+      const current=()=>state.generation===generation&&workflowCanvases.get(root.id)===canvas&&!deferredDiagrams.has(root.id);
       const pending=canvas.update(graph);
       return pending.then(applied=>{
         if(!applied||!current())return;
@@ -7824,7 +7403,7 @@
     for (const review of topicReviews) for (const id of review.source_ids) savedCitations.add(id);
     const pendingSubmission=includePresentation?knowledgeUI?.exportAttempt?.():null;
     const provenance=state.captureProvenance===null?null:savedCaptureProvenance(state.captureProvenance);
-    const presentation=includePresentation&&draftComponentDesigns.size?{presentation:{component_designs:Object.fromEntries(draftComponentDesigns)}}:{};
+    const presentation={};
     if (topicReviews.length) presentation.file_topic_reviews = topicReviews;
     if (state.fileTopicHistory.length) presentation.file_topic_history = clone(state.fileTopicHistory);
     const followups=interviewFollowups();
@@ -8112,11 +7691,10 @@
   function clearState(context = null) {
     if($("voice-start-dialog")?.open)$("voice-start-dialog").close();
     rawTrace("interview.clearing", {turn_count:state.turns.length, generation:state.generation});
-    state.historicalDraft=false;owedFiles=null;renderOwedFiles();state.draftUndo=[];state.draftRedo=[];
+    state.historicalDraft=false;owedFiles=null;renderOwedFiles();
     state.savedClosure=null;state.resumedReviewAck=null;state.resumeFileIntake=null;state.previousMap=null;state.mapCorrections=[];state.dictatedAnswer=null;
     state.savedOwnerFollowups=[];state.fileTopicReviews={};state.fileTopicHistory=[];
     deferredDiagrams.clear();
-    draftComponentDesigns.clear();
     concurrentInterview?.reset();
     conversationUI.live?.discardPendingAudio?.();discardFailedDictation();topicDiscussion=[];provisionalTopics=null;analysisCheckpoint=null;notesProgress=null;mapProgress=null;
     reviewPauseSequence++;
@@ -8129,12 +7707,6 @@
     voiceEnded=false;
     documentController?.reset();pendingDocumentReason=null;restoringDocuments=false;documentQuestionsHandled.clear();
     if(documentEvidenceDialog?.open)documentEvidenceDialog.close();
-    for(const [id,view] of workflowPlayers){
-      view.diagramDirty=false;
-      selectWorkflowMode(id,"diagram");
-      view.player.destroy();
-    }
-    workflowPlayers.clear();
     workflowCanvases.forEach(canvas=>canvas.destroy());workflowCanvases.clear();
     if(stepInspector()?.open)stepInspector().close();
     conversationUI.live?.stop({immediate:true});
@@ -8270,7 +7842,6 @@
       const ownerFollowups=savedFollowups(saved.owner_followups,turns);
       const draft = saved.draft ? normalizeDraft(saved.draft,turns,documentEvidence,saved.context) : null;
       const workflow=saved.workflow?normalizeWorkingMap(saved.workflow,turns,documentEvidence,saved.context):null;
-      const designs=savedDesigns(saved.presentation?.component_designs,draft);
       const findings = normalizeFindings(saved.memo_findings||[],turns,documentEvidence);
       // A local file can preserve the reported account, but cannot establish a
       // fresh server assessment. Keep every answer/source while reopening status.
@@ -8292,7 +7863,6 @@
       const replaced=new Set((documents?.unavailable_workspaces||[]).flatMap(workspace=>workspace.documents.map(file=>file.id)));
       for(const source of documentEvidence)if(replaced.has(source.document_id))Object.assign(source,{retained_only:true,workspace_unavailable:true});
       clearState(context);
-      draftComponentDesigns=designs;
       const filed=[saved.knowledge_process_id,saved.knowledge_status,saved.knowledge_attribution];
       if(saved.knowledge_pending_attempt)filed.push(saved.knowledge_pending_attempt,saved.interview_id);
       knowledgeUI?.restore(...filed);
@@ -8519,9 +8089,6 @@
       try{await live.retryTranscription();}finally{updateControls();}
     });
     for(const [prefix,id] of [["workflow","live-workflow"],["map","process-map"]]){
-      for(const mode of ["diagram","walkthrough"]){
-        $(prefix+"-mode-"+mode).addEventListener("click",()=>selectWorkflowMode(id,mode));
-      }
       $(prefix+"-step-select").addEventListener("change",()=>{const canvas=workflowCanvases.get(id),step=$(prefix+"-step-select").value;if(canvas?.getPathNavigation?.().following)canvas.followPath(step);else canvas?.focusStep(step,{readable:true,keyboard:false,select:true});});
       $(prefix+"-follow").addEventListener("click",()=>{const canvas=workflowCanvases.get(id);if(canvas?.getPathNavigation?.().following)canvas.leavePath();else canvas?.followPath($(prefix+"-step-select").value);});
       for(const direction of ["previous","next"])$(prefix+"-path-"+direction).addEventListener("change",event=>workflowCanvases.get(id)?.navigatePath(event.target.value,direction));
@@ -8581,11 +8148,10 @@
     for(const id of ["workflow-step-prev","workflow-step-next"])$(id)?.addEventListener("click",event=>stepTo(event.currentTarget));
     bindInspectorKeys(stepInspector(),"workflow-step",()=>stepInspector().close(),stepTo);
     stepInspector().addEventListener("close",()=>{if(workflowDetailReturn){
-      const id=workflowDetailSource?.containerId,step=workflowDetailSource?.stepId,view=workflowPlayers.get(id);
+      const id=workflowDetailSource?.containerId,step=workflowDetailSource?.stepId;
       if(workflowDetailReturn.isConnected!==false)workflowDetailReturn.focus?.({preventScroll:true});
-      else if(view?.selected)$(workflowPrefix(id)+"-mode-walkthrough")?.focus();
       else if(id&&step&&workflowGraph(id)?.steps.some(row=>row.id===step))workflowCanvases.get(id)?.focusStep?.(step);
-      else if(id)$(workflowPrefix(id)+"-mode-diagram")?.focus();
+      else if(id)$(workflowPrefix(id)+"-step-select")?.focus();
     }workflowDetailReturn=null;workflowDetailSource=null;});
     $("workflow-expand").addEventListener("click",()=>setWorkflowExpanded(!$("interview-view").classList.contains("workflow-expanded")));
     $("retry-question").addEventListener("click",retryQuestion);
@@ -8602,11 +8168,6 @@
       settingsOpener=event.currentTarget;
       revealContext();
       $("process-owner").focus();
-    });
-    $("open-component-library")?.addEventListener("click",()=>{
-      closeMenu(true);
-      if(window.CollectorComponentLibrary?.open)window.CollectorComponentLibrary.open({opener:$("session-menu-toggle")});
-      else notice("The component library could not load. You can still explore the map.",true);
     });
     $("close-interview-settings").addEventListener("click",()=>setInterviewSettings(false));
     $("interview-settings").addEventListener("close",settingsClosed);
@@ -8669,15 +8230,6 @@
     $("export-markdown").addEventListener("click",() => {if (state.draft) download(markdown(),`${safeFilename(state.draft.title)}-DRAFT.md`,"text/markdown;charset=utf-8");});
     $("export-memo").addEventListener("click",()=>{if(state.draft)download(memoMarkdown(),`${safeFilename(processDisplayName()||state.draft.title)}-memo-DRAFT.md`,"text/markdown;charset=utf-8");});
     $("export-map").addEventListener("click",() => {if($("export-map").disabled)return;const exported=exportDiagram("process-map");if(exported)download(exported,`${safeFilename(state.draft.title)}-DRAFT-map.svg`,"image/svg+xml");});
-    $("undo-draft-edit")?.addEventListener("click",()=>restoreStructure("draftUndo","draftRedo"));
-    $("redo-draft-edit")?.addEventListener("click",()=>restoreStructure("draftRedo","draftUndo"));
-    $("add-step").addEventListener("click",() => {
-      if (!state.draft || state.draft.steps.length >= 80) return;
-      structuralCheckpoint();const n=stepHighWater(state.draft)+1;state.draft.step_id_high_water=n;
-      state.draft.steps.push({id:`S${n}`,title:"New step — validate with owner",type:"activity",actor:"UNKNOWN / TBD",system:"UNKNOWN / TBD",description:"",input:"UNKNOWN / TBD",output:"UNKNOWN / TBD",completion_criteria:"UNKNOWN / TBD",handoff:"UNKNOWN / TBD",evidence_turns:[]});
-      draftChanged(); renderSteps(); renderConnections(); renderVariations(); scheduleMap();
-      $("procedure-steps").lastElementChild.querySelector("input").focus();
-    });
     for(const [id,format] of [["download-bpmn","bpmn"],["download-step-csv","csv"],["download-png","png"],["print-report","print"]])$(id)?.addEventListener("click",async()=>{
       const graph=state.draft,api=window.CollectorWorkflowExports;
       if(!graph||!api)return;
@@ -8701,18 +8253,6 @@
     window.addEventListener?.("beforeprint",preparePrint);
     window.addEventListener?.("afterprint",()=>$("printed-workflow")?.replaceChildren());
     window.matchMedia?.("print")?.addEventListener?.("change",event=>{if(event.matches)preparePrint();});
-    $("add-connection").addEventListener("click",()=>openConnectionEditor());
-    $("cancel-connection").addEventListener("click",()=>$("connection-editor").close());
-    $("add-lifecycle").addEventListener("click",()=>{
-      if(!state.draft||state.draft.lifecycle_items.length>=100)return;
-      structuralCheckpoint();state.draft.lifecycle_items.push({item:"New work item — validate with owner",stages:["UNKNOWN / TBD"],locations:["UNKNOWN / TBD"],handoffs:["UNKNOWN / TBD"],evidence_turns:[]});
-      draftChanged();renderLifecycle();focusNewItem("lifecycle-items");
-    });
-    $("add-variation").addEventListener("click",()=>{
-      if(!state.draft||state.draft.variations.length>=100)return;
-      structuralCheckpoint();state.draft.variations.push({applies_to:"UNKNOWN / TBD",difference:"UNKNOWN / TBD",reason:"UNKNOWN / TBD",cost:"UNKNOWN / TBD",charging:"UNKNOWN / TBD",removability:"UNKNOWN / TBD",boundary:"untested",boundary_reason:"UNKNOWN / TBD — assess whether this is a variation or separate work.",evidence_turns:[]});
-      draftChanged();renderVariations();focusNewItem("variation-items");
-    });
     bindContextFields();
     $("interview-participant")?.addEventListener("input",event=>{state.participant=event.target.value.trim();state.dirty=true;updateSaveHint();});
     document.addEventListener("paste",guardPaste);

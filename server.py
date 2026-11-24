@@ -42,11 +42,11 @@ _diagnostic_lock = threading.Lock()
 
 
 def release_identity(root, build_id):
-    """Name this build for people: the commit of a desktop release, else the source hash.
+    """Name this build for people: the commit of a packaged release, else the source hash.
 
-    desktop/manage.py unpacks each build into a folder named by its commit and writes
-    release.json ({"commit", "staged_at"}) there. Any other folder is a working tree, named
-    "dev+" and the first characters of its build_id, which changes with any served source.
+    A packaged release is a folder named by its commit that holds release.json
+    ({"commit", "staged_at"}). Any other folder is a working tree, named "dev+" and the
+    first characters of its build_id, which changes with any served source.
     """
     root = Path(root)
     try:
@@ -2766,7 +2766,7 @@ whole_setting = collector_settings.whole_setting
 
 
 def load_settings():
-    """The source folder can differ from the private settings folder in a desktop release."""
+    """The source folder can differ from the private settings folder in a packaged release."""
     return collector_settings.load_settings(APP_DIR, os.environ)
 
 
@@ -7172,7 +7172,7 @@ class InterviewServer(ThreadingHTTPServer):
 
     def record_event(self, event, **fields):
         if event == "start":
-            # A desktop release is named by its commit; a working tree has its build_id only.
+            # A packaged release is named by its commit; a working tree has its build_id only.
             fields.setdefault("commit", getattr(self, "release", {}).get("release_commit", ""))
         record_diagnostic(self.diagnostics_path, event, port=self.server_port, **fields)
         if hasattr(self, "trace"):

@@ -1,8 +1,8 @@
 """Which code is this? A build can be named, and the name follows it into what it produces.
 
-The desktop manager writes release.json beside each build it unpacks; the server reports that
-commit (or, for a working tree, "dev+" and a source hash); the source hash does not depend on
-line endings. No network or provider is used.
+A packaged release carries release.json beside its files; the server reports that commit (or,
+for a working tree, "dev+" and a source hash); the source hash does not depend on line endings.
+No network or provider is used.
 """
 import importlib.util
 import json
@@ -13,7 +13,6 @@ import tempfile
 import unittest
 import urllib.request
 
-from test_desktop_updates import STUB, Installation, config
 
 
 APP = Path(__file__).resolve().parents[1]
@@ -95,7 +94,7 @@ class SourceHash(unittest.TestCase):
 
 
 class ReleaseIdentity(unittest.TestCase):
-    """server.release_identity: the commit of a desktop release, else the working tree's hash."""
+    """server.release_identity: the commit of a packaged release, else the working tree's hash."""
 
     def folder(self, root, name=COMMIT, content=None):
         release = Path(root) / name
@@ -163,7 +162,7 @@ class ReportedIdentity(unittest.TestCase):
         self.assertEqual(row["build_id"], self.httpd.build_id)
         self.assertNotIn("commit", row)
 
-    def test_desktop_release_reports_its_commit(self):
+    def test_packaged_release_reports_its_commit(self):
         release = self.root / COMMIT
         release.mkdir()
         (release / "release.json").write_text(json.dumps({"commit": COMMIT, "staged_at": "2026-11-13T09:30:00Z"}))
@@ -177,77 +176,6 @@ class ReportedIdentity(unittest.TestCase):
         self.httpd.record_event("exit", reason="serve_forever_returned")
         last = json.loads((self.root / "server-lifecycle.jsonl").read_text(encoding="utf-8").splitlines()[-1])
         self.assertNotIn("commit", last)
-
-
-# A stand-in build with a page: "/" names a script and a stylesheet of its own, a script on
-# another origin, and __NAMED__; every other path except /api/config is not found.
-PAGED = STUB.replace("    def do_GET(self):\n", (
-    "    def do_GET(self):\n"
-    "        with open(r'__PROOF__.requests', 'a', encoding='utf-8') as requests:\n"
-    "            requests.write(MARK + ' ' + self.path + '\\n')\n"
-    "        page = (b'<!doctype html><title>stub</title><link rel=\"stylesheet\" href=\"/style.css\">'\n"
-    "                b'<script src=\"https://other.example/away.js\"></script><script src=\"__NAMED__\" defer></script>')\n"
-    "        found = {'/': page, '/style.css': b'body{}', '/app.js?v=1': b'run()'}\n"
-    "        if self.path != '/api/config':\n"
-    "            body = found.get(self.path)\n"
-    "            self.send_response(200 if body else 404)\n"
-    "            self.send_header('Content-Length', str(len(body or b'')))\n"
-    "            self.end_headers()\n"
-    "            self.wfile.write(body or b'')\n"
-    "            return\n"))
-assert PAGED != STUB
-
-
-@unittest.skipUnless(sys.platform == "win32", "Windows desktop installation")
-class StagedRelease(unittest.TestCase):
-    def test_each_unpacked_build_carries_its_commit_and_the_time_it_was_staged(self):
-        site = Installation(self)
-        # A commit cannot name itself: whatever release.json it carries is replaced.
-        first = site.publish("c1", files={"release.json": json.dumps({"commit": "f" * 40, "staged_at": "never"})})
-        site.app.update(90, 90)
-        stamp = json.loads((site.state / "releases" / first / "release.json").read_text(encoding="utf-8"))
-        self.assertEqual(sorted(stamp), ["commit", "staged_at"])
-        self.assertEqual(stamp["commit"], first)
-        self.assertRegex(stamp["staged_at"], r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
-        # The application's reader accepts exactly what the manager wrote.
-        self.assertEqual(server.release_identity(site.state / "releases" / first, "f" * 64),
-                         {"build": first[:12], "release_commit": first, "release_staged_at": stamp["staged_at"]})
-        self.assertFalse(site.proof.exists(), "naming a build ran it")
-        # Downloading the same commit again leaves the record as it was.
-        site.app.update(90, 90)
-        self.assertEqual(json.loads((site.state / "releases" / first / "release.json").read_text(encoding="utf-8")), stamp)
-
-    def requests(self, site, mark):
-        log = Path(str(site.proof) + ".requests")
-        return [line.split(" ", 1)[1] for line in log.read_text(encoding="utf-8").splitlines() if line.startswith(mark + " ")]
-
-    def test_startup_check_requests_the_page_and_what_the_page_names(self):
-        site = Installation(self)
-        good = site.publish("c1", source=PAGED.replace("__NAMED__", "app.js?v=1"))
-        site.app.update(90, 90)
-        site.app.approve(good)
-        window, address = site.window()
-        self.assertEqual(config(address)["build_id"], "stub-c1")
-        self.assertEqual(site.close(window), "")
-        asked = self.requests(site, "c1")
-        # The check: the handshake, the page, then the page's own stylesheet and script, once each.
-        self.assertEqual(asked[:4], ["/api/config", "/", "/style.css", "/app.js?v=1"])
-        self.assertFalse(any("other.example" in path or "away.js" in path for path in asked))
-        # The window's own start makes the handshake only, as before (this test then asks once more).
-        self.assertEqual(asked[4:], ["/api/config", "/api/config"])
-
-        # A build whose page names a script it does not serve would open a broken page.
-        broken = site.publish("c2", source=PAGED.replace("__NAMED__", "/missing.js"))
-        site.app.update(90, 90)
-        site.app.approve(broken)
-        window, address = site.window()
-        self.assertEqual(config(address)["build_id"], "stub-c1", "a build with a page that cannot load was opened")
-        notice = site.close(window)
-        self.assertTrue(notice.startswith("NOTICE-NEW Running the previous build"), notice)
-        self.assertIn("startup-check-failed " + broken[:12], site.log())
-        self.assertEqual(site.app.failed(), {broken: "startup-check-failed"})
-        self.assertEqual(self.requests(site, "c2"), ["/api/config", "/", "/style.css", "/missing.js"])
-        self.assertFalse((site.root / "work").exists())
 
 
 if __name__ == "__main__":

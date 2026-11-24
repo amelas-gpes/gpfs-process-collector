@@ -80,8 +80,8 @@ EXTRACTION_VERSION = 5
 # The layouts of documents.sqlite3 this build opens: the oldest it upgrades in place, and the
 # one it writes. SQLite keeps the number in the file (PRAGMA user_version; 0 in a store from
 # before it was recorded). Raise the second number with any change an older build would
-# misread. Keep this line a plain literal: desktop/manage.py reads it from an unpacked build
-# without running it, so that the window never gives newer data to an older build.
+# misread. Keep this line a plain literal, so that a deployment tool can read it from an
+# unpacked build without running it and never give newer data to an older build.
 STORE_FORMATS = (0, 4)
 # Format 4 keeps confirmation decisions in the scope. Earlier writers revoke a
 # scope without removing those decisions, so they must not open a format-4 store.

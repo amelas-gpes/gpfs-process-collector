@@ -1,5 +1,5 @@
 """The two SQLite stores carry a format number. Several builds can open the same work/ folder
-(the checkout's server, the desktop window's approved build and its fallback), so a build must
+(two checkouts, or an older and a newer build), so a build must
 refuse data written by a newer one, and must not report a newer index as out of date."""
 import hashlib
 from contextlib import closing
@@ -11,7 +11,6 @@ import sys
 import tempfile
 import unittest
 
-from test_desktop_updates import Installation, config
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -236,85 +235,6 @@ class StoreLayoutChanges(unittest.TestCase):
             "(docs/DESKTOP.md, 'One set of data, several builds'). If a build that knows only the earlier layout "
             "would misread or damage the new one, raise the second number of STORE_FORMATS in documents.py or "
             "knowledge_graph.py. Then record the new pair in RECORDED."))
-
-
-@unittest.skipUnless(sys.platform == "win32", "Windows desktop installation")
-class DesktopHostStoreGuard(unittest.TestCase):
-    """The window gives saved data only to a build that declares it can read it."""
-
-    def saved(self, site, module, version):
-        folder, name = {"documents.py": ("documents", "documents.sqlite3"),
-                        "knowledge_graph.py": ("knowledge", "knowledge.sqlite3")}[module]
-        path = site.root / "work" / folder / name
-        path.parent.mkdir(parents=True, exist_ok=True)
-        stored_format(path, version)
-        return path
-
-    def approve(self, site, mark, formats=None):
-        files = {module: "STORE_FORMATS = (0, %d)\n" % newest for module, newest in (formats or {}).items()}
-        revision = site.publish(mark, files=files)
-        site.app.update(90, 90)
-        site.app.approve(revision)
-        return revision
-
-    def test_manager_reads_the_declaration_of_the_real_modules_without_running_them(self):
-        site = Installation(self)
-        self.assertEqual(site.app.store_formats(ROOT, "documents.py"), documents.STORE_FORMATS)
-        self.assertEqual(site.app.store_formats(ROOT, "knowledge_graph.py"), knowledge_graph.STORE_FORMATS)
-        # A build from before the declaration existed wrote what is now format 1.
-        self.assertEqual(site.app.store_formats(site.root, "documents.py"), (0, 1))
-        # The manager looks for each store where this build's modules keep it.
-        with tempfile.TemporaryDirectory() as home:
-            work = Path(home) / "work"
-            documents.DocumentStore(work / "documents")
-            knowledge_graph.KnowledgeGraph(work / "knowledge" / "knowledge.sqlite3").close()
-            for module, location, _ in site.app.STORES:
-                self.assertIn(module, ("documents.py", "knowledge_graph.py"))
-                self.assertTrue((Path(home) / location).is_file(), location)
-            site.app.check_stores(ROOT, Path(home))  # This build opens what it wrote.
-
-    def test_build_older_than_the_saved_data_is_not_started_and_the_window_is_told_why(self):
-        for module, newest in (("documents.py", documents.STORE_FORMATS[1]),
-                               ("knowledge_graph.py", knowledge_graph.STORE_FORMATS[1])):
-            with self.subTest(store=module):
-                site = Installation(self)
-                old = self.approve(site, "c1", {module: newest - 1})
-                path = self.saved(site, module, newest)
-                code, out, err = site.run("serve", "--port", site.free_port())
-                self.assertNotEqual(code, 0)
-                self.assertFalse(site.proof.exists(), "a build older than the saved data was run")
-                self.assertTrue(out.startswith("ERROR "), out)
-                self.assertEqual(len(out.splitlines()), 1)
-                for words in ("newer build", old[:12], f"format {newest}", "nothing was changed"):
-                    self.assertIn(words, out)
-                self.assertTrue(out.startswith(
-                    {"documents.py": "ERROR The documents saved on this computer were written by a newer build ",
-                     "knowledge_graph.py": "ERROR The company knowledge saved on this computer was written by a newer "
-                                           "build "}[module]), out)
-                self.assertIn("older-than-saved-data " + old[:12], site.log())
-                self.assertEqual(site.app.failed(), {}, "the refusal was recorded as a failure to start")
-                self.assertEqual(stored_format(path), newest)
-                # A build that declares the newer format opens; going back to the old one is refused.
-                new = self.approve(site, "c2", {module: newest})
-                window, address = site.window()
-                self.assertEqual(config(address)["build_id"], "stub-c2")
-                self.assertEqual(site.close(window), "")
-                with self.assertRaises(site.app.DesktopError) as refusal:
-                    site.app.rollback(old)
-                self.assertIn("newer build", str(refusal.exception))
-                self.assertEqual(site.app.approved(), [new, old])
-
-    def test_data_this_build_can_read_or_cannot_inspect_does_not_stop_the_window(self):
-        site = Installation(self)
-        self.approve(site, "c1")
-        self.saved(site, "documents.py", 1)
-        unreadable = site.root / "work" / "knowledge" / "knowledge.sqlite3"
-        unreadable.parent.mkdir(parents=True)
-        unreadable.write_bytes(b"not a database, so its own build must decide what to do with it\n" * 8)
-        window, address = site.window()
-        self.assertEqual(config(address)["build_id"], "stub-c1")
-        self.assertEqual(site.close(window), "")
-        self.assertNotIn("older-than-saved-data", site.log())
 
 
 if __name__ == "__main__":

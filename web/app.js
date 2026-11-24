@@ -71,7 +71,7 @@
     recording: null, requestingMic: false, transcribing: false,
     taxonomy:[],connections_out:[],active_modules:[],recap_due:"none",memo_findings: [], focus: "", parking_lot: [], closure: {asked:false,confirmed:false}, coverageNeedsReview:false, captureProvenance:null, documentEvidence:[],
   };
-  const conversationUI = {view:"voice", typing:false, live:null, status:"idle", muted:false, captions:new Map(), pendingParticipantCaptions:new Set(), workflow:null, workflowCheckPending:false, revision:0, applied:-1, flowBusy:false, flowTimer:null, flowAbort:null, flowErrorNotified:false, coverageCheckpoint:null, coverageCheckpointSequence:0, liveCoverageKey:null, liveCoverageSequence:0};
+  const conversationUI = {view:"voice", typing:false, live:null, status:"idle", muted:false, captions:new Map(), pendingParticipantCaptions:new Set(), workflow:null, checkedWorkflow:null, drawnAhead:false, checksPutOff:0, flowRetried:false, workflowCheckPending:false, revision:0, applied:-1, flowBusy:false, flowTimer:null, flowAbort:null, flowErrorNotified:false, coverageCheckpoint:null, coverageCheckpointSequence:0, liveCoverageKey:null, liveCoverageSequence:0};
   const workflowCanvases=new Map();
   const deferredDiagrams=new Map();
   const workflowPlayers=new Map();
@@ -99,7 +99,7 @@
   // wraps up, the page asks the server to start the first part, so that Create draft waits only
   // for what is left. It is a head start and nothing else: nothing is shown, a failure changes
   // nothing, and a draft asked for after the account has changed is written from the start.
-  const draftAhead={generation:null,turns:-1,body:"",flight:false,ready:"",readyAt:0};
+  const draftAhead={generation:null,turns:-1,body:"",flight:false,ready:"",readyAt:0,request:null,mark:null};
   // The server keeps a candidate for nineteen minutes and gives it up once its draft is delivered.
   const DRAFT_AHEAD_KEPT_MS=15*60*1000;
   // Called when the participant has wrapped up. While the final check waits for its answer the
@@ -126,9 +126,12 @@
       // It does not wait for the map to catch up: after a spoken interview that takes a minute or
       // more, and Create draft is usually clicked sooner. A map that arrives later is another
       // account, and gets a head start of its own once this one has ended.
-      const body=JSON.stringify({...draftRequest(),prepare_only:true});
+      // A draft that already holds every answer and file gains nothing from another first half.
+      if(state.draft&&!draftIsStale())return;
+      const sent=draftRequest(),body=JSON.stringify({...sent,prepare_only:true});
       const key=draftPreparationKey(body);
       if(key===draftAhead.body)return;
+      draftAhead.request=sent;draftAhead.mark=JSON.stringify([state.version,draftEvidenceMark()]);
       // The head start can be cancelled like any interview request (Start over, another interview,
       // Continue talking): it holds one of the server's four AI request places for the whole draft.
       const flight=new AbortController();draftAhead.body=key;draftAhead.flight=flight;interviewRequests.add(flight);
@@ -143,6 +146,26 @@
   // Stops a running head start. When the account changed (disarm) it stays stopped until Wrap up or the
   // final check arms it again; otherwise the next map update may start it again for the same account.
   function cancelDraftAhead(disarm=true){if(disarm)draftAhead.turns=-1;draftAhead.flight?.abort?.();}
+  // A draft request without the two things a map update changes: the map and the state of its check.
+  function draftAccountKey(request){
+    const data=JSON.parse(JSON.stringify(request));
+    delete data.capture_token;delete data.map_review_revision;delete data.prepare_only;
+    if(data.previous_capture)delete data.previous_capture.workflow;
+    return JSON.stringify(data);
+  }
+  // The request of a head start that Create draft can finish instead of starting over: one that is
+  // being written or is kept for the same answers, notes and files. The workflow map may have been
+  // redrawn or checked since it was sent; the draft is written from the answers either way, and
+  // sending the same request is what lets the server hand over the first half it already has.
+  function draftAheadRequest(current){
+    try{
+      if(!draftAhead.request||draftAhead.generation!==state.generation)return null;
+      const kept=Boolean(draftAhead.ready)&&Date.now()-draftAhead.readyAt<DRAFT_AHEAD_KEPT_MS;
+      if(!kept&&!draftAhead.flight)return null;
+      if(draftAhead.mark!==JSON.stringify([state.version,draftEvidenceMark()]))return null;
+      return draftAccountKey(draftAhead.request)===draftAccountKey(current)?draftAhead.request:null;
+    }catch{return null;}
+  }
   // True only for the account as it stands now and a first half the server still holds.
   function draftAheadReady(){
     try{
@@ -1334,7 +1357,7 @@
     if ($("memo-footer")) $("memo-footer").hidden = !state.started && !hasDraftSource && !state.draft;
     const canDraft = ready && hasDraftSource && !working && !recording &&
       !intakeActive() && !conversationUI.live?.active && conversationUI.status !== "closing";
-    $("generate-draft").textContent = state.draft ? "Open draft" : "Create draft";
+    if(!(draftInFlight&&!state.draft))$("generate-draft").textContent = state.draft ? "Open draft" : "Create draft";
     $("generate-draft").disabled = state.draft ? working || recording : !canDraft;
     $("regenerate-draft").disabled = !canDraft;
     $("export-markdown").disabled = !state.draft||Boolean(draftInFlight);
@@ -1595,6 +1618,7 @@
     renderRecheck();
     const root = $("coverage-list"), focusedTopic=document.activeElement?.dataset?.foundationTopic;
     let captured = 0;
+    let partly = 0;
     let toReview = 0;
     let rewritten = 0;
     const reviewedTopics=currentCoverageAssessment()?.topics||[];
@@ -1602,6 +1626,8 @@
       const finding = topicFinding(key);
       const topic = topicPresentation(key, finding, reviewedTopics.find(row => row.key === key));
       if (topic.progress === "covered") captured++;
+      // Something is in the notes for this topic and something is still missing.
+      else if (topic.progress === "partial" && topic.badge !== "confirm" && topic.badge !== "changes") partly++;
       if (topic.badge === "confirm") toReview++;
       const entry = coverageButton(key,label), node = entry.node, repaired = Boolean(repairFor("memo",finding));
       node.classList.toggle("selected", foundationTopic === key && Boolean($("foundation-dialog")?.open));
@@ -1622,12 +1648,15 @@
     const buttons=TOPICS.map(([key])=>coverageNodes.get(key).node),listed=root.children||[];
     if(listed.length!==buttons.length||buttons.some((node,index)=>listed[index]!==node))root.replaceChildren(...buttons);
     // Light one whole segment per solid topic. Only the displayed percentage is rounded.
+    // The figure counts captured topics alone, by design. The line beside it also says how many
+    // topics hold part of an answer: after a full account of the work the panel read "6% · 1 of 16
+    // topics captured" and nothing else (2026-11-23), while thirteen topics lacked one detail each.
     const percent = captured / TOPICS.length * 100;
     const rounded = Math.round(percent);
-    const fraction = `${captured} of ${TOPICS.length} topics captured`;
+    const fraction = `${captured} of ${TOPICS.length} topics captured` + (partly ? ` · ${partly} partly covered` : "");
     const arc = $("coverage-progress");
     const offset = String(100 - percent);
-    if (arc.style.strokeDashoffset !== offset) {
+    if (arc.style.strokeDashoffset !== offset || $("coverage-fraction")?.textContent !== fraction) {
       const meter = $("coverage-meter");
       $("coverage-divisions")?.setAttribute("pathLength", String(TOPICS.length));
       setText($("coverage-count"), `${rounded}%`);
@@ -4387,14 +4416,17 @@
   function withdrawnFileNote(name) {
     return `The participant withdrew ${name}. Do not use its contents.`;
   }
-  function liveCoverageNote(answerCount, openTopics) {
-    const status = openTopics ? `Still open: ${openTopics}.` : "Nothing is open; the application will say when to close.";
+  function liveCoverageNote(answerCount, openTopics, notRaised="") {
+    // Topics with nothing in the notes yet are named apart from those that only lack a detail: in a
+    // thirteen-answer interview on 2026-11-23 the owner and the risks were open from the first answer
+    // to the last and were never asked about, because sixteen open labels all looked alike.
+    const status = openTopics ? `Still open: ${openTopics}.` + (notRaised ? ` Not raised yet: ${notRaised}.` : "") : "Nothing is open; the application will say when to close.";
     return `Private capture status; silent, no speech requested. Notes cover the current ${answerCount} participant answers. ${status} These are provisional coverage labels, not questions or a topic order. Follow the conversation; do not react to this update.`;
   }
   function browserVoicePrompts() {
     return [
       ...(window.CollectorLiveVoice?.promptTemplates?.() || []),
-      {id:"live-open-topics", label:"Update open topics", when:"Background capture sends a brief status update after the speaker pauses.", text:liveCoverageNote("{answer count}", "{open topics}")},
+      {id:"live-open-topics", label:"Update open topics", when:"Background capture sends a brief status update after the speaker pauses.", text:liveCoverageNote("{answer count}", "{open topics}", "{topics with no notes yet}")},
       {id:"live-no-open-topics", label:"Report no open topics", when:"The latest capture lists no open topics. The app still controls the final check.", text:liveCoverageNote("{answer count}", "")},
       {id:"live-file-withdrawn", label:"Withdraw a reference file", when:"A file is removed or parked during a live interview.", text:withdrawnFileNote("{file name}")}
     ];
@@ -4424,9 +4456,17 @@
       return !finding||!["captured","not_applicable"].includes(finding.status)||review?.complete===false||(review?.gaps||[]).length>0;
     });
     const listed=[...open];
-    const note=()=>liveCoverageNote(basis.length, listed.join(", ") + (listed.length<open.length?` (+${open.length-listed.length})`:""));
+    // Nothing in the notes at all. Said only once the account has reached the end of the work (the
+    // notes hold something on how it finishes), and never of a topic the walkthrough itself brings:
+    // in a live test the list was sent after the fourth answer, with "completion" first, and the
+    // interviewer asked how the work finishes twice while the participant was still mid-route.
+    const noted=topic=>{const finding=state.memo_findings.find(item=>item.key===topic);return Boolean(finding)&&finding.status!=="unknown";};
+    let untouched=open.filter(topic=>!noted(topic)&&!["trigger","lifecycle","completion","checks"].includes(topic));
+    if(!noted("completion")||!noted("lifecycle")||untouched.length>6)untouched=[];
+    const note=()=>liveCoverageNote(basis.length, listed.join(", ") + (listed.length<open.length?` (+${open.length-listed.length})`:""), untouched.join(", "));
     const bytes=value=>new TextEncoder().encode(value).length;
     while(bytes(note())>470&&listed.length>3)listed.pop();
+    if(bytes(note())>470)untouched=[];
     const content=note();
     const id=`coverage_${state.generation}_${++conversationUI.liveCoverageSequence}`;
     conversationUI.liveCoverageKey=key;
@@ -4530,6 +4570,7 @@
     const finalVoiceMap=liveMapEndRevision===revision;
     if(finalVoiceMap)liveMapEndRevision=null;
     conversationUI.flowBusy=true;conversationUI.flowAbort=new AbortController();
+    let retryQuietly=false;
     const flowAbort=conversationUI.flowAbort,abort=()=>flowAbort.abort();
     options.signal?.addEventListener("abort",abort,{once:true});if(options.signal?.aborted)abort();
     $("workflow-status").textContent=hasDocumentEvidence()?"Building and checking the documented workflow…":"Updating…";$("retry-workflow").hidden=true;$("retry-workflow").textContent="Try again";delete $("retry-workflow").dataset.coverageRecheck;
@@ -4541,16 +4582,47 @@
     try{
       // Workflow updates alone carry the last accepted capture. Detach it from
       // live state so later captions or memo edits cannot change this request.
-      const prior=conversationUI.workflow;
+      // A live map is shown as drawn and checked next. Until that check returns, the map on
+      // screen is not a checked one: the next request starts from the last map that was.
+      const liveMap=liveMemoryEnabled()&&(liveFrontActive()||finalVoiceMap)&&!options.documentIntake;
+      const drawFirst=liveMap&&state.config?.agent_team?.live_map_draw_first===true&&!hasDocumentEvidence();
+      const prior=conversationUI.drawnAhead?conversationUI.checkedWorkflow:conversationUI.workflow;
       captured.previous_capture=sendableCapture(clone({
         workflow:prior?{title:prior.title,steps:prior.steps,connections:prior.connections,open_questions:prior.open_questions}:
           {title:"",steps:[],connections:[],open_questions:[]},
         memo_findings:normalizeFindings(state.memo_findings,captured.turns),
         summary:text(state.summary,6000),focus:text(state.focus,500),parking_lot:strings(state.parking_lot,50)
       }));
-      if(liveMemoryEnabled()&&(liveFrontActive()||finalVoiceMap)&&!options.documentIntake)captured.live_map=true;
+      if(liveMap)captured.live_map=true;
       // Leave room for both the document update and its independent source audit.
-      const result=await request("/api/workflow",captured,{signal:conversationUI.flowAbort.signal,timeout:hasDocumentEvidence()||captured.document_source_ids?.length?requestTimeout("workflow_with_files",510000):requestTimeout("workflow",330000)});
+      const sending={signal:conversationUI.flowAbort.signal,timeout:hasDocumentEvidence()||captured.document_source_ids?.length?requestTimeout("workflow_with_files",510000):requestTimeout("workflow",330000)};
+      let result;
+      if(drawFirst){
+        const drawn=await request("/api/workflow",{...captured,draw_first:true},sending);
+        if(generation!==state.generation||options.signal?.aborted)return;
+        if(typeof drawn.check_token!=="string")result=drawn;
+        else{
+          if(conversationUI.applied>revision||finalVoiceMap&&revision!==conversationUI.revision)return;
+          if(!workflowEvidenceStillValid(captured))return;
+          applyLateWorkflow(drawn,captured,"working");conversationUI.drawnAhead=true;
+          // Answers that arrived while this map was drawn are drawn next, before any check: the
+          // map keeps up with the conversation. A check is never put off more than twice running.
+          if(revision!==conversationUI.revision&&liveFrontActive()&&conversationUI.checksPutOff<2){conversationUI.checksPutOff++;return true;}
+          conversationUI.checksPutOff=0;
+          try{result=await request("/api/workflow",{...captured,check_token:drawn.check_token},sending);}
+          catch(error){
+            if(generation!==state.generation||error.name==="AbortError")throw error;
+            // The map is on screen as drawn. Its check is tried once more by itself, quietly; after
+            // that the Workflow line offers the retry. Nothing is lost and nobody is interrupted.
+            const current=revision===conversationUI.revision;
+            if(current){
+              showMapStatus(mapProgress.basis===captureProgressMark().basis,"error");
+              if(!conversationUI.flowRetried){conversationUI.flowRetried=true;retryQuietly=true;$("retry-workflow").hidden=true;$("workflow-status").textContent="Updated through the latest answer · check pending";}
+            }
+            return false;
+          }
+        }
+      }else result=await request("/api/workflow",captured,sending);
       if(generation!==state.generation||options.signal?.aborted)return;
       if(conversationUI.applied>revision||finalVoiceMap&&revision!==conversationUI.revision)return;
       if(!workflowEvidenceStillValid(captured))return;
@@ -4577,7 +4649,10 @@
       // New participant evidence already revokes readiness when it arrives.
       if(options.documentIntake||pending&&memo)suppressWorkflowReadiness();else if(memo)announceReadiness();
       conversationUI.applied=revision;state.dirty=true;updateSaveHint();renderCoverage();updateControls();
-      conversationUI.flowErrorNotified=false;
+      conversationUI.flowErrorNotified=false;conversationUI.flowRetried=false;
+      // A map failure that a later update made good leaves the page with nothing to act on.
+      if($("interview-error")?.dataset?.errorKind==="map")$("interview-error").hidden=true;
+      if(noticeKind==="map"){clearTimeout(noticeTimer);noticeTimer=null;noticeRegion().hidden=true;}
       // The map of a spoken interview becomes current here: a wrapped-up account can get its head start.
       prepareDraftAhead();
       // A retry that succeeded for the current answers: the earlier map failure leaves Notes as well.
@@ -4594,15 +4669,29 @@
       return true;
     }catch(error){if(generation===state.generation&&error.name!=="AbortError"){
       if(options.documentIntake)throw error;
-      $("workflow-status").textContent="Couldn’t update. Your conversation is still here.";$("retry-workflow").hidden=false;
-      if(notesToo)mapNote("Couldn’t update. Try again in Workflow.","issue");
-      if(!conversationUI.flowErrorNotified){
-        conversationUI.flowErrorNotified=true;
-        notice((options.mapOnly?"The workflow could not update. Try again in Workflow.":"The diagram and notes haven’t updated. Your transcript and earlier notes are still here. Try again in Workflow.")+unsavedReminder(),true);
+      // One failed map update is not the participant's problem yet. Newer answers draw the map
+      // again anyway, and without them the same request is tried once more by itself. Measured
+      // on 2026-11-23: a map refused after 248 s raised a red banner, and the automatic retry
+      // then drew it. Only a second failure in a row asks the participant to do something.
+      const later=revision!==conversationUI.revision;
+      if((later||!conversationUI.flowRetried)&&!options.mapOnly&&!notesToo){
+        if(!later){conversationUI.flowRetried=true;retryQuietly=true;}
+        $("workflow-status").textContent="Updating…";
+      }else{
+        $("workflow-status").textContent="Couldn’t update. Your conversation is still here.";$("retry-workflow").hidden=false;
+        if(notesToo)mapNote("Couldn’t update. Try again in Workflow.","issue");
+        if(!conversationUI.flowErrorNotified){
+          conversationUI.flowErrorNotified=true;
+          // With the interview team this request carries the map alone: the notes have their own status.
+          notice((options.mapOnly?"The workflow could not update. Try again in Workflow.":notesToo?"The diagram and notes haven’t updated. Your transcript and earlier notes are still here. Try again in Workflow.":"The workflow map hasn’t updated. Your transcript and notes are still here. Try again in Workflow.")+unsavedReminder(),true,"map");
+        }
       }
     }}finally{
       options.signal?.removeEventListener("abort",abort);
-      if(generation===state.generation){conversationUI.flowBusy=false;conversationUI.flowAbort=null;renderAnalysisStatus();notifyIntakeWaiters();if(revision!==conversationUI.revision)scheduleWorkflow();knowledgeUI?.captureChanged?.();}
+      if(generation===state.generation){conversationUI.flowBusy=false;conversationUI.flowAbort=null;renderAnalysisStatus();notifyIntakeWaiters();
+        if(revision!==conversationUI.revision)scheduleWorkflow();
+        else if(retryQuietly){conversationUI.applied=Math.min(conversationUI.applied,revision-1);scheduleWorkflow();}
+        knowledgeUI?.captureChanged?.();}
     }
   }
   function workflowGapSummary(graph) {
@@ -4654,6 +4743,7 @@
   function publishWorkingMap(graph,response,turns,check=""){
     graph.route_assurance=check?[]:clone(response?.route_assurance||[]);
     conversationUI.workflowCheckPending=Boolean(check);
+    if(!check){conversationUI.drawnAhead=false;conversationUI.checkedWorkflow=clone({title:graph.title,steps:graph.steps,connections:graph.connections,open_questions:graph.open_questions});}
     const retry=$("retry-workflow");if(retry?.dataset.mapOnly){delete retry.dataset.mapOnly;retry.hidden=true;}
     const previous=conversationUI.workflow;
     if(typeof response?.question_limit_notice==="string")graph.question_limit_notice=text(response.question_limit_notice,800);
@@ -4689,7 +4779,7 @@
       }
       undo.onclick=()=>{
         if(!state.previousMap)return;
-        const previous=state.previousMap;state.previousMap=null;conversationUI.workflow=previous.graph;mapProgress=previous.progress;
+        const previous=state.previousMap;state.previousMap=null;conversationUI.workflow=previous.graph;conversationUI.drawnAhead=false;mapProgress=previous.progress;
         conversationUI.applied=-1;state.dirty=true;renderWorkingMap();updateControls();
         $("workflow-status").textContent="Previous map restored. The interview and draft are retained.";
       };
@@ -6432,17 +6522,24 @@
     const flight = draftInFlight = {};state.draftStartedAt=Date.now();
     // The draft reads the transcript as it stands: no caption check changes it now.
     if(captionChecks.size)dropCaptionChecks();
-    setBusy(true, draftAheadReady()?"Checking your draft against your answers · usually 1 to 2 minutes":"Building your draft · usually 2 to 5 minutes");renderDraftElapsed();
+    // A first half written for an earlier state of the map is finished rather than written again.
+    const asked=draftRequest(),ahead=draftAheadReady()?null:draftAheadRequest(asked);
+    setBusy(true, draftAheadReady()||ahead&&draftAhead.ready?"Checking your draft against your answers · usually 1 to 2 minutes":"Building your draft · usually 2 to 5 minutes");renderDraftElapsed();
     // The server gives the first half up with the draft it delivers: a later draft starts afresh.
-    draftAhead.ready="";draftAhead.body="";
+    draftAhead.ready="";draftAhead.body="";draftAhead.request=null;
     scrollConversation();
     try {
       // The server may take up to 300 s for the draft of a long interview, up to 540 s for its
       // source audit and 120 s for the coverage review; the rest is transport overhead.
-      const requestBody=draftRequest(),evidenceMark=JSON.stringify(draftEvidenceMark());
+      const requestBody=ahead||asked,evidenceMark=JSON.stringify(draftEvidenceMark());
+      const mapSent=JSON.stringify(requestBody.previous_capture?.workflow||null);
       const result = await request("/api/draft", requestBody, {timeout:requestTimeout("draft",1170000)});
       if(generation!==state.generation)return;
-      if(version!==state.version||evidenceMark!==JSON.stringify(draftEvidenceMark())||requestBody.map_review_revision!==draftRequest().map_review_revision){notice("The interview changed while the draft was being prepared. Create the draft again to include the latest details.",false,"draft",true);return;}
+      // Only the participant's account decides whether this draft is the one that was asked for.
+      // The workflow map is redrawn and checked in the background for minutes after the last answer;
+      // a draft discarded because that finished meanwhile cost the participant the whole wait twice.
+      if(version!==state.version||evidenceMark!==JSON.stringify(draftEvidenceMark())){notice("The interview changed while the draft was being prepared. Create the draft again to include the latest details.",false,"draft",true);return;}
+      const mapMoved=mapSent!==JSON.stringify(draftRequest().previous_capture?.workflow||null);
       const documentEvidence=mergeDocumentEvidence(result.document_evidence);
       const draft=normalizeDraft({...result.draft,generated_by:result.generated_by||result.draft?.generated_by},state.turns,documentEvidence);
       const followups=assessmentFollowups(currentCoverageAssessment()||result.coverage_assessment);
@@ -6476,8 +6573,9 @@
       // Under the open Submit dialog (modal) the page must not switch to Review and announce the draft
       // behind the backdrop: both happen when the dialog closes.
       const dialog=$("knowledge-submit");
-      if(dialog?.open)dialog.addEventListener("close",()=>{if(generation===state.generation&&state.draft){tab("review", true);notice(ready);}},{once:true});
-      else{tab("review", true);notice(ready);}
+      const announced=mapMoved?ready+" The workflow map was updated while the draft was written; choose Update draft if you want the draft rebuilt from it.":ready;
+      if(dialog?.open)dialog.addEventListener("close",()=>{if(generation===state.generation&&state.draft){tab("review", true);notice(announced);}},{once:true});
+      else{tab("review", true);notice(announced);}
     } catch (error) { if (generation === state.generation&&!intakeActive()&&error.name!=="AbortError") notice(error.message, true); }
     finally { if(draftInFlight===flight)draftInFlight=null; if (generation === state.generation) setBusy(false); renderDraftElapsed(); }
   }
@@ -6487,11 +6585,15 @@
     clearTimeout(draftClock);draftClock=null;
     const running=Boolean(draftInFlight&&state.draftStartedAt);
     const seconds=running?Math.max(0,Math.floor((Date.now()-state.draftStartedAt)/1000)):0;
+    const elapsed=Math.floor(seconds/60)+":"+String(seconds%60).padStart(2,"0");
     for(const id of ["thinking-elapsed","review-elapsed"]){
       const node=$(id);if(!node)continue;
       node.hidden=!running;
-      if(running)node.textContent=Math.floor(seconds/60)+":"+String(seconds%60).padStart(2,"0");
+      if(running)node.textContent=elapsed;
     }
+    // The Workspace panel has no status line of its own: its button says that the draft is being made.
+    const create=$("generate-draft");
+    if(create&&!state.draft)create.textContent=running?"Creating draft · "+elapsed:"Create draft";
     if(running)draftClock=setTimeout(renderDraftElapsed,1000);
   }
   // What the Submit dialog needs to know about draft requests: arrivals counts the drafts that Create
@@ -8254,7 +8356,7 @@
     conversationUI.live?.stop({immediate:true});
     clearTimeout(conversationUI.flowTimer);conversationUI.flowAbort?.abort();
     liveLeads.clear();liveAbsorbed.clear();
-    Object.assign(conversationUI,{workflow:null,workflowCheckPending:false,revision:0,applied:-1,flowBusy:false,flowTimer:null,flowAbort:null,flowErrorNotified:false,typing:false,status:"idle",readyAnnounced:false,captions:new Map(),pendingParticipantCaptions:new Set(),coverageCheckpoint:null,liveCoverageKey:null});
+    Object.assign(conversationUI,{workflow:null,checkedWorkflow:null,drawnAhead:false,checksPutOff:0,flowRetried:false,workflowCheckPending:false,revision:0,applied:-1,flowBusy:false,flowTimer:null,flowAbort:null,flowErrorNotified:false,typing:false,status:"idle",readyAnnounced:false,captions:new Map(),pendingParticipantCaptions:new Set(),coverageCheckpoint:null,liveCoverageKey:null});
     selectConversationView("voice");renderWorkingMap();
     if($("workflow-status"))$("workflow-status").textContent="";
     for(const id of ["retry-workflow","map-retry-layout"])if($(id)){$(id).hidden=true;$(id).disabled=false;delete $(id).dataset.layoutRetry;delete $(id).dataset.coverageRecheck;}if($("retry-workflow"))$("retry-workflow").textContent="Try again";
@@ -8452,7 +8554,7 @@
       if (typeof saved.voice_choice === "string" && saved.voice_choice.length <= 400 && /^(ai:[a-z]+|local:.+)$/.test(saved.voice_choice)) {
         state.voiceChoice=saved.voice_choice;state.voiceChoiceUser=true;populateVoiceOptions();
       }
-      conversationUI.workflow=workflow;
+      conversationUI.workflow=workflow;conversationUI.drawnAhead=false;conversationUI.checkedWorkflow=null;
       if(workflow)conversationUI.applied=conversationUI.revision;
       renderWorkingMap();
       notesProgress=savedCaptureProgress(saved.capture,turns,"notes");mapProgress=savedCaptureProgress(saved.capture,turns,"map");
@@ -8589,7 +8691,7 @@
     });
     state.coverageVerified=true;state.closure={asked:true,confirmed:true};state.parking_lot=[];
     state.draftEvidence = draftEvidenceMark();
-    conversationUI.workflow=clone(state.draft);notesProgress=mapProgress=captureProgressMark();renderWorkingMap();
+    conversationUI.workflow=clone(state.draft);conversationUI.drawnAhead=false;notesProgress=mapProgress=captureProgressMark();renderWorkingMap();
     $("workflow-status").textContent="Prepared fictional workflow.";
     state.dirty = false;
     renderTranscript(); renderDraft(); scrollConversation();

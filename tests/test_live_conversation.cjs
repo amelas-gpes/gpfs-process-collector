@@ -152,6 +152,9 @@ async function check(name,fn){await fn();passed++;console.log("PASS "+name);}
   };
   assert.match(await probe(true),/Still open: lifecycle, volume\./);
   assert.match(await probe(false),/Still open: lifecycle, checks, volume\./);
+  // The topic with nothing in the notes is named apart from those that only lack a detail (2026-11-23:
+  // owner and risks stayed untouched for thirteen answers among sixteen labels that all looked alike).
+  assert.match(await probe(false),/Still open: lifecycle, checks, volume\. Not raised yet: volume\. These are provisional coverage labels/);
  });
  await check("an approved pause closes local input immediately, even when its spoken line fails",async()=>{
    const {h,v}=await connected();h.route(()=>app.response(app.approved()));

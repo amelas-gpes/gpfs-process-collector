@@ -39,9 +39,9 @@ async function check(name,fn){
   const shown=headline(page);
   assert.equal(shown.count,"81%","Twelve captured and one not applicable");assert.equal(shown.pill,"81%","The Workspace button of the narrow layout shows the same figure");
   assert.equal(shown.arcOffset,"18.75");
-  assert.equal(shown.fraction,"13 of 16 topics captured");
+  assert.equal(shown.fraction,"13 of 16 topics captured · 1 partly covered","The topic that holds part of an answer is counted beside the figure, not in it");
   assert.equal(page.$("coverage-meter").getAttribute("role"),"progressbar");
-  assert.equal(shown.value,"81");assert.equal(shown.valueText,"13 of 16 topics captured (81%)");
+  assert.equal(shown.value,"81");assert.equal(shown.valueText,"13 of 16 topics captured · 1 partly covered (81%)");
   assert.deepEqual(withState(page,"captured"),KEYS.slice(0,12));assert.deepEqual(withState(page,"notApplicable"),["rules"]);
   assert.equal(shown.check,"","Nothing is marked as checked before the final check");
   assert.equal(shown.label,"Topic coverage");
@@ -68,6 +68,7 @@ async function check(name,fn){
   page.state.advisory.purpose={answer:"Recorded detail for purpose.",complete:false,gaps:["Clarify the result."]};
   page.t.renderCoverage();
   assert.equal(headline(page).count,"6%");assert.equal(withState(page,"covered").length,0);
+  assert.equal(headline(page).fraction,"1 of 16 topics captured · 13 partly covered","Thirteen topics with notes and a gap are not shown as nothing");
   assert.equal(label(page,"purpose"),"Needs detail");assert.match(topic(page,"purpose").title,/Clarify the result/);
   assert.equal(withState(page,"detail").length,14);
   assert.equal(label(page,"trigger"),"Needs detail");

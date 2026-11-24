@@ -31,6 +31,10 @@ MAP_AUDIT_SECONDS = 180
 MAP_AUDIT_WITH_FILES_SECONDS = 240
 BACKGROUND_MAP_GENERATION_SECONDS = 300
 BACKGROUND_MAP_AUDIT_SECONDS = 420
+# A live map the page shows as drawn waits this long for the request that checks it, and
+# this many of them are kept at once across interviews (the page asks at once; the rest is slack).
+LIVE_DRAW_KEPT_SECONDS = 600
+LIVE_DRAWS_KEPT = 16
 # Output allowance of the draw. A long first answer reached the earlier 12,000 tokens and the
 # map was thrown away. Time and allowance go together: at the measured 79 tokens a second,
 # 16,000 tokens take about 200 seconds, so the background limits above were raised with it
@@ -1924,6 +1928,55 @@ class Coordinator:
         job = _MapJob(self, payload)
         drawn = job.draw()
         return {"capture": job.publish(drawn["capture"], drawn_only=True), "update": drawn["update"]}
+
+    def _live_draw_account(self, payload):
+        """What a drawn map was drawn from. Its check is given for the same account and no other."""
+        body = json.dumps([payload.get("context"), payload.get("turns"), payload.get("previous_capture")],
+                          sort_keys=True, ensure_ascii=False, default=str)
+        return hashlib.sha256(body.encode("utf8")).hexdigest()
+
+    def workflow_live_draw(self, payload):
+        """The map of a spoken interview as soon as it is drawn; its source check follows on request.
+
+        In Live voice the page asked for a drawn and checked map in one request and showed
+        nothing until the check returned: measured on 2026-11-23, 12 to 62 s for the draw and
+        31 to 194 s for the check, so the map on screen was eight answers behind when a
+        thirteen-answer interview stopped. The page now shows the map as drawn, marked as
+        still being checked, and asks for the check with the returned check_token.
+
+        Only a transcript-only live map is drawn first. Any other request is drawn and
+        checked in one piece, as before, and returns no check_token. The drawn map is kept
+        here, never taken back from the browser: workflow_check's arguments stay the server's own.
+        """
+        api = self.api
+        if not (getattr(self.client, "interview_memory_enabled", True) and payload.get("live_map") is True
+                and not api.document_evidence_catalog(payload.get("_supporting_documents", {}))):
+            return self.workflow(payload)
+        capture = self.workflow_draw(payload)["capture"]
+        workflow = capture["workflow"]
+        drawn = copy.deepcopy({
+            "workflow": {key: workflow[key] for key in ("title", "steps", "connections", "open_questions")},
+            **{key: capture[key] for key in ("memo_findings", "summary", "focus", "parking_lot")}})
+        token = uuid.uuid4().hex
+        with self._lock:
+            now = time.monotonic()
+            kept = {key: row for key, row in getattr(self, "_live_draws", {}).items() if now - row[0] < LIVE_DRAW_KEPT_SECONDS}
+            while len(kept) >= LIVE_DRAWS_KEPT:
+                kept.pop(next(iter(kept)))
+            kept[token] = (now, self._live_draw_account(payload), drawn)
+            self._live_draws = kept
+        return {**capture, "check_token": token}
+
+    def workflow_live_check(self, payload):
+        """The source check of a map workflow_live_draw returned, for the same answers and baseline."""
+        token = payload.get("check_token")
+        with self._lock:
+            row = getattr(self, "_live_draws", {}).pop(token, None) if isinstance(token, str) else None
+        if (row is None or time.monotonic() - row[0] >= LIVE_DRAW_KEPT_SECONDS
+                or row[1] != self._live_draw_account(payload)):
+            raise self.api.APIError("This map can no longer be checked as it was drawn. It stays on screen as drawn; "
+                                    "the next workflow update checks it.", 409)
+        return self.workflow_check(payload, row[2])
 
     @provider_usage.track_generation
     def workflow_check(self, payload, drawn, corrections=()):

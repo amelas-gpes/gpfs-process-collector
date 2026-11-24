@@ -12,7 +12,7 @@ const context = {console, window:{}, document:{getElementById:()=>({value:""})},
   fetch:(url,options)=>{sent.push({url,options});return Promise.resolve({ok:true,json:()=>Promise.resolve({prepared:true})});},
   setTimeout:()=>0, clearTimeout:()=>{}, AbortController, encodeURIComponent, crypto:{randomUUID:()=>"00000000-0000-4000-8000-000000000000"}};
 const hook = `
-  window.roundTwoTest={state,conversationUI,reportFieldRows,transcriptionHints,prepareDraftAhead,draftAhead,draftAheadReady,armDraftAhead,
+  window.roundTwoTest={state,conversationUI,reportFieldRows,transcriptionHints,prepareDraftAhead,draftAhead,draftAheadReady,draftAheadRequest,draftRequest,armDraftAhead,
     receiveLiveCaption,isInterviewerLine,turnCaption,quiet(){renderTranscript=()=>{};scheduleWorkflow=()=>{};scheduleLiveCapture=()=>{};participantEvidenceChanged=()=>{};suppressWorkflowReadiness=()=>{};},
     stub(){snapshot=()=>({context:state.context,turns:state.turns});captureForFollowup=()=>({workflow:{steps:[]}});usageHeaders=()=>({"X-Interview-Id":"i"});}};
 })();`;
@@ -105,7 +105,7 @@ let checks = 0;
 // ---- The first half of a draft is started when the participant wraps up ----
 (async()=>{
   app.stub();
-  const turns=[{id:"t1",role:"assistant",text:"What starts it?"},{id:"t2",role:"user",text:"An invoice arrives."},{id:"t3",role:"assistant",text:"Your account so far is saved."}];
+  const turns=[{id:"t1",role:"assistant",text:"What starts it?"},{id:"t2",role:"user",text:"An invoice arrives."},{id:"t3",role:"assistant",text:"Your account so far is captured."}];
   const ready=()=>{app.state.config={draft_prepare:true,csrf_token:"token"};app.state.example=false;app.state.turns=turns;app.state.generation=7;
     app.conversationUI.live=null;app.conversationUI.applied=app.conversationUI.revision=3;
     Object.assign(app.draftAhead,{generation:7,turns:turns.length,body:"",flight:false,ready:""});sent.length=0;};
@@ -156,12 +156,30 @@ let checks = 0;
   assert.equal(sent.length,1,"A confirmed account gets its head start");
   app.state.closure={asked:false,confirmed:false};
   await new Promise(resolve=>setImmediate(resolve));await new Promise(resolve=>setImmediate(resolve));
-  assert.match(source,/draftAheadReady\(\)\?"Checking your draft against your answers · usually 1 to 2 minutes":"Building your draft · usually 2 to 5 minutes"/);
+  assert.match(source,/draftAheadReady\(\)\|\|ahead&&draftAhead\.ready\?"Checking your draft against your answers · usually 1 to 2 minutes":"Building your draft · usually 2 to 5 minutes"/);
+  // Create draft finishes a first half written for an earlier state of the map instead of writing another.
+  // On 2026-11-23 one interview paid for four first halves: the map was redrawn and checked after Wrap up,
+  // and each change made the half that was ready, or being written, count as another account.
+  ready();app.conversationUI.workflowCheckPending=true;app.prepareDraftAhead();
+  await new Promise(resolve=>setImmediate(resolve));await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(app.draftAheadReady(),true);
+  assert.equal(app.draftAheadRequest(app.draftRequest()).map_review_revision,"pending");
+  app.conversationUI.workflowCheckPending=false;
+  assert.equal(app.draftAheadReady(),false,"The map's check has returned since");
+  const finished=app.draftAheadRequest(app.draftRequest());
+  assert.ok(finished,"The first half is still the one for these answers, notes and files");
+  assert.equal(finished.map_review_revision,"pending","Sent as it was, so that the server hands over what it already wrote");
+  assert.equal(JSON.stringify({...finished,prepare_only:true}),sent[0].options.body);
+  app.state.turns=[...turns,{id:"t4",role:"user",text:"One more thing."}];
+  assert.equal(app.draftAheadRequest(app.draftRequest()),null,"Never for an account with another answer");
+  app.state.turns=turns;app.draftAhead.readyAt=Date.now()-16*60*1000;
+  assert.equal(app.draftAheadRequest(app.draftRequest()),null,"Nor once the server has stopped keeping it");
+  app.draftAhead.readyAt=Date.now();
   assert.match(source,/if\(replied&&generation===state\.generation\)armDraftAhead\(\);/,"Wrap up starts it");
   assert.match(source,/if\(state\.closure\?\.confirmed\)armDraftAhead\(\);/,"So does the answer to the final check");
   assert.match(source,/draftAhead\.ready="";draftAhead\.body="";/,"Create draft uses the first half up");
   assert.match(source,/if\(current\)prepareDraftAhead\(\);/,"So does the map catching up afterwards");
-  assert.match(source,/conversationUI\.flowErrorNotified=false;\s*\/\/ The map of a spoken interview becomes current here[^\n]*\n\s*prepareDraftAhead\(\);/,
+  assert.match(source,/\/\/ The map of a spoken interview becomes current here[^\n]*\n\s*prepareDraftAhead\(\);/,
     "And the map of a spoken interview, which is applied elsewhere");
   checks++;
   console.log(JSON.stringify({suite:"round-two page behaviour",passed:checks}));

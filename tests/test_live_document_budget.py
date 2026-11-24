@@ -256,7 +256,7 @@ class LiveDocumentBudgetTests(unittest.TestCase):
             self.assertIn(phrase, ' '.join(server.LIVE_DOCUMENT_POLICY.split()))
         self.assertIn(server.LIVE_DOCUMENT_POLICY, server.LIVE_BASE_INSTRUCTIONS)
         self.assertIn(server.LIVE_DOCUMENT_POLICY, server.LIVE_BACKEND_INSTRUCTIONS)
-        self.assertLess(len(server.LIVE_INSTRUCTIONS), 17000)
+        self.assertLess(len(server.LIVE_INSTRUCTIONS), 17100)
         _, top, delegated, block = self.start(live_payload(supporting))
         self.assertTrue(top.startswith(server.LIVE_INSTRUCTIONS + '\nPROCESS CONTEXT (UNTRUSTED JSON)\n'))
         untrusted = top[len(server.LIVE_INSTRUCTIONS):]

@@ -168,7 +168,7 @@ class CuriosityPolicyContractTests(unittest.TestCase):
         self.assertIn(server.QUESTION_SELECTION_POLICY, top)
         self.assertIn("participant keeps the floor", top)
         self.assertIn("Do not wait for background notes", top)
-        self.assertLess(len(server.LIVE_INSTRUCTIONS), 17000)
+        self.assertLess(len(server.LIVE_INSTRUCTIONS), 17100)
         self.assertIn(server.CURIOSITY_POLICY, delegated)
         self.assertNotIn("SERVER-OWNED INTERVIEW FOUNDATION", top)
         self.assertIn("SERVER-OWNED INTERVIEW FOUNDATION", delegated)

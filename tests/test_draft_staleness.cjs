@@ -220,6 +220,47 @@ await check("state.version still guards a draft request that is in flight",async
   assert.equal(h.t.state.busy,false);
 });
 
+// Measured on 2026-11-23 in two live interviews out of two: the server returned a complete draft after
+// 114 s and 169 s and the page discarded it with "The interview changed while the draft was being
+// prepared", because the workflow map it draws in the background had been redrawn or checked meanwhile.
+const workingMap=(...titles)=>({title:"Invoice intake",steps:titles.map((title,index)=>({id:"S"+(index+1),title,evidence_turns:["t002"]})),connections:[],open_questions:[]});
+await check("a workflow map redrawn while the draft is written does not discard the draft",async()=>{
+  const h=setup(),reply=deferred();let sent=null;
+  h.t.conversationUI.workflow=workingMap("Receive invoice");h.t.conversationUI.workflowCheckPending=true;
+  h.t.setRequest((pathName,body)=>{sent=body;return reply.promise;});
+  const pending=h.t.generateDraft();await flush();
+  assert.equal(sent.map_review_revision,"pending");
+  h.t.conversationUI.workflow=workingMap("Receive invoice","Register invoice");h.t.conversationUI.workflowCheckPending=false;
+  reply.resolve(h.draftReply());await pending;
+  assert.ok(h.t.state.draft,"The draft the participant waited for is shown");
+  assert.equal(h.stale(),false,"It holds every answer, so nothing marks it out of date");
+  assert.ok(!h.notices.some(row=>/interview changed while the draft/.test(row.message)));
+  assert.ok(h.notices.some(row=>/workflow map was updated while the draft was written; choose Update draft/.test(row.message)),"The newer map is mentioned once, with what to do about it");
+});
+
+await check("a map check that finishes without changing the map is not mentioned at all",async()=>{
+  const h=setup(),reply=deferred();
+  h.t.conversationUI.workflow=workingMap("Receive invoice");h.t.conversationUI.workflowCheckPending=true;
+  h.t.setRequest(()=>reply.promise);
+  const pending=h.t.generateDraft();await flush();
+  h.t.conversationUI.workflowCheckPending=false;
+  reply.resolve(h.draftReply());await pending;
+  assert.ok(h.t.state.draft);
+  assert.ok(!h.notices.some(row=>/workflow map was updated|interview changed/.test(row.message)));
+});
+
+await check("the Create draft button itself says that the draft is being made",async()=>{
+  const h=setup(),reply=deferred();
+  h.t.updateControls();assert.equal(h.node("generate-draft").textContent,"Create draft");
+  h.t.setRequest(()=>reply.promise);
+  const pending=h.t.generateDraft();await flush();
+  assert.match(h.node("generate-draft").textContent,/^Creating draft · \d+:\d\d$/,"The Workspace panel has no other status line");
+  h.t.updateControls();
+  assert.match(h.node("generate-draft").textContent,/^Creating draft · /,"A control refresh keeps it");
+  reply.resolve(h.draftReply());await pending;
+  h.t.updateControls();assert.equal(h.node("generate-draft").textContent,"Open draft");
+});
+
 // Reopening a saved interview (gap-uncommitted-diff-2). The committed 0.29.0 build flagged every
 // reopened draft and wrote draft_stale:true on the next save.
 const savedInterview=extra=>({schema_version:1,context:{process_name:"Invoice intake",objective:"Document the work"},

@@ -722,7 +722,7 @@ Once an exception, its fix
 and its reviewer are clear, return to an unresolved decision on the main route. Revisit that example
 only if the new detail changes the rule, handoff or evidence. After two questions on one
 specific, move on. If the question could be put to any process ("What happens next?", "Who is involved?")
-or an earlier answer already gives it, replace it. Open a new topic through something they described,
+or an earlier answer already gives it, replace it: ask what is compared there, or what happens when it fails. Open a new topic through something they described,
 never as a stock question. Never supply a fact they have not given.
 """
 
@@ -1165,10 +1165,10 @@ is recorded as unknown: never ask for it again, however worded.
 Avoid repeatedly confirming known facts before moving on. Give the participant
 space, then choose one useful question that changes what is known.
 Once they finish a substantive answer, end your response with one short practical
-question about a material remaining gap. After the route is understood, naturally
-explore other topics. Do not stop at "that gives me a clear picture" while gaps
-remain. Quiet listening cues while they hold the floor and an explicit request
-to pause or stop are exceptions; respect both.
+question about a material remaining gap. After the route is understood, prefer
+a topic the capture status lists as not raised yet. Do not stop at "that gives me
+a clear picture" while gaps remain. Quiet listening cues while they hold the floor
+and an explicit request to pause or stop are exceptions; respect both.
 """
 LIVE_INSTRUCTIONS = LIVE_TURN_POLICY + LIVE_BASE_INSTRUCTIONS + QUESTION_SELECTION_POLICY + LIVE_EXPERT_FOLLOW_UP
 LIVE_CONTEXT_HEADING = "\nPROCESS CONTEXT (UNTRUSTED JSON)\n"
@@ -2180,7 +2180,9 @@ FINAL_CHECK_PREFIX = "Before we finish, is there anything else"
 # What a wrap-up says first while sections are open. It used to read "This capture still has open
 # sections. 11 of 16 are open": a participant who had given thirteen full answers was told only
 # what was missing. The reply now says the account is kept and how far it reaches.
-PARTIAL_CHECK_PREFIX = "Your account so far is saved."
+# "Saved" read as a contradiction beside the header's "Unsaved · never saved", which is about the
+# file a participant keeps with Save copy. This sentence is about the notes.
+PARTIAL_CHECK_PREFIX = "Your account so far is captured."
 PARTIAL_CHECK_CLOSE = " You can create a draft from what is here, or keep answering."
 # A wrap-up names the open sections while they are few. Early in an interview most of the sixteen
 # are open: the reply then counts them, and the Notes list beside it shows which they are.
@@ -5469,6 +5471,8 @@ class OpenAIClient:
                            "interview_memory": self.interview_memory_enabled,
                            "voice_mode": "live_front" if self.voice_mode == "live" else "reviewed_turns",
                            "one_interviewer_voice": True, "review_mode": "on_completion",
+                           # The page may ask for a live map as drawn and for its check afterwards.
+                           "live_map_draw_first": True,
                            "stop_intent_patterns": list(STOP_INTENT_PATTERNS),
                            "stop_named_intent_patterns": list(STOP_NAMED_INTENT_PATTERNS),
                            "stop_sign_off_pattern": STOP_SIGN_OFF_PATTERN,
@@ -8048,7 +8052,16 @@ class Handler(BaseHTTPRequestHandler):
                 elif path == "/api/agent-team/review":
                     result = client.coordinator.review(payload)
                 elif path == "/api/agent-team/workflow":
-                    result = self._timed_workflow(client.coordinator.workflow, payload)
+                    # Live voice shows its map as drawn and asks for the source check next
+                    # (interview_orchestrator.workflow_live_draw). Every other request is one piece.
+                    coordinator = client.coordinator
+                    if payload.get("check_token") is not None and callable(getattr(coordinator, "workflow_live_check", None)):
+                        workflow = coordinator.workflow_live_check
+                    elif payload.get("draw_first") is True and callable(getattr(coordinator, "workflow_live_draw", None)):
+                        workflow = coordinator.workflow_live_draw
+                    else:
+                        workflow = coordinator.workflow
+                    result = self._timed_workflow(workflow, payload)
                 elif path == "/api/agent-team/coverage":
                     result = client.coordinator.advisory_coverage(payload)
                 elif path == "/api/interview":

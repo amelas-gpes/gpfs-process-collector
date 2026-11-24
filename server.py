@@ -2862,7 +2862,7 @@ def glossary_terms(configured, context):
     """The fund terms above first, the process name, then the configured keywords, each once. Terms from the
     participant's captions are left out: they may be the mishearings themselves."""
     name = " ".join(str((context or {}).get("process_name") or "").split())
-    # Listed only when it is a short plain term, as dictation hints are (server-side transcription_hints).
+    # Listed only when it is a short plain term, as transcription hints are (server-side transcription_hints).
     named = [name] if 2 <= len(name) <= 60 and re.fullmatch(r"\w[\w &./'’+-]*", name) else []
     terms, seen = [], set()
     for term in [*SPOKEN_FUND_TERMS, *named[:1], *(configured or ())]:
@@ -2905,7 +2905,7 @@ def caption_check_terms(configured, hints):
     keywords, never terms from the transcript (a caption, or another check's reading, may hold the
     mishearing). The page sends the process name as its only hint; its first hint is read as that name,
     under the glossary's own short-plain-term rule, and nothing else it sends is used. As many are sent as
-    dictation sends at most (MAX_TRANSCRIPTION_KEYWORDS), with no other limit: with the twelve fund terms and
+    a plain transcription takes at most (MAX_TRANSCRIPTION_KEYWORDS), with no other limit: with the twelve fund terms and
     a process name, the first seventeen configured keywords (eighteen without a process name)."""
     named = {"process_name": hints[0]} if hints else None
     return glossary_terms(configured, named)[:MAX_TRANSCRIPTION_KEYWORDS]
@@ -6593,7 +6593,7 @@ class OpenAIClient:
 
         glossary: a live caption check's terms (caption_check_terms), which are then the only hints, and
         which the result names, with their listed misheard forms (caption_check_misheard), so that the page
-        corrects only those terms. Without it, as dictation."""
+        corrects only those terms. Without it, a plain transcription."""
         if glossary is None:
             keywords = list(dict.fromkeys([*self.transcription_keywords, *hints]))[:MAX_TRANSCRIPTION_KEYWORDS]
         else:

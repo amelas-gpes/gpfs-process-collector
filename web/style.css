@@ -272,7 +272,7 @@ summary::-webkit-details-marker { display: none; }
 .section-eyebrow { color: var(--muted); font-family: var(--font-caps); font-size:var(--text-xs); font-weight: 500; letter-spacing: var(--track-section); line-height: 1.6; text-transform: uppercase; }
 
 /* ─── Icons: one stroke set, painted with currentColor through CSS masks ───── */
-[data-icon]::before, [data-icon-end]::after, .dialog-close::before, .documents-close::before, .remove-button::before {
+[data-icon]::before, [data-icon-end]::after, .dialog-close::before, .documents-close::before{
   content: "";
   flex: none;
   display: inline-block;
@@ -676,7 +676,7 @@ body:not(.interview-started) .presence-status { display: none; }
 .live-start::before { color: var(--gpfs-orange); }
 .live-controls[data-typing="true"] .live-start { background: var(--surface); border-color: var(--control-border); color: var(--ink); }
 .live-controls[data-typing="true"] .live-start:hover:not(:disabled) { background: var(--surface-2); }
-.live-start svg, .mic-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+.live-start svg{ width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
 #mute-live[aria-pressed="true"] { --icon: var(--i-mic-off); background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
 #mute-live[aria-pressed="true"]:hover:not(:disabled) { background: var(--primary-hover); }
 .stop-live { background: var(--surface); border-color: var(--control-border); color: var(--danger); }
@@ -697,7 +697,6 @@ body:not(.interview-started) .voice-stage > .conversation-dock { margin-bottom: 
 .speech-status { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 0 auto 10px; width: max-content; max-width: 100%; padding: 2px 6px 2px 14px; border-radius: var(--r-pill); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2); font-size:var(--text-sm); }
 #transcript-dock-host .speech-status { margin: 0 0 12px; }
 .pulse-dot { flex: none; width: 6px; height: 6px; margin-right: 16px; border-radius: 50%; background: var(--copper); animation: dots 1.2s infinite linear; }
-.recording-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); animation: live-ring 1.4s ease-out infinite; }
 .composer-area { width: min(100%, 780px); margin: 0 auto 12px; }
 /* The question being answered, repeated above the reply box where no transcript is on screen (Workflow view). */
 .dock-question { max-height: 6.2em; margin: 0 0 8px; padding: 2px 6px 2px 12px; overflow: auto; overflow-wrap: anywhere; border-left: 3px solid var(--gpfs-orange); color: var(--ink); font-size:var(--text-md); line-height: 1.45; }
@@ -711,12 +710,7 @@ body:not(.interview-started) .voice-stage > .conversation-dock { margin-bottom: 
 .composer-bottom { display: flex; align-items: center; gap: 6px; padding: 9px; }
 .composer-bottom .button { min-height: 40px; padding: 8px 16px 8px 14px; font-size:var(--text-sm); }
 .composer-hint { display: none; }
-.mic-button { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--muted); transition: background var(--dur-fast), color var(--dur-fast); }
-.mic-button:hover:not(:disabled) { background: var(--surface-3); color: var(--ink); }
-.mic-button span { display: none; }
-.mic-button.recording { background: var(--danger); color: var(--on-primary); animation: live-ring-danger 1.6s ease-out infinite; }
-.recording-status { display: flex; align-items: center; gap: 9px; padding: 4px 10px 8px; color: var(--ink-2); font-size:var(--text-sm); font-variant-numeric: tabular-nums; }
-.recording-status .text-button { margin-left: auto; }
+
 .field-limit { margin: 0 10px 8px; color: var(--danger); font-size:var(--text-sm); line-height: 1.45; }
 .settings-fields > .field-limit { margin: 5px 0 0; color: var(--danger); }
 .answer-composer:has(textarea[aria-invalid="true"]), .settings-fields textarea[aria-invalid="true"] { border-color: var(--danger); }
@@ -754,9 +748,7 @@ body:not(.interview-started) .voice-stage > .conversation-dock { margin-bottom: 
 .live-workflow .map-stage svg { display: block; width: 100%; height: auto; min-width: 420px; }
 #live-workflow.workflow-canvas { overflow: hidden; }
 #process-map.workflow-canvas { height: 60dvh; min-height: 340px; max-height: none; padding: 0; }
-#workflow-panel:not([data-has-steps="true"]) #workflow-mode,
-#interview-view:not(.workflow-expanded) #workflow-panel:not([data-has-steps="true"]) #workflow-expand,
-#interview-view:not(.workflow-expanded) #workflow-panel:has(#workflow-mode-walkthrough[aria-pressed="true"]) #workflow-expand { display: none; }
+#interview-view:not(.workflow-expanded) #workflow-panel:not([data-has-steps="true"]) #workflow-expand { display: none; }
 #interview-view.workflow-expanded { grid-template-columns: minmax(0,1fr); }
 .workflow-expanded #memo-host, .workflow-expanded .memo-toggle, .workflow-expanded .workspace-toolbar, .workflow-expanded .stage-toolbar { display: none; }
 /* The canvas draws portable SVG attributes; in-app CSS restyles them for the current theme. */
@@ -932,8 +924,7 @@ dialog.detail-panel {
 .detail-heading h2 { margin: 0; font: 600 clamp(22px, 2vw, 28px)/1.18 var(--font-serif); letter-spacing: -.024em; }
 .detail-kind { display: block; margin: 0 0 5px; font: 600 12px/1.4 var(--font); color: var(--muted); }
 .detail-header .dialog-close { width: 44px; height: 44px; background: var(--surface-2); }
-.step-art { flex: none; display: grid; place-items: center; align-self: center; width: 62px; aspect-ratio: 1; border-radius: var(--r-md); background: var(--warm-soft); }
-.step-art svg { width: 100%; height: 100%; }
+
 .detail-body { min-height: 0; padding: 22px 24px 26px; overflow: auto; overscroll-behavior: contain; overflow-wrap: anywhere; }
 /* Reading a cited passage: a centred reader in the inspector's language. */
 dialog.excerpt-dialog { inset: 0; width: min(660px, calc(100vw - 32px)); max-height: min(760px, calc(100dvh - 48px)); margin: auto; border: 1px solid var(--line); border-radius: var(--r-xl); box-shadow: var(--shadow-lg); }
@@ -953,7 +944,7 @@ dialog.excerpt-dialog { inset: 0; width: min(660px, calc(100vw - 32px)); max-hei
    or of the map's frame (Review, or an expanded or narrow live map). It is not modal:
    the interview and the map stay in view and in use, and selecting another item on the
    map updates it in place. In the Workspace the list recedes as the panel slides in. */
-.memo-rail, .workflow-diagram, .workflow-walkthrough, .ww-workspace { position: relative; }
+.memo-rail, .workflow-diagram{ position: relative; }
 .memo-rail:has(> .inspector[open]) { overflow: clip; }
 .memo-rail > :not(.inspector) { transition: opacity var(--dur) var(--ease-out), translate var(--dur-slow) var(--ease-out), visibility 0s; }
 .memo-rail:has(> .inspector[open]) > :not(.inspector) { opacity: 0; translate: -20px 0; visibility: hidden; transition: opacity var(--dur-fast) var(--ease-out), translate var(--dur-slow) var(--ease-out), visibility 0s var(--dur-slow); }
@@ -970,7 +961,7 @@ dialog.inspector[open] { display: flex; flex-direction: column; opacity: 1; tran
 /* While it fades out, a click goes to what is coming back beneath it. */
 dialog.inspector:not([open]) { pointer-events: none; }
 /* Docked in a map's frame: a panel along its right edge, the map still in use to its left. */
-:is(.workflow-diagram, .workflow-walkthrough, .ww-workspace) > dialog.inspector { inset: 0 0 0 auto; width: min(384px, 100%); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); }
+.workflow-diagram > dialog.inspector { inset: 0 0 0 auto; width: min(384px, 100%); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-md); }
 /* Where the frame is wide enough, the map makes room and the two sit side by side. */
 .workflow-diagram { container-type: inline-size; }
 @container (min-width: 880px) {
@@ -1000,7 +991,6 @@ dialog.inspector:not([open]) { pointer-events: none; }
 /* The title takes focus so a screen reader starts there; it is not a control, so no ring. */
 .inspector-header h2:focus, .inspector-header h2:focus-visible { outline: none; }
 .inspector-subtitle { margin: 6px 0 0; color: var(--muted); font-size: var(--text-sm); line-height: 1.45; }
-.inspector-header .step-art { width: 56px; align-self: flex-start; margin-top: 2px; border-radius: var(--r-md); }
 .inspector-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin-top: -10px; }
 
 .topic-dialog-status { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: var(--r-sm); background: var(--surface-2); color: var(--ink-2); font-size: var(--text-sm); font-weight: 600; line-height: 1.45; }
@@ -1105,7 +1095,7 @@ dialog.inspector:not([open]) { pointer-events: none; }
 .memo-sheet .inspector-body.detail-body { padding: 12px 20px max(24px, env(safe-area-inset-bottom)); }
 @media (max-width:760px) {
   .inspector-body.detail-body { padding-inline: 20px; }
-  :is(.workflow-diagram, .workflow-walkthrough, .ww-workspace) > dialog.inspector { width: 100%; border-left: 0; border-radius: var(--r-lg); }
+  .workflow-diagram > dialog.inspector { width: 100%; border-left: 0; border-radius: var(--r-lg); }
 }
 /* A section the coverage review rewrote: the notice and the wording it replaced. */
 .repair-note { margin-top: 14px; padding: 12px 14px; border-radius: var(--r-md); background: var(--amber-soft); color: var(--ink-2); font-size:var(--text-md); line-height: 1.5; }
@@ -1140,7 +1130,6 @@ dialog.inspector:not([open]) { pointer-events: none; }
   .detail-header { gap: 10px; padding: 16px; }
   .detail-body { padding: 16px 18px max(18px, env(safe-area-inset-bottom)); }
   .detail-panel .evidence-link { min-height: 44px; }
-  .step-art { width: 46px; }
   .step-flow-fields > div { grid-template-columns: minmax(68px, 22%) minmax(0,1fr); }
 }
 .workflow-fallback { padding: 18px; overflow: auto; }
@@ -1175,7 +1164,6 @@ dialog.inspector:not([open]) { pointer-events: none; }
 .review-card:focus-visible { outline-offset: 4px; }
 .card-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .card-heading h2 { margin: 0; font-size: 28px; }
-.map-help { margin: 12px 0 0; color: var(--muted); font-size:var(--text-md); line-height: 1.65; }
 .map-container { min-height: 390px; max-height: 70dvh; padding: 22px; overflow: auto; border: 1px solid var(--line); border-radius: var(--r-lg); background: radial-gradient(var(--grid-dot) .9px, transparent .9px) 0 0 / 20px 20px, var(--bg-tint); }
 .map-stage { margin: 0 auto; }
 .map-stage > svg { display: block; min-width: 0; width: 100%; height: auto; }
@@ -1218,39 +1206,20 @@ dialog.inspector:not([open]) { pointer-events: none; }
 .memo-finding-header label { margin: 0; color: var(--muted); font-size:var(--text-sm); }
 .memo-finding-header select { width: 170px; padding: 6px 30px 6px 10px; font-size:var(--text-sm); }
 .memo-finding textarea { font-size:var(--text-md); line-height: 1.7; }
-.draft-fields { max-width: 1050px; margin-top: 22px; }
-.io-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.steps-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin: 28px 0 14px; padding-top: 22px; border-top: 1px solid var(--line); }
-.steps-heading h3 { margin: 0; font-size:var(--text-subhead); }
-.procedure-steps { display: grid; gap: 12px; counter-reset: step; }
-.procedure-step { padding: 18px 20px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); transition: border-color var(--dur-fast), box-shadow var(--dur); }
-.procedure-step:focus-within { border-color: var(--accent-line); box-shadow: var(--shadow-sm); }
-.step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-.step-id { flex: none; padding: 3px 9px; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent-strong); font-size:var(--text-xs); font-weight: 700; font-variant-numeric: tabular-nums; }
-.step-header input { min-width: 0; padding: 4px 8px; border-color: transparent; background: transparent; font-size:var(--text-lg); font-weight: 650; }
-.step-header input:hover { background: var(--surface-2); border-color: transparent; }
-.remove-button { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px 6px 8px; border: 0; border-radius: var(--r-pill); background: none; color: var(--muted); font-size:var(--text-sm); font-weight: 550; white-space: nowrap; --icon: var(--i-trash); --icon-size: 15px; transition: color var(--dur-fast), background var(--dur-fast); }
-.remove-button:hover { background: var(--danger-soft); color: var(--danger); }
-.connection-row .remove-button { width: 34px; height: 34px; justify-content: center; padding: 0; font-size: 0; --icon: var(--i-x); --icon-size: 17px; }
-.step-properties { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-.step-properties label { margin: 0; color: var(--muted); font-size:var(--text-sm); }
-.step-properties input, .step-properties select { margin-top: 6px; padding: 8px 10px; font-size:var(--text-md); }
+
 .step-description { margin-top: 14px; font-size:var(--text-md); line-height: 1.7; }
-.step-extra, .connections-editor { margin-top: 14px; }
-.step-extra > summary, .connections-editor > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; color: var(--ink-2); font-size:var(--text-sm); font-weight: 600; }
-.step-extra > summary::after, .connections-editor > summary::after { content: ""; width: 17px; height: 17px; background: var(--muted); -webkit-mask: var(--i-chevron-down) center/contain no-repeat; mask: var(--i-chevron-down) center/contain no-repeat; transition: rotate var(--dur) var(--ease-out); }
-:is(.step-extra, .connections-editor)[open] > summary::after { rotate: 180deg; }
+.step-extra{ margin-top: 14px; }
+.step-extra > summary{ display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; color: var(--ink-2); font-size:var(--text-sm); font-weight: 600; }
+.step-extra > summary::after{ content: ""; width: 17px; height: 17px; background: var(--muted); -webkit-mask: var(--i-chevron-down) center/contain no-repeat; mask: var(--i-chevron-down) center/contain no-repeat; transition: rotate var(--dur) var(--ease-out); }
+.step-extra[open] > summary::after { rotate: 180deg; }
 .step-extra label { margin-top: 12px; color: var(--muted); font-size:var(--text-sm); }
 .step-extra textarea, .step-extra input { margin-top: 6px; font-size:var(--text-md); }
 .evidence-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 12px; color: var(--muted); font-size:var(--text-sm); }
 .evidence-link { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border: 1px solid var(--accent-line); border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent-strong); font-size:var(--text-xs); font-weight: 600; font-variant-numeric: tabular-nums; transition: background var(--dur-fast); }
 .evidence-link:hover { background: var(--accent-soft-2); }
 .needs-evidence { color: var(--amber); font-weight: 600; }
-.connections-editor { margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--line); }
-.connection-row { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: 4px 12px; margin: 0; padding: 12px 0; border-bottom: 1px solid var(--line); }
-.connection-description { display: grid; gap: 2px; overflow-wrap: anywhere; }
-.connection-description span { color: var(--muted); font-size:var(--text-md); }
-.connection-dialog, .voice-start-dialog { width: min(480px,calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow: auto; padding: 22px; border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--shadow-lg); }
+
+.voice-start-dialog { width: min(480px,calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow: auto; padding: 22px; border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--shadow-lg); }
 .voice-start-dialog { --inset: clamp(22px, 5vw, 32px); width: min(490px, calc(100vw - 28px)); padding: 0; }
 .voice-start-intro { position: relative; padding: 26px var(--inset) 24px; }
 .voice-start-intro .dialog-close { position: absolute; top: 14px; right: 14px; background: transparent; }
@@ -1268,17 +1237,7 @@ dialog.inspector:not([open]) { pointer-events: none; }
   .voice-start-actions { flex-direction: column; align-items: stretch; gap: 2px; padding-block: 14px 8px; }
   .voice-start-actions .text-button { justify-content: center; }
 }
-.connection-dialog h2 { margin: 0 0 14px; }
-.connection-dialog #connection-source-choice { display: flex; align-items: baseline; gap: 8px; }
-.connection-dialog-actions { display: flex; justify-content: end; gap: 10px; margin-top: 20px; }
-#connection-error { margin: 12px 0 0; color: var(--danger); }
-.connection-evidence { grid-column: 1/-1; margin-top: 0; margin-bottom: 8px; }
-.detail-item { margin-top: 16px; padding: 20px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); }
-.detail-item-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
-.detail-item-head h3 { margin: 0; }
-.detail-item label { margin-top: 14px; color: var(--muted); font-size:var(--text-sm); }
-.detail-item input, .detail-item textarea, .detail-item select { margin-top: 6px; font-size:var(--text-md); }
-.detail-two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+
 .notes-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 24px; }
 .notes-columns textarea { font-size:var(--text-md); line-height: 1.7; }
 .review-guidance { display: flex; gap: 10px; margin-top: 24px; padding: 14px 16px; border-radius: var(--r-md); background: var(--surface-2); color: var(--ink-2); font-size:var(--text-sm); }
@@ -1457,10 +1416,8 @@ dialog.inspector:not([open]) { pointer-events: none; }
   .review-tabs [role="tab"] { flex: 1 0 auto; min-height: 44px; padding: 5px 9px; font-size:var(--text-md); }
   .review-card { padding: 18px; border-radius: var(--r-lg); }
   .card-heading h2 { font-size: 23px; }
-  .io-grid, .notes-columns, .detail-two-columns { grid-template-columns: 1fr; }
-  .step-properties { grid-template-columns: 1fr 1fr; }
-  .step-properties > :last-child { grid-column: 1/-1; }
-  .connection-row .connection-evidence { grid-column: 1/-1; }
+  .notes-columns{ grid-template-columns: 1fr; }
+
   .memo-status { max-width: 110px; white-space: normal; text-align: center; }
   .example-banner { padding: 3px 12px; }
   .example-explanation { display: none; }
@@ -1671,8 +1628,7 @@ dialog.inspector:not([open]) { pointer-events: none; }
 #transcript-dock-host .reply-label { display: block; margin: 0; padding: 13px 16px 0; font-size:var(--text-xs); font-weight: 600; color: var(--ink-2); }
 #transcript-dock-host .answer-composer textarea { width: 100%; min-height: 66px; height: auto; max-height: 210px; padding: 8px 16px 12px; flex: none; font-size:var(--text-body); }
 #transcript-dock-host .composer-bottom { width: 100%; padding: 0 10px 10px; gap: 12px; }
-#transcript-dock-host .mic-button { display: inline-flex; justify-content: center; gap: 6px; width: auto; padding: 0 7px; font-size:var(--text-sm); }
-#transcript-dock-host .mic-button span { display: inline; }
+
 #transcript-dock-host .composer-hint { display: block; margin-left: auto; color: var(--muted); font-size:var(--text-xs); }
 #transcript-dock-host #send-answer { margin-left: auto; min-height: 36px; padding: 6px 14px; font-family: var(--font); font-size:var(--text-sm); font-weight: 600; letter-spacing: 0; text-transform: none; }
 #transcript-dock-host .composer-hint + #send-answer { margin-left: 0; }
@@ -1716,7 +1672,7 @@ dialog.inspector:not([open]) { pointer-events: none; }
   #transcript-dock-host .answer-composer textarea { font-size:var(--text-lg); }
   #transcript-dock-host .composer-hint { display: none; }
   #transcript-dock-host .composer-hint + #send-answer { margin-left: auto; }
-  #transcript-dock-host .live-controls .button, #transcript-dock-host .dock-secondary .text-button, #transcript-dock-host .mic-button, #transcript-dock-host #send-answer { min-height: 44px; }
+  #transcript-dock-host .live-controls .button, #transcript-dock-host .dock-secondary .text-button, #transcript-dock-host #send-answer { min-height: 44px; }
 }
 @media (max-height:500px) {
   .transcript-tools { padding-top: 0; }
@@ -1736,17 +1692,16 @@ dialog.inspector:not([open]) { pointer-events: none; }
   #coverage-meter svg { forced-color-adjust: none; }
   .coverage-ring-track { stroke: GrayText; }
   #coverage-progress { stroke: Highlight; }
-  :is(.review-tabs,.conversation-switch,.memo-tabs) [aria-selected="true"], .nav-tab.active,
-  .workflow-mode-switch [aria-pressed="true"] { forced-color-adjust:none; background:Highlight; color:HighlightText; }
+  :is(.review-tabs,.conversation-switch,.memo-tabs) [aria-selected="true"], .nav-tab.active{ forced-color-adjust:none; background:Highlight; color:HighlightText; }
   :is(input,textarea,select,button,summary):focus-visible, .answer-composer:focus-within { outline:2px solid Highlight !important; outline-offset:2px; }
   /* Mask icons are painted backgrounds. Keep their ink in the system palette
      instead of letting forced colors replace it with the canvas background. */
   [data-icon]::before, [data-icon-end]::after, .dialog-close::before,
-  .documents-close::before, .remove-button::before, .notice::before,
+  .documents-close::before, .notice::before,
   .notice button::before, .example-banner > span::before, .play-turn::before,
   .workflow-gaps::before,
   .draft-pill::before, .memo-finding-summary::after,
-  .step-extra > summary::after, .connections-editor > summary::after,
+  .step-extra > summary::after,
   .review-guidance::before, .inline-error::before, .reading-search::before,
   .document-chip::before, .documents-add::before {
     forced-color-adjust: none;
@@ -1769,109 +1724,7 @@ dialog.inspector:not([open]) { pointer-events: none; }
 #document-evidence-title { min-width:0; overflow-wrap:anywhere; font-size:var(--text-heading); }
 #coverage-summary { min-width:0; }
 
-/* Walkthrough, theater and component studies share the same gallery surfaces. */
-@media screen {
-  :root[data-theme="dark"] {
-    .ww-shell {
-      --ww-ink: var(--ink);
-      --ww-dim: var(--muted);
-      --ww-accent: var(--copper);
-      --ww-line: var(--line);
-    }
-    .cl-dialog {
-      --cl-ink: var(--ink);
-      --cl-muted: var(--muted);
-      --cl-line: var(--line);
-      --cl-paper: var(--surface);
-    }
-    :is(.ww-shell, .cl-dialog, .workflow-stage) { color-scheme: dark; }
-    :is(.ww-shell, .ww-theater, .cl-dialog) {
-      color: var(--ink);
-      background: var(--surface);
-      border-color: var(--line);
-    }
-    :is(.cl-dialog, .ww-theater)[open]::backdrop { background: var(--scrim); }
-    :is(.ww-inspector, .ww-theater) { scrollbar-color: var(--line-strong) transparent; }
-    :is(.ww-head, .ww-inspector, .cl-detail) { background: var(--surface); border-color: var(--line); }
-    :is(.ww-navigation, .cl-toolbar) { background: var(--bg-tint); }
-    :is(.ww-picker, .cl-toolbar input, .cl-toolbar select, .cl-actions button) {
-      color: var(--ink);
-      background-color: var(--surface-2);
-      border-color: var(--line-strong);
-    }
-    :is(.ww-picker, .cl-toolbar select) {
-      background-image: var(--chevron);
-      background-repeat: no-repeat;
-      background-position: right 8px center;
-      background-size: 16px;
-      padding-right: 30px;
-    }
-    .ww-control { color: var(--ink); }
-    .cl-header .dialog-close { color: var(--ink); background: var(--surface-3); }
-    .workflow-mode-switch button[data-mode="walkthrough"][aria-pressed="true"],
-    .cl-actions button:first-child {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: var(--on-primary);
-    }
-    :is(.ww-control[aria-pressed="true"], .ww-inspector .evidence-link) {
-      background: var(--warm-soft);
-      border-color: var(--taupe);
-      color: var(--copper);
-    }
-    .ww-inspector > .ww-control { border-color: var(--line-strong); }
-    .ww-control:hover:enabled, .ww-link:hover {
-      background: var(--surface-3);
-      border-color: var(--line-strong);
-      color: var(--ink);
-    }
-    .ww-workspace { background: var(--bg); }
-    .ww-message { background: var(--amber-soft); color: var(--amber); }
-    .ww-fields dt { color: var(--muted); }
-    :is(.ww-label, .cl-eyebrow) { color: var(--taupe); }
-    .ww-description { color: var(--ink-2); }
-    .ww-design-link { color: var(--copper); }
-    .cl-tile { background: var(--surface-2); border-color: var(--line); }
-    .cl-tile:hover { background: var(--surface-3); border-color: var(--taupe); }
-    .cl-tile[aria-pressed="true"] {
-      background: var(--warm-soft);
-      border-color: var(--copper);
-      box-shadow: inset 0 -2px 0 var(--copper);
-    }
-    .cl-dialog :is(button, input, select):focus-visible,
-    .workflow-stage .ws-scene:focus-visible { outline-color: var(--focus); }
-    :is(.cl-study, .ww-art-study) {
-      background: radial-gradient(ellipse at 48% 35%, #484340, #333334 50%, var(--surface) 100%);
-      border-color: var(--line);
-    }
-    .workflow-stage {
-      background-color: var(--bg);
-      background-image:
-        radial-gradient(ellipse at 48% 18%, #b9a38314, transparent 68%),
-        linear-gradient(150deg, transparent 48.4%, #d4be9e12 49.5%, transparent 51%),
-        linear-gradient(30deg, transparent 48.4%, #d4be9e12 49.5%, transparent 51%),
-        linear-gradient(165deg, #282a2c, var(--bg) 70%);
-    }
-    .ws-tile-rim { fill: var(--line); stroke: var(--line-strong); }
-    .ws-tile { fill: var(--surface-2); stroke: var(--line-strong); }
-    :is(.ws-node-name, .ws-route-label text) { fill: var(--ink); }
-    .ws-road-bed { stroke: var(--bg); }
-    .ws-road { stroke: color-mix(in srgb, var(--ws-route-color, var(--accent)) 45%, var(--ink)); }
-    .ws-route-label rect { fill: var(--surface); stroke: var(--line-strong); }
-    .ws-node[data-emphasis="related"] .ws-tile,
-    .ws-edge[data-emphasis="related"] .ws-road { stroke: var(--accent); }
-    .ws-node:is(:hover, :focus-visible, [data-emphasis="selected"]) .ws-tile,
-    .ws-edge:is(:hover, :focus-visible, [data-emphasis="selected"]) .ws-route-label rect {
-      fill: var(--warm-soft);
-      stroke: var(--copper);
-    }
-    .ws-edge:is(:hover, :focus-visible, [data-emphasis="selected"]) .ws-road { stroke: var(--copper); }
-    .ws-edge:is(:hover, :focus-visible, [data-emphasis="selected"]) .ws-route-label text { fill: var(--ink); }
-  }
-}
-
 .conversation-switch [aria-selected="true"] { box-shadow:inset 0 -3px var(--primary); }
-:is(.ww-picker,.cl-toolbar select) { background-image:var(--chevron); background-repeat:no-repeat; background-position:right 8px center; background-size:16px; padding-right:30px; }
 .notice { pointer-events:none; }
 .notice button { pointer-events:auto; }
 @media (min-width:761px) and (max-width:1100px) {
@@ -1879,20 +1732,10 @@ dialog.inspector:not([open]) { pointer-events: none; }
   .workspace-toolbar .setup-card { flex:1 1 100%; }
 }
 @media (max-width:760px) and (min-height:501px) {
-  :is(.button.small,.text-button,.remove-button,.jump-latest,.notice button,.workflow-mode-switch button,
-  #workflow-expand,.step-extra summary,.connections-editor summary,.step-header input,#process-name,
-  .dialog-close,#add-lifecycle,#add-variation,.ww-picker,.ww-control,.brand) { min-height:44px; }
-  :is(.transcript-find button,#workflow-expand,.notice button,.dialog-close,.ww-control) { min-width:44px; }
-}
-@media (max-width:560px) {
-  .step-header { flex-wrap:wrap; }
-  .step-header input { flex:1 0 100%; order:1; text-overflow:ellipsis; }
-  .step-properties { grid-template-columns:minmax(0,1fr); }
-}
-@media (hover:none) {
-  .step-header input { border-color:var(--control-border); }
-}
-@media (min-width:600px) and (max-height:500px) {
+  :is(.button.small,.text-button,.jump-latest,.notice button,#workflow-expand,.step-extra summary,#process-name,
+  .dialog-close,.brand) { min-height:44px; }
+  :is(.transcript-find button,#workflow-expand,.notice button,.dialog-close) { min-width:44px; }
+}@media (min-width:600px) and (max-height:500px) {
   .interview-layout .workspace-toolbar { display:flex; flex-wrap:nowrap; min-height:44px; padding:2px 12px; }
   .workspace-toolbar .toolbar-end { width:auto; grid-column:auto; }
   .toolbar-end .conversation-switch { width:auto; }
@@ -1909,7 +1752,7 @@ dialog.inspector:not([open]) { pointer-events: none; }
   #transcript-panel .jump-latest { left:auto; right:6px; bottom:5px; translate:none; }
 }
 
-:is(.turn-text,.documents-summary,.report-document p,.ww-description) { unicode-bidi: plaintext; }
+:is(.turn-text,.documents-summary,.report-document p) { unicode-bidi: plaintext; }
 
 #printed-workflow { display:none; }
 /* More formats: a menu button beside Download report. Its panel floats, so opening it never moves the heading. */
@@ -1937,8 +1780,7 @@ dialog.inspector:not([open]) { pointer-events: none; }
   #review-map, .report-more-exports { display:none!important; }
 }
 
-:is(.ww-picker,.cl-toolbar select) { background-image:var(--chevron); background-repeat:no-repeat; background-position:right 8px center; background-size:16px; padding-right:30px; }
-:where(.workflow-mode-switch,.segmented,.review-tabs,.memo-tabs) button:is([aria-selected="true"],[aria-pressed="true"]) { box-shadow:inset 0 -3px var(--accent-strong); }
+:where(.review-tabs,.memo-tabs) button:is([aria-selected="true"],[aria-pressed="true"]) { box-shadow:inset 0 -3px var(--accent-strong); }
 .header-actions .save-hint { background:transparent; border:0; cursor:pointer; text-decoration:underline; text-underline-offset:.18em; }
 
 :root { --text-xs:12px; --text-sm:13px; --text-md:14px; --text-body:15px; --text-lg:16px; --text-subhead:18px; --text-heading:20px; }

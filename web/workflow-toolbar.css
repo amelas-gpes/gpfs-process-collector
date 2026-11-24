@@ -48,8 +48,8 @@
   #workflow-panel .workflow-update:has(#retry-workflow[hidden]) { order:2; }
 }
 @media (max-height:700px) and (max-width:760px), (max-height:500px) {
-  /* Live, recording, typing and recovery controls keep their place during an interview. */
-  #interview-view:has(#workflow-panel:not([hidden])) #conversation-dock-host:has(#thinking[hidden]):has(#speech-status[hidden]):has(#composer-area[hidden]):has(#stop-live[hidden]):has(#recording-status[hidden]):has(#retry-question[hidden]):has(#skip-question[hidden]) { display:none; }
+  /* Live and typing controls keep their place during an interview. */
+  #interview-view:has(#workflow-panel:not([hidden])) #conversation-dock-host:has(#thinking[hidden]):has(#speech-status[hidden]):has(#composer-area[hidden]):has(#stop-live[hidden]):has(#retry-question[hidden]):has(#skip-question[hidden]) { display:none; }
 }
 @media print { .workflow-mode-bar { display:none !important; } }
 /* Phone layout review, 2026-11-24: on a narrow phone Map tools keeps its sliders icon; the words are hidden. */

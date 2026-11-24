@@ -2510,7 +2510,7 @@ PARSER_TIME_MESSAGES = {'pdf': PDF_BUDGET_MESSAGE, 'xlsx': WORKBOOK_TIME_MESSAGE
                         'csv': 'This CSV took too long to read. Split it into smaller files and add those.',
                         'png': 'This image took too long to read. Export a smaller copy as PNG and add that.'}
 # The process loads this file by its path. Python starts isolated (-I), which puts neither the
-# app's folder nor the working directory on sys.path, in a checkout and a desktop release alike.
+# app's folder nor the working directory on sys.path, in a checkout and a packaged release alike.
 _PARSER_BOOT = ('import importlib.util, sys\n'
                 "spec = importlib.util.spec_from_file_location('documents', sys.argv[1])\n"
                 'module = importlib.util.module_from_spec(spec)\n'
@@ -2640,7 +2640,7 @@ def _parse_apart(path, record, slots, diagnose, readers=None, *, page_number=Non
         return None  # This Python is part of another program and cannot be started on its own.
     readers = readers or _Readers()
     command = [sys.executable, '-I', '-B', '-c', _PARSER_BOOT, os.fspath(_long_path(Path(__file__).resolve()))]
-    # The reader process looks for packages where this process does: a desktop release, a launcher
+    # The reader process looks for packages where this process does: a packaged release, a launcher
     # or a Python started without -I can have put them on sys.path.
     request = _line({'path': os.fspath(path), 'record': record, 'page_number': page_number,
                      'sys_path': [entry for entry in sys.path if isinstance(entry, str)]})

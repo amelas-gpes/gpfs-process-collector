@@ -19,7 +19,6 @@ from test_server import server
 
 class ValidatingClient:
     """Not an OpenAIClient: no key and no network."""
-    voice_mode = "reviewed"
 
     def __init__(self):
         self.coordinator = types.SimpleNamespace(review=self._ok, interview=self._ok, workflow=self._ok,

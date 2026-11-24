@@ -86,15 +86,13 @@ class VoiceSessionTests(unittest.TestCase):
         self.assertNotIn(EPHEMERAL_SENTINEL.encode(), raw)
         self.client.request.assert_not_called()
 
-    def test_microphone_notice_matches_the_configured_transport(self):
-        for mode, expected, other in (
-            ("live", "until you mute or stop", "waits for a pause"),
-            ("reviewed", "waits for a pause", "streams microphone audio"),
-        ):
-            with self.subTest(mode=mode):
-                config = server.OpenAIClient({"VOICE_MODE": mode}).public_config()
-                self.assertIn(expected, config["data_notice"])
-                self.assertNotIn(other, config["data_notice"])
+    def test_microphone_notice_describes_live_voice(self):
+        for settings in ({}, {"VOICE_MODE": "live"}):
+            with self.subTest(settings=settings):
+                config = server.OpenAIClient(settings).public_config()
+                self.assertIn("streams microphone audio", config["data_notice"])
+                self.assertIn("until you mute or stop", config["data_notice"])
+                self.assertNotIn("waits for a pause", config["data_notice"])
 
     def test_config_disables_natural_voices_without_a_project_key(self):
         with patch.object(self.client, "key", ""):

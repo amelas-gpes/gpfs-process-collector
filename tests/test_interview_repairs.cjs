@@ -31,15 +31,5 @@ await check('unsupported discussion metadata does not manufacture progress',asyn
  h.t.rememberDiscussion({topic_discussion:[{key:'risks',discussed:true,evidence_turns:['made-up']}]},h.t.snapshot());h.t.renderCoverage();
  assert.equal(discussed(h),0);assert.equal(h.node('coverage-list').children.length,16);
 });
-await check('no speech keeps listening and exposes retained recording retry',async()=>{
- const h=setup();h.t.state.turns=[{id:'a1',role:'assistant',text:'What happens next?'}];
- h.route(()=>response({text:''}));await h.t.startLiveConversation();await h.say();
- const live=h.t.conversationUI.live;assert.equal(live.active,true);assert.equal(live.status,'listening');assert.equal(live.hasPendingAudio,true);
- assert.equal(h.node('retry-transcription').hidden,false);assert.match(h.notices.at(-1).message,/No speech was recognized/);
- assert.equal(h.t.state.turns.filter(t=>t.role==='user').length,0);
- h.route(url=>url==='/api/transcribe'?response({text:'The accepted retried answer.'}):Promise.reject(Error('test question failure')));
- await live.retryTranscription();await flush();assert.equal(live.hasPendingAudio,false);assert.equal(h.node('retry-transcription').hidden,true);
- assert.equal(h.t.state.turns.filter(t=>t.role==='user').length,1);
-});
 console.log(JSON.stringify({tests_passed:passed,provider_calls:0,physical_audio:false}));
 })().catch(e=>{console.error(e);process.exitCode=1;});

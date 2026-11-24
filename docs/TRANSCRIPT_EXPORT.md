@@ -13,7 +13,7 @@ Share the Markdown file with an approved reviewer or AI assistant to assess the 
 - Working summary, current focus, parked topics and available draft open questions, with a stale-draft warning where appropriate.
 - An AI review brief asking for evidence by turn ID, topic gaps, ambiguity, assumptions, premature closure, weak or missed follow-ups, and specific improvements to interviewer guidance.
 
-Markdown uses dynamically sized text fences so pasted code, Markdown and multiline answers retain their exact text. JSON uses `format: "ai-process-collector-transcript"` and `schema_version: 1`. Its stable top-level fields are `exported_at`, `app_version`, `app_build` (the commit of a desktop release, or `dev+` and a source hash for a working tree; `unknown` when the server does not report one), `process`, `synthetic_example`, `capture`, `counts`, `turns`, `memo`, `interview_notes`, `document_references`, and `review_guide`.
+Markdown uses dynamically sized text fences so pasted code, Markdown and multiline answers retain their exact text. JSON uses `format: "ai-process-collector-transcript"` and `schema_version: 1`. Its stable top-level fields are `exported_at`, `app_version`, `app_build` (the commit of a packaged release, or `dev+` and a source hash for a working tree; `unknown` when the server does not report one), `process`, `synthetic_example`, `capture`, `counts`, `turns`, `memo`, `interview_notes`, `document_references`, and `review_guide`.
 
 ## Interpretation and sharing
 

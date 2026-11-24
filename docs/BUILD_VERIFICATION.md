@@ -1,3 +1,5 @@
+> Historical record. It also covers features that are not part of V1; see the README, [Scope of this version](../README.md#scope-of-this-version-v1).
+
 > Historical test record. Counts and observations below apply to the named builds. The current release and its validation instructions are in [the changelog](../CHANGELOG.md).
 
 ## Release compatibility fixtures

@@ -4,17 +4,11 @@ const {openPage}=require("./fixtures/interview_form_page.cjs");
 const crypto=require("node:crypto");
 (async()=>{
  let passed=0;
- const usage={day_tokens:4200,daily_token_cap:5000,interview_tokens:200,interview_token_cap:1000,quota_blocked:false};
- const page=await openPage({globals:{crypto},expose:["state","normalizedFacts","usageHeaders","showUsage","checkUsage","sessionObject","normalizeDraft","draftFieldSources","generationRecords"],
-   config:{usage},fetch:async url=>{
-     assert.equal(url,"/api/usage/check");
-     return {ok:true,status:200,json:async()=>({usage:{...usage,day_tokens:4500,quota_blocked:true}})};
-   }});
- const label=page.$("usage-summary"),id=page.app.usageHeaders()["X-Interview-Id"];
+ const page=await openPage({globals:{crypto},expose:["state","normalizedFacts","usageHeaders","sessionObject","normalizeDraft","draftFieldSources","generationRecords"]});
+ // Every request of one interview carries the same identifier, and a saved copy keeps it.
+ const id=page.app.usageHeaders()["X-Interview-Id"];
  assert.match(id,/^[0-9a-f]{32}$/);assert.equal(page.requests[0].init.headers["X-Interview-Id"],id);
- assert.match(label.textContent,/4,200 tokens used/);assert.match(label.textContent,/200 tokens used/);
- await page.app.checkUsage();assert.match(label.textContent,/4,500/);assert.match(label.textContent,/quota was reached/);
- assert.equal(page.requests.at(-1).init.headers["X-Interview-Id"],id);assert.equal(page.app.sessionObject().usage_id,id);
+ assert.equal(page.app.sessionObject().usage_id,id);
  passed++;
  const turns=[{id:"u1",role:"user",text:"I used the ledger."},{id:"a1",role:"assistant",text:"100 staff"}];
  const input={topic:"scope",text:"Used the ledger",evidence_turns:["u1","a1"],support:[{source_id:"u1",quote:"the ledger"},{source_id:"a1",quote:"100 staff"},{source_id:"u1",quote:"new fact"}],unverified:["Number of staff"]};

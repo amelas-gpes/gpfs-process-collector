@@ -19,7 +19,7 @@ function fill(page,count,size=0){
  page.state.completion={ready_for_final_check:true,complete:false};
  page.t.conversationUI.typing=true;page.t.tab("interview");page.t.selectConversationView("transcript");page.t.renderTranscript();
 }
-const controls=page=>({send:!page.$("send-answer").disabled,dictate:!page.$("record-answer").disabled,skip:!page.$("skip-question").disabled,wrap:!page.$("final-check").disabled});
+const controls=page=>({send:!page.$("send-answer").disabled,skip:!page.$("skip-question").disabled,wrap:!page.$("final-check").disabled});
 const typed=page=>{page.$("answer-text").value="One more detail.";page.t.updateControls();};
 const line=page=>page.$("interview-limit").hidden?"":page.text("interview-limit");
 const reply=(question,kind,extra={})=>({question,summary:"",focus:"",parking_lot:[],memo_findings:[],coverage:[],
@@ -34,7 +34,7 @@ async function check(name,fn){
  const config={agent_team:{enabled:true}};
  await check("nothing is said or blocked in an interview of ordinary length",async()=>{
   const page=await open({config,expose:EXPOSE});
-  for(const count of [3,201,359]){fill(page,count);typed(page);assert.equal(line(page),"",`${count} turns`);assert.deepEqual(controls(page),{send:true,dictate:true,skip:true,wrap:true},`${count} turns`);}
+  for(const count of [3,201,359]){fill(page,count);typed(page);assert.equal(line(page),"",`${count} turns`);assert.deepEqual(controls(page),{send:true,skip:true,wrap:true},`${count} turns`);}
   assert.equal(page.text("composer-hint"),"Ctrl / ⌘ + Enter to send");
  });
  await check("from 360 turns a line that stays says how much room is left and to wrap up",async()=>{
@@ -42,21 +42,21 @@ async function check(name,fn){
   fill(page,360);typed(page);
   assert.equal(page.shown("interview-limit"),true,"The warning is on screen");
   assert.match(line(page),/^About 16 exchanges left in this interview\. Wrap up soon to get the final check\./);
-  assert.deepEqual(controls(page),{send:true,dictate:true,skip:true,wrap:true},"Nothing is blocked yet");
+  assert.deepEqual(controls(page),{send:true,skip:true,wrap:true},"Nothing is blocked yet");
   assert.equal(page.waiting(timer=>timer.fn.name==="dismissNotice").length,0,"It is not a toast that times out");
   fill(page,381);assert.match(line(page),/^About 5 exchanges left/);
   fill(page,388);assert.match(line(page),/^About 2 exchanges left/);
   fill(page,391);assert.match(line(page),/^Room for one more answer in this interview\. Wrap up now to get the final check\./);
   // Counted in characters too: long answers reach the size limit in far fewer turns.
   fill(page,120,350000);typed(page);assert.match(line(page),/^This interview is close to its size limit\. Wrap up soon to get the final check\./);
-  assert.deepEqual(controls(page),{send:true,dictate:true,skip:true,wrap:true});
+  assert.deepEqual(controls(page),{send:true,skip:true,wrap:true});
   fill(page,120,349000);assert.equal(line(page),"");
  });
  await check("new answers stop eight turns before the limit and Wrap up stays available",async()=>{
   const page=await open({config,expose:EXPOSE});
   for(const count of [392,395,396]){
    fill(page,count);typed(page);
-   assert.deepEqual(controls(page),{send:false,dictate:false,skip:false,wrap:true},`${count} turns`);
+   assert.deepEqual(controls(page),{send:false,skip:false,wrap:true},`${count} turns`);
    assert.match(line(page),/limit for new answers\. Wrap up now to get the final check/,`${count} turns`);
    assert.match(page.text("composer-hint"),/Interview limit reached\. Wrap up/,`${count} turns`);
   }
@@ -66,7 +66,7 @@ async function check(name,fn){
   assert.equal(page.state.turns.length,392,"The answer is not added");assert.equal(page.$("answer-text").value,"One more detail.","and stays in the box");
   assert.match(page.text("notice-text"),/limit for new answers/);assert.equal(page.requests.filter(request=>request.url!=="/api/config").length,0);
   // In characters: a full-length answer no longer fits from 394,000, and the closing lines keep their room.
-  fill(page,120,394000);typed(page);assert.deepEqual(controls(page),{send:false,dictate:false,skip:false,wrap:true});
+  fill(page,120,394000);typed(page);assert.deepEqual(controls(page),{send:false,skip:false,wrap:true});
   fill(page,120,393000);page.$("answer-text").value="y".repeat(6000);page.t.updateControls();
   await page.t.sendAnswer({preventDefault(){}});await page.flush();
   assert.equal(page.state.turns.length,120,"An answer that would use the room kept for the closing lines is not sent");
@@ -99,7 +99,7 @@ async function check(name,fn){
   assert.equal(page.text("analysis-status"),"Notes need attention. Wrap up to retry.");
   for(const count of [397,399,400]){
    fill(page,count);typed(page);
-   assert.deepEqual(controls(page),{send:false,dictate:false,skip:false,wrap:false},`${count} turns`);
+   assert.deepEqual(controls(page),{send:false,skip:false,wrap:false},`${count} turns`);
    assert.match(line(page),/^This interview is full\. Create a draft or save a copy/,`${count} turns`);
    assert.doesNotMatch(page.text("analysis-status"),/Wrap up/,`${count} turns: the notes status does not point at a disabled control`);
    assert.match(page.text("analysis-status"),/^Notes need attention\. Create a draft or save a copy\./);

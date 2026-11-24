@@ -287,8 +287,6 @@ class LiveResumeHistoryTests(unittest.TestCase):
                          {'messages': server.LIVE_HISTORY_MESSAGES, 'bytes': server.LIVE_HISTORY_BYTES})
         self.assertEqual((server.LIVE_HISTORY_MESSAGES, server.LIVE_HISTORY_BYTES), (128, 7800),
                          'The limits the code already guarded are kept, not relaxed')
-        reviewed = server.OpenAIClient({'OPENAI_API_KEY': KEY, 'VOICE_MODE': 'reviewed'}).public_config()
-        self.assertNotIn('history_limit', reviewed['live'])
 
 
 class LiveResumeHTTPTests(unittest.TestCase):

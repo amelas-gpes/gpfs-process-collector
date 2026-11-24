@@ -231,8 +231,8 @@ class StoreLayoutChanges(unittest.TestCase):
             current = {"documents": (documents.STORE_FORMATS[1], layout(Path(scratch) / "documents" / "documents.sqlite3")),
                        "knowledge": (knowledge_graph.STORE_FORMATS[1], layout(graph))}
         self.assertEqual(current, self.RECORDED, (
-            "A store's tables or indexes changed, or its format number did. Several builds share these files "
-            "(docs/DESKTOP.md, 'One set of data, several builds'). If a build that knows only the earlier layout "
+            "A store's tables or indexes changed, or its format number did. Several builds can share these files. "
+            "If a build that knows only the earlier layout "
             "would misread or damage the new one, raise the second number of STORE_FORMATS in documents.py or "
             "knowledge_graph.py. Then record the new pair in RECORDED."))
 

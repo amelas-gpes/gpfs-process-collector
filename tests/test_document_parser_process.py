@@ -444,8 +444,8 @@ class Processes(Fixture):
         self.assertEqual(len(started), 5)
         self.assertEqual(max(running), 2, running)
 
-    def test_a_desktop_release_folder_is_found_without_the_checkout_on_sys_path(self):
-        # A release is a folder of its own (desktop/manage.py) whose server loads documents.py by path.
+    def test_a_release_folder_is_found_without_the_checkout_on_sys_path(self):
+        # A packaged release is a folder of its own whose server loads documents.py by path.
         release = self.folder / 'Process Collector ünïcode' / 'releases' / 'abc123'
         release.mkdir(parents=True)
         shutil.copy2(APP / 'documents.py', release / 'documents.py')

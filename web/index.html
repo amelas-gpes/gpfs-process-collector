@@ -405,7 +405,7 @@
           <button type="button" id="settings-tab-preferences" aria-description="Choose appearance, interviewer voice and playback options." role="tab" aria-selected="true" aria-controls="preferences-details" data-settings-target="preferences-details"><span data-icon="sliders" aria-hidden="true"></span><span>Preferences<small>Appearance &amp; voice</small></span></button>
           <button type="button" id="settings-tab-context" aria-description="Set the goal, background and people involved in the interview." role="tab" aria-selected="false" aria-controls="context-details" tabindex="-1" data-settings-target="context-details"><span data-icon="memo" aria-hidden="true"></span><span>Interview context<small>People, goal &amp; background</small></span></button>
           <span class="settings-nav-group" aria-hidden="true">Workspace</span>
-          <button type="button" id="settings-tab-data" aria-description="See what is stored and manage local interview recovery." role="tab" aria-selected="false" aria-controls="data-details" tabindex="-1" data-settings-target="data-details"><span data-icon="shield" aria-hidden="true"></span><span>Data handling<small>Privacy &amp; what is sent</small></span></button>
+          <button type="button" id="settings-tab-data" aria-description="See what is kept on this computer and what is sent to the AI service." role="tab" aria-selected="false" aria-controls="data-details" tabindex="-1" data-settings-target="data-details"><span data-icon="shield" aria-hidden="true"></span><span>Data handling<small>Privacy &amp; what is sent</small></span></button>
           <span class="settings-nav-group" aria-hidden="true">Support</span>
           <button type="button" id="settings-tab-help" aria-description="Read how to capture, check and save a process." role="tab" aria-selected="false" aria-controls="help-guide" tabindex="-1" data-settings-target="help-guide"><span data-icon="info" aria-hidden="true"></span><span>Help &amp; about<small>Guide, shortcuts &amp; version</small></span></button>
         </div>
@@ -420,7 +420,7 @@
         <section id="settings-search-results" class="settings-results" aria-label="Matching settings" hidden>
           <header class="settings-section-heading"><h3>Search results</h3><p id="settings-search-count" role="status" aria-live="polite"></p></header>
           <div id="settings-search-matches" class="settings-result-list"></div>
-          <div id="settings-search-suggestions" class="settings-suggestions" hidden><span>Try</span><button type="button" class="settings-chip" data-settings-suggest="voice">voice</button><button type="button" class="settings-chip" data-settings-suggest="context">context</button><button type="button" class="settings-chip" data-settings-suggest="logs">logs</button></div>
+          <div id="settings-search-suggestions" class="settings-suggestions" hidden><span>Try</span><button type="button" class="settings-chip" data-settings-suggest="voice">voice</button><button type="button" class="settings-chip" data-settings-suggest="context">context</button><button type="button" class="settings-chip" data-settings-suggest="data">data</button></div>
         </section>
         <section id="preferences-details" class="settings-panel" data-settings-panel role="tabpanel" aria-labelledby="settings-tab-preferences" tabindex="0">
           <header class="settings-section-heading"><h3>Preferences</h3><p>Choose how the app looks and sounds. Changes apply immediately.</p></header>
@@ -493,7 +493,7 @@
             <p><strong>Keep a partial interview</strong> if a material gap leaves the route or its hold unclear. Open a topic in Notes to see its gaps and follow-ups. You can save the interview and return with someone who knows the missing detail.</p>
           </section>
           <div class="settings-help-pair">
-            <div class="settings-help-note"><h4>Keep a copy of your work</h4><p>Save copy downloads a restorable interview. Team activity shows what is running; a completed task does not approve the account.</p><button type="button" class="settings-link" aria-description="See how saved interviews and local recovery copies work." data-settings-jump="data-details" data-icon-end="arrow-right">Explore data handling</button></div>
+            <div class="settings-help-note"><h4>Keep a copy of your work</h4><p>Save copy downloads a restorable interview. Team activity shows what is running; a completed task does not approve the account.</p><button type="button" class="settings-link" aria-description="See what is kept on this computer and what is sent to the AI service." data-settings-jump="data-details" data-icon-end="arrow-right">Explore data handling</button></div>
             <section class="settings-help-note" aria-labelledby="keyboard-shortcuts"><h4 id="keyboard-shortcuts" tabindex="-1">Keyboard shortcuts</h4>
               <dl class="settings-shortcuts"><div><dt>Open Settings</dt><dd><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>,</kbd></dd></div><div><dt>Save a copy of the interview</dt><dd><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>S</kbd></dd></div><div><dt>Send a typed reply</dt><dd><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd></dd></div><div><dt>Stop reading aloud, or close a panel</dt><dd><kbd>Esc</kbd></dd></div></dl>
             </section>

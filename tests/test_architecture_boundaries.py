@@ -20,7 +20,7 @@ def imports(tree):
 class ArchitectureBoundaries(unittest.TestCase):
     def test_interview_rules_do_not_depend_on_io_adapters(self):
         rules = ("interview_stop", "gpfs_interview", "interview_coverage", "capture_facts", "draft_audit", "provider_schema")
-        adapters = {"server", "openai_transport", "recovery_store", "knowledge_graph", "documents",
+        adapters = {"server", "openai_transport", "knowledge_graph", "documents",
                     "document_service", "collector_settings", "sqlite3", "http", "urllib", "socket", "subprocess"}
         for name in rules:
             with self.subTest(module=name):

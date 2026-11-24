@@ -147,22 +147,17 @@ class ConcurrentHTTPTests(unittest.TestCase):
         self.assertEqual((status, transcribed["text"]), (200, "A synthetic spoken answer."))
         release.set()
 
-    def test_wrap_up_preserves_the_local_budget_status_and_retains_an_opaque_fallback(self):
+    def test_wrap_up_preserves_the_provider_quota_status_and_retains_an_opaque_fallback(self):
         payload = self.client.payload()
         payload["action"] = "close"
-        # Exercise the actual token reservation; a one-token limit rejects every structured
-        # request before transport. Keep the provider unreachable if that guard regresses.
-        real_request = server.OpenAIClient.request.__get__(self.client)
-        self.client.usage.daily_cap = 1
-        self.client.request.side_effect = real_request
-        with patch.object(self.client, "transport", side_effect=AssertionError("Unexpected provider transport")) as transport:
-            status, result = self.post("/api/conversation/sync", payload)
-        transport.assert_not_called()
-        self.assertEqual((status, result.get("code")), (429, "budget_reached"))
-        self.assertIn("local", result["error"].lower())
+        # A provider error keeps its HTTP status and its category; its own wording is replaced.
+        self.client.faults["team_interview_capture"] = server.APIError("private quota detail", 429, "quota")
+        status, result = self.post("/api/conversation/sync", payload)
+        self.assertEqual((status, result.get("code")), (429, "quota"))
+        self.assertIn("quota", result["error"].lower())
         self.assertIn("retained", result["error"])
+        self.assertNotIn("private quota detail", result["error"])
         # An ordinary worker failure has no meaningful HTTP status to preserve.
-        self.client.request.side_effect = self.client.reply
         self.client.faults["team_interview_capture"] = RuntimeError("private provider detail")
         status, result = self.post("/api/conversation/sync", payload)
         self.assertEqual(status, 502)

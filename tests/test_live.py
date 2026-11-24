@@ -477,10 +477,6 @@ class LiveHTTPTests(unittest.TestCase):
                     self.assertNotIn(KEY.encode(), raw)
         self.client.request.assert_not_called()
 
-    def reviewed(self):
-        self.client.voice_mode = 'reviewed'
-        self.addCleanup(setattr, self.client, 'voice_mode', 'live')
-
     def test_live_handshake_can_start_while_normal_request_slots_are_full(self):
         while self.httpd.api_slots.acquire(blocking=False):
             self.addCleanup(self.httpd.api_slots.release)
@@ -497,16 +493,7 @@ class LiveHTTPTests(unittest.TestCase):
             self.assertEqual(self.request('/api/live-session', live_payload())[0], 429)
         self.client.request.assert_not_called()
 
-    def test_reviewed_mode_keeps_the_live_endpoint_disabled(self):
-        self.reviewed()
-        status, raw = self.request('/api/live-session', live_payload())
-        self.assertEqual(status, 409)
-        self.assertIn('reviewed voice turns', json.loads(raw)['error'])
-        self.client.request.assert_not_called()
-        self.assertNotIn(KEY.encode(), raw)
-
     def test_live_mode_routes_to_gpt_live_with_the_team_lead_as_its_backend(self):
-        self.assertEqual(self.client.voice_mode, 'live')
         status, raw = self.request('/api/live-session', live_payload())
         self.assertEqual(status, 200, raw)
         result = json.loads(raw)
@@ -530,20 +517,17 @@ class LiveHTTPTests(unittest.TestCase):
         self.assertEqual(config['agent_team']['voice_mode'], 'live_front')
         self.assertTrue(config['live']['enabled'])
         self.assertNotIn(KEY, json.dumps(config))
-        reviewed = server.OpenAIClient({'OPENAI_API_KEY': KEY, 'VOICE_MODE': 'reviewed'}).public_config()
-        self.assertEqual(reviewed['live']['model'], 'gpt-6-luna')
-        self.assertEqual(reviewed['live']['transport'], 'reviewed-turns')
-        self.assertEqual(reviewed['agent_team']['voice_mode'], 'reviewed_turns')
+        self.assertNotIn('turn_pause_ms', config['agent_team'])
+        # Live voice is the only voice mode: a settings file that asks for another one is refused.
+        with self.assertRaises(server.SettingsError) as refused:
+            server.OpenAIClient({'OPENAI_API_KEY': KEY, 'VOICE_MODE': 'reviewed'})
+        self.assertEqual(refused.exception.key, 'VOICE_MODE')
 
     def test_invalid_payload_is_rejected_before_creating_a_billed_session(self):
         payload = live_payload()
         payload['turns'][0]['role'] = 'system'
         status, _ = self.request('/api/live-session', payload)
         self.assertEqual(status, 400)
-        self.client.request.assert_not_called()
-        self.reviewed()
-        status, _ = self.request('/api/live-session', payload)
-        self.assertEqual(status, 409)
         self.client.request.assert_not_called()
 
 
@@ -565,11 +549,37 @@ class LiveTurnPolicyTests(unittest.TestCase):
         self.assertIn('Ask one question per turn.', server.LIVE_TURN_POLICY)
 
     def test_the_session_request_carries_no_transcription_setting_the_provider_has_not_documented(self):
-        # Reviewed voice sends spelling hints to the transcription endpoint. For a Live session no such
+        # The caption check sends spelling hints to the transcription endpoint. For a Live session no such
         # setting is documented, and a field the provider refuses would stop voice from starting at all.
         session = self.session()
         self.assertEqual(sorted(session), ['audio', 'delegation', 'input', 'instructions', 'model', 'store'])
         self.assertEqual(session['audio'], {'output': {'voice': 'marin'}})
+
+
+class LiveRouteWithoutLiveVoiceTests(unittest.TestCase):
+    """An injected provider that cannot open a live session is told so; nothing is created."""
+
+    def test_the_live_route_answers_501_for_a_provider_without_live_voice(self):
+        from test_request_size_parity import ValidatingClient
+        client = ValidatingClient()
+        self.assertFalse(callable(getattr(client, 'live_session', None)))
+        root = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        httpd = server.InterviewServer(('127.0.0.1', 0), server.Handler, client=client,
+                                       documents_root=root / 'documents', knowledge_settings={})
+        worker = threading.Thread(target=httpd.serve_forever, kwargs={'poll_interval': .01}, daemon=True)
+        worker.start()
+        try:
+            request = urllib.request.Request(f'http://127.0.0.1:{httpd.server_port}/api/live-session',
+                                             data=json.dumps(live_payload()).encode(),
+                                             headers={'Content-Type': 'application/json', 'X-CSRF-Token': httpd.csrf_token})
+            with self.assertRaises(urllib.error.HTTPError) as refused:
+                urllib.request.urlopen(request, timeout=3)
+            self.assertEqual(refused.exception.code, 501)
+            self.assertEqual(json.loads(refused.exception.read()), {'error': 'This provider does not offer live voice.'})
+        finally:
+            httpd.shutdown()
+            httpd.server_close()
+            worker.join(timeout=3)
 
 
 if __name__ == '__main__':

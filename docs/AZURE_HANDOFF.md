@@ -60,7 +60,7 @@ Before hosted acceptance, developers should:
 1. Confirm the application placement, supported frontend/backend stack and deployment workflow. Reuse the managed-app conventions without copying resource names, app registrations or permissions from another utility.
 2. Select permitted Foundry text, transcription and speech services; verify region, deployment names, model capabilities, quotas, network access and identity roles in the actual environment. Do not automatically fall back to OpenAI if Azure is unavailable.
 3. Implement sign-in, per-interview access and durable state/retention. Decide whether raw audio is retained; the present prototype holds it only in memory. Verify isolation with two different users and that reviewed edits survive reconnect/restart.
-4. Run an Azure integration spike: discover/select voices, preview, transcribe/correct an answer, generate a follow-up, interrupt speech, handle a failed/expired media session and continue beyond a one-hour plan.
+4. Run an Azure integration spike (V1 itself has no voice preview and no dictation; see the README, Scope of this version): discover/select voices, preview, transcribe/correct an answer, generate a follow-up, interrupt speech, handle a failed/expired media session and continue beyond a one-hour plan.
 5. Run the memo/evidence acceptance scenarios, including unknown handoffs, contradictory accounts, variations, participant closure and preservation of manual review edits. Test a real permitted process interview for clarity and voice quality.
 6. Build and deploy through the team's workflow to its chosen test target, verify the exact revision and Foundry connections, then complete the team's normal release review. Local regressions do not substitute for hosted verification.
 

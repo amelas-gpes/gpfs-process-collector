@@ -137,18 +137,6 @@ await check("a participant caption flags the draft, and so does its later correc
   assert.equal(h.stale(),false,"Repeating an unchanged caption adds nothing");
 });
 
-await check("a reviewed voice answer flags the draft",async()=>{
-  const h=setup();let voice=null;
-  await h.createDraft();
-  h.t.state.config.agent_team={enabled:true};
-  h.window.CollectorControlledVoice=class{constructor(options){voice=options;}async start(){this.active=true;}stop(){this.active=false;}};
-  await h.t.startLiveConversation();
-  assert.ok(voice,"Reviewed voice must be selected");
-  voice.onAnswer("The controller approves anything above the limit.");
-  assert.equal(h.t.state.turns.at(-1).role,"user");
-  h.t.conversationUI.live.active=false;
-  assert.equal(h.stale(),true);
-});
 
 await check("changing the active files flags the draft and restoring them clears it",async()=>{
   const h=setup();

@@ -75,16 +75,6 @@
   function edgeMetrics(value){const width=clamp(measureText(value,11,500)+24,44,200),lines=wrapText(value,width-24,11,500);return {width,height:lines.length*15+14,lines};}
   const stepTooltip=step=>`${step.id}: ${step.title}\n${step.description||""}\nOwner: ${step.actor||"Not established"}\nSystem: ${step.system||"Not established"}\nSources: ${(step.evidence_turns||[]).join(", ")||"No cited source"}`;
   const edgeTooltip=edge=>`${edge.from} → ${edge.to}${edge.label?": "+edge.label:""}. ${edge.reviewLabel||"Source check unknown"}. Sources: ${(edge.evidence_turns||[]).join(", ")||"No source references in this view; open details to review evidence"}`;
-  function cinematicNodeMetrics(step) {
-    const width=150;
-    const titleLines=wrapText(step.title||step.id,width-12,15,600);
-    return {width,height:Math.max(108,76+16*titleLines.length),titleLines};
-  }
-  function cinematicEdgeMetrics(label) {
-    const width=clamp(measureText(label,12,500)+14,28,107);
-    const lines=wrapText(label,width-14,12,500);
-    return {width,height:lines.length*14+6,lines};
-  }
   function colorFor(actor) {let hash=0;for(const ch of string(actor))hash=(hash*31+ch.charCodeAt(0))>>>0;return PALETTE[hash%PALETTE.length];}
   function nodeShape(doc,type,x,y,w,h,mini=false){
     const theme=TYPES[type]||TYPES.activity,attrs={fill:theme.fill,stroke:theme.stroke,"stroke-width":mini?0:1.4};
@@ -212,10 +202,10 @@
   }
   // wrapAspect (width / height of the canvas) asks the engine to fold a long strip into
   // rows, or columns when vertical. The folded result is only a candidate: see layeredLayout.
-  function elkGraph(data,direction="RIGHT",cinematic=false,wrapAspect=null) {
+  function elkGraph(data,direction="RIGHT",wrapAspect=null) {
     const vertical=direction==="DOWN";
     const {ordered,returns,returnNodes}=routingOrder(data);
-    const captioned=cinematic?null:captionedEdges(data),folding=!cinematic&&Number.isFinite(wrapAspect)&&wrapAspect>0;
+    const captioned=captionedEdges(data),folding=Number.isFinite(wrapAspect)&&wrapAspect>0;
     return {id:"workflow",layoutOptions:{
       "elk.algorithm":"layered","elk.direction":vertical?"DOWN":"RIGHT","elk.edgeRouting":"ORTHOGONAL",
       "elk.padding":"[top=24,left=24,bottom=24,right=24]","elk.spacing.nodeNode":"28",
@@ -227,30 +217,24 @@
       // The long return routes of a folded map make it pay that cost at half the size.
       "elk.layered.nodePlacement.strategy":data.connections.length>(folding?DENSE_CONNECTIONS/2:DENSE_CONNECTIONS)?"BRANDES_KOEPF":"NETWORK_SIMPLEX","elk.layered.cycleBreaking.strategy":"MODEL_ORDER",
       "elk.layered.crossingMinimization.strategy":"LAYER_SWEEP","elk.separateConnectedComponents":"true",
-      ...(cinematic ? {
-        "elk.padding":"[top=18,left=18,bottom=18,right=18]",
-        "elk.spacing.nodeNode":"22","elk.layered.spacing.nodeNodeBetweenLayers":"22",
-        "elk.spacing.edgeNode":"14","elk.layered.spacing.edgeNodeBetweenLayers":"14",
-        "elk.spacing.edgeEdge":"12","elk.layered.spacing.edgeEdgeBetweenLayers":"12"
-      } : {}),
       ...(folding ? {
         "elk.layered.wrapping.strategy":"MULTI_EDGE","elk.aspectRatio":String(Math.round(wrapAspect*100)/100)
       } : {})
     },children:ordered.map(step=>{
-      const {width,height}=cinematic ? cinematicNodeMetrics(step) : nodeMetrics(step);
+      const {width,height}=nodeMetrics(step);
       const ports=[
         {id:`${step.id}::in`,x:vertical?width/2:0,y:vertical?0:height/2,width:0,height:0,layoutOptions:{"elk.port.side":vertical?"NORTH":"WEST"}},
         // ELK normalizes side ports to the box border; the wave's midpoint is inset.
-        {id:`${step.id}::out`,x:vertical?width/2:width,y:vertical?height:height/2,width:0,height:0,layoutOptions:{"elk.port.side":vertical?"SOUTH":"EAST","elk.port.borderOffset":vertical&&!cinematic&&step.type==="document"?"-14":"0"}}
+        {id:`${step.id}::out`,x:vertical?width/2:width,y:vertical?height:height/2,width:0,height:0,layoutOptions:{"elk.port.side":vertical?"SOUTH":"EAST","elk.port.borderOffset":vertical&&step.type==="document"?"-14":"0"}}
       ];
-      if(!cinematic&&returnNodes.has(step.id))ports.push({
+      if(returnNodes.has(step.id))ports.push({
         id:`${step.id}::return`,x:vertical?width:width/2,y:vertical?height/2:height,width:0,height:0,
         layoutOptions:{"elk.port.side":vertical?"EAST":"SOUTH","elk.port.borderOffset":!vertical&&step.type==="document"?"-14":"0"}
       });
       return {id:step.id,width,height,layoutOptions:{"elk.portConstraints":"FIXED_POS"},ports};
     }),edges:data.connections.map(edge=>{
-      const size=cinematic ? edge.label&&cinematicEdgeMetrics(edge.label) : captioned.has(edge.id)&&edgeMetrics(edge.label);
-      const returning=!cinematic&&returns.has(edge.id);
+      const size=captioned.has(edge.id)&&edgeMetrics(edge.label);
+      const returning=returns.has(edge.id);
       const sourcePort=returning&&edge.from!==edge.to?"return":"out";
       return {id:edge.id,sources:[`${edge.from}::${sourcePort}`],targets:[`${edge.to}::${returning?"return":"in"}`],
         labels:size?[{id:`${edge.id}-label`,text:string(edge.label),width:size.width,height:size.height}]:[]};
@@ -296,13 +280,11 @@
     if(vertices.length>1)d+=` L ${vertices.at(-1).x} ${vertices.at(-1).y}`;
     return d;
   }
-  let cinematicEngine;
-  const cinematicRequests=[];
   function loadEngine() {
     if(!scope.CollectorWorkflowAssets?.loadEngine)throw new Error("The local workflow layout engine could not load.");
     return scope.CollectorWorkflowAssets.loadEngine();
   }
-  // In a browser the engine runs in one worker shared by every canvas and the walkthrough:
+  // In a browser the engine runs in one worker shared by every canvas:
   // the page stays responsive, and a layout that is no longer wanted or that exceeds its
   // budget is really stopped (a worker can only be stopped by ending it; the next layout
   // starts a new one). Where there are no workers, or the worker script cannot start, the
@@ -491,7 +473,7 @@
       let folded;
       try{
         validateLayeredRoutes(strip,data);
-        folded=await pass(elkGraph(data,direction,false,aspect));
+        folded=await pass(elkGraph(data,direction,aspect));
         validateLayeredRoutes(folded,data);
       }catch(error){if(job.cancelled)throw error;return strip;}
       if(fitScale(folded,view)<fitScale(strip,view)*WRAP_GAIN)return strip;
@@ -500,107 +482,6 @@
     })();
     job.result.catch(()=>{});
     return job;
-  }
-  // Only a single, acyclic path can change row direction without separating a choice
-  // from its alternatives or turning a normal handoff into a long return connector.
-  function cinematicChain(data,aspect) {
-    if(data.steps.length<8 || data.connections.length!==data.steps.length-1)return null;
-    if(data.steps.some(step=>data.incoming.get(step.id).length>1||data.outgoing.get(step.id).length>1))return null;
-    const starts=data.steps.filter(step=>!data.incoming.get(step.id).length);
-    if(starts.length!==1)return null;
-    const byId=new Map(data.steps.map(step=>[step.id,step])),nodes=[],edges=[];
-    let step=starts[0];
-    while(step){
-      nodes.push({id:step.id,step,...cinematicNodeMetrics(step)});
-      const edge=data.outgoing.get(step.id)[0];
-      if(!edge)break;
-      edges.push({edge,key:JSON.stringify([edge.from,edge.to,edge.label||""]),
-        labels:edge.label?[cinematicEdgeMetrics(edge.label)]:[]});
-      step=byId.get(edge.to);
-    }
-    // A disjoint cycle can satisfy the degree and edge-count checks above.
-    if(nodes.length!==data.steps.length)return null;
-    const width=nodes[0].width, pad=18, gap=22;
-    const avgHeight=nodes.reduce((sum,node)=>sum+node.height,0)/nodes.length;
-    const avgLabel=edges.reduce((sum,item)=>sum+(item.labels[0]?.width||0),0)/edges.length;
-    const columns=clamp(Math.round(Math.sqrt(nodes.length*aspect*(avgHeight+gap)/(width+avgLabel+gap))),2,nodes.length);
-    const rows=Math.ceil(nodes.length/columns);
-    const rowHeights=Array(rows).fill(0),rowGaps=Array(rows-1).fill(gap),columnGaps=Array(columns-1).fill(gap);
-    const column=i=>Math.floor(i/columns)%2 ? columns-1-i%columns : i%columns;
-    for(let i=0;i<nodes.length;i++){
-      const row=Math.floor(i/columns);
-      rowHeights[row]=Math.max(rowHeights[row],nodes[i].height);
-      const label=edges[i]?.labels[0];
-      if(!label)continue;
-      if(column(i)===column(i+1))rowGaps[row]=Math.max(rowGaps[row],label.height+gap);
-      else{
-        const index=Math.min(column(i),column(i+1));
-        columnGaps[index]=Math.max(columnGaps[index],label.width+gap);
-        rowHeights[row]=Math.max(rowHeights[row],2*(label.height+6));
-      }
-    }
-    const xs=[pad],ys=[pad];
-    for(let i=1;i<columns;i++)xs.push(xs[i-1]+width+columnGaps[i-1]);
-    for(let i=1;i<rows;i++)ys.push(ys[i-1]+rowHeights[i-1]+rowGaps[i-1]);
-    nodes.forEach((node,i)=>{
-      const row=Math.floor(i/columns);
-      node.x=xs[column(i)];node.y=ys[row]+(rowHeights[row]-node.height)/2;
-    });
-    edges.forEach((item,i)=>{
-      const a=nodes[i],b=nodes[i+1],vertical=a.x===b.x,forward=b.x>a.x;
-      const start=vertical?{x:a.x+width/2,y:a.y+a.height}:{x:a.x+(forward?width:0),y:a.y+a.height/2};
-      const end=vertical?{x:b.x+width/2,y:b.y}:{x:b.x+(forward?0:width),y:b.y+b.height/2};
-      const points=[start,end];
-      item.paths=[{points,d:roundedPath(points)}];
-      const label=item.labels[0];
-      if(label){
-        label.x=vertical ? start.x+(column(i)===0?6:-label.width-6) : (start.x+end.x-label.width)/2;
-        label.y=vertical ? (start.y+end.y-label.height)/2 : start.y-label.height-4;
-      }
-    });
-    return {width:xs.at(-1)+width+pad,height:ys.at(-1)+rowHeights.at(-1)+pad,nodes,edges,usesAspect:true};
-  }
-  async function cinematicLayout(graph,aspect=1.9,isCurrent=()=>true) {
-    const data=model(graph);
-    if(!data.steps.length)return {width:0,height:0,nodes:[],edges:[]};
-    const chain=cinematicChain(data,Number.isFinite(aspect)?clamp(aspect,.6,2.4):1.9);
-    if(chain)return chain;
-    let layout;
-    if(workerLayouts()){
-      // A walkthrough layout that its stage no longer wants must not hold up the next one.
-      for(const item of cinematicRequests.splice(0)){
-        let wanted=false;try{wanted=item.isCurrent();}catch{/* A closed stage wants nothing. */}
-        if(wanted)cinematicRequests.push(item);else item.request.cancel();
-      }
-      const item={request:workerLayout(elkGraph(data,"RIGHT",true)),isCurrent};
-      cinematicRequests.push(item);
-      try{layout=await item.request;}
-      finally{const index=cinematicRequests.indexOf(item);if(index>=0)cinematicRequests.splice(index,1);}
-    }else{
-      if(!cinematicEngine){
-        const Engine=scope.ELK||await loadEngine();
-        if(!isCurrent())return null;
-        cinematicEngine ||= new Engine();
-      }
-      layout=orderedComponents(await cinematicEngine.layout(elkGraph(data,"RIGHT",true)),data);
-    }
-    validateLayeredRoutes(layout,data);
-    const steps=new Map(data.steps.map(step=>[step.id,step]));
-    const connections=new Map(data.connections.map(edge=>[edge.id,edge]));
-    const nodes=layout.children.map(({id,x,y,width,height})=>{
-      const step=steps.get(id);
-      return {id,step,x,y,width,height,titleLines:cinematicNodeMetrics(step).titleLines};
-    });
-    const edges=layout.edges.map(item=>{
-      const edge=connections.get(item.id);
-      const paths=item.sections.map(section=>{
-        const vertices=points(section);
-        return {d:roundedPath(vertices),points:vertices};
-      });
-      const labels=(item.labels||[]).map(({x,y,width,height})=>({x,y,width,height,lines:cinematicEdgeMetrics(edge.label).lines}));
-      return {key:JSON.stringify([edge.from,edge.to,edge.label||""]),edge,paths,labels};
-    });
-    return {width:layout.width,height:layout.height,nodes,edges};
   }
   class Canvas {
     constructor(container,options={}) {
@@ -1190,5 +1071,5 @@
       this.dead=true;this.pending=false;this.version++;this.dropLayoutJob();this.reshapeJob?.cancel();scope.clearTimeout?.(this.reshapeTimer);this.observer?.disconnect();try{this.engine?.terminateWorker?.();}catch{/* ELK's in-process browser worker has no terminate method. */}this.listeners.forEach(([target,name,fn,options])=>target.removeEventListener(name,fn,options));this.listeners=[];this.container.replaceChildren();this.container.classList.remove("workflow-canvas");
     }
   }
-  scope.CollectorWorkflow={create:(container,options)=>new Canvas(container,options),model,present,elkGraph,cinematicLayout,roundedPath,measureText,wrapText,known,nodeMetrics,edgeMetrics,types:TYPES};
+  scope.CollectorWorkflow={create:(container,options)=>new Canvas(container,options),model,present,elkGraph,roundedPath,measureText,wrapText,known,nodeMetrics,edgeMetrics,types:TYPES};
 })(typeof window!=="undefined"?window:globalThis);

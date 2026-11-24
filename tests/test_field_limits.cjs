@@ -5,7 +5,7 @@
 // them (code points). The real web/app.js runs against the real web/index.html in the page of
 // tests/fixtures/interview_form_page.cjs. No browser, audio device, provider, package or network.
 const assert=require("node:assert/strict");
-const {openPage,standInMicrophone}=require("./fixtures/interview_form_page.cjs");
+const {openPage}=require("./fixtures/interview_form_page.cjs");
 const EXPOSE=["state","conversationUI","sessionObject","importSession","tab"];
 const FAMILY="\u{1F468}‍\u{1F469}‍\u{1F467}‍\u{1F466}"; // one joined emoji: 7 code points, 11 UTF-16 units
 const RARE="\u{20BB7}"; // one CJK character outside the basic plane: 1 code point, 2 UTF-16 units
@@ -113,20 +113,6 @@ async function open(options={}){
   assert.match(page.$("answer-text-limit").textContent,/^Your reply is 6,001 characters/);
  });
 
- await check("dictated words that take the reply over the limit are added whole, with the same message",async()=>{
-  const microphone=standInMicrophone(),t=await open({globals:microphone.globals}),{page}=t;
-  await t.typeInstead();
-  const typed="b".repeat(5990);
-  t.write("answer-text",typed);
-  page.$("record-answer").click();await page.settle();
-  microphone.clock+=3000;page.$("record-answer").click();await page.settle();
-  const combined=typed+"\n\nand then the controller signs it off.";
-  assert.equal(page.$("answer-text").value,combined);
-  const message=`Your reply is ${points(combined).toLocaleString("en-US")} characters; the limit is 6,000. Nothing was removed. Shorten it or send it in two parts.`;
-  assert.equal(page.$("answer-text-limit").textContent,message);assert.equal(page.$("answer-text-limit").shown,true);
-  assert.equal(page.$("notice-text").textContent,message);
-  assert.equal(page.$("send-answer").disabled,true);
- });
 
  await check("an over-long background or goal is kept whole and stops the interview from starting, at the field",async()=>{
   for(const [id,limit,label] of [["background",8000,"The background"],["objective",500,"The goal for this interview"]]){
@@ -165,53 +151,40 @@ async function open(options={}){
  await check("Review editor: a paste that does not fit is refused whole and says why; one that fits is left alone",async()=>{
   const t=await open(),{page}=t;
   const saved=JSON.stringify({schema_version:1,context:{process_name:"Invoice approval",objective:"QA"},turns:[],draft_stale:false,
-   draft:{title:"Invoice approval",overview:"d".repeat(11990),steps:[{id:"S1",title:"Receive the invoice"}]}});
+   draft:{title:"Invoice approval",overview:"Overview",steps:[{id:"S1",title:"Receive the invoice"}]}});
   await page.app.importSession({size:saved.length,text:async()=>saved});await page.settle();
   page.app.tab("review");
-  const overview=page.$("draft-overview");
-  assert.equal(overview.maxLength,12000);assert.equal(overview.value.length,11990);
-  let event=t.paste("draft-overview","e".repeat(1400));
+  const notes=page.$("draft-validation-notes");
+  assert.equal(notes.maxLength,18000);notes.value="d".repeat(17990);
+  let event=t.paste("draft-validation-notes","e".repeat(1400));
   assert.equal(event.defaultPrevented,true,"The browser must not be left to cut the paste");
-  const message="The text you pasted is 1,400 characters and this field has room for 10 (its limit is 12,000). Nothing was pasted, so nothing was cut. Shorten the text or split it across fields.";
+  const message="The text you pasted is 1,400 characters and this field has room for 10 (its limit is 18,000). Nothing was pasted, so nothing was cut. Shorten the text or split it across fields.";
   assert.equal(page.$("review-error").shown,true);assert.equal(page.$("review-error").querySelector("span").textContent,message);
-  assert.equal(overview.value.length,11990);assert.equal(page.app.state.draft.overview.length,11990);
+  assert.equal(notes.value.length,17990);
   page.runTimeouts(60000);
   assert.equal(page.$("review-error").shown,true,"The reason stays until it is dismissed");
   page.$("review-error").hidden=true;
-  assert.equal(t.paste("draft-overview","e".repeat(10)).defaultPrevented,false,"A paste that fits is the browser's business");
+  assert.equal(t.paste("draft-validation-notes","e".repeat(10)).defaultPrevented,false,"A paste that fits is the browser's business");
   // Replacing a selection frees its room; line endings are counted as the field stores them.
-  assert.equal(t.paste("draft-overview","e".repeat(1400),[0,2000]).defaultPrevented,false);
-  assert.equal(t.paste("draft-overview","line\r\n".repeat(2),[0,0]).defaultPrevented,false,"Two lines of five characters fit in ten");
-  assert.equal(t.paste("draft-overview","line\r\n".repeat(3),[0,0]).defaultPrevented,true);
+  assert.equal(t.paste("draft-validation-notes","e".repeat(1400),[0,2000]).defaultPrevented,false);
+  assert.equal(t.paste("draft-validation-notes","line\r\n".repeat(2),[0,0]).defaultPrevented,false,"Two lines of five characters fit in ten");
+  assert.equal(t.paste("draft-validation-notes","line\r\n".repeat(3),[0,0]).defaultPrevented,true);
   assert.equal(page.$("review-error").shown,true);page.$("review-error").hidden=true;
   // Text dragged into the field is cut by the browser in the same way. It is inserted beside what
   // is there (a selection frees no room); text moved within the field adds nothing; a dropped file
   // carries no text and is not this guard's business.
-  const drop=(text,from)=>{if(from)page.fire(from,"dragstart");const event=page.fire(overview,"drop",{dataTransfer:{getData:()=>text}});page.fire(page.document.body,"dragend");return event;};
-  [overview.selectionStart,overview.selectionEnd]=[0,2000];
+  const drop=(text,from)=>{if(from)page.fire(from,"dragstart");const event=page.fire(notes,"drop",{dataTransfer:{getData:()=>text}});page.fire(page.document.body,"dragend");return event;};
+  [notes.selectionStart,notes.selectionEnd]=[0,2000];
   event=drop("e".repeat(1400));
   assert.equal(event.defaultPrevented,true);
-  assert.equal(page.$("review-error").querySelector("span").textContent,"The text you dropped is 1,400 characters and this field has room for 10 (its limit is 12,000). Nothing was dropped, so nothing was cut. Shorten the text or split it across fields.");
+  assert.equal(page.$("review-error").querySelector("span").textContent,"The text you dropped is 1,400 characters and this field has room for 10 (its limit is 18,000). Nothing was dropped, so nothing was cut. Shorten the text or split it across fields.");
   page.$("review-error").hidden=true;
   assert.equal(drop("e".repeat(10)).defaultPrevented,false);
-  assert.equal(drop("e".repeat(1400),overview).defaultPrevented,false,"A move inside the field");
-  assert.equal(drop("e".repeat(1400),page.$("draft-trigger")).defaultPrevented,true,"Text dragged from another field is new text");
+  assert.equal(drop("e".repeat(1400),notes).defaultPrevented,false,"A move inside the field");
+  assert.equal(drop("e".repeat(1400),page.$("draft-controls")).defaultPrevented,true,"Text dragged from another field is new text");
   assert.equal(drop("").defaultPrevented,false,"A file");
   assert.equal(drop("e".repeat(1400)).defaultPrevented,true,"The earlier drag is over");
   page.$("review-error").hidden=true;
-  // A field the editor builds for each step.
-  const stepTitle=page.$("procedure-steps").querySelector("input");
-  assert.equal(stepTitle.maxLength,500);
-  event=t.paste(stepTitle,"f".repeat(600));
-  assert.equal(event.defaultPrevented,true);assert.equal(stepTitle.value,"Receive the invoice");
-  assert.match(page.$("review-error").querySelector("span").textContent,/^The text you pasted is 600 characters and this field has room for 481 \(its limit is 500\)\. Nothing was pasted/);
-  // The connection dialog shows the reason inside the dialog.
-  page.$("global-notice").hidden=true;
-  event=t.paste("connection-condition","g".repeat(301));
-  assert.equal(event.defaultPrevented,true);
-  assert.equal(page.$("connection-error").hidden,false);
-  assert.match(page.$("connection-error").textContent,/^The text you pasted is 301 characters and this field has room for 300/);
-  assert.equal(page.$("global-notice").hidden,true);
   assert.equal(page.$("report-search").maxLength,180);
   assert.equal(t.paste("report-search","h".repeat(400)).defaultPrevented,false,"A search box is not evidence");
  });

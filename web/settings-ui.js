@@ -140,7 +140,7 @@
       event.preventDefault();
       const visibleTabs = tabs.filter(item => !item.hidden);
       const i = visibleTabs.indexOf(tab), direction = ["ArrowDown", "ArrowRight"].includes(event.key) ? 1 : -1;
-      const step = direction * (narrow.matches && ["ArrowDown", "ArrowUp"].includes(event.key) ? 3 : 1);
+      const step = direction * (narrow.matches && ["ArrowDown", "ArrowUp"].includes(event.key) ? 2 : 1);
       const next = visibleTabs[event.key === "Home" ? 0 : event.key === "End" ? visibleTabs.length - 1 : (i + step + visibleTabs.length) % visibleTabs.length];
       next.focus(); show(next.dataset.settingsTarget);
     });

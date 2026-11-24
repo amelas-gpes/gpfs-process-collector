@@ -1,3 +1,5 @@
+> Historical record. It also covers features that are not part of V1; see the README, [Scope of this version](README.md#scope-of-this-version-v1).
+
 # Release validation
 
 ## Version 0.30.1
@@ -72,7 +74,7 @@ The prototype uses the [Responses API's structured output format](https://develo
 
 ## Publication copy
 
-The repository copy keeps environment-file lookup and runtime logs inside its own directory, provides interpreter-configurable launch scripts, and uses generic branding. The original local installation is preserved. Local account setup records, credentials and host inventory receipts are excluded. Tests were rerun against this publication copy. No automatic installation or CI download workflow is included. (That statement predates the optional Windows desktop app added in November 2026, which downloads builds of this application from GitHub and runs one only after approval in its window; see [docs/DESKTOP.md](docs/DESKTOP.md).)
+The repository copy keeps environment-file lookup and runtime logs inside its own directory, provides interpreter-configurable launch scripts, and uses generic branding. The original local installation is preserved. Local account setup records, credentials and host inventory receipts are excluded. Tests were rerun against this publication copy. No automatic installation or CI download workflow is included. (That statement predates the optional Windows desktop app added in November 2026, which downloads builds of this application from GitHub and runs one only after approval in its window. The desktop app and its guide, `docs/DESKTOP.md`, are on the `v2` branch and not part of V1.)
 
 ## 0.2.1 provider interface and Azure direction
 

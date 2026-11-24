@@ -1,9 +1,9 @@
 "use strict";
-// Actual app transport + controlled voice + reviewed playback integration.
+// Actual app transport, question playback and the typed review flow.
 // Only display, browser hardware and network boundaries are faked; no providers.
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 const app=fs.readFileSync(path.join(__dirname,"../web/app.js"),"utf8");
-const controlled=fs.readFileSync(path.join(__dirname,"../web/controlled-voice.js"),"utf8");
+const liveVoice=fs.readFileSync(path.join(__dirname,"../web/live-voice.js"),"utf8");
 const flush=async()=>{for(let i=0;i<45;i++)await Promise.resolve();};
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return{promise,resolve,reject};};
 const approved=(question="What happens after the review?",kind="question")=>({question,coverage_verified:["complete","final_check"].includes(kind),summary:"",focus:"",parking_lot:[],memo_findings:[],coverage:[],
@@ -53,7 +53,7 @@ function setup(){
   const window={WebSocket:Socket,SpeechSynthesisUtterance:Utterance,AudioContext,MediaRecorder:Recorder,
     navigator:{mediaDevices:{getUserMedia:async()=>stream}},performance:{now:()=>now},setTimeout,clearTimeout,requestAnimationFrame,cancelAnimationFrame,
     addEventListener(){},removeEventListener(){},speechSynthesis:{cancel(){},speak(utterance){utterances.push(utterance);utterance.onstart?.();}},
-    CollectorLiveVoice:class{constructor(){legacyStarts++;}async start(){throw Error("Legacy voice must not be selected");}},__notices:notices};
+    CollectorLiveVoice:class{constructor(){legacyStarts++;}async start(){throw Error("This suite starts no voice session");}},__notices:notices};
   const context={window,console,Blob,DataView,Uint8Array,Float32Array,TextEncoder,Date,JSON,AbortController,DOMException,Audio,WebSocket:Socket,SpeechSynthesisUtterance:Utterance,
     document:{getElementById:node,querySelectorAll:()=>[],createElement:tag=>node("created-"+tag+"-"+(++serial))},
     setTimeout,clearTimeout,requestAnimationFrame,cancelAnimationFrame,crypto:{randomUUID:()=>String(++serial).padStart(32,"0")},
@@ -68,7 +68,11 @@ function setup(){
   `;
   const source=app.replace(/  init\(\);\s*\}\)\(\);\s*$/,seam+"\n})();");
   assert.notEqual(source,app,"The app test seam must replace only startup");
-  vm.createContext(context);vm.runInContext(controlled,context,{filename:"controlled-voice.js"});vm.runInContext(source,context,{filename:"app.js"});
+  vm.createContext(context);
+  // The page loads live-voice.js before app.js. It supplies the check every approved line must pass
+  // (window.CollectorSpeechAuthorization); the voice controller itself stays the stand-in above.
+  {const standIn=window.CollectorLiveVoice;vm.runInContext(liveVoice,context,{filename:"live-voice.js"});window.CollectorLiveVoice=standIn;}
+  vm.runInContext(source,context,{filename:"app.js"});
   const t=window.__experience;t.state.started=true;t.state.context={process_name:"Synthetic process",objective:"Test interview"};
   t.state.config={csrf_token:"synthetic-csrf",agent_team:{enabled:true},speech:{enabled:true,voices:[{id:"marin",label:"Marin"}]}};t.state.voiceChoice="ai:marin";
   t.setTeam({render:(value,options)=>{team.push(value);teamOptions.push(options);}});
@@ -98,14 +102,10 @@ const check=async(name,fn)=>{await fn();passed++;};
     const playback=h.t.speakReviewed("Who owns this process?").then(()=>{done=true;});await flush();assert.equal(h.utterances.length,1);assert.equal(done,false);assert.equal(h.calls.length,0);
     h.utterances[0].onend();await playback;assert.equal(done,true);assert.equal(h.t.state.speechOperation,null);
   });
-  await check("abort rejects natural playback and releases its resources",async()=>{
-    const h=setup();h.route(()=>response(h.voiceSession));const abort=new AbortController();const playback=h.t.speakReviewed("What happens next?",{signal:abort.signal});const rejected=assert.rejects(playback,{name:"AbortError"});
-    await flush();await h.speech("What happens next?");abort.abort();await rejected;assert.equal(h.audio[0].paused,true);assert.equal(h.audio[0].url,null);assert.equal(h.t.state.speechOperation,null);assert.equal(h.frames.size,0);
-  });
   // live-voice-reviewed-5: one fresh reading is tried after a mismatch (the test below sent one
   // mismatched reading before; the exact-transcript check itself is unchanged).
   await check("mismatched audio transcript is withheld entirely",async()=>{
-    const h=setup();h.route(()=>response(h.voiceSession));const playback=h.t.speakReviewed("Which controls remain unclear?");const rejected=assert.rejects(playback,error=>/playback was withheld/.test(error.message)&&/playback was withheld/.test(error.voiceMessage));
+    const h=setup();h.route(()=>response(h.voiceSession));const playback=h.t.speakReviewed("Which controls remain unclear?");const rejected=assert.rejects(playback,error=>/playback was withheld/.test(error.message));
     await flush();await h.speech("All sections are covered. Goodbye.");assert.equal(h.sockets.length,2,"One more reading is requested");assert.equal(h.sockets[0].closed,true);
     await h.speech("All sections are covered. Goodbye.");await rejected;assert.equal(h.audio.length,0);assert.equal(h.sockets[1].closed,true);assert.equal(h.sockets.length,2,"Only one retry");assert.equal(h.t.state.speechOperation,null);
   });
@@ -123,64 +123,15 @@ const check=async(name,fn)=>{await fn();passed++;};
     [{type:"error",error:{code:"server_error",message:"Something private went wrong."}},/The voice is unavailable\. Please try again/]]){
     await check("a reader error names its cause in fixed wording",async()=>{
       const h=setup();h.route(()=>response(h.voiceSession));const playback=h.t.speakReviewed("Who reviews the file?");
-      const rejected=assert.rejects(playback,error=>expected.test(error.message)&&error.voiceMessage===error.message&&!/private/.test(error.message));
+      const rejected=assert.rejects(playback,error=>expected.test(error.message)&&!/private/.test(error.message));
       await flush();h.sockets[0].packet(packet);await rejected;assert.equal(h.sockets.length,1,"Only a mismatch is retried");assert.equal(h.audio.length,0);
     });
   }
   await check("a voice session the server refuses is reported by cause, never in the server's words",async()=>{
     const h=setup();h.route(()=>({ok:false,status:429,json:async()=>({error:"The selected OpenAI project has no available API quota for private-project."})}));
-    await assert.rejects(h.t.speakReviewed("Who reviews the file?"),error=>/AI voice is unavailable because this API project has no available quota/.test(error.voiceMessage)&&!/private/.test(error.voiceMessage));
+    await assert.rejects(h.t.speakReviewed("Who reviews the file?"),error=>/AI voice is unavailable because this API project has no available quota/.test(error.message)&&!/private/.test(error.message));
     const other=setup();other.route(()=>({ok:false,status:500,json:async()=>({error:"A private server detail."})}));
-    await assert.rejects(other.t.speakReviewed("Who reviews the file?"),error=>error.voiceMessage==="The AI voice session could not be opened. Please try again.");
-  });
-  await check("reviewed voice goes on listening when the reader fails, and shows why",async()=>{
-    const h=setup();h.route(h.standard());h.t.state.turns=[{id:"t001",role:"assistant",text:"What starts the work?"}];await h.t.startLiveConversation();await h.say();
-    assert.equal(h.node("session-status").textContent,"Preparing voice…");h.sockets.at(-1).packet({type:"session.created"});await flush();h.sockets.at(-1).packet({type:"error",error:{code:"insufficient_quota",message:"You exceeded your current quota."}});await flush();
-    assert.equal(h.t.conversationUI.live.active,true,"A reader failure does not end the voice session");assert.equal(h.t.conversationUI.status,"listening");assert.equal(h.track.enabled,true);assert.equal(h.track.stopped,0);
-    assert.equal(h.t.state.turns.at(-1).text,approved().question,"The approved question stays in the transcript");
-    assert.equal(h.notices.at(-1).error,true);assert.match(h.notices.at(-1).message,/no available quota.*I’m listening for your answer\./);await h.t.conversationUI.live.stop({immediate:true});
-  });
-  await check("configured app selects the real controlled pipeline and keeps the microphone closed until audio ends",async()=>{
-    const h=setup();h.route(h.standard());h.t.state.turns=[{id:"t001",role:"assistant",text:"Saved question without speech authorization"}];await h.t.startLiveConversation();
-    assert.ok(h.t.conversationUI.live instanceof h.window.CollectorControlledVoice);assert.equal(h.legacyStarts(),0);assert.equal(h.calls.length,0,"Resume must not replay an unreviewed saved question");assert.equal(h.track.enabled,true);
-    await h.say();assert.equal(h.track.enabled,false);assert.equal(h.t.state.turns.at(-2).text,"An analyst reviews the file.");assert.equal(h.t.state.turns.at(-1).text,approved().question);assert.equal(h.node("session-status").textContent,"Preparing voice…");
-    const interview=h.calls.find(call=>call.url==="/api/agent-team/interview"),body=JSON.parse(interview.options.body);assert.equal(body.turns.at(-1).role,"user");assert.equal(body.turns.at(-1).text,"An analyst reviews the file.");assert.equal(typeof body.agent_run_id,"string");
-    await h.speech(approved().question);assert.equal(h.track.enabled,false,"Resolved Audio.play() must not reopen the microphone");assert.equal(h.t.conversationUI.status,"speaking");assert.equal(h.node("session-status").textContent,"Speaking");h.audio[0].emit("waiting");assert.equal(h.node("session-status").textContent,"Preparing voice…");assert.equal(h.track.enabled,false);h.audio[0].emit("playing");assert.equal(h.node("session-status").textContent,"Speaking");h.audio[0].emit("ended");await flush();assert.equal(h.track.enabled,true);assert.equal(h.t.conversationUI.status,"listening");assert.equal(h.node("session-status").textContent,"Listening");await h.t.conversationUI.live.stop();
-  });
-  await check("a spoken answer continued after a pause stays one participant turn and the page says it is still listening",async()=>{
-    const h=setup(),half=deferred();let heard=0,asked=0;
-    h.route(url=>{if(url==="/api/transcribe")return response({text:["The cataloguer scans the barcode","and then prints a spine label."][heard++]});if(url==="/api/agent-team/interview")return ++asked===1?half.promise:response(approved());if(url==="/api/voice-session")return response(h.voiceSession);return response({});});
-    h.t.state.config.agent_team.turn_pause_ms=2000;h.t.state.turns=[{id:"t001",role:"assistant",text:"What happens to a new book?"}];await h.t.startLiveConversation();
-    assert.equal(h.t.conversationUI.live.silenceMs,2000,"The configured end-of-turn pause reaches the voice controller");await h.say();
-    assert.equal(h.t.conversationUI.status,"processing");assert.equal(h.track.enabled,true,"The microphone stays open while the reply is prepared");
-    assert.equal(h.node("session-status").textContent,"Thinking… keep talking if you weren’t finished");assert.equal(h.node("live-status").textContent,"Answer received. Keep talking if you weren’t finished.");
-    for(let frame=0;frame<5;frame++)await h.tick(100,.08);
-    assert.equal(h.calls.find(call=>call.url==="/api/agent-team/interview").options.signal.aborted,true,"The reply to half an answer is cancelled");
-    half.resolve(response(approved("A question about half an answer?")));await flush();assert.equal(h.t.conversationUI.status,"listening");assert.equal(h.t.state.turns.length,2);
-    await h.tick(1100,0);await h.tick(1100,0);
-    assert.equal(h.t.state.turns.length,3);assert.equal(h.t.state.turns[1].role,"user");assert.equal(h.t.state.turns[1].text,"The cataloguer scans the barcode and then prints a spine label.");assert.equal(h.t.state.turns[2].text,approved().question);
-    const second=JSON.parse(h.calls.filter(call=>call.url==="/api/agent-team/interview")[1].options.body);assert.equal(second.turns.at(-1).text,h.t.state.turns[1].text);assert.equal(second.turns.filter(turn=>turn.role==="user").length,1);
-    assert.ok(!h.notices.some(item=>item.error),"Continuing an answer is not an error");await h.t.conversationUI.live.stop({immediate:true});
-  });
-  await check("late cancelled playback cannot change a newer preparation status",async()=>{
-    const h=setup();h.route(h.standard());h.t.state.turns=[{id:"t001",role:"assistant",text:"Saved question"}];await h.t.startLiveConversation();await h.say();await h.speech(approved().question);const oldAudio=h.audio[0];await h.t.conversationUI.live.stop({immediate:true});await h.t.startLiveConversation();await h.say();assert.equal(h.node("session-status").textContent,"Preparing voice…");oldAudio.emit("playing");assert.equal(h.node("session-status").textContent,"Preparing voice…");assert.equal(h.track.enabled,false);await h.t.conversationUI.live.stop({immediate:true});
-  });
-  await check("stop during reviewed playback cannot reopen the microphone on a late ended event",async()=>{
-    const h=setup();h.route(h.standard());h.t.state.turns=[{id:"t001",role:"assistant",text:"What starts the work?"}];await h.t.startLiveConversation();await h.say();await h.speech(approved().question);
-    await h.t.conversationUI.live.stop({immediate:true});assert.equal(h.track.enabled,false);assert.equal(h.track.stopped,1);assert.equal(h.audio[0].paused,true);h.audio[0].emit("ended");await flush();assert.equal(h.track.enabled,false);assert.equal(h.t.conversationUI.live.active,false);assert.equal(h.t.conversationUI.status,"idle");assert.equal(h.t.state.turns.length,3);
-  });
-  await check("new voice opening passes through team review before playback and listening",async()=>{
-    const h=setup();h.route(h.standard());const starting=h.t.startLiveConversation();await flush();
-    assert.equal(h.calls[0].url,"/api/agent-team/interview");assert.equal(JSON.parse(h.calls[0].options.body).action,"start");assert.equal(h.t.state.turns.length,1);assert.equal(h.t.state.turns[0].role,"assistant");assert.equal(h.track.enabled,false);
-    await h.speech(approved().question);assert.equal(h.track.enabled,false);h.audio[0].emit("ended");await starting;assert.equal(h.track.enabled,true);assert.equal(h.t.conversationUI.status,"listening");await h.t.conversationUI.live.stop();
-  });
-  await check("unapproved response never reaches app transcript or speech",async()=>{
-    const h=setup(),result=approved("We have covered everything.","complete");delete result.speech_authorization;h.route(h.standard(result));h.t.state.turns=[{id:"t001",role:"assistant",text:"What starts the work?"}];await h.t.startLiveConversation();await h.say();
-    assert.equal(h.t.state.turns.length,2);assert.equal(h.t.state.turns.at(-1).role,"user");assert.ok(h.sockets.every(s=>s.closed&&s.sent.length===0));assert.equal(h.audio.length,0);assert.equal(h.track.stopped,1);assert.match(h.notices.at(-1).message,/speech check/);
-  });
-  await check("authorization cannot override an incomplete server completion assessment",async()=>{
-    const h=setup(),result=approved("The interview is complete.","complete");result.completion.complete=false;h.route(h.standard(result));h.t.state.turns=[{id:"t001",role:"assistant",text:"Which sections are still unclear?"}];await h.t.startLiveConversation();await h.say();
-    assert.equal(h.t.state.turns.length,2);assert.equal(h.t.state.closure.confirmed,false);assert.ok(h.sockets.every(s=>s.closed&&s.sent.length===0));assert.equal(h.track.stopped,1);assert.match(h.notices.at(-1).message,/completion check/);
+    await assert.rejects(other.t.speakReviewed("Who reviews the file?"),error=>error.message==="The AI voice session could not be opened. Please try again.");
   });
   await check("current team requests route and publish their real status",async()=>{
     const h=setup(),pending=deferred();let runId;h.route((url,options)=>{const data=JSON.parse(options.body);if(url==="/api/agent-team/workflow"){runId=data.agent_run_id;return pending.promise;}if(url==="/api/agent-team/status"){assert.equal(data.run_id,runId);assert.equal(data.document_scope,"scope-test");assert.equal(options.headers["X-CSRF-Token"],"synthetic-csrf");return response({run_id:runId,status:"running",agents:[{role:"coverage_reviewer",status:"running"}],events:[]});}throw Error(url);});
@@ -222,14 +173,6 @@ const check=async(name,fn)=>{await fn();passed++;};
     h.t.state.generation++;h.t.state.turns=[{id:"new001",role:"user",text:"A new session account."}];h.t.state.closure={asked:false,confirmed:false};h.t.state.completion=null;
     pending.resolve(response({...approved("The interview is finished.","complete"),closure:{asked:true,confirmed:true},agent_team:{run_id:"stale",status:"completed"}}));await sending;
     assert.equal(h.t.state.turns.length,1);assert.equal(h.t.state.turns[0].text,"A new session account.");assert.equal(h.t.state.closure.confirmed,false);assert.equal(h.t.state.completion,null);assert.equal(h.team.length,0);assert.equal(h.sockets.length,0);
-  });
-  await check("voice stale completion cannot close or speak over a newer correction",async()=>{
-    const h=setup(),pending=deferred();h.route(url=>url==="/api/transcribe"?response({text:"The original answer."}):pending.promise);h.t.state.turns=[{id:"t001",role:"assistant",text:"What is the finished condition?"}];await h.t.startLiveConversation();await h.say();
-    h.t.state.turns.push({id:"newer",role:"user",text:"Correction: the final approval is still missing."});pending.resolve(response({...approved("Everything is complete.","complete"),closure:{asked:true,confirmed:true}}));await flush();
-    assert.equal(h.t.state.turns.length,3);assert.equal(h.t.state.turns.at(-1).id,"newer");assert.equal(h.t.state.closure.confirmed,false);assert.equal(h.sockets.length,0);assert.equal(h.track.stopped,1);assert.match(h.notices.at(-1).message,/conversation changed/);
-  });
-  await check("missing controlled module does not fall back to the legacy speaker",async()=>{
-    const h=setup();delete h.window.CollectorControlledVoice;await h.t.startLiveConversation();assert.equal(h.legacyStarts(),0);assert.equal(h.t.conversationUI.live,null);assert.equal(h.calls.length,0);assert.match(h.notices.at(-1).message,/couldn’t start/);
   });
   for(const stopped of [true,false])await check("typed wrap-up continues when the acknowledgement playback "+(stopped?"is stopped":"fails"),async()=>{
     const h=setup();h.node("speak-questions").checked=true;h.t.state.voiceChoice="local:synthetic";h.t.state.voice={name:"Synthetic",lang:"en-US"};
@@ -282,19 +225,6 @@ const check=async(name,fn)=>{await fn();passed++;};
   await check("transport retry reuses ticket without authorizing a new paid review",async()=>{
     const h=setup();let reviews=0;h.route(url=>url==="/api/agent-team/interview"?response(reviewAck()):url==="/api/agent-team/review"?(++reviews===1?Promise.reject(Error("Synthetic disconnect")):response(approved("Which handoff remains unclear?"))):response({}));h.node("answer-text").value="That is the last detail.";await h.t.sendAnswer({preventDefault(){}});assert.equal(h.node("retry-question").hidden,false);await h.t.retryQuestion();
     const retry=JSON.parse(h.calls.filter(call=>call.url==="/api/agent-team/review")[1].options.body);assert.equal(retry.retry_review,undefined);assert.equal(retry.review_ticket,"review-ticket-one");assert.equal(h.t.state.turns.filter(turn=>turn.text===reviewAck().question).length,1);
-  });
-  await check("voice acknowledgement ends before the specialist request begins",async()=>{
-    const h=setup(),review=deferred();h.route(url=>url==="/api/agent-team/interview"?response(reviewAck()):url==="/api/agent-team/review"?review.promise:url==="/api/transcribe"?response({text:"That fills the last gap."}):url==="/api/voice-session"?response(h.voiceSession):response({}));h.t.state.turns=[{id:"t001",role:"assistant",text:"What evidence is retained?"}];await h.t.startLiveConversation();await h.say();
-    assert.equal(h.calls.filter(call=>call.url==="/api/agent-team/review").length,0);await h.speech(reviewAck().question);assert.equal(h.calls.filter(call=>call.url==="/api/agent-team/review").length,0,"Generation and play() cannot start review");h.audio[0].emit("ended");await flush();assert.equal(h.calls.filter(call=>call.url==="/api/agent-team/review").length,1);assert.equal(h.track.enabled,false);
-    review.resolve(response({...approved("Is there anything else I should include?","final_check"),capture_token:"reviewed",coverage_verified:true}));await flush();await h.speech("Is there anything else I should include?");assert.equal(h.track.enabled,false);h.audio[1].emit("ended");await flush();assert.equal(h.track.enabled,true);assert.equal(h.t.state.turns.filter(turn=>turn.text===reviewAck().question).length,1);await h.t.conversationUI.live.stop();
-  });
-  await check("stopping during acknowledgement prevents the specialist request",async()=>{
-    const h=setup();h.route(url=>url==="/api/agent-team/interview"?response(reviewAck()):url==="/api/transcribe"?response({text:"That is all."}):url==="/api/voice-session"?response(h.voiceSession):response({}));h.t.state.turns=[{id:"t001",role:"assistant",text:"Any other controls?"}];await h.t.startLiveConversation();await h.say();await h.speech(reviewAck().question);await h.t.conversationUI.live.stop();h.audio[0].emit("ended");await flush();
-    assert.equal(h.calls.filter(call=>call.url==="/api/agent-team/review").length,0);assert.equal(h.track.enabled,false);assert.equal(h.track.stopped,1);
-  });
-  await check("stopped deliberate review rejects late completion and retains accepted answers",async()=>{
-    const h=setup(),review=deferred();h.route(url=>url==="/api/agent-team/interview"?response(reviewAck()):url==="/api/agent-team/review"?review.promise:url==="/api/transcribe"?response({text:"The answer is retained."}):url==="/api/voice-session"?response(h.voiceSession):response({}));h.t.state.turns=[{id:"t001",role:"assistant",text:"What remains?"}];await h.t.startLiveConversation();await h.say();await h.speech(reviewAck().question);h.audio[0].emit("ended");await flush();await h.t.conversationUI.live.stop();
-    const request=h.calls.find(call=>call.url==="/api/agent-team/review");assert.equal(request.options.signal.aborted,true);review.resolve(response({...approved("The process is fully covered.","complete"),coverage_verified:true,closure:{asked:true,confirmed:true}}));await flush();assert.equal(h.t.state.turns.length,3);assert.equal(h.t.state.turns[1].text,"The answer is retained.");assert.equal(h.sockets.length,1);assert.equal(h.t.state.closure.confirmed,false);assert.equal(h.track.enabled,false);
   });
   await check("a correction during deliberate review invalidates its late result",async()=>{
     const h=setup(),review=deferred();h.route(url=>url==="/api/agent-team/interview"?response(reviewAck()):url==="/api/agent-team/review"?review.promise:response({}));h.node("answer-text").value="Last original detail.";const sending=h.t.sendAnswer({preventDefault(){}});await flush();h.t.state.turns.push({id:"correction",role:"user",text:"The exception owner is still unknown."});review.resolve(response({...approved("Everything is finished.","complete"),coverage_verified:true,closure:{asked:true,confirmed:true}}));await sending;

@@ -244,7 +244,7 @@
   .interview-settings .settings-heading h2 { font-size: 25px; }
   .settings-find { margin: 0 12px 10px; }
   .settings-navigation { flex: none; padding: 0 12px 10px; overflow: visible; }
-  .settings-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+  .settings-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
   .settings-tabs button { justify-content: center; min-height: 42px; padding: 7px 5px; border-radius: 9px; text-align: center; font-size: 12px; }
   .settings-nav-group, .settings-nav-note, .settings-tabs small, .settings-tabs button > span:first-child { display: none; }
   .interview-settings .settings-nav-note { display: none; }

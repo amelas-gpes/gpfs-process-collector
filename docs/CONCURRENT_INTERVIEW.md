@@ -274,8 +274,7 @@ conversation that is discarded cancels its work; a new answer does not.
 Background work leaves two of them free, so that a question, a transcription or
 a voice session does not queue behind notes and maps. Background processing adds provider work and cost, and long
 transcripts remain in the fast model input for conversational accuracy. No constant
-latency or cost reduction is promised. The 1.8-second reviewed-voice silence threshold and
-buffered natural voice playback remain unchanged.
+latency or cost reduction is promised. Buffered natural voice playback remains unchanged.
 
 ## Historical validation (0.23.0)
 

@@ -82,7 +82,7 @@ try{
   assert.equal(listed.status,0,listed.all);
   const expected=fs.readdirSync(__dirname).filter(name=>name.endsWith(".cjs")&&name!=="run_all.cjs").sort();
   assert.deepEqual(listed.lines.filter(Boolean),expected);
-  for(const name of ["test_agent_experience.cjs","test_controlled_voice.cjs","test_knowledge_ui.cjs","test_ui_state.cjs","test_run_all.cjs"])assert(expected.includes(name),name);
+  for(const name of ["test_agent_experience.cjs","test_knowledge_ui.cjs","test_ui_state.cjs","test_run_all.cjs"])assert(expected.includes(name),name);
   assert.equal(/tests[\\/]run_all\.cjs/.test(fs.readFileSync(path.join(root,"README.md"),"utf8")),true,"The README names the command that runs every Node suite");passes++;
  }
  {

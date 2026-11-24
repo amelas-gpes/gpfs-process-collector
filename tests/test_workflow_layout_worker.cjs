@@ -43,13 +43,13 @@ let passed=0;
  const base=environment(),api=base.api;
 
  // ---- Heavily connected maps use the placement that stays fast ------------------------------
- const placement=(graph,cinematic=false)=>api.elkGraph(api.model(graph),'RIGHT',cinematic).layoutOptions['elk.layered.nodePlacement.strategy'];
+ const placement=graph=>api.elkGraph(api.model(graph),'RIGHT').layoutOptions['elk.layered.nodePlacement.strategy'];
  assert.equal(placement(dense(40,60)),'NETWORK_SIMPLEX','Up to 60 connections keep the compact placement');
  assert.equal(placement(dense(40,61)),'BRANDES_KOEPF','More than 60 connections use the fast placement');
- assert.equal(placement(dense(80,150)),'BRANDES_KOEPF');assert.equal(placement(dense(80,150),true),'BRANDES_KOEPF','The walkthrough layout of the same map is as heavy');
+ assert.equal(placement(dense(80,150)),'BRANDES_KOEPF');
  assert.equal(placement(chain(80)),'BRANDES_KOEPF');assert.equal(placement(chain(12)),'NETWORK_SIMPLEX');
  // Folding adds long return routes, so the folded request changes over at half the size.
- const folded=graph=>api.elkGraph(api.model(graph),'RIGHT',false,2).layoutOptions['elk.layered.nodePlacement.strategy'];
+ const folded=graph=>api.elkGraph(api.model(graph),'RIGHT',2).layoutOptions['elk.layered.nodePlacement.strategy'];
  assert.equal(folded(dense(28,30)),'NETWORK_SIMPLEX');assert.equal(folded(dense(28,31)),'BRANDES_KOEPF');passed++;
 
  // The largest supported map (80 steps, 150 connections) took 36 to 81 s here before; a browser tab was frozen for that long.
@@ -58,11 +58,8 @@ let passed=0;
  assert.equal(await heavyCanvas.update(heavy),true);
  const diagramMs=Date.now()-started;
  assert.equal(heavyCanvas.layout.children.length,80);assert.equal(heavyCanvas.layout.edges.length,150);assert(heavyCanvas.exportSVG());heavyCanvas.destroy();
- const sceneStarted=Date.now(),scene=await heavyView.api.cinematicLayout(heavy,1.9);
- const sceneMs=Date.now()-sceneStarted;
- assert.equal(scene.nodes.length,80);assert.equal(scene.edges.length,150);
  assert(diagramMs<20000,`The diagram of the largest supported map must be laid out within 20 s even on a busy machine (took ${diagramMs} ms)`);
- assert(sceneMs<20000,`The walkthrough of the largest supported map must be laid out within 20 s (took ${sceneMs} ms)`);passed++;
+ passed++;
 
  // ---- The worker script ---------------------------------------------------------------------
  // Run web/workflow-layout-worker.js as a worker would: its own realm, importScripts, self.
@@ -91,13 +88,11 @@ let passed=0;
  const made=workers(page),timers=clock(page);
  const one=page.api.create(page.container),otherContainer=page.document.createElement('div'),two=page.api.create(otherContainer);
  assert.equal(await one.update(chain(5)),true);assert.equal(await two.update(retitled('Second map')),true);
- const walk=await page.api.cinematicLayout({title:'Loop',steps:chain(5).steps,connections:[...chain(5).connections,{from:'S5',to:'S2',label:'Again'}]},1.9);
- assert.equal(walk.nodes.length,5);
- assert.equal(made.length,1,'Both diagrams and the walkthrough share one worker');assert.equal(made[0].url,'/workflow-layout-worker.js');
- assert.equal(made[0].posts.length,3);assert.equal(new Set(made[0].posts.map(post=>post.id)).size,3);
+ assert.equal(made.length,1,'Both diagrams share one worker');assert.equal(made[0].url,'/workflow-layout-worker.js');
+ assert.equal(made[0].posts.length,2);assert.equal(new Set(made[0].posts.map(post=>post.id)).size,2);
  assert.equal(engineLoads,0,'With a worker the page never loads the engine itself');assert.equal(one.engine,undefined);
  assert.equal(one.world.querySelectorAll('[data-step-id]').length,5);assert(one.exportSVG());
- assert(timers.length>=3&&timers.every(timer=>timer.ms===8000&&!timer.live),'Each layout runs against an 8 s budget that is cleared when it answers');
+ assert(timers.length>=2&&timers.every(timer=>timer.ms===8000&&!timer.live),'Each layout runs against an 8 s budget that is cleared when it answers');
  // Closing one diagram leaves the shared worker for the other.
  one.destroy();assert.equal(made[0].terminated,false);assert.equal(await two.update(retitled('Second map, revised')),true);assert.equal(made.length,1);two.destroy();passed++;
 
@@ -153,12 +148,11 @@ let passed=0;
   assert.equal(first.layout.children.length,5);assert.equal(second.layout.children.length,5);
   const count=plainMade.length;
   assert.equal(await first.update(retitled('Later change')),true);assert.equal(plainMade.length,count,`${mode}: no further worker is attempted`);
-  assert((await plain.api.cinematicLayout({title:'Loop',steps:chain(5).steps,connections:[...chain(5).connections,{from:'S5',to:'S2',label:'Again'}]},1.9)).nodes.length===5);
   first.destroy();second.destroy();
  }
  // The engine is fetched by the page only in that case.
  const lazy=environment(null);let loads=0;lazy.window.CollectorWorkflowAssets={loadEngine(){loads++;return Promise.resolve(RealmELK);}};workers(lazy,'dead');clock(lazy);
  const lazyCanvas=lazy.api.create(lazy.container);assert.equal(await lazyCanvas.update(chain(5)),true);assert.equal(loads,1);lazyCanvas.destroy();passed++;
 
- console.log(JSON.stringify({tests_passed:passed,largest_map_diagram_ms:diagramMs,largest_map_walkthrough_ms:sceneMs,real_elk_layout:true,network_calls:0,provider_calls:0,real_browser:false}));
+ console.log(JSON.stringify({tests_passed:passed,largest_map_diagram_ms:diagramMs,real_elk_layout:true,network_calls:0,provider_calls:0,real_browser:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

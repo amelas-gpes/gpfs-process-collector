@@ -34,12 +34,10 @@ async function settleVoice(v){const stopping=v.api.stop();v.event({type:"session
 let passed=0;
 async function check(name,fn){await fn();passed++;console.log("PASS "+name);}
 (async()=>{
- await check("GPT-Live playback displays Speaking while reviewed playback can still be preparing",async()=>{
+ await check("GPT-Live playback displays Speaking",async()=>{
   const h=fixture();
   h.t.conversationUI.status="speaking";
   assert.equal(h.t.presenceState(),"speaking");
-  h.t.state.config.agent_team.voice_mode="reviewed_turns";
-  assert.equal(h.t.presenceState(),"processing");
  });
  await check("listening cues and delayed fragments keep one participant answer",async()=>{
   const h=voice.setup();await h.api.start();

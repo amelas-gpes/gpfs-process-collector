@@ -5,18 +5,18 @@ function openSettings(page) { page.$("session-menu-toggle").click(); page.$("ope
 class UIEvent { constructor(type, options={}) { this.type=type;Object.assign(this,options); } }
 
 async function main() {
-  const page = await open({modules:["settings-ui.js"],config:{recovery:{enabled:false,stored:false},usage:{day_tokens:1250,interview_tokens:250,daily_token_cap:2000,interview_token_cap:500},speech:{enabled:true,default_voice:"marin",voices:[{id:"marin",label:"Marin"},{id:"cedar",label:"Cedar"}]}}});
+  const page = await open({modules:["settings-ui.js"],config:{speech:{enabled:true,default_voice:"marin",voices:[{id:"marin",label:"Marin"},{id:"cedar",label:"Cedar"}]}}});
   page.context.Event = page.context.CustomEvent = UIEvent;
   page.context.queueMicrotask = queueMicrotask;
   const settings = page.window.CollectorSettings;
   assert.equal(page.document.getElementById("open-settings"),null,"There is no second header Settings control");
   assert.equal(page.$("session-menu").querySelector("button").id,"open-interview-settings","Settings is the first menu action");
-  for(const id of ["export-session","import-session","export-transcript-menu","submit-process-menu","open-component-library","load-example","reset-session"])assert(page.$("session-menu").contains(page.$(id)),id+" remains available");
+  for(const id of ["export-session","import-session","export-transcript-menu","submit-process-menu","load-example","reset-session"])assert(page.$("session-menu").contains(page.$(id)),id+" remains available");
   openSettings(page);
   assert(page.$("interview-settings").open, "Settings opens from the unified header menu");
   assert.equal(page.$("preferences-details").hidden,false);
   const tabs = page.document.querySelectorAll("[data-settings-target]").filter(tab => !tab.hidden);
-  assert.equal(tabs.length,6);
+  assert.equal(tabs.length,4);
   for (const tab of tabs) {
     tab.click();
     assert.equal(tab.getAttribute("aria-selected"),"true");
@@ -27,12 +27,12 @@ async function main() {
   page.$("settings-tab-context").dispatchEvent({type:"keydown",key:"ArrowDown"});
   assert.equal(page.document.activeElement,page.$("settings-tab-data"));
   assert.equal(page.$("data-details").hidden,false);
-  page.$("settings-search").input("recovery");
+  page.$("settings-search").input("privacy");
   let results=page.$("settings-search-matches").querySelectorAll("button");
   assert.equal(results.length,1);
   results[0].click();
   assert.equal(page.$("data-details").hidden,false);
-  assert.equal(page.document.activeElement,page.$("recovery-enabled"));
+  assert.equal(page.document.activeElement,page.$("data-notice"));
   assert.equal(page.$("settings-search").value,"");
   page.$("settings-search").input("definition of done");
   const doneGuide=page.$("settings-search-matches").querySelector("button");
@@ -74,35 +74,11 @@ async function main() {
   page.$("voice-select").disabled=true;settings.refreshVoice();
   assert.equal(page.$("voice-picker-toggle").disabled,true);
   assert.equal(page.$("voice-picker-panel").hidden,true);
-  settings.show("usage-details");
-  assert.equal(page.$("usage-day-value").textContent,"1,250");
-  assert.equal(page.$("usage-interview-value").textContent,"250");
-  assert.equal(page.$("usage-day-meter").value,1250);
-  assert.equal(page.$("usage-day-meter").max,2000);
-  assert.equal(page.$("usage-day-percent").textContent,"63%");
-  assert.equal(page.$("usage-interview-percent").textContent,"50%");
-  assert.deepEqual([page.$("usage-day-meter").low,page.$("usage-day-meter").high,page.$("usage-day-meter").optimum],[1500,1800,0],"The bar warns near the limit");
-  page.route(url=>{
-    if(url!=="/api/usage/check")return undefined;
-    page.document.activeElement=page.document.body;
-    return {usage:{day_tokens:1300,interview_tokens:300,daily_token_cap:2000,interview_token_cap:500}};
-  });
-  page.$("usage-check").focus();page.$("usage-check").click();await page.flush();
-  assert.equal(page.document.activeElement,page.$("usage-check"),"Usage refresh returns keyboard focus after its temporary disabled state");
-  assert.equal(page.$("usage-day-value").textContent,"1,300");
-  settings.setUsage(undefined);
-  assert.equal(page.$("usage-day-value").textContent,"—");
-  assert.equal(page.$("usage-day-percent").textContent,"");
-  assert.equal(page.$("usage-day-meter").hidden,true);
-  assert.equal(page.$("usage-check").disabled,true);
-  settings.show("logs-details");
-  page.document.querySelector('[data-log-scope="current"]').click();
-  assert.equal(page.$("logs-scope").value,"current");
-  assert.equal(page.document.querySelector('[data-log-scope="all"]').getAttribute("aria-pressed"),"false");
+  settings.show("help-guide");
   page.$("close-interview-settings").click();
   assert.equal(page.document.activeElement,page.$("session-menu-toggle"));
   openSettings(page);
-  assert.equal(page.$("logs-details").hidden,false,"The last section is kept for quick return");
+  assert.equal(page.$("help-guide").hidden,false,"The last section is kept for quick return");
   page.$("close-interview-settings").click();
   page.$("open-context").click();
   assert.equal(page.$("context-details").hidden,false);
@@ -114,8 +90,8 @@ async function main() {
   openSettings(mobile);
   mobile.$("settings-tab-preferences").focus();
   mobile.$("settings-tab-preferences").dispatchEvent({type:"keydown",key:"ArrowDown"});
-  assert.equal(mobile.document.activeElement,mobile.$("settings-tab-usage"),"Down moves to the same column in mobile navigation");
+  assert.equal(mobile.document.activeElement,mobile.$("settings-tab-data"),"Down moves to the same column in mobile navigation");
   assert.equal(mobile.$("interview-settings").querySelector('[role="tablist"]').getAttribute("aria-orientation"),"horizontal");
-  console.log("Settings: direct entry, all six sections, keyboard navigation, finder and its suggestions, appearance, voice picker, disabled state, usage and limits, log scope and source context passed.");
+  console.log("Settings: direct entry, all four sections, keyboard navigation, finder and its suggestions, appearance, voice picker, disabled state and source context passed.");
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

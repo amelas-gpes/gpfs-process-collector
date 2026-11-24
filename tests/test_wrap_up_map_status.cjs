@@ -6,10 +6,10 @@
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 let harness=fs.readFileSync(path.join(__dirname,"test_agent_experience.cjs"),"utf8").split("let passed=0;")[0];
 assert.ok(harness.includes("function setup()"));
-harness=harness.replace('const controlled=', 'const concurrent=fs.readFileSync(path.join(__dirname,"../web/concurrent-interview.js"),"utf8");\nconst controlled=');
+harness=harness.replace('const flush=', 'const concurrent=fs.readFileSync(path.join(__dirname,"../web/concurrent-interview.js"),"utf8");\nconst flush=');
 harness=harness.replace('updateControls=()=>{updatePresence();};', 'updateControls=()=>{updatePresence();}; renderCoverage=()=>{}; renderWorkingMap=()=>{}; updateSaveHint=()=>{}; updateConversationControls=()=>{}; updateDocumentIntakeUI=()=>{};');
 harness=harness.replace('setTeam:value=>', 'applyInterview,applyBackgroundCapture,applyLateWorkflow,settleMapStatus,publishWorkingMap,submissionCaptureState,analysis:()=>analysisState,controller:()=>concurrentInterview,setTeam:value=>');
-harness=harness.replace('vm.runInContext(controlled,context,', 'vm.runInContext(concurrent,context,{filename:"concurrent-interview.js"});vm.runInContext(controlled,context,');
+harness=harness.replace('vm.runInContext(source,context,', 'vm.runInContext(concurrent,context,{filename:"concurrent-interview.js"});vm.runInContext(source,context,');
 harness+='\nmodule.exports={setup,approved,response,flush,deferred};';
 const exported={exports:{}};
 vm.runInNewContext(harness,{require,__dirname,module:exported,console,Buffer,Blob,DataView,Uint8Array,Float32Array,TextEncoder,Date,JSON,AbortController,DOMException},{filename:"wrap-up-map-harness.cjs"});

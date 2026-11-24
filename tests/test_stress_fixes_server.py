@@ -416,10 +416,9 @@ class LiveCoverageGlossary(unittest.TestCase):
 class EmptyBodiesOnEveryRoute(Loopback):
     """An empty POST is a bad request (400) everywhere, not one that is too large (413)."""
 
-    def test_an_empty_body_is_called_empty_on_the_document_knowledge_and_recovery_routes(self):
+    def test_an_empty_body_is_called_empty_on_the_document_and_knowledge_routes(self):
         for path in ("/api/documents/session", "/api/documents/status", "/api/documents/action", "/api/documents/source",
-                     "/api/documents/context", "/api/knowledge/status", "/api/knowledge/submit", "/api/recovery/status",
-                     "/api/recovery/save", "/api/interview", "/api/trace/events"):
+                     "/api/documents/context", "/api/knowledge/status", "/api/knowledge/submit", "/api/interview"):
             with self.subTest(path=path):
                 status, _, body, failure = exchange(self.port, self.head(path, 0, "application/json"))
                 self.assertEqual((status, failure, body), (400, None, {"error": "The request was empty. Nothing was changed; try again."}))
@@ -430,8 +429,6 @@ class EmptyBodiesOnEveryRoute(Loopback):
                 body = b"{" + b" " * server.MAX_JSON + b"}"
                 status, _, answer, failure = exchange(self.port, self.head(path, len(body), "application/json"), body)
                 self.assertEqual((status, failure, answer), (413, None, {"error": message}))
-        status, _, answer, failure = exchange(self.port, self.head("/api/trace/events", 262145, "application/json"))
-        self.assertEqual((status, failure, answer), (413, None, {"error": "Trace batch exceeds its limit."}))
 
 
 class LiveStartTimeBudget(unittest.TestCase):
@@ -453,28 +450,6 @@ class LiveStartTimeBudget(unittest.TestCase):
         with self.assertRaises(server.APIError):
             client.live_session(live_payload())
         self.assertEqual(seen, [("live/sessions", server.LIVE_SESSION_TIMEOUT)])
-
-
-class LiveNotesTraceFields(unittest.TestCase):
-    """The default (metadata) trace keeps the names of the live-notes counts (web/app.js captureMidAnswer)."""
-
-    def test_the_metadata_trace_keeps_the_live_notes_fields(self):
-        import importlib.util
-        path = Path(__file__).resolve().parents[1] / "raw_trace.py"
-        spec = importlib.util.spec_from_file_location("live_notes_trace_under_test", path)
-        raw_trace = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(raw_trace)
-        payloads = [
-            {"on_its_way_ms": 4200, "expected_ms": 9000},
-            {"through_turn": "t012", "on_its_way_ms": 4200},
-            {"through_turn": None, "on_its_way_ms": 300},
-            {"through_turn": "t012", "unnoted_chars": 1520, "count": 1},
-            {"through_turn": "t012", "answer_count": 3, "mid_answer": True},
-            {"count": 2},
-        ]
-        for payload in payloads:
-            recorded = raw_trace._Snapshot(False, ()).copy(payload)
-            self.assertEqual(recorded, payload, "Each field keeps its name and value; a turn id is shown like turn_id")
 
 
 if __name__ == "__main__":

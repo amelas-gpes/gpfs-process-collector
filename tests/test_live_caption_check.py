@@ -6,7 +6,6 @@ marked as a caption check (X-Transcription-Purpose), which is hinted with the se
 answered with those terms (web/app.js checkLiveCaption and correctCaption, web/live-voice.js
 captionAudio). Dictation and reviewed voice are read as before. Loopback sockets and a stubbed provider.
 """
-import importlib.util
 import io
 import json
 import os
@@ -43,18 +42,15 @@ class Setting(unittest.TestCase):
         with self.assertRaises(server.SettingsError):
             server.OpenAIClient({"OPENAI_API_KEY": KEY, "LIVE_CAPTION_CHECK": "of"})
 
-    def test_the_page_is_told_in_live_voice_only(self):
+    def test_the_page_is_told_whether_captions_are_checked(self):
         self.assertIs(server.OpenAIClient({"OPENAI_API_KEY": KEY}).public_config()["live"]["caption_check"], True)
         off = server.OpenAIClient({"OPENAI_API_KEY": KEY, "LIVE_CAPTION_CHECK": "off"}).public_config()
         self.assertIs(off["live"]["caption_check"], False)
-        reviewed = server.OpenAIClient({"OPENAI_API_KEY": KEY, "VOICE_MODE": "reviewed"}).public_config()
-        self.assertNotIn("caption_check", reviewed["live"])
         # The data notice says the audio of each answer is sent again; off, it is as before. ("Once more" was
         # not true: a check given up when its caption changed, and the padding of a grown caption, resend audio.)
         said = "Each finished answer's audio is also sent again, to correct fund terms and configured names in its caption."
         self.assertIn(said, server.OpenAIClient({"OPENAI_API_KEY": KEY}).public_config()["data_notice"])
         self.assertNotIn(said, off["data_notice"])
-        self.assertNotIn(said, reviewed["data_notice"])
 
     def test_the_setting_is_read_from_env_local_and_the_environment(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -184,15 +180,14 @@ class RecordingRoute(unittest.TestCase):
 
     def test_the_mark_is_refused_where_live_captions_are_not_checked(self):
         audio = page_wav([0] * 16000)
-        for settings in ({"LIVE_CAPTION_CHECK": "off"}, {"VOICE_MODE": "reviewed"}):
-            self.httpd.client = server.OpenAIClient({"OPENAI_API_KEY": KEY, "TRANSCRIPTION_KEYWORDS": "GPFS", **settings})
-            self.httpd.client.request = Mock(return_value={"text": "We run the KYC checks."})
-            status, _, body, _ = self.post(audio, "", ["live-caption-check"])
-            self.assertEqual(status, 400, settings)
-            self.httpd.client.request.assert_not_called()
-            # Dictation itself goes on as before.
-            status, _, body, _ = self.post(audio, quote("NAV"))
-            self.assertEqual((status, body), (200, {"text": "We run the KYC checks."}))
+        self.httpd.client = server.OpenAIClient({"OPENAI_API_KEY": KEY, "TRANSCRIPTION_KEYWORDS": "GPFS", "LIVE_CAPTION_CHECK": "off"})
+        self.httpd.client.request = Mock(return_value={"text": "We run the KYC checks."})
+        status, _, body, _ = self.post(audio, "", ["live-caption-check"])
+        self.assertEqual(status, 400)
+        self.httpd.client.request.assert_not_called()
+        # A plain transcription, without the mark, goes on as before.
+        status, _, body, _ = self.post(audio, quote("NAV"))
+        self.assertEqual((status, body), (200, {"text": "We run the KYC checks."}))
 
 
 class Glossary(unittest.TestCase):
@@ -238,32 +233,6 @@ class Glossary(unittest.TestCase):
         for values in (["live-caption-check "], ["LIVE-CAPTION-CHECK"], ["x"], ["live-caption-check"] * 2):
             with self.assertRaises(ValueError):
                 server.transcription_purpose(values)
-
-
-class Trace(unittest.TestCase):
-    """The page traces each check's outcome with counts and no text (web/app.js traceCaptionCheck)."""
-
-    def test_the_metadata_trace_keeps_the_names_of_the_counts(self):
-        path = Path(__file__).resolve().parents[1] / "raw_trace.py"
-        spec = importlib.util.spec_from_file_location("caption_check_trace_under_test", path)
-        raw_trace = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(raw_trace)
-        payloads = [
-            {"caption_id": "live_1_user_3", "turn_id": "t012", "outcome": "sent", "audio_ms": 4100, "bytes": 131244},
-            {"caption_id": "live_1_user_3", "turn_id": "t012", "outcome": "replaced", "words_before": 12, "words_after": 14,
-             "count": 2, "chars_before": 60, "chars_after": 58},
-            {"caption_id": "live_1_user_3", "turn_id": "t012", "outcome": "kept", "reason": "no_correction", "words_before": 12, "words_after": 9},
-            {"caption_id": "live_1_user_3", "turn_id": "t012", "outcome": "kept", "reason": "misaligned", "words_before": 12, "words_after": 30},
-            {"count": 2},
-        ]
-        for payload in payloads:
-            recorded = raw_trace._Snapshot(False, ()).copy(payload)
-            self.assertFalse([key for key in recorded if key.startswith("_trace_field")], recorded)
-            # The turn identifies the check's caption (one turn each); the counts and the outcome are kept as sent.
-            self.assertEqual(recorded.get("turn_id"), "t012" if "turn_id" in payload else None)
-            for key, value in payload.items():
-                if key != "caption_id":
-                    self.assertEqual(recorded[key], value, key)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 
 The current interview worker retains a validated map, sixteen memo topics and source references. Notes and map work use the accepted interview snapshot, with revision checks before publication. A later answer can supersede queued work. Draft generation can compare its evidence against the previously displayed map. A free-text handoff remains a reported note. A drawn arrow requires support for the transition.
 
-A parallel join means all incoming branches must finish. A merge allows alternative branches to continue. When the testimony leaves this rule open, the map records a clarification question. The editor, diagram and exported step type preserve that distinction.
+A parallel join means all incoming branches must finish. A merge allows alternative branches to continue. When the testimony leaves this rule open, the map records a clarification question. The diagram and exported step type preserve that distinction.
 
 ## A map drawn alongside the conversation
 
@@ -111,7 +111,7 @@ call, instead of after it and only while Workflow is visible. It still carries t
 capture, runs the document audit when file evidence is present, and waits for document intake and
 for a completion review. A newer answer during a map update schedules one follow-up once it finishes.
 
-Typed and dictated answers are mapped in the background, where the browser sends no baseline. The
+Typed answers are mapped in the background, where the browser sends no baseline. The
 server keeps it instead: the next background map starts from the five baseline fields of the last map
 that conversation published, while the transcript that map was drawn from is still the beginning of
 the current one. Omission therefore keeps a step or route on this path too, step IDs stay stable and

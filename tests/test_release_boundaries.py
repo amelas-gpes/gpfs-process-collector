@@ -1,8 +1,7 @@
-"""Release regressions covering source authority, accounting and the documented HTTP surface."""
+"""Release regressions covering source authority and the documented HTTP surface."""
 import ast
 from pathlib import Path
 import re
-import tempfile
 import unittest
 from unittest.mock import Mock
 
@@ -31,22 +30,6 @@ class ReleaseBoundaries(unittest.TestCase):
         self.assertEqual(evidence['maxItems'], 0)
         self.assertNotIn('enum', evidence['items'])
 
-    def test_accounting_reserves_parallel_work_and_survives_restart(self):
-        settings = {'DAILY_TOKEN_CAP': '100', 'INTERVIEW_TOKEN_CAP': '80'}
-        label = 'a' * 32
-        with tempfile.TemporaryDirectory() as temp:
-            ledger = server.provider_usage.UsageLedger(settings)
-            path = Path(temp) / 'usage.db'
-            ledger.attach(path)
-            self.assertEqual(ledger.start('one', label, 60, False), '')
-            self.assertEqual(ledger.start('two', label, 30, False), 'budget_reached')
-            ledger.finish('one', label, {'input_tokens': 30, 'output_tokens': 20})
-            other = server.provider_usage.UsageLedger(settings)
-            other.attach(path)
-            self.assertEqual(other.summary(label)['interview_tokens'], 50)
-            self.assertEqual(other.summary()['day_tokens'], 50)
-            self.assertIsNone(other.summary()['interview_tokens'])
-
     def test_unrelated_participant_quote_cannot_authorize_whole_map_removal(self):
         snapshot = payload()
         previous, turns = snapshot['previous_capture'], snapshot['turns']
@@ -58,11 +41,9 @@ class ReleaseBoundaries(unittest.TestCase):
         web = Path(__file__).resolve().parents[1] / 'web'
         app = (web / 'app.js').read_text('utf8').split('const WORKFLOW_TYPES = {', 1)[1].split('};', 1)[0]
         graph = (web / 'workflow-graph.js').read_text('utf8').split('const TYPES={', 1)[1].split('};', 1)[0]
-        stage = (web / 'workflow-stage.js').read_text('utf8').split('const names = {', 1)[1].split('};', 1)[0]
         labels = dict(re.findall(r'(\w+):\["([^"]+)"', app))
         self.assertEqual(set(labels), set(server.WORKFLOW_STEP_TYPES))
         self.assertEqual(labels, dict(re.findall(r'(\w+):\{label:"([^"]+)"', graph)))
-        self.assertEqual(labels, dict(re.findall(r'(\w+): "([^"]+)"', stage)))
 
     def test_turn_limits_use_the_published_numbers(self):
         base = {'context': {}, 'turns': [{'id': str(i), 'role': 'user', 'text': 'x' * 1000} for i in range(400)]}

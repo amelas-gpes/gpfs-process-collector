@@ -1,6 +1,6 @@
 "use strict";
-// Keyboard focus on a step or route that is off screen brings it into view, in the diagram and
-// in the Cinematic map. Focus that comes from a click does not move the map.
+// Keyboard focus on a step or route that is off screen brings it into view in the diagram.
+// Focus that comes from a click does not move the map.
 // Real bundled ELK and a fictional process; no browser, network or provider calls.
 const assert=require('node:assert/strict');
 const {RealmELK,environment,chain}=require('./fixtures/workflow_canvas.cjs');
@@ -85,38 +85,6 @@ let passed=0;
   const node=env.node(canvas,'S7'),matches=node.matches.bind(node);node.matches=selector=>{if(selector===':focus-visible')throw new SyntaxError("':focus-visible' is not a valid selector");return matches(selector);};
   const camera={...canvas.camera};focus('S7');assert.deepEqual({...canvas.camera},camera);
   canvas.destroy();passed++;
- }
-
- // ---- Cinematic map ------------------------------------------------------------------------------
- {
-  const env=environment(RealmELK,900,500);env.load('workflow-stage.js');
-  const host=env.document.createElement('div'),stage=env.window.CollectorWorkflowStage.create(host,{});
-  assert.equal(await stage.update(branching()),true);
-  const svg=host.querySelector('svg'),view=()=>{const [x,y,w,h]=svg.getAttribute('viewBox').split(' ').map(Number);return {x,y,w,h};};
-  const element=id=>host.querySelectorAll('.ws-node').find(node=>node.getAttribute('data-step-id')===id);
-  const box=id=>{const [x,y]=element(id).getAttribute('transform').match(/-?[\d.]+/g).map(Number),tile=element(id).querySelector('.ws-tile').getAttribute('d'),w=Number(tile.match(/H9L0/)?tile.match(/L([\d.]+) 9V/)[1]:0),h=Number(tile.match(/V([\d.]+)L/)[1])+9;return {x,y,w,h};};
-  const inside=id=>{const n=box(id),v=view();return n.x>=v.x&&n.y>=v.y&&n.x+n.w<=v.x+v.w&&n.y+n.h<=v.y+v.h;};
-  const focus=(target,keyboard=true)=>{env.document.keyboardFocus=keyboard;env.document.activeElement=target;svg.emit('focusin',{target});};
-  // In the overview everything is in view and focus moves nothing.
-  const overview=view();focus(element('S7'));assert.deepEqual(view(),overview);
-  stage.zoom(3);const zoomed=view();assert(!inside('S7')&&!inside('S1'),'Zoomed in on the middle of the map');
-  // A click on a component that is partly showing must not move the map.
-  focus(element('S1'),false);assert.deepEqual(view(),zoomed,'Pointer focus leaves the Cinematic view alone');
-  focus(element('S7'));assert(inside('S7'),'Tab to a component that is off screen brings all of it into view');assert.equal(view().w,zoomed.w,'The zoom is kept');
-  // A component whose middle is on screen but whose edge is cut off is nudged, not left clipped.
-  const last=box('S7'),held=view();
-  svg.emit('keydown',{key:'ArrowLeft',target:svg,preventDefault(){}});
-  const shifted=view();assert(shifted.x<held.x&&!inside('S7'));
-  assert(last.x+last.w/2<shifted.x+shifted.w&&last.x+last.w>shifted.x+shifted.w,'The component is cut off at the right edge with its middle still on screen');
-  focus(element('S6'),false);assert.deepEqual(view(),shifted);focus(element('S7'));
-  assert(inside('S7'),'A component cut off at the edge is completed');assert(view().x>shifted.x&&view().x<shifted.x+last.w,'By the smallest move, not by re-centring');assert.equal(view().y,shifted.y);
-  // A component that is completely in view does not move when Tab reaches it.
-  const settled=view();focus(element('S6'),false);focus(element('S7'));assert.deepEqual(view(),settled);
-  // A connection: its line and both of its components are brought into view when they fit.
-  const route=host.querySelectorAll('.ws-edge')[0];assert.equal(route.getAttribute('data-edge-key'),JSON.stringify(['S1','S2','']));
-  assert(!inside('S1')&&!inside('S2'));focus(route);
-  assert(inside('S1')&&inside('S2'),'Tab to a connection shows it with both of its components');assert.equal(view().w,zoomed.w);
-  stage.destroy();passed++;
  }
  console.log(JSON.stringify({tests_passed:passed,real_elk_layout:true,network_calls:0,provider_calls:0,real_browser:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

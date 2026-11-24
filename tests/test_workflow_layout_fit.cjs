@@ -65,8 +65,7 @@ let passed=0;
  assert.deepEqual(captions(api.elkGraph(api.model(forked))),['After picking','Glass teapot','No glass teapot','Label printed','Order cancelled']);
  const split={title:'Checks',steps:[{id:'P',title:'Start both checks',type:'parallel_split'},{id:'A',title:'Verify identity',type:'activity'},{id:'B',title:'Verify address',type:'activity'},{id:'J',title:'Both done',type:'parallel_join'},{id:'E',title:'Open account',type:'activity'}],
   connections:[{from:'P',to:'A',label:'Identity branch'},{from:'P',to:'B',label:'Address branch'},{from:'A',to:'J',label:'Identity verified'},{from:'B',to:'J',label:'Address verified'},{from:'J',to:'E',label:'Then'}]};
- assert.deepEqual(captions(api.elkGraph(api.model(split))),['Identity branch','Address branch'],'Branch names stay; arrivals at a join and the single continuation are plain');
- assert.deepEqual(captions(api.elkGraph(api.model(packing),'RIGHT',true)).length,6,'The walkthrough keeps its own captions');passed++;
+ assert.deepEqual(captions(api.elkGraph(api.model(split))),['Identity branch','Address branch'],'Branch names stay; arrivals at a join and the single continuation are plain');passed++;
  // The wording of a plain arrow is still available where the reader looks an arrow up.
  const plainView=environment(),plainCanvas=plainView.api.create(plainView.container);await plainCanvas.update(packing);
  assert.equal(plainCanvas.world.querySelectorAll('.wf-edge-label').length,3);

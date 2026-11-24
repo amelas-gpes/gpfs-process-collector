@@ -199,7 +199,7 @@ Acceptance: five interviews on one server each get a diagram for every answer wi
 
 Today the browser joins the speaking model to the notes and map team with timers (`receiveLiveCaption`, `scheduleLiveCapture`, `scheduleWorkflow`, the coverage note sent with `session.thinking.append`). Move that orchestration behind the server so it sees final transcript turns and feeds notes, graph operations and guidance without the browser in the middle. Also in scope:
 
-- Give live mode the same transcription hints reviewed mode has (`TRANSCRIPTION_KEYWORDS`, language). Observed slips: "so OFAC" heard as "SOFAC", "Signatory A" losing its letter, "Passthrough" heard as "PassThru".
+- Give live mode the transcription hints a plain transcription takes (`TRANSCRIPTION_KEYWORDS`, language). Observed slips: "so OFAC" heard as "SOFAC", "Signatory A" losing its letter, "Passthrough" heard as "PassThru".
 - The live interviewer is not gated. It asked three questions in one turn about a step the speaker had just said they did not know. Tighten `LIVE_TURN_POLICY` and feed it stated unknowns promptly. `docs/AGENT_TEAM.md` records why the pre-audio gate was given up in live mode; do not reintroduce a gate that delays speech without the owner's agreement.
 - The guidance note reached the live model only after the last answer in every test, because it is held while anyone is speaking. Find a safe moment earlier.
 
@@ -237,14 +237,14 @@ Notes take 31 s median because most captures use the stronger model for reconcil
 - Python 3.12: `~/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3.12`, always with `-I -B`. Node: `~/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node`.
 - App: `python3.12 -I -B launcher.py --no-browser`, `http://127.0.0.1:8774/`, stop with `launcher.py --stop`.
 - Tests in an isolated copy (`rsync` the tree without `work/`, `.env.local`, `.local/`): `python3.12 -I -B -m unittest discover -s tests -p <file>` and `node tests/run_all.cjs`.
-- Suites that fail on this Mac with untouched code (Windows-only or timing): `test_knowledge_graph.py`, `test_log_viewer.py`, `test_raw_journey.py`, `test_raw_pipeline.py`, `test_raw_trace.py`, `test_raw_trace_http.py`, two timing tests in `test_workflow_updates.py`; `test_rejected_requests.py` hangs until killed. Compare against these before blaming a change.
+- Suites that fail on this Mac with untouched code (Windows-only or timing): `test_knowledge_graph.py`, two timing tests in `test_workflow_updates.py`; `test_rejected_requests.py` hangs until killed. Compare against these before blaming a change.
 
 The harness in `docs/testing/harness/` (copy it to a scratch folder as `lib/`, with an empty `cases/` beside it; copy `docs/testing/runs/2026-11-17-stress/cases/` there too if you want to replay):
 
-- `serve.py ENVFILE APPDIR PORT [KEY=VALUE ...]` starts an isolated copy of the app with the settings from `ENVFILE` passed as environment and `RAW_TRACE_MODE=content`.
+- `serve.py ENVFILE APPDIR PORT [KEY=VALUE ...]` starts an isolated copy of the app with the settings from `ENVFILE` passed as environment and `RAW_TRACE_MODE=content` (V1 has no event trace and ignores that setting).
 - `pc.py` plays a participant: `start CASE --port P --name "..."`, `answer CASE "text" [--voice] [--think S]`, `skip`, `upload CASE FILE...`, `wrap CASE`, `waitmap CASE`, `show CASE`, `timings CASE`. `--voice` synthesises speech with macOS `say` and sends it to `/api/transcribe`.
 - `replay.py THINK TAG CASE@PORT ...` replays the participant answers of finished cases at fixed pacing. Use it for every before/after comparison so the answers are identical.
-- `stages.py SCRATCH` reads per-stage model timings and worker events from each copy's `work/raw-trace`. `agg.py` and `arms.py` tabulate cases and replay arms; adjust their paths.
+- `stages.py SCRATCH` reads per-stage model timings and worker events from each copy's `work/raw-trace`. V1 writes no `work/raw-trace`, so it finds nothing there; the stage and duration of each provider request are in `work/server-lifecycle.jsonl` (`provider_request_finished`). `agg.py` and `arms.py` tabulate cases and replay arms; adjust their paths.
 - `shim.js`, pasted into the page, replaces the microphone with a Web Audio stream so recorded speech can drive live voice. The audio files must be same-origin; the test copy had a small test-only addition to `STATIC_FILES` serving `web/t/*.wav`. Never add that hook to the real app.
 
 Real-provider runs cost money. Use the fake-provider tests for logic and timing properties, and keep real-provider replays to the acceptance checks.

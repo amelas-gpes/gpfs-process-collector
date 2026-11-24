@@ -1830,11 +1830,10 @@ dialog.inspector:not([open]) { pointer-events: none; }
   .interview-layout:not(:has(#workflow-panel:not([hidden]))) .workspace-toolbar .toolbar-end { grid-row: 3; }
 }
 @media screen and (max-width:560px) {
-  /* Seven review sections wrapped into rows of uneven widths, and "Open questions" broke over two
-     lines. Four above and three below, each row filling the width. */
-  .review-tabs { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 2px; width: 100%; }
-  .review-tabs [role="tab"] { grid-column: span 3; flex: none; min-width: 0; padding-inline: 2px; white-space: nowrap; }
-  .review-tabs [role="tab"]:nth-child(n+5) { grid-column: span 4; }
+  /* The four review sections share one row that fills the width; each takes the room its name needs,
+     so "Open questions" stays on one line. */
+  .review-tabs { display: flex; gap: 2px; width: 100%; }
+  .review-tabs [role="tab"] { flex: 1 1 auto; min-width: 0; padding-inline: 4px; white-space: nowrap; }
   /* One close control at a time: an open topic has its own, and it leads back to the list. */
   .memo-sheet:has(#foundation-dialog[open]) #close-memo { display: none; }
   .memo-sheet .inspector-bar { padding-right: 12px; }

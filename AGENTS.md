@@ -13,10 +13,10 @@ The canonical editable checkout on this computer is the Process Collector folder
 
 ## Architecture and verification
 
-The desktop release uses Python for the API, JavaScript for the interview page, and a C# WinForms/WebView2 shell. Before changing a component listed in the [architecture decision index](docs/adr/README.md), read its decision. Update the decision and its tests when ownership, configuration precedence, or persistence compatibility changes.
+The application uses Python for the API and JavaScript for the interview page. Before changing a component listed in the [architecture decision index](docs/adr/README.md), read its decision. Update the decision and its tests when ownership, configuration precedence, or persistence compatibility changes.
 
 - Keep interview rules independent of HTTP, provider credentials and local storage. Inject the provider or its transport when testing application behavior.
-- Use real temporary SQLite databases for changes to filing, consent, ownership and recovery. Cover reopening, failed writes, retries, and prior store formats. These changes carry Tier 3 data-integrity or access-control risk.
-- On Windows, from an isolated checkout with the project interpreter, run `python -X utf8 -I -B -m unittest discover -s tests -p "test_*.py"` and `node tests/run_all.cjs`. Use the interpreter path specified above. The suite includes socket-free unit cases, loopback API and SQLite integration, parser subprocesses, and desktop build checks.
-- The Azure implementation has its own deployment boundary. Keep the desktop listener on loopback. Hosted identity, storage, access control and provider integration require validation in the hosting project.
+- Use real temporary SQLite databases for changes to filing and ownership. Cover reopening, failed writes, retries, and prior store formats. These changes carry Tier 3 data-integrity or access-control risk.
+- On Windows, from an isolated checkout with the project interpreter, run `python -X utf8 -I -B -m unittest discover -s tests -p "test_*.py"` and `node tests/run_all.cjs`. Use the interpreter path specified above. The suite includes socket-free unit cases, loopback API and SQLite integration, and parser subprocesses.
+- The Azure implementation has its own deployment boundary. Keep the local listener on loopback. Hosted identity, storage, access control and provider integration require validation in the hosting project.
 - Run `python -I -B tests/check_release_inputs.py credentials` to check the Git index for private state and recognizable credentials. Run `python -I -B tests/check_release_inputs.py dependencies` with the authenticated GitHub CLI to check the exact document-reader pins for active, reviewed high- or critical-severity advisories.

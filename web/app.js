@@ -3067,23 +3067,25 @@
   }
   // The turn's text for a caption: the part already checked as checked, the rest as captioned.
   const captionShown=record=>record.shown+record.caption.slice(record.base.length);
+  // Returns why a caption that could have been checked is not ("split", "short", "closing", "busy",
+  // "no_audio"); nothing when the caption is not a candidate, or when its check is queued.
   function checkLiveCaption(key,record,caption,ids){
     const live=conversationUI.live,text=record?.caption;
     if(!record||!record.final||record.check||record.tried===text||record.base===text)return;
     if(typeof live?.captionAudio!=="function"||state.example||intakeActive())return;
     record.tried=text;
     const part=text.slice(record.base.length);
-    if(ids.length!==1)return;
-    if(captionTokens(part).length<CAPTION_CHECK_WORDS)return;
-    if(captionCheckClosed()||voiceStopPrefix(text)!==null)return;
-    if(captionChecks.size>=CAPTION_CHECK_FLIGHT+CAPTION_CHECK_QUEUE)return;
+    if(ids.length!==1)return "split";
+    if(captionTokens(part).length<CAPTION_CHECK_WORDS)return "short";
+    if(captionCheckClosed()||voiceStopPrefix(text)!==null)return "closing";
+    if(captionChecks.size>=CAPTION_CHECK_FLIGHT+CAPTION_CHECK_QUEUE)return "busy";
     // The audio of the words not yet checked: the whole caption the first time, then from the
     // first fragment after the checked part.
     const fragments=Array.isArray(caption.fragments)?caption.fragments:[],since=record.base?fragments[record.frags]?.start_ms:null;
-    if(record.base&&!Number.isFinite(since))return;
+    if(record.base&&!Number.isFinite(since))return "no_audio";
     let audio=null;
     try{audio=record.base?live.captionAudio(caption.id,since):live.captionAudio(caption.id);}catch{audio=null;}
-    if(!(audio?.wav?.byteLength>44))return;
+    if(!(audio?.wav?.byteLength>44))return "no_audio";
     const check={key,id:caption.id,turn:ids[0],caption:text,part,frags:fragments.length,prefix:record.shown,shown:captionShown(record),
       blob:new Blob([audio.wav],{type:"audio/wav"}),audio_ms:audio.duration_ms,
       generation:state.generation,session:liveSession,controller:new AbortController(),started:Date.now(),timer:null,sent:false,dropped:null};
@@ -3115,8 +3117,7 @@
     }catch(error){failure=error;}
     finally{captionChecksSent--;check.blob=null;}
     // A refusal (429, 503) or any other failure keeps the caption: nothing is repeated or announced.
-    if(failure){}
-    else applyCaptionCheck(check,result);
+    if(!failure)applyCaptionCheck(check,result);
     settleCaptionCheck(check);
     pumpCaptionChecks();
   }
@@ -3340,16 +3341,18 @@
       text=text[0].toUpperCase()+text.slice(1);
     return {start:said[from].start,end:said[to].end,text};
   }
+  // Returns what became of the reading: discarded (it no longer belongs to the caption on the page),
+  // kept (it corrects nothing that may be used) with the reason, or replaced with the number of terms.
   function applyCaptionCheck(check,result){
     if(check.dropped)return;
     const record=captionRecords.get(check.key);
-    if(check.generation!==state.generation||check.session!==liveSession||record?.check!==check)return;
+    if(check.generation!==state.generation||check.session!==liveSession||record?.check!==check)return {outcome:"discarded",reason:"session_changed"};
     const ids=conversationUI.captions.get(check.key),turn=state.turns.find(item=>item.id===check.turn);
     if(record.caption!==check.caption||!record.final||conversationUI.pendingParticipantCaptions.has(check.key)||
-       ids?.length!==1||ids[0]!==check.turn||turn?.text!==check.shown)return;
-    if(captionCheckClosed())return;
+       ids?.length!==1||ids[0]!==check.turn||turn?.text!==check.shown)return {outcome:"discarded",reason:"caption_changed"};
+    if(captionCheckClosed())return {outcome:"discarded",reason:"closing"};
     // After voice a result counts only while the notes still wait for it (see expireCaptionCheck).
-    if(!conversationUI.live?.active&&Date.now()-check.started>=CAPTION_CHECK_HOLD)return;
+    if(!conversationUI.live?.active&&Date.now()-check.started>=CAPTION_CHECK_HOLD)return {outcome:"discarded",reason:"late"};
     // The words not yet checked, with the terms the reading corrects (correctCaption).
     const reading=correctCaption(check.part,typeof result?.text==="string"?result.text:"",result?.terms,result?.misheard);
     const candidate=reading.text===undefined?null:check.prefix+reading.text;
@@ -3362,7 +3365,7 @@
     }
     // The part is settled either way: it is not checked again, and its wording is kept when the caption goes on.
     record.base=check.caption;record.frags=check.frags;record.shown=reason?check.prefix+check.part:candidate;
-    if(reason)return;
+    if(reason)return {outcome:"kept",reason};
     turn.text=candidate;
     keepLiveLead(check,reading.fixes);
     state.version++;state.dirty=true;renderTranscript(true);
@@ -3377,6 +3380,7 @@
     // (liveSourceUsable), and the next one follows it. After voice, the catch-up runs again.
     if(liveFrontActive())scheduleLiveCapture();
     else if(!conversationUI.live?.active&&conversationUI.status==="idle")liveCatchUpDue=true;
+    return {outcome:"replaced",count:reading.count};
   }
   // A term the check corrects is not the participant correcting themselves. The process lead last
   // offered to the live interviewer (sendLiveLead) remembers each answer's words as they stood, and

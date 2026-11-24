@@ -38,7 +38,7 @@ function environment(Engine=RealmELK,width=900,height=500){
  const window={ELK:Engine,document,XMLSerializer:class{serializeToString(e){return serialize(e);}}};
  document.defaultView=window;
  const context=vm.createContext({window,console});vm.runInContext(source,context);
- // Loads another of the page's scripts (for example workflow-stage.js) into the same realm.
+ // Loads another of the page's scripts into the same realm.
  const load=file=>vm.runInContext(fs.readFileSync(path.join(__dirname,'../../web',file),'utf8'),context);
  const container=new Element('div');
  // What the reader can see: the step boxes that intersect the current view.

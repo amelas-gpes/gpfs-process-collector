@@ -1,5 +1,5 @@
 # Architecture decisions
 
-| Decision | Status | Affected components |
-| --- | --- | --- |
-| [0001 · Desktop application boundaries](0001-desktop-boundaries.md) | Accepted | Desktop host, HTTP server, interview rules, provider transport, recovery and knowledge storage |
+No architecture decisions are recorded for this version. Decision 0001, on the boundaries of the Windows desktop application, is kept with that application on the `v2` branch.
+
+Add a record here when a change settles the ownership, configuration precedence or persistence compatibility of a component, and list it in a table of decision, status and affected components.

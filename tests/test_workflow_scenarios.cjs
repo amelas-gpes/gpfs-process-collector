@@ -77,7 +77,7 @@ function auditLayout(layout, input, direction) {
   for (const edge of edges) {
     const original = input.connections[Number(edge.id.replace("edge-", ""))];
     if (!edge.sections?.length) add("unrouted-edge", edge.id);
-    if (direction !== "cinematic" && edge.sections?.length) {
+    if (edge.sections?.length) {
       for (const [stepId, portId, point] of [
         [original.from, edge.sources[0], edge.sections[0].startPoint],
         [original.to, edge.targets[0], edge.sections.at(-1).endPoint]
@@ -100,24 +100,6 @@ function auditLayout(layout, input, direction) {
     }
   }
   return { direction, width: layout.width, height: layout.height, nodes: nodes.length, edges: edges.length, labels: labels.length, issues };
-}
-
-async function auditCinematic(input) {
-  const scene = await api.cinematicLayout(input);
-  const originalKeys = input.connections.map(edge => JSON.stringify([edge.from, edge.to, edge.label || ""]));
-  assert.deepEqual(Array.from(scene.edges, item => item.key).sort(), originalKeys.sort(), "Every reported route needs its own selection target.");
-  for (const node of scene.nodes) {
-    assert.equal(compact(node.titleLines.join("")), compact(node.step.title || node.id));
-    assert(node.titleLines.every(line => api.measureText(line, 15, 600) <= node.width - 12));
-  }
-  const edges = scene.edges.map(({edge, paths, labels}) => {
-    assert.equal(compact(labels.flatMap(label => label.lines).join("")), compact(edge.label));
-    return {id:edge.id, labels, sections:paths.map(({d, points}) => {
-      assert(d.startsWith("M ") && points.length >= 2);
-      return {startPoint:points[0], bendPoints:points.slice(1, -1), endPoint:points.at(-1)};
-    })};
-  });
-  return auditLayout({width:scene.width, height:scene.height, children:scene.nodes, edges}, input, "cinematic");
 }
 
 async function main() {
@@ -159,9 +141,6 @@ async function main() {
         }
         results.push(result);
       }
-      const cinematic = await auditCinematic(input);
-      cinematic.scenario = fixture.id;
-      results.push(cinematic);
       assert.equal(JSON.stringify(input), before, `${fixture.id}: layout must not mutate source facts.`);
     }
     assert.deepEqual([...components].sort(), ["activity", "data_store", "decision", "document", "end", "merge", "parallel_join", "parallel_split", "start", "subprocess", "wait"]);

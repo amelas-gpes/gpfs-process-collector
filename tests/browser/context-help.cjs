@@ -74,14 +74,6 @@ async function run() {
     await page.keyboard.press("Escape");
     await page.locator("#interview-settings").waitFor({state:"hidden"});
 
-    await page.route("**/api/trace/logs?*", route => route.fulfill({json:{
-      events:[{type:"fixture.review", timestamp:"2026-01-01T00:00:00Z"}], status:{enabled:false}
-    }}));
-    await page.locator("#open-context").click();
-    await page.locator("#settings-tab-logs").click();
-    await page.locator(".log-entry summary").first().hover();
-    await expectTip("event to inspect its recorded details");
-    await page.locator("#close-interview-settings").click();
 
     await page.locator("#conversation-tab-transcript").click();
     await page.locator("#export-transcript").click();
@@ -138,13 +130,8 @@ async function run() {
     await page.locator("#open-interview-settings").focus();
     await page.keyboard.press("Tab");
     await expectTip("Save a copy of this interview");
-    await page.locator("#open-component-library").click();
-    const tile = page.locator(".cl-tile").first();
-    await tile.hover();
-    await expectTip(await tile.getAttribute("aria-description"));
     await page.keyboard.press("Escape");
     await tip.waitFor({state:"detached"});
-    assert(await page.locator(".cl-dialog").isVisible());
     assert.deepEqual(errors, []);
     console.log("Context help and report navigation passed on desktop and mobile.");
   } finally {

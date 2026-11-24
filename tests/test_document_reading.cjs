@@ -5,12 +5,12 @@
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 let harness=fs.readFileSync(path.join(__dirname,"test_agent_experience.cjs"),"utf8").split("let passed=0;")[0];
 assert.ok(harness.includes("function setup()"));
-harness=harness.replace('const controlled=', 'const intake=fs.readFileSync(path.join(__dirname,"../web/document-intake.js"),"utf8");\nconst controlled=');
+harness=harness.replace('const flush=', 'const intake=fs.readFileSync(path.join(__dirname,"../web/document-intake.js"),"utf8");\nconst flush=');
 harness=harness.replace('updateControls=()=>{updatePresence();};', 'const realUpdateControls=updateControls; updateControls=()=>{updatePresence();}; renderCoverage=()=>{}; renderWorkingMap=()=>{}; updateSaveHint=()=>{}; updateConversationControls=()=>{}; updateDocumentIntakeUI=()=>{};');
 // The hook is exported only where the app has it, so that against an app without it every case
 // still runs and fails on its own assertion instead of the whole file failing in setup.
 harness=harness.replace('setTeam:value=>', 'startIntake:()=>{documentIntake=createDocumentIntake();return documentIntake;},syncDocumentReading:typeof syncDocumentReading==="function"?syncDocumentReading:undefined,checkControls:realUpdateControls,setTeam:value=>');
-harness=harness.replace('vm.runInContext(controlled,context,', 'vm.runInContext(intake,context,{filename:"document-intake.js"});vm.runInContext(controlled,context,');
+harness=harness.replace('vm.runInContext(source,context,', 'vm.runInContext(intake,context,{filename:"document-intake.js"});vm.runInContext(source,context,');
 harness+='\nmodule.exports={setup,approved,response,flush};';
 const exported={exports:{}};
 vm.runInNewContext(harness,{require,__dirname,module:exported,console,Buffer,Blob,DataView,Uint8Array,Float32Array,TextEncoder,Date,JSON,AbortController,DOMException},{filename:"document-reading-harness.cjs"});

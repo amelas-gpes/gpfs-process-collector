@@ -39,7 +39,7 @@ jobs:
         run: |
           $wheel = (Get-Item vendor/pypdf-*.whl).FullName
           py -3.12 -I -B -m pip --disable-pip-version-check install --only-binary=:all: --no-deps -r requirements-documents.txt $wheel
-      - name: Run all offline backend and desktop suites
+      - name: Run all offline backend suites
         shell: pwsh
         run: py -3.12 -X utf8 -I -B -m unittest discover -s tests -p 'test_*.py' -v
   offline:

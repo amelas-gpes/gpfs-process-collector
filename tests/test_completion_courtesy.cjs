@@ -1,19 +1,19 @@
 "use strict";
 // After the completion line a thank-you or a goodbye must not cost the completion, and the
 // reply the final check accepts is offered as a control. The real web/app.js, the real
-// concurrent controller and the real reviewed-voice controller run behind the fake
+// concurrent controller run behind the fake
 // browser boundary of the existing experience suite. No network, provider or audio.
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 let harness=fs.readFileSync(path.join(__dirname,"test_agent_experience.cjs"),"utf8").split("let passed=0;")[0];
 assert.ok(harness.includes("function setup()"));
-harness=harness.replace('const controlled=','const concurrent=fs.readFileSync(path.join(__dirname,"../web/concurrent-interview.js"),"utf8");\nconst controlled=');
+harness=harness.replace('const flush=','const concurrent=fs.readFileSync(path.join(__dirname,"../web/concurrent-interview.js"),"utf8");\nconst flush=');
 harness=harness.replace('updateControls=()=>{updatePresence();};','updateControls=()=>{updatePresence();}; renderWorkingMap=()=>{}; updateSaveHint=()=>{}; updateConversationControls=()=>{}; updateDocumentIntakeUI=()=>{};');
 // The closure line with its control, and the control's handler, are the application's own.
 // (Looked up by name, so that a version of the page without them fails each check for
 // what it does rather than at start-up.)
 const own=name=>`${name}:typeof ${name}==="function"?${name}:()=>{throw Error("web/app.js has no ${name}()");}`;
 harness=harness.replace('setTeam:value=>',`applyInterview,${own("confirmNothingToAdd")},${own("renderClosure")},finalCheck,draftStaleReason,submissionCaptureState,setTeam:value=>`);
-harness=harness.replace('vm.runInContext(controlled,context,','vm.runInContext(concurrent,context,{filename:"concurrent-interview.js"});vm.runInContext(controlled,context,');
+harness=harness.replace('vm.runInContext(source,context,','vm.runInContext(concurrent,context,{filename:"concurrent-interview.js"});vm.runInContext(source,context,');
 harness+='\nmodule.exports={setup,approved,response,flush,deferred};';
 const exported={exports:{}};
 vm.runInNewContext(harness,{require,__dirname,module:exported,console,Buffer,Blob,DataView,Uint8Array,Float32Array,TextEncoder,Date,JSON,AbortController,DOMException},{filename:"completion-courtesy-harness.cjs"});
@@ -199,22 +199,6 @@ await check("Nothing to add is withdrawn when the review needs a new check",asyn
   h.t.state.coverageNeedsReview=true;h.t.renderClosure();
   assert.equal(h.node("confirm-nothing").hidden,true);assert.equal(h.node("closure-status").textContent,"Coverage and completion need a new check.");
   h.route(()=>{throw Error("Nothing may be sent");});await h.t.confirmNothingToAdd();assert.equal(h.calls.length,0);
-});
-await check("reviewed voice does not speak the completion line again for a courtesy",async()=>{
-  const h=completedInterview({concurrent:false});
-  h.t.state.voiceChoice="ai:marin";h.t.state.voice=null;
-  h.route(url=>url==="/api/transcribe"?response({text:"Thank you, bye."}):url==="/api/agent-team/interview"?response(kept()):
-    url==="/api/voice-session"?response(h.voiceSession):response({}));
-  await h.t.startLiveConversation();await h.say();await flush();
-  assert.equal(posts(h,"/api/agent-team/interview").length,1);
-  assert.equal(h.t.state.turns.at(-1).text,"Thank you, bye.");assert.equal(copies(h,COMPLETE),1);
-  // The speech connection prepared while the answer was processed is not used.
-  for(const socket of h.sockets){socket.packet({type:"session.created"});await flush();}
-  assert.equal(h.sockets.filter(socket=>socket.sent.length).length,0,"No speech is requested for a line that was already spoken");
-  assert.equal(h.audio.length,0);
-  assert.equal(h.t.conversationUI.live.active,false,"The voice session ends, as it does after the completion line");
-  assert.equal(h.t.state.closure.confirmed,true);assert.equal(h.t.state.coverageVerified,true);
-  assert.equal(h.notices.filter(item=>item.error).length,0);
 });
 console.log(JSON.stringify({checks_passed:passed,checks_failed:failed.length,provider_calls:0,network_calls:0}));
 if(failed.length)process.exitCode=1;

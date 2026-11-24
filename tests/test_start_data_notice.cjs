@@ -22,7 +22,7 @@ async function main(){
   assert.equal(page.$("settings-tab-help").getAttribute("aria-controls"),"help-guide");
   const disclosure=page.$("data-details"),notice=page.$("data-notice");
   assert(settings.contains(disclosure)&&disclosure.contains(notice));
-  assert.match(disclosure.querySelector("h3").textContent,/Data & recovery/);
+  assert.match(disclosure.querySelector("h3").textContent,/Data handling/);
   assert.equal(notice.textContent,fullNotice);
   page.$("close-interview-settings").click();
   assert.equal(document.activeElement,menu);

@@ -49,7 +49,7 @@ class RepositoryPortabilityTests(unittest.TestCase):
         settings = server.load_settings()
         self.assertEqual(settings.get("COLLECTOR_DOCUMENT_WORKERS"), "2")
         with self.assertRaises(TypeError):
-            settings["RAW_TRACE_MODE"] = "content"
+            settings["COLLECTOR_API_SLOTS"] = "9"
         self.app_patch.stop()
         with server.InterviewServer(("127.0.0.1", 0), server.Handler, client=server.OpenAIClient({}),
                                     knowledge_settings=settings, documents_root=self.app / "work" / "documents") as app:

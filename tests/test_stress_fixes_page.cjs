@@ -1,12 +1,12 @@
 "use strict";
 // Page fixes from the 19 November stress test: an answer the server reads as empty can no longer lock
 // an interview, a refused answer goes back to the box, a saved interview with such an answer opens,
-// a lone surrogate is repaired, the transcript limit is counted once per turn, a dictated amount is
-// named in the reminder, a long list of unread files is shown as a count, and the draft head start can
+// a lone surrogate is repaired, the transcript limit is counted once per turn,
+// a long list of unread files is shown as a count, and the draft head start can
 // be cancelled. The page of web/index.html runs web/app.js (tests/fixtures/app_page.cjs); no network.
 const assert=require("node:assert/strict");
 const {open}=require("./fixtures/app_page.cjs");
-const EXPOSE="sendAnswer,receiveLiveCaption,importSession,transcriptLimit,turnText,fileNames,transcribeDictation,prepareDraftAhead,"+
+const EXPOSE="sendAnswer,receiveLiveCaption,importSession,transcriptLimit,turnText,fileNames,prepareDraftAhead,"+
  "cancelDraftAhead,draftAhead,interviewRequests,renderTranscript,updateControls,tab,selectConversationView,readContext";
 const HOOK="window.__notices=[];const __notice=notice;notice=(message,...rest)=>{window.__notices.push(String(message));return __notice(message,...rest);};";
 const SEPARATORS="\u001c\u001d\u001e\u001f\u0085";
@@ -86,20 +86,6 @@ const interviewCalls=page=>page.requests.filter(item=>/\/api\/(agent-team\/)?int
   assert.equal(page.t.transcriptLimit().size,300000);
   page.state.turns[5].text="x".repeat(10);assert.equal(page.t.transcriptLimit().size,299010,"A changed text is recounted");
   page.state.turns.push({id:"t999",role:"user",text:"😀😀"});assert.equal(page.t.transcriptLimit().size,299012,"Characters, not UTF-16 units");
- });
- await check("a dictated answer with an amount is checked with the amounts named",async()=>{
-  const page=await interview();
-  page.route(url=>url==="/api/transcribe"?{text:"The wire was $4,250,017, released on November 3."}:question);
-  await page.t.transcribeDictation(new Blob(["x".repeat(200)]),page.state.generation);await page.flush();
-  assert.equal(page.window.__notices.at(-1),"Check the text and every amount, then choose Send.");
-  page.$("answer-text").value="";
-  page.route(url=>url==="/api/transcribe"?{text:"The wire was four million two hundred fifty thousand and seventeen."}:question);
-  await page.t.transcribeDictation(new Blob(["x".repeat(200)]),page.state.generation);await page.flush();
-  assert.equal(page.window.__notices.at(-1),"Check the text and every amount, then choose Send.","Amounts in words too");
-  page.$("answer-text").value="";
-  page.route(url=>url==="/api/transcribe"?{text:"Treasury calls the signer back."}:question);
-  await page.t.transcribeDictation(new Blob(["x".repeat(200)]),page.state.generation);await page.flush();
-  assert.equal(page.window.__notices.at(-1),"Check the text, then choose Send.");
  });
  await check("more than three unread files are named by count",async()=>{
   const page=await interview();const files=n=>Array.from({length:n},(_,i)=>({name:`ledger-${i}.csv`}));

@@ -199,21 +199,4 @@ async function openPage(options={}){
   runTimeouts(limit=Infinity){for(const [id,timer] of [...timeouts].sort((a,b)=>a[1].delay-b[1].delay)){if(timer.delay<=limit&&timeouts.delete(id))timer.fn();}}};
 }
 
-// A microphone, a recorder and a clock for Dictate. Pass .globals to openPage; move .clock forward
-// (milliseconds) to let time pass. A recorder that is stopped hands over one chunk of stand-in audio.
-function standInMicrophone(){
- const microphone={clock:1000,recorders:[],tracks:[]};
- class Recorder{
-  static isTypeSupported(type){return type==="audio/webm";}
-  constructor(stream,options){this.stream=stream;this.mimeType=options?.mimeType||"";this.state="inactive";this.listeners={};microphone.recorders.push(this);}
-  addEventListener(type,fn){(this.listeners[type]??=[]).push(fn);}
-  emit(type,event={}){for(const fn of this.listeners[type]||[])fn(event);}
-  start(){this.state="recording";}
-  stop(){this.state="inactive";this.emit("dataavailable",{data:new Blob(["synthetic audio"])});this.emit("stop");}
- }
- microphone.globals={MediaRecorder:Recorder,performance:{now:()=>microphone.clock},
-  navigator:{mediaDevices:{getUserMedia:async()=>({getTracks:()=>{const track={stopped:false,stop(){this.stopped=true;}};microphone.tracks.push(track);return [track];}})}}};
- return microphone;
-}
-
-module.exports={openPage,createDocument,mountMarkup,standInMicrophone};
+module.exports={openPage,createDocument,mountMarkup};

@@ -624,7 +624,7 @@ class EarlierRefusals(Case):
         root = Path(__file__).resolve().parents[1]
         self.assertIn(OLD_INDEX, documents.COUNT_LIMIT_REFUSALS)
         listed = re.compile(r'^COUNT_LIMIT_REFUSALS = frozenset\(\(\n.*?^\)\)$', re.M | re.S)
-        sources = {path.name: path.read_text(encoding='utf-8') for path in [*root.glob('*.py'), *root.glob('desktop/*.py')]}
+        sources = {path.name: path.read_text(encoding='utf-8') for path in root.glob('*.py')}
         self.assertEqual(len(listed.findall(sources['documents.py'])), 1)
         sources['documents.py'] = listed.sub('', sources['documents.py'])
         self.assertGreater(len(sources), 10)

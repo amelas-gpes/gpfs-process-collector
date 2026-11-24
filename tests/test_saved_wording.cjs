@@ -55,7 +55,7 @@ run(async()=>{
     // What the app says about answers, transcripts, notes and the process after a failure. A sentence of
     // this shape with "saved" or "safe" in it is the defect; "still here" is the wording kept for it.
     const claim=/\b(?:answers?|transcript|conversation|capture|notes|process|interview|response)\s+(?:(?:is|are|remains?)\s+)?(?:saved|safe)\b|\bsaved\s+(?:here|locally|answers\s+are\s+retained)|\bsaves\s+the\s+interview\b/i;
-    for(const name of ["app.js","controlled-voice.js","live-voice.js","concurrent-interview.js","document-intake.js"]){
+    for(const name of ["app.js","live-voice.js","concurrent-interview.js","document-intake.js"]){
       const strings=web(name).match(/"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g)||[];
       const found=strings.filter(value=>claim.test(value));
       assert.deepEqual(found,[],name+" still reassures with saved/safe");

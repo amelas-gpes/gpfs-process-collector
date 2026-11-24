@@ -62,41 +62,6 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
 }
 (async()=>{
  {
-  const h=setup(), records=[];
-  // Use the real browser trace transport, replacing only the loopback HTTP endpoint.
-  h.document.querySelectorAll=()=>[];
-  h.window.setTimeout=setTimeout;
-  h.window.fetch=async (url, options)=>{
-   assert.equal(url,"/api/trace/events");
-   const batch=JSON.parse(options.body);
-   records.push(...batch.events);
-   return {ok:true,json:async()=>({received:batch.events.length,accepted:batch.events.length})};
-  };
-  const traceFile=require("node:path").join(__dirname,"..","web","raw-trace.js");
-  vm.runInNewContext(fs.readFileSync(traceFile,"utf8"),{window:h.window,document:h.document,
-   crypto:require("node:crypto"),TextEncoder,Headers});
-  h.window.CollectorRawTrace.configure({enabled:true,content:true},()=>"synthetic-csrf",()=>null);
-  await h.api.start({turns:[{id:"t001",role:"assistant",text:"What starts the work?"}]});
-  h.event({type:"session.input_transcript.delta",event_id:"ev1",delta:"We log the invoice.",start_ms:100,end_ms:900});
-  h.event({type:"session.output_transcript.delta",event_id:"ev2",delta:"And when the invoice arrives, who",start_ms:1500,end_ms:2600});
-  h.event({type:"session.input_transcript.delta",event_id:"ev3",delta:"The analyst checks it first.",start_ms:2700,end_ms:4000});
-  const pending=h.api.say("Thank you.");
-  const line=h.channels.at(-1).sent.find(e=>e.type==="session.instructions.append");
-  h.event({type:"session.instructions.appended",event_id:"ev4",client_event_id:line.event_id,start_ms:4500});
-  assert.equal((await pending).status,"acknowledged");
-  await h.api.stop({immediate:true});
-  await h.window.CollectorRawTrace.flush();
-  const received=records.filter(r=>r.type==="live.channel_received").map(r=>r.payload);
-  assert.deepEqual(received.filter(p=>p.event_id).map(p=>p.event_id),["ev1","ev2","ev3","ev4"]);
-  assert.equal(received.at(-1).client_event_id,line.event_id);
-  assert.ok(records.some(r=>r.type==="live.channel_sent"&&r.payload.client_event_id===line.event_id));
-  const shown=records.filter(r=>r.type==="live.caption").map(r=>r.payload.content.text);
-  assert.deepEqual(shown,h.captions.map(c=>c.text));
-  assert.ok(shown.includes("And when the invoice arrives, who"));
-  assert.ok(shown.indexOf("The analyst checks it first.")>shown.indexOf("And when the invoice arrives, who"));
-  passes++;
- }
- {
   const h=setup();await h.api.start();h.tracks[0].emit("ended");await tick();
   assert.equal(h.api.active,false);assert.match(h.errors.at(-1),/microphone disconnected/i);passes++;
  }

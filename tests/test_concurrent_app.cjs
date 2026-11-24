@@ -4,10 +4,10 @@
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 let harness=fs.readFileSync(path.join(__dirname,"test_agent_experience.cjs"),"utf8").split("let passed=0;")[0];
 assert.ok(harness.includes("function setup()"));
-harness=harness.replace('const controlled=', 'const concurrent=fs.readFileSync(path.join(__dirname,"../web/concurrent-interview.js"),"utf8");\nconst controlled=');
+harness=harness.replace('const flush=', 'const concurrent=fs.readFileSync(path.join(__dirname,"../web/concurrent-interview.js"),"utf8");\nconst flush=');
 harness=harness.replace('updateControls=()=>{updatePresence();};', 'const realUpdateControls=updateControls; updateControls=()=>{updatePresence();}; renderCoverage=()=>{}; renderWorkingMap=()=>{}; updateSaveHint=()=>{}; updateConversationControls=()=>{}; updateDocumentIntakeUI=()=>{};');
 harness=harness.replace('setTeam:value=>', 'finalCheck,runLiveCapture,applyBackgroundCapture,sessionObject,transcriptObject,checkControls:realUpdateControls,resetConcurrent:()=>concurrentInterview?.reset(),setTeam:value=>');
-harness=harness.replace('vm.runInContext(controlled,context,', 'vm.runInContext(concurrent,context,{filename:"concurrent-interview.js"});vm.runInContext(controlled,context,');
+harness=harness.replace('vm.runInContext(source,context,', 'vm.runInContext(concurrent,context,{filename:"concurrent-interview.js"});vm.runInContext(source,context,');
 harness+='\nmodule.exports={setup,approved,response,flush,deferred};';
 const exported={exports:{}};
 vm.runInNewContext(harness,{require,__dirname,module:exported,console,Buffer,Blob,DataView,Uint8Array,Float32Array,TextEncoder,Date,JSON,AbortController,DOMException},{filename:"concurrent-app-harness.cjs"});
@@ -26,12 +26,6 @@ await check("typed answer receives fast question before background analysis",asy
  await h.timer(650);const before=h.t.state.turns.length;analysis.resolve(response(readyCapture()));await flush();
  assert.equal(h.t.state.summary,"Captured answer");assert.equal(h.t.state.turns.length,before);assert.equal(h.t.state.turns.at(-1).text,fast().question);assert.equal(h.t.state.coverageVerified,false);assert.equal(h.t.state.completion,null);assert.equal(h.t.state.closure.confirmed,false);assert.equal(h.sockets.length,0);assert.equal(h.utterances.length,0);
 });
-await check("voice answer uses fast path and listens while analysis is pending",async()=>{
- const h=concurrentSetup(),analysis=deferred();h.t.state.voiceChoice="local:synthetic";h.t.state.voice={name:"Synthetic",lang:"en-US"};
- h.route(url=>url==="/api/transcribe"?response({text:"The clerk records the request."}):url==="/api/conversation/turn"?response(fast()):url==="/api/conversation/status"?analysis.promise:Promise.reject(Error(url)));
- await h.t.startLiveConversation();await h.say();assert.ok(h.calls.some(call=>call.url==="/api/conversation/turn"));assert.equal(h.calls.some(call=>call.url==="/api/agent-team/interview"),false);assert.equal(h.utterances.length,1);h.utterances[0].onend();await flush();assert.equal(h.t.conversationUI.status,"listening");assert.equal(h.track.enabled,true);
- await h.timer(650);analysis.resolve(response(readyCapture("Background voice notes")));await flush();assert.equal(h.t.state.summary,"Background voice notes");assert.equal(h.t.conversationUI.status,"listening");assert.equal(h.utterances.length,1);await h.t.conversationUI.live.stop();
-});
 await check("live voice captures use the managed team even with concurrent interviewing enabled",async()=>{
  const h=concurrentSetup();h.t.state.config.agent_team.voice_mode="live_front";
  h.t.conversationUI.live={active:true,updateCoverage(){}};
@@ -49,13 +43,6 @@ for(const restarting of [false,true])await check("starting or resuming live voic
  if(restarting)h.t.conversationUI.live=new h.window.CollectorLiveVoice();
  await h.t.startLiveConversation();assert.equal(h.calls[1].options.signal.aborted,true);
  analysis.resolve(response(readyCapture("Obsolete typed capture")));await flush();assert.equal(h.t.state.summary,"");assert.equal(h.t.conversationUI.live.active,true);
-});
-await check("a suggested title during reviewed voice does not invalidate its response",async()=>{
- const h=concurrentSetup(),question=deferred();h.t.state.voiceChoice="local:synthetic";h.t.state.voice={name:"Synthetic",lang:"en-US"};
- h.route(url=>url==="/api/transcribe"?response({text:"I set up my drone."}):question.promise);
- await h.t.startLiveConversation();await h.say();const basis=JSON.stringify(h.t.snapshot().context);h.t.applyProcessTitle("Drone setup");
- question.resolve(response(fast()));await flush();assert.equal(JSON.stringify(h.t.snapshot().context),basis);assert.equal(h.utterances.length,1);
- h.utterances[0].onend();await flush();assert.equal(h.t.conversationUI.status,"listening");await h.t.conversationUI.live.stop();h.t.resetConcurrent();
 });
 await check("wrap up uses synchronization even while capture is incomplete",async()=>{
  const h=concurrentSetup(),sync=deferred();h.t.state.turns.push({id:"t002",role:"user",text:"The clerk reviews it."});

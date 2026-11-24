@@ -157,8 +157,6 @@ class DocumentGroundingHTTPTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="http-regression-", dir=long_path(tempfile.gettempdir()))
         self.client = GroundingProvider()
-        # These cases pin the reviewed-turn routes; live voice routing is covered in test_live.
-        self.client.voice_mode = "reviewed"
         self.httpd = server.InterviewServer(("127.0.0.1", 0), server.Handler, client=self.client,
                                             documents_root=Path(self.temporary.name) / "documents")
         self.worker = threading.Thread(target=self.httpd.serve_forever, kwargs={"poll_interval": .01}, daemon=True)
@@ -208,10 +206,6 @@ class DocumentGroundingHTTPTests(unittest.TestCase):
                 self.assertTrue(support["unconfirmed"])
                 self.assertEqual(support["documents"][0]["excerpts"], expected_sources)
                 self.assertTrue(support["documents"][0]["context_coverage"]["complete_text"])
-        # Unreviewed live sessions are disabled even with an authorized scope.
-        status, _ = self.post("/api/live-session", self.payload())
-        self.assertEqual(status, 409)
-        self.assertEqual(self.client.request.call_args_list, calls)
         for call in calls:
             serialized = json.dumps(call.args[1])
             for forbidden in (self.scope, "FORGED_REFERENCE_SENTINEL", "FORGED_CATALOG_SENTINEL", KEY):
@@ -232,7 +226,7 @@ class DocumentGroundingHTTPTests(unittest.TestCase):
             payload = self.payload()
             payload["document_scope"] = other_scope
             status, result = self.post("/api/" + route, payload)
-            self.assertEqual(status, 409 if route == "live-session" else 200, result)
+            self.assertEqual(status, 200, result)
         for call in self.client.request.call_args_list:
             serialized = json.dumps(call.args[1])
             for forbidden in (self.record["id"], "DocumentIdentitySentinel", "DocumentClosingSentinel",

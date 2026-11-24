@@ -29,7 +29,7 @@ a participant to guess after both a detail and its resolving source are unavaila
 or declined question takes precedence. Documentary simulations are questioned as documentary
 accounts, without demanding firsthand transactions or claiming employee confirmation.
 
-Typed and reviewed-voice questions receive the shared questioning, curiosity, correction and selection
+Typed questions receive the shared questioning, curiosity, correction and selection
 policies. Direct Live voice uses its compact conversation policy, selection guidance and a guide to
 the sixteen topics. The separate lead captures facts using a notes-only contract on ordinary
 Live and concurrent turns. Document follow-ups use the question-bearing capture contract.

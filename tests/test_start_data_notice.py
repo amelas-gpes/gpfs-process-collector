@@ -14,7 +14,8 @@ class SettingsDataNoticeTests(unittest.TestCase):
 
     def test_service_disclosure_explains_local_retention(self):
         notice = server.OpenAIClient({}).public_config()["data_notice"].lower()
-        self.assertIn("not saved automatically", notice)
+        self.assertIn("audio is not saved", notice)
+        self.assertIn("save a copy to reopen the full interview", notice)
         self.assertIn("saved privately on this computer", notice)
 
 

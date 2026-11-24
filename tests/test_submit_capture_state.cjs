@@ -232,25 +232,20 @@ await check("concurrent interviewing: notes without a map, and a failed turn, ar
   assert.deepEqual(state.missing,["Notes include 1 of 2 answers.","No working map has been built from your 2 answers."]);
 });
 
-await check("voice, recording, transcription, file intake and a running review each keep Submit waiting",async()=>{
+await check("voice, file intake and a running review each keep Submit waiting",async()=>{
   const h=setup();h.route(url=>url==="/api/interview"?ok(question("Next?")):ok(map("Invoice intake")));
   await h.answer("A supplier email starts a case.");await h.runTimers(1000);
   assert.equal(h.gate().waiting,"");
   const expectWaiting=(apply,undo,pattern)=>{apply();const state=h.gate();assert.match(state.waiting,pattern);assert.equal(state.capture.in_progress,true);undo();assert.equal(h.gate().waiting,"");};
   expectWaiting(()=>{h.t.conversationUI.live={active:true};},()=>{h.t.conversationUI.live=null;},/Voice is still on/);
   expectWaiting(()=>{h.t.conversationUI.status="closing";},()=>{h.t.conversationUI.status="idle";},/still being saved/);
-  expectWaiting(()=>{h.t.state.recording={};},()=>{h.t.state.recording=null;},/recording is in progress/i);
-  expectWaiting(()=>{h.t.state.transcribing=true;},()=>{h.t.state.transcribing=false;},/transcribed/);
   expectWaiting(()=>{h.t.state.busy=true;h.t.state.busyMessage="Checking for omissions…";},()=>{h.t.state.busy=false;h.t.state.busyMessage="";},/Checking for omissions/);
   expectWaiting(()=>{h.t.setIntake({active:true,phase:"reviewing"});},()=>{h.t.setIntake(null);},/files are still being read/i);
   expectWaiting(()=>{h.t.setReview({promise:Promise.resolve(),controller:null});},()=>{h.t.setReview(null);},/completion review is still running/i);
   expectWaiting(()=>{h.t.conversationUI.flowBusy=true;},()=>{h.t.conversationUI.flowBusy=false;},/working map are still updating/);
-  // Voice and a recording do not end by themselves: the reason carries what to do. Work that ends by itself has none.
+  // Voice does not end by itself: the reason carries what to do. Work that ends by itself has none.
   const actionWhile=(apply,undo)=>{apply();const action=h.gate().action;undo();return action;};
   assert.match(actionWhile(()=>{h.t.conversationUI.live={active:true};},()=>{h.t.conversationUI.live=null;}),/Stop talking, then submit/);
-  assert.match(actionWhile(()=>{h.t.state.recording={};},()=>{h.t.state.recording=null;}),/finish the recording, then submit/);
-  assert.match(actionWhile(()=>{h.t.state.recording={};h.t.conversationUI.live={active:true};},()=>{h.t.state.recording=null;h.t.conversationUI.live=null;}),/finish the recording/,"The action belongs to the reason shown");
-  assert.equal(actionWhile(()=>{h.t.state.transcribing=true;h.t.conversationUI.live={active:true};},()=>{h.t.state.transcribing=false;h.t.conversationUI.live=null;}),"");
   assert.equal(actionWhile(()=>{h.t.conversationUI.status="closing";},()=>{h.t.conversationUI.status="idle";}),"");
   assert.equal(actionWhile(()=>{h.t.conversationUI.flowBusy=true;},()=>{h.t.conversationUI.flowBusy=false;}),"");
   assert.equal(h.gate().action,"","Nothing to do when nothing is running");

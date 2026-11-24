@@ -50,7 +50,7 @@ A marker is not evidence and does not become any. It has an ID no step can have,
 source, is not a control, cannot be selected or followed, and is not saved, sent to the service
 or written to a saved interview. The SVG file says of itself that its steps and routes carry their
 evidence, so the SVG reconnects each branch to its reported source when it removes the markers.
-PNG, print and BPMN use the same reported connections. Mermaid and DOT also use the evidence graph.
+PNG, print and BPMN use the same reported connections. Mermaid also uses the evidence graph.
 The step list, the details panel, Follow
 path, the keyboard and the screen-reader description speak of the reported steps and connections
 only. Detached groups receive no implied start or end. A branching activity in a detached group
@@ -71,13 +71,13 @@ fields remain explicit in details without filling every shape with repeated plac
 A box is as wide as its longest line needs, up to the full width at which text wraps; decisions and
 gateways keep their fixed diamond.
 
-An arrow carries a caption in Diagram when it states a condition: every arrow out of a decision, and
+An arrow carries a caption when it states a condition: every arrow out of a decision, and
 every arrow out of a step that has more than one way out (including the branches of a parallel
 split). The only way out of any other step is drawn as a plain arrow. Its recorded wording is not
 discarded: it remains in the arrow's tooltip, in the exported SVG's arrow description and under
-**Reported next steps** in the step dialog. Cinematic keeps its own captions.
+**Reported next steps** in the step dialog.
 
-Diagram places steps according to their reported connections. The order in which steps were listed
+The diagram places steps according to their reported connections. The order in which steps were listed
 breaks ties between available steps. Rework and self-loops use separate return ports so the main
 handoff remains visible. Both horizontal and vertical orientations are available. If a routed arrow
 misses the port at either end, the text fallback shows the reported connections.
@@ -94,7 +94,7 @@ kept a new shape for a moment; the map is redrawn only when that makes the whole
 makes a long map larger at **Fit**, but not reading size: use the opening view, **Step**, **Follow
 path** or **Expand** to read.
 
-Layout runs in a background worker shared by Diagram and Cinematic, so the page stays responsive.
+Layout runs in a background worker, so the page stays responsive.
 A layout that is replaced by a newer map is stopped, and one that runs longer than eight seconds is
 stopped and reported as a failed layout (see **Retry diagram** below). Maps with more than 60
 connections use a faster, slightly less compact placement. Where the browser cannot start the
@@ -118,8 +118,8 @@ reset.”, “… Follow path restarts at this step. …”, or the step's new t
 
 Keyboard users can Tab to steps, select with Enter/Space, move between steps with arrow keys, use
 plus/minus to zoom, 0/Home for overview, F to follow a path, and Escape to leave path mode. A step
-that takes keyboard focus off screen is brought into view at the current zoom in Diagram and
-Cinematic. A click keeps the map in place. SVG export
+that takes keyboard focus off screen is brought into view at the current zoom. A click keeps the
+map in place. SVG export
 includes the complete diagram and every route, independent of the current zoom or path highlighting.
 Dragging or pinching can begin on a component as well as the background. A short tap still opens
 details. Fit includes every supported component even in an 80-step map; selecting a step restores
@@ -129,38 +129,18 @@ If the diagram engine fails, captured components and exact reported routes remai
 full-text list. **Retry diagram** reloads only the bundled local assets as needed and retries layout;
 it does not reload the interview or make a model request. SVG export resumes after successful layout.
 
-## Cinematic map
-
-Choose **Cinematic** in Interview or Review to see the whole process at once. Each of the eleven supported component types has a reusable dimensional symbol. Select any component to inspect it and its incoming and outgoing connections. Select a connector or its label to inspect the reported direction, condition and evidence. The selector above the map can locate any component or connection, including on a small screen. Use **Fit map** to return to the overview or **Expand cinematic map** for more space.
-
-Selecting a connection frames the source, destination and route together. A long, uninterrupted
-chain can continue on the next row in the opposite direction, with a short arrow at the row end.
-Decisions, joins, loops and separate groups use layered routing. Both views identify groups with
-no recorded connection and keep them separate.
-
-The browser uses the standard workflow's step IDs, types, labels and connections. A completed interview capture or draft edit refreshes the visualization and retains the selection while its component or connection exists. Layout, selection, zoom and directional animation run locally and add no AI request. The normal interview and extraction still use their configured providers. **Flow motion** illustrates the directions work can travel. It can be paused, and the map honors the device's reduced-motion preference.
-
-## Component library
-
-Open **Component library** in the session menu or above a cinematic map. Search by name or filter by family, then select a tile to see its enlarged artwork, purpose and identifying features. The same reusable drawings appear on the map and in the step inspector. The palette uses GPFS copper, taupe, Bermuda Grey and Feldspar against light neutral surfaces.
-
-The 91 business designs cover operations such as waterfall calculations, investment discounts, cash application, beneficiary verification, migration, billing and preparation of an audit response. Eleven structural symbols describe the routing and record types. An explicitly captured document, data store or subprocess can carry an operational symbol on its corresponding base. Decisions, parallel gateways, waits, starts and ends retain their structural identity.
-
-In a reviewed draft, select an eligible step and choose **Change design**. **Use this design** saves a presentation choice. **Use automatic design** restores local matching. **Save copy** retains those choices alongside the draft in the interview file. Replacing the draft starts a fresh set of choices. The working capture, interview evidence and provider requests stay independent of presentation preferences.
-
-## Evidence, editing and bounds
+## Evidence and bounds
 
 Every generated component and connection needs participant evidence or scoped documentary citations. Documentary evidence remains distinct from participant confirmation. Incomplete decision
 outcomes and parallel dependencies become open questions; validation does not fabricate routes to
 make the symbols look complete. Working updates retain stable IDs and apply scoped changes as
 described in [Workflow updates](WORKFLOW_UPDATES.md). Existing activity/decision interviews remain
-compatible; all eleven types are preserved through saving, reopening, draft editing and export.
+compatible; all eleven types are preserved through saving, reopening and export.
 
-Under **Review → Steps → Connections between steps**, choose **From step** and **To step**
-before adding a route. A step can return to itself. Different conditions can lead to the same
-destination. Changing a route asks the reviewer whether the original sources still support it.
-If an older saved graph repeats the same endpoints and condition, the maps show one arrow with
-the combined citations. The underlying saved records remain available to review individually.
+A step can return to itself. Different conditions can lead to the same destination. If an older
+saved graph repeats the same endpoints and condition, the maps show one arrow with the combined
+citations. This version has no editor for steps or routes: the working map changes through new
+answers and files, and the draft's map through **Update draft**.
 
 The supported map limit remains 80 components and 150 connections. A very large graph necessarily
 needs pan/zoom or path navigation; fitting it all into a phone screen cannot preserve reading size.
@@ -191,10 +171,8 @@ separately assess whether extraction preserves the narrative's meaning. See
 [build verification](BUILD_VERIFICATION.md) for observed results and limitations.
 
 In the bundled invoice example, total horizontal Diagram connector length fell from 10,444 to
-7,674 layout units, and vertical length from 8,843 to 5,838. Selecting each of the 14 routes in
-Cinematic kept both endpoint tiles visible for all 14 at 1024×768 and 390×844. Previously that
-held for eight routes at the larger size and none at the smaller size. Loops, bypasses and branches
-can still span several steps when the reported handoff requires it.
+7,674 layout units, and vertical length from 8,843 to 5,838. Loops, bypasses and branches can
+still span several steps when the reported handoff requires it.
 
 Two fictional provider replays checked route meaning as well as geometry. In crate intake, the
 review retained all six reported transitions: a broken seal led to return and closure, and dispatch

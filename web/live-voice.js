@@ -4,6 +4,7 @@
 // Captions: https://developers.openai.com/api/docs/guides/live-conversations
 // This controller retains only text fragments in memory. The project API key stays on the server.
 (() => {
+  const channelEventId = value => typeof value === "string" && /^[A-Za-z0-9_-]{1,100}$/.test(value) ? value : undefined;
   function sendEvent(op, packet) {
     op.channel.send(JSON.stringify(packet));
   }

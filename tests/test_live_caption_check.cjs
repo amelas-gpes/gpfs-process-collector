@@ -38,8 +38,7 @@ const level=end=>((end%50000)+100)/100000;
 const sample=end=>Math.round(level(end)*32767);
 async function transport({tap=true,worklet=true,script=false,failModule=false,rate=RATE}={}){
  const h=voice.setup({metering:true}),AC=h.window.AudioContext;
- h.modules=[];h.nodes=[];h.gains=[];h.traces=[];
- h.window.CollectorRawTrace={record:(type,payload)=>h.traces.push({type,payload})};
+ h.modules=[];h.nodes=[];h.gains=[];
  AC.prototype.sampleRate=rate;AC.prototype.destination={destination:true};AC.prototype.currentTime=0;
  AC.prototype.createGain=function(){const gain={gain:{value:1},connected:[],connect(node){this.connected.push(node);},disconnect(){this.disconnected=true;}};h.gains.push(gain);return gain;};
  if(worklet)AC.prototype.audioWorklet={addModule:async url=>{h.modules.push(url);if(failModule)throw new Error("blocked");}};
@@ -84,8 +83,18 @@ function readWav(bytes){
 }
 
 // ---- Part 2: the page -----------------------------------------------------------------------
-const EXPOSE="request,correctCaption,captionFixes,captionTokens,captionGlossary,receiveCheckedCaption,receiveLiveCaption,receiveLiveStatus,getCapturedThrough,askFinalCheck,startLiveConversation,generateDraft,finalCheck,resetLiveFront,liveNotesStatus";
-const HOOK="const getCapturedThrough=()=>liveCapturedThrough,askFinalCheck=line=>{pendingFinalCheck={line};};"+
+const EXPOSE="request,correctCaption,captionFixes,captionTokens,captionGlossary,receiveCheckedCaption,receiveLiveCaption,receiveLiveStatus,getCapturedThrough,askFinalCheck,startLiveConversation,generateDraft,finalCheck,resetLiveFront,liveNotesStatus,captionOutcomes";
+// What became of each caption check, in order, read from what the page's own functions decide and
+// return: sent, skipped, discarded, kept, replaced and failed, with the reason, count or status.
+const OUTCOMES="const __outcomes=[],captionOutcomes=()=>__outcomes;"+
+ "{const made=checkLiveCaption;checkLiveCaption=function(...args){const reason=made(...args);if(typeof reason==='string')__outcomes.push({outcome:'skipped',reason});return reason;};"+
+ "const sent=sendCaptionCheck;sendCaptionCheck=function(check){__outcomes.push({outcome:'sent'});return sent(check);};"+
+ "const dropped=dropCaptionCheck;dropCaptionCheck=function(check,reason){if(check&&!check.dropped)__outcomes.push({outcome:'discarded',reason});return dropped(check,reason);};"+
+ "const applied=applyCaptionCheck;applyCaptionCheck=function(check,result){const decided=applied(check,result);if(decided)__outcomes.push(decided);return decided;};"+
+ "const reset=resetLiveFront;resetLiveFront=function(){for(const check of captionChecks)if(!check.dropped)__outcomes.push({outcome:'discarded',reason:'session_changed'});return reset();};"+
+ "const asked=request;request=async function(path,...rest){try{return await asked(path,...rest);}catch(error){"+
+ "if(path==='/api/transcribe'&&error?.name!=='AbortError')__outcomes.push({outcome:'failed',reason:error.transient?'transient':'error',status:Number.isInteger(error.status)?error.status:undefined});throw error;}};}";
+const HOOK=OUTCOMES+"const getCapturedThrough=()=>liveCapturedThrough,askFinalCheck=line=>{pendingFinalCheck={line};};"+
  "window.__notices=[];const __notice=notice;notice=(message,...rest)=>{window.__notices.push(String(message));return __notice(message,...rest);};";
 const CONFIG=(caption_check=true)=>({agent_team:{enabled:true,voice_mode:"live_front",interview_memory:true,stop_intent_patterns:["^(?:i need to stop)$"]},
  live:{enabled:true,caption_check},concurrent_interview:{enabled:true}});
@@ -127,8 +136,7 @@ async function page({caption_check=true}={}){
  page.state.started=true;page.state.captureToken="token-before";
  page.state.turns=[{id:"t001",role:"assistant",text:"What starts a capital call?"},{id:"t002",role:"user",text:"The NAV is struck and the GP Fund Solutions team drafts the notice."},
   {id:"t003",role:"assistant",text:"Which checks run before it goes out?"}];
- const h={page,traces:[],audio:[],since:[],transcribe:[],captures:[],interviews:[],maps:[],drafts:[],reviews:[],said:[],context:[]};
- page.window.CollectorRawTrace={record:(type,payload)=>h.traces.push({type,payload}),link(){},references(){},configure(){}};
+ const h={page,audio:[],since:[],transcribe:[],captures:[],interviews:[],maps:[],drafts:[],reviews:[],said:[],context:[]};
  page.t.conversationUI.live={active:true,connected:true,participantSpeaking:false,assistantSpeaking:false,
   stop(){this.active=false;return Promise.resolve({finalized:true});},setMuted(){},closeInput(){},
   appendContext(text){h.context.push(text);return Promise.resolve({status:"acknowledged"});},
@@ -160,7 +168,8 @@ async function page({caption_check=true}={}){
  h.runMap=async()=>{const timer=page.waiting(entry=>String(entry.fn).includes("refreshWorkflow"))[0];if(!timer)return false;
   page.timers.delete(timer[0]);page.advance(timer[1].ms);void timer[1].fn();await page.flush();return true;};
  h.turn=()=>page.state.turns.filter(turn=>turn.role==="user").at(-1);
- h.outcomes=()=>h.traces.filter(trace=>trace.type==="live.caption_check").map(trace=>trace.payload.outcome+(trace.payload.reason?":"+trace.payload.reason:""));
+ h.decided=()=>page.t.captionOutcomes();
+ h.outcomes=()=>Array.from(h.decided(),item=>item.outcome+(item.reason?":"+item.reason:""));
  h.lastAnswer=capture=>capture.body.turns.filter(turn=>turn.role==="user").at(-1).text;
  // Page time passes: every timer due within `span` ms fires in turn, whatever it is for.
  h.clock=async span=>{
@@ -205,7 +214,7 @@ const MERGED={caption:"We reconcile the NAV to the GL before the capital call no
   assert.equal(node.stream,h.streams[0],"It listens to the microphone the live session opened");
   assert.equal(node.connected[0],h.gains[0]);assert.equal(h.gains[0].gain.value,0,"Through a muted gain: nothing is heard");
   assert.equal(h.gains[0].connected[0].destination,true);
-  assert.equal(h.tap().kind,"worklet");assert.equal(JSON.stringify(h.traces.find(trace=>trace.type==="live.caption_tap").payload),JSON.stringify({state:"ready",kind:"worklet"}));
+  assert.equal(h.tap().kind,"worklet");
   h.run(7000,[{at:5100,fire:()=>h.user("We run the kite checks before the CPAC meets.",3000,5000)}]);
   const caption=h.captions.at(-1);assert.equal(caption.text,"We run the kite checks before the CPAC meets.");
   const audio=h.api.captionAudio(caption.id),file=readWav(audio.wav);
@@ -290,7 +299,6 @@ const MERGED={caption:"We reconcile the NAV to the GL before the capital call no
   }
   const h=await transport({worklet:false,script:false});
   assert.equal(h.tap(),null);assert.equal(h.gains[0]?.disconnected??true,true,"Nothing is left connected");
-  assert.equal(JSON.stringify(h.traces.find(trace=>trace.type==="live.caption_tap").payload),JSON.stringify({state:"unavailable"}));
   h.run(6000,[{at:4100,fire:()=>h.user("We run the kite checks.",2000,4000)}]);
   assert.equal(h.api.captionAudio(h.captions.at(-1).id),null);assert.equal(h.api.connected,true,"Voice itself is unaffected");
   await h.api.stop({immediate:true});
@@ -430,8 +438,7 @@ const MERGED={caption:"We reconcile the NAV to the GL before the capital call no
   h.say("live_u1",CAPTION);h.interviewer("live_a1","Who signs the wire?");
   assert.equal(h.turn().text,CHECKED);assert.equal(h.transcribe.length,1);assert.deepEqual(h.audio,["live_u1"]);
   assert.deepEqual(h.outcomes(),["sent","replaced"]);
-  assert.equal(h.traces.find(trace=>trace.payload.outcome==="replaced").payload.count,2,"Two terms corrected");
-  assert.ok(h.traces.filter(trace=>trace.type==="live.caption_check").every(trace=>!JSON.stringify(trace.payload).includes("kite")&&!JSON.stringify(trace.payload).includes("KYC")),"No text in the trace");
+  assert.equal(h.decided().find(item=>item.outcome==="replaced").count,2,"Two terms corrected");
   assert.equal(page_.window.__notices.length,0,"Nothing is said to the participant");
  });
  await check("a caption that grows after it was sent is checked again whole; the stale result is never used",async()=>{
@@ -496,7 +503,7 @@ const MERGED={caption:"We reconcile the NAV to the GL before the capital call no
    h.say("live_u1",CAPTION);
    assert.equal(h.transcribe.length,1,"No second attempt");
    assert.deepEqual(h.outcomes(),["sent","failed:error"]);
-   assert.equal(h.traces.find(trace=>trace.payload.outcome==="failed").payload.status,status);
+   assert.equal(h.decided().find(item=>item.outcome==="failed").status,status);
    assert.equal(h.page.window.__notices.length,0,"Nothing is said to the participant");
   }
  });
@@ -523,7 +530,7 @@ const MERGED={caption:"We reconcile the NAV to the GL before the capital call no
    await h.answer(h.transcribe[0],READ(reading));
    assert.equal(h.turn().text,turn,name);
    assert.deepEqual(h.outcomes(),["sent","replaced"],name);
-   assert.equal(h.traces.find(trace=>trace.payload.outcome==="replaced").payload.count,count,name+": terms corrected");
+   assert.equal(h.decided().find(item=>item.outcome==="replaced").count,count,name+": terms corrected");
    // No new error: the turn is the caption less the errors it corrected, and better than the whole reading.
    assert.equal(errors(turn),errors(caption)-(caption.includes("LP AC")?count+1:count),name+": errors "+errors(caption)+" then "+errors(turn));
    assert.ok(errors(turn)<errors(reading),name+": the turn ("+errors(turn)+" errors) beats the reading ("+errors(reading)+")");
@@ -670,7 +677,7 @@ const MERGED={caption:"We reconcile the NAV to the GL before the capital call no
    await h.answer(h.transcribe[0],READ(reading));
    assert.equal(h.turn().text,turn,JSON.stringify(reading));
    assert.deepEqual(h.outcomes(),["sent","replaced"],JSON.stringify(reading));
-   assert.equal(h.traces.find(trace=>trace.payload.outcome==="replaced").payload.count,count,JSON.stringify(reading)+": terms corrected");
+   assert.equal(h.decided().find(item=>item.outcome==="replaced").count,count,JSON.stringify(reading)+": terms corrected");
   }
  });
  await check("a check that takes too long holds the notes six seconds; its later result is a correction applied once",async()=>{
@@ -884,7 +891,7 @@ const MERGED={caption:"We reconcile the NAV to the GL before the capital call no
   assert.equal(q.transcribe.length,2,"The waiting check is never sent");
   assert.deepEqual(q.outcomes(),["sent","sent","discarded:closing","discarded:closing","discarded:closing"]);
  });
- await check("a new live session gives up the checks of the last one, and the trace says so",async()=>{
+ await check("a new live session gives up the checks of the last one",async()=>{
   const h=await page();
   h.say("live_u1",CAPTION);
   h.page.t.resetLiveFront();await h.page.flush();
@@ -908,7 +915,7 @@ const MERGED={caption:"We reconcile the NAV to the GL before the capital call no
    await h.answer(h.transcribe[0],READ(reading));
    assert.equal(h.turn().text,turn,name);
    assert.deepEqual(h.outcomes(),["sent","replaced"],name);
-   assert.equal(h.traces.find(trace=>trace.payload.outcome==="replaced").payload.count,count,name+": terms corrected");
+   assert.equal(h.decided().find(item=>item.outcome==="replaced").count,count,name+": terms corrected");
   }
   assert.equal(errors(used[0][3]),errors(MERGED.caption)-2,"Two errors fewer, none new");
   const kept=[
@@ -983,7 +990,6 @@ const MERGED={caption:"We reconcile the NAV to the GL before the capital call no
    await start(h,{late});
    assert.equal(W(h),0,"No withdrawal: the participant corrected nothing");
    assert.equal(offers(h),1,"and the lead is not offered again");
-   assert.equal(h.traces.filter(trace=>trace.type==="live.gap_withdrawn").length,0);
    // A participant who does correct themselves still withdraws it.
    h.interviewer("live_a3","Who approves it?");
    h.say("live_u4","Actually, the notice is drafted by the controller, not from the template.");
@@ -1021,7 +1027,6 @@ const MERGED={caption:"We reconcile the NAV to the GL before the capital call no
    h.say("live_u2","The controller",false);
    h.say("live_u2","The controller signs it",false);
    assert.equal(h.captures.length,0,settle+": no capture reads the words the check may correct");
-   assert.equal(h.traces.filter(trace=>trace.type==="live.notes_held"&&trace.payload.mid_answer).length,1,settle+": held once");
    if(settle==="replaced")await h.answer(h.transcribe[0],READ(FIXED.replace("each","ACH")));
    else if(settle==="refused")await h.refuse(h.transcribe[0],503,"The AI service is unavailable.");
    else await h.runHold();

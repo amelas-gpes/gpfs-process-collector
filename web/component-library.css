@@ -53,3 +53,5 @@
   .cl-description { font-size:var(--text-body); margin-bottom:10px; }
   .cl-thumb { height:47px; }
 }
+/* Phone layout review, 2026-11-24: these labels were 10 px. */
+@media (max-width:760px) { .cl-eyebrow { font-size:11px; } }

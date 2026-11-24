@@ -346,3 +346,5 @@
   .settings-tabs button[aria-selected="true"], .theme-choice:has(:checked), .voice-option[aria-selected="true"] { border: 1px solid Highlight; color: Highlight; }
   .theme-preview { display: none; }
 }
+/* Phone layout review, 2026-11-24: these labels were 10 px. */
+@media (max-width: 760px) { .settings-tag { font-size: 11px; } }

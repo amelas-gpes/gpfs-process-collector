@@ -18,6 +18,14 @@ working tree). See [docs/DESKTOP.md](docs/DESKTOP.md#which-build-is-running).
 - A workflow step selected on a diagram now opens in the same kind of panel as a topic: beside the Workspace on Interview, and docked in the map's frame on Review, in an expanded map and in Cinematic, where the map makes room for it when it is wide enough. Neither is a dialog over the page any more: the map stays usable, selecting another step updates the panel, and the arrows or arrow keys step through the map in order. A cited document passage opens with the same header and type.
 - The report's Contents keeps the current section highlighted when you select it or scroll through the report.
 - Save copy in the Workspace menu uses its tooltip for help.
+- Phone layout review (320 to 414 px wide, and 812 by 375):
+  - The process name has the full width on a phone; the Workspace button sits on the line of its label. Before, a name was cut to about twelve characters beside the button.
+  - The seven Review sections sit in two even rows (four and three) instead of wrapping unevenly with "Open questions" on two lines.
+  - Diagram, Cinematic, Expand and Map tools fit one row; Map tools shows its icon alone below 420 px.
+  - In Cinematic beside the conversation, the heading takes one line and the controls show icons only, so the scene is about 250 px high on a phone instead of about 70.
+  - An open topic shows one close control, at the edge, instead of two side by side. On touch screens the topic stepper, its source numbers and the close control are at least 40 px.
+  - Text fields and lists use 16 px text on touch screens, so iOS no longer zooms the page when one takes focus.
+  - Small-capital labels that were 9.5 to 10.5 px are 11 px on phones, and the keyboard shortcut is no longer shown, cut off, in the phone menu.
 - Fixes from the November 23 live interview test:
   - **Create draft** keeps the draft it was asked for. In two spoken interviews out of two the finished draft was discarded after about two minutes with "The interview changed while the draft was being prepared", because the workflow map had been redrawn or checked in the background meanwhile. Only a new answer, a caption or a change of files discards a draft that is being written. When the map did change, the notice that the draft is ready says so and names **Update draft**.
   - **Create draft** finishes a first half that is already written or being written for the same answers, notes and files, instead of starting another one because the map was checked in between. A draft that already holds every answer is not given another first half. One interview had four drafts written for one.

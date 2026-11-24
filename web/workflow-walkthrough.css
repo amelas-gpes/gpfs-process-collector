@@ -145,3 +145,23 @@
 @container (max-width:849px) {
   #workflow-panel .ww-inspector { position:absolute; z-index:2; inset:auto 0 0; max-height:55%; border-top:2px solid var(--ww-accent); }
 }
+/* Phone layout review, 2026-11-24: Diagram, Cinematic, Expand and Map tools did not fit one row at
+   375 px, and Map tools dropped to a row of its own. Its sliders icon stays; the words are hidden. */
+@media (max-width:420px) {
+  .workflow-mode-bar { flex-wrap:nowrap; }
+  .map-tools-toggle { width:44px; padding:0; gap:0; font-size:0; }
+}
+/* On a phone the Cinematic view's heading and two rows of controls left the scene itself a strip
+   about 70 px high. Beside the conversation the heading keeps one line and the controls keep their
+   icons, on one row; the scene has the rest. The expanded view is unchanged. */
+@media (max-width:560px) {
+  #workflow-panel .ww-head { flex-wrap:nowrap; align-items:center; gap:6px; padding:4px 6px 4px 10px; }
+  #workflow-panel .ww-identity { flex:1 1 0; min-width:0; overflow:hidden; }
+  #workflow-panel .ww-identity > * { min-width:0; max-width:100%; }
+  #workflow-panel .ww-identity > svg, #workflow-panel .ww-counts { display:none; }
+  #workflow-panel h3.ww-process-name { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:15px; }
+  #workflow-panel .ww-tools { flex:none; flex-wrap:nowrap; gap:0; }
+  #workflow-panel .ww-tools .ww-control { min-width:36px; padding:6px 5px; gap:0; font-size:0; }
+  #workflow-panel .ww-tools .ww-zoom { display:none; }
+  #workflow-panel .ww-navigation { padding:4px 6px; }
+}

@@ -119,6 +119,47 @@ class DraftFromCheckedMapTests(unittest.TestCase):
         self.assertNotIn("drop_steps", result)
         self.assertNotIn("drop_connections", result)
 
+    def test_writer_reuse_tracks_material_inputs_and_joins_compatible_requests(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import Event
+        first, resume = Event(), Event()
+        delegate = self.client.structured.side_effect
+        def held(*args, **kwargs):
+            if args[3] == "process_draft":
+                first.set()
+                self.assertTrue(resume.wait(5))
+            return delegate(*args, **kwargs)
+        self.client.structured.side_effect = held
+        payload = self.draft_payload()
+        source = {"id":"doc_test_p1","text":"The clerk logs the invoice."}
+        document = {"id":"doc_test","name":"Schedule","excerpts":[source],"review":{"phase":"deep","reviewed_chunks":1}}
+        payload["_supporting_documents"] = {"documents":[document]}
+        with ThreadPoolExecutor(2) as workers:
+            prepare = workers.submit(self.client.draft, {**copy.deepcopy(payload),"prepare_only":True})
+            self.assertTrue(first.wait(5))
+            document["review"].update(phase="complete",review_complete=True,reviewed_chunks=2)
+            create = workers.submit(self.client.draft, copy.deepcopy(payload))
+            resume.set()
+            self.assertTrue(prepare.result()["prepared"])
+            self.assertIn("draft", create.result())
+        self.assertEqual(len(self.schemas()),1)
+        self.client.draft(payload)
+        self.assertEqual(len(self.schemas()),1)
+        for index, change in enumerate(("passage","limitation","correction","assurance","notes"),2):
+            if change == "passage":
+                source["text"] += " The supervisor reviews it."
+            elif change == "limitation":
+                document["review"]["review_stopped"] = True
+            elif change == "correction":
+                payload["turns"][-1]["text"] += " The entry is revised."
+            elif change == "assurance":
+                payload["map_review_revision"] = "unread"
+            else:
+                finding = payload["previous_capture"]["memo_findings"][0]
+                finding.update(status="partial",answer="The clerk logs the invoice.",evidence_turns=["u1"])
+            self.client.draft({**payload,"prepare_only":True})
+            self.assertEqual(len(self.schemas()),index,change)
+
     def test_draw_only_uses_full_draft_until_the_separate_source_check_finishes(self):
         coordinator = self.client.coordinator
         drawn = self.capture(coordinator.workflow_draw(self.account)["capture"])
@@ -237,6 +278,7 @@ class DraftFromCheckedMapTests(unittest.TestCase):
 
         self.changes["connections"] = []
         self.changes["drop_connections"] = [{key: updated[key] for key in ("from", "to", "label")}]
+        payload["map_review_revision"] = "map reviewer requested removal"
         self.assertEqual(self.client.draft(payload)["draft"]["connections"], [])
         self.assertEqual(payload["previous_capture"]["workflow"]["connections"], [edge])
 

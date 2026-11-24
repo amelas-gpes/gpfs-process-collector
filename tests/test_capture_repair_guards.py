@@ -1107,7 +1107,11 @@ class ReportRepairTests(unittest.TestCase):
         self.assertEqual(len(notes), 1)
         self.assertIn(server.COVERAGE["lifecycle"], notes[0])
         self.assertIn("not checked by a process review", notes[0])
-        server.check_schema(result["draft"], server.DRAFT_SCHEMA)
+        provider_fields = dict(result["draft"])
+        route_assurance = provider_fields.pop("route_assurance")
+        self.assertIsInstance(route_assurance, list)
+        self.assertEqual(len(route_assurance), len(provider_fields["connections"]))
+        server.check_schema(provider_fields, server.DRAFT_SCHEMA)
 
     def test_unrepaired_report_keeps_its_status_and_gets_no_note(self):
         client, result = self.drafted(explanation=self.CANDIDATE, needed=False)

@@ -15,6 +15,7 @@ assert(topicsStart >= 0 && topicsEnd > topicsStart && start >= 0 && end > start,
 const scope = {state: {documentEvidence: []},
   strings: (value, limit) => Array.isArray(value) ? value.slice(0, limit).filter(v => typeof v === 'string') : [],
   text: (value, limit) => typeof value === 'string' ? value.trim().slice(0, limit) : ''};
+scope.reviewReferences=()=>[];
 vm.createContext(scope);
 vm.runInContext(source.slice(topicsStart, topicsEnd) + source.slice(start, end) +
   '\nthis.TOPICS = TOPICS; this.normalizeFindings = normalizeFindings; this.uncertainWording = uncertainWording;', scope);

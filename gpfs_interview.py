@@ -28,6 +28,51 @@ def memory_terms(text):
     return {w.rstrip("s") for w in words if len(w) >= 4 and w not in _GENERAL}
 
 
+def grounded_sequence(claim, evidence):
+    """Keep a common predecessor without turning a list of its outcomes into a sequence."""
+    explicit = re.compile(r",?\s+in (?:that|this) order(?=[.!?]?(?:\s|$))", re.I)
+    if not explicit.search(claim):
+        return claim
+    evidence = tuple(evidence)
+    pieces = re.split(r"(?<=[.!?])(\s+)", claim)
+    if len(pieces) > 1:
+        return "".join(grounded_sequence(piece, evidence) if n % 2 == 0 else piece
+                       for n, piece in enumerate(pieces))
+
+    def terms(words):
+        return {w[:5] for w in re.findall(r"[a-z]+(?:-\d+)?", words.casefold()) if len(w) >= 3
+                and w not in {"and","are","the","with","then","before","after","from","were","that","both","they"}}
+
+    sentences = [part for source in evidence for part in re.split(r"(?<=[.!?])\s+", source)]
+    claim_words = terms(claim)
+    for sentence in sentences:
+        requirement = re.search(r"\bbefore\s+(.+)", sentence, re.I)
+        if not requirement:
+            continue
+        outcomes = requirement[1]
+        for join in re.finditer(r"\s+and\s+", outcomes, re.I):
+            left = terms(outcomes[:join.start()]) & claim_words
+            right = terms(outcomes[join.end():]) & claim_words
+            if len(left - right) < 2 or len(right - left) < 2:
+                continue
+            # A second passage can establish the order even if the first
+            # sentence only listed the two outcomes of the required check.
+            for text in evidence:
+                for part in re.split(r"(?<=[.!?])\s+(?!then\b)", text, flags=re.I):
+                    if re.search(r"\b(?:unclear|unconfirmed|unknown|unsure|might|not sure|do not know|don't know)\b", part, re.I):
+                        continue
+                    if explicit.search(part) and (left | right) <= terms(part):
+                        return claim
+                    for order in re.finditer(r"\b(?:then|before|after|followed by)\b", part, re.I):
+                        first, second = terms(part[:order.start()]), terms(part[order.end():])
+                        if order[0].casefold() == "after":
+                            first, second = second, first
+                        if (left - right) <= first and (right - left) <= second:
+                            return claim
+            return sentence.strip() if len(sentence.strip()) <= 1600 else explicit.sub("", claim)
+    return claim
+
+
 def question_candidates(turns, questions):
     """Rank grounded leads. Each quote is participant testimony, each lead an unresolved hypothesis."""
     answers = [t for t in turns if t.get("role") == "user" and not t.get("document_event")]
@@ -109,12 +154,213 @@ def _detail_text(value):
     return " ".join(unicodedata.normalize("NFKC", value).casefold().split())
 
 
+_MONEY = re.compile(r"[$\u00a3\u20ac]\s*\d[\d,]*(?:\.\d+)?")
+_ISSUED = re.compile(r"\b(?:issu(?:ed|ance)|original notice)\b", re.I)
+_REVISED = re.compile(r"\b(?:after issuance|subsequently|later|revised|updated|new information)\b", re.I)
+_MISREAD = re.compile(r"\b(?:misread|misspoke|mistakenly|was (?:a )?mistake|always showed)\b", re.I)
+
+
+def permission_conflicts(findings, documents):
+    """Opposite permissions for otherwise identical clauses need scoped owner review."""
+    candidates = []
+    for row in findings or []:
+        if any(ref.startswith("doc_") for ref in row.get("evidence_turns", [])):
+            candidates.extend(row.get("answer","").splitlines())
+    for doc in documents or []:
+        if not doc.get("retained_only") and not doc.get("archived"):
+            candidates.extend(re.split(r"[.!?\n]",doc.get("text","")))
+    by_rule = {}
+    modal = re.compile(r"\b(cannot|can not|can|may not|may)\b",re.I)
+    for sentence in candidates:
+        hit = modal.search(sentence)
+        if not hit:
+            continue
+        key = " ".join(modal.sub("may",sentence.strip().rstrip("."),count=1).casefold().split())
+        forms = by_rule.setdefault(key,{})
+        forms["not" in hit[1].casefold()] = sentence.strip()[:700]
+    return [pair for pair in by_rule.values() if len(pair) == 2][:16]
+
+
+def material_mismatch(claim, passage):
+    """Veto precise amounts or explicit qualifications absent from cited text."""
+    if set(_MONEY.findall(claim)) - set(_MONEY.findall(passage)):
+        return True
+    scope = r"\b(?i:fund|class|series)\s+([A-Z0-9]+)\b"
+    claimed_scope, quoted_scope = set(re.findall(scope, claim)), set(re.findall(scope, passage))
+    if claimed_scope and quoted_scope and not claimed_scope <= quoted_scope:
+        return True
+    for positive, negative in ((r"\bsigned\b", r"\bunsigned\b"), (r"\bapproved\b", r"\bunapproved\b"),
+                               (r"\bcan\b|\bmay\b", r"\bcannot\b|\bmust not\b")):
+        if re.search(positive, claim,re.I) and re.search(negative,passage,re.I) and not re.search(positive,passage,re.I):
+            return True
+    for qualifier in (r"\bsecond\b|\b(?:two|2|dual)\b", r"\b(?:never|cannot|can't|prohibited|must not)\b"):
+        if re.search(qualifier, claim, re.I) and not re.search(qualifier, passage, re.I):
+            return True
+    return False
+
+
+_SENTENCES = re.compile(r"(?<=[.!?;])\s+|\n+|\s+(?:but|however|whereas)\s+", re.I)
+_CLOCK = re.compile(r"\b(\d{1,2})(?::([0-5]\d))?\s*([ap]\.?m\.?)\b|\b([01]?\d|2[0-3]):([0-5]\d)\b", re.I)
+_NEGATIVE = re.compile(r"\b(?:no|not|never|cannot|without|prohibited|forbidden)\b|\b\w+n['’]t\b", re.I)
+_STOPPED = re.compile(r"\b(?:on hold|(?:we|they|work|processing)\s+(?:must\s+)?(?:stop|pause|halt)|"
+                           r"(?:is|are|remains?)\s+(?:blocked|paused|suspended))\b", re.I)
+_HOLD_ACTION = re.compile(r"\b(?:hold|halt|stop|pause|suspend|block|wait|await|defer)\w*\b", re.I)
+_OWNERSHIP = re.compile(r"\b(?:owns?|is (?:responsible|accountable) for|has responsibility for)\b", re.I)
+_ROLE_SPLIT = re.compile(r"[,;]|\s+\band\b\s+(?=[^,;.!?]{1,45}\b(?:owns?|is responsible|is accountable)\b)", re.I)
+_OPERATOR = r"\b(?:user|person|signer|employee|individual|operator|staff member)s?\b"
+_SINGLE_OPERATOR = re.compile(r"\b(?:same|single|one)\b(?:[\w-]*\s+){0,3}" + _OPERATOR, re.I)
+_SEPARATE_OPERATORS = re.compile(r"\b(?:different|separate|distinct|independent)\b(?:[\w-]*\s+){0,3}" + _OPERATOR, re.I)
+
+
+def _clock_values(text):
+    values = set()
+    for match in _CLOCK.finditer(text):
+        hour, minute, half, full_hour, full_minute = match.groups()
+        if half:
+            values.add((int(hour) % 12 + 12 * half.lower().startswith("p"), int(minute or 0)))
+        else:
+            values.add((int(full_hour), int(full_minute)))
+    return values
+
+
+def _ownership_mismatch(claim, passage):
+    """The role and the duty must belong to the same assertion in the cited account."""
+    owns = _OWNERSHIP.search(claim)
+    if not owns:
+        return False
+    actor = memory_terms(claim[:owns.start()])
+    duty = memory_terms(claim[owns.end():])
+    if not actor or not duty:
+        return False
+    matching_owners = []
+    for clause in _ROLE_SPLIT.split(passage):
+        verb = _OWNERSHIP.search(clause)
+        if verb and duty <= memory_terms(clause[verb.end():]):
+            matching_owners.append(memory_terms(clause[:verb.start()]))
+    return bool(matching_owners) and not any(actor & owner for owner in matching_owners)
+
+
+def control_mismatch(claim, passages):
+    """Veto a material change in a control where the wording of its cited source resolves it."""
+    times = _clock_values(claim)
+    terms = memory_terms(claim)
+    sentences = [s for text in passages for s in _SENTENCES.split(text) if s.strip()]
+    if not terms or not sentences:
+        return False
+    # A different sentence in the same cited turn can describe a different control.
+    overlap = [len(terms & memory_terms(s)) for s in sentences]
+    strongest = max(overlap)
+    matched = [s for s, score in zip(sentences, overlap) if score and score == strongest]
+    if times and not any(times <= _clock_values(s) for s in matched):
+        return True
+    for sentence in matched:
+        if _ownership_mismatch(claim, sentence):
+            return True
+        if _SINGLE_OPERATOR.search(claim) and not _NEGATIVE.search(claim) and _SEPARATE_OPERATORS.search(sentence):
+            return True
+        if re.search(r"\b(?:always|without exception|in every case)\b", claim, re.I) and re.search(
+                r"\b(?:no default|no standard|case.by.case|varies|sometimes|not always)\b", sentence, re.I):
+            return True
+        # Cover both "execution is not authorized" and "no live execution is authorized".
+        for predicate in ("authori[sz]ed|permitted|allowed", "approved", "required", "confirmed"):
+            action = r"\b(?:" + predicate + r")\b"
+            if (re.search(action, claim, re.I) and not _NEGATIVE.search(claim)
+                    and re.search(r"(?:\bnot|\bnever|n['’]t)\s+(?:yet\s+)?" + action
+                                  + r"|\bno\s+(?:\w+\s+){1,4}(?:is|are|was|were)\s+" + action, sentence, re.I)):
+                return True
+    return False
+
+
+def route_outcome_mismatch(start, target, label, quotes):
+    """Check the action at the destination against explicit prohibitions and stops."""
+    first = re.match(r"[A-Za-z]{3,}", target)
+    if not first or not quotes:
+        return False
+    stem = first[0].casefold().removesuffix("e")
+    action = re.compile(r"\b" + re.escape(stem) + r"(?:e|es|s|ed|ing|ure)?\b", re.I)
+    passages = " ".join(quotes)
+    denied = any(action.match(re.sub(r"^\s*(?:(?:by itself|itself|automatically|necessarily|alone)\s+)?",
+                                     "", passages[neg.end():], flags=re.I)) for neg in _NEGATIVE.finditer(passages))
+    affirmed = any(action.search(clause) and not _NEGATIVE.search(clause) for clause in _SENTENCES.split(passages))
+    if denied and not affirmed and not _NEGATIVE.search(target):
+        # "Do not release until Finance approves" supports release on that
+        # approval, while refusing the same action on an unrelated event.
+        gate = re.search(r"\b(?:until|unless)\s+([^.!?;]+)", passages, re.I)
+        proposed = start + " " + label
+        if not gate or _NEGATIVE.search(proposed) or re.search(r"\b(?:missing|failed|pending|denied)\b", proposed, re.I):
+            return True
+        requirement = {word[:4] for word in memory_terms(gate[1])}
+        trigger = {word[:4] for word in memory_terms(proposed)}
+        if not requirement or len(requirement & trigger) < min(2, len(requirement)):
+            return True
+    holding = _HOLD_ACTION.match(target) or re.search(r"\b(?:put|place|mark)\b.*\b(?:hold|blocked|paused)\b", target, re.I)
+    if _STOPPED.search(passages) and not (holding or action.search(passages)):
+        return True
+    waiver = re.search(r"\b(?:no|without|skip|bypass)\s+(?:(?:new|further|additional|another|the|a)\s+)*"
+                       r"(review|approval|signature|check|verification|clearance)\b", label, re.I)
+    if waiver and not _NEGATIVE.search(passages):
+        return re.search(r"\b(?:re-?)?" + waiver[1][:5] + r"\w*", passages, re.I) is not None
+    return False
+
+
+def issued_amount_history(turns):
+    """Recognize a later account of the same named financial amount at issuance."""
+    prior, latest = [], None
+    for turn in turns:
+        if turn.get("role") != "user" or turn.get("document_event"):
+            continue
+        for sentence in re.split(r"(?<=[.!?])\s+", turn["text"]):
+            amounts = set(_MONEY.findall(sentence))
+            if len(amounts) != 1:
+                continue
+            amount = amounts.pop()
+            subjects = set(re.findall(r"\b(?:fee|estimate|valuation|balance|commitment|interest|distribution)\b", sentence.casefold()))
+            if not subjects:
+                continue
+            scope = set(re.findall(r"\b(?i:fund|class|series)\s+([A-Z0-9]+)\b", sentence))
+            for old, old_amount, old_subjects, old_scope, old_quote in reversed(prior):
+                if old_amount != amount and subjects & old_subjects and scope == old_scope and old != turn["id"]:
+                    corrected = bool(_MISREAD.search(turn["text"]))
+                    changed = bool(_REVISED.search(turn["text"]))
+                    if corrected or changed or re.search(r"\bnow\b", sentence, re.I):
+                        latest = {"original":old_amount,"latest":amount,"earlier_id":old,"later_id":turn["id"],
+                                "earlier_quote":old_quote,"later_quote":sentence,"account":"correction" if corrected else
+                                "change" if changed else "unclear"}
+                        break
+            if _ISSUED.search(sentence):
+                prior.append((turn["id"],amount,subjects,scope,sentence))
+    return latest
+
+
+def unestablished_reissue(claim, history, turns):
+    """A changed estimate alone provides no basis to assert a new investor notice."""
+    action = r"\b(?:(?:reissu\w*|resen[dt]|recirculat\w*)\s+(?:the\s+|a\s+)?(?:capital call\s+)?notice|(?:send|sent|issue[ds]?)\s+(?:a\s+|the\s+)?revised notice)\b"
+    if not re.search(action, claim, re.I) or re.search(r"\b(?:no|never|do not|did not)\b",claim,re.I):
+        return False
+    later = next((t["text"] for t in turns if t.get("id")==history["later_id"]),"")
+    return not any(re.search(action, sentence, re.I) and not re.search(r"\b(?:no|never|did not|not yet)\b", sentence,re.I)
+                   for sentence in re.split(r"(?<=[.!?])\s+",later))
+
+
+def amount_review_question(history):
+    documents = set(re.findall(r"\b(?:invoice|notice|statement|bill)\b", history["earlier_quote"].casefold()))
+    subject = f"the original {documents.pop()}" if len(documents) == 1 else "what was originally issued"
+    return f"How, if at all, does the later amount of {history['latest']} affect {subject} at {history['original']}?"
+
+
+def confirmed_passages(context):
+    """Wording separately attested by a participant for a resolved source revision."""
+    return {row["reference"]: row["answer"] for row in (context or {}).get("file_topic_reviews", [])
+            if row.get("decision") == "confirmed" and row.get("reference") and row.get("answer")}
+
+
 def _detail_sources(turns, documents, context):
     """The wording each source ID stands for when an operating detail quotes it."""
     sources = {turn["id"]: [_detail_text(turn.get("text", ""))] for turn in turns
                if turn.get("role") == "user" and not turn.get("document_event")}
     sources["context"] = [_detail_text(value) for key, value in (context or {}).items()
                           if key in ("process_name", "process_owner", "background") and isinstance(value, str) and value]
+    sources.update({ref: [_detail_text(value)] for ref, value in confirmed_passages(context).items()})
     for document in documents or []:
         if isinstance(document.get("text"), str):
             sources[document["id"]] = [_detail_text(document["text"])]

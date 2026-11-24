@@ -382,7 +382,10 @@ def _digest(value):
 
 
 def sources(context, turns, documents, *, include_retained=False):
-    result = {"context": {"hash": _digest(context), "authority": "context"}}
+    result = {"context": {"hash": _digest({k: v for k, v in context.items() if k != "file_topic_reviews"}), "authority": "context"}}
+    for row in (context or {}).get("file_topic_reviews", []):
+        if row.get("decision") == "confirmed" and row.get("reference"):
+            result[row["reference"]] = {"hash": _digest(row), "authority": "confirmation"}
     for index, turn in enumerate(turns):
         if turn.get("role") == "user" and not turn.get("document_event"):
             result[turn["id"]] = {"hash": _digest(turn["text"]), "authority": "participant", "position": index}
@@ -491,6 +494,7 @@ def _sentences(answer):
 
 def _source_proof(fact, passages, texts):
     """Review aids, never an assertion that a quote entails a claim."""
+    fact["text"] = gpfs_interview.grounded_sequence(fact["text"], (texts.get(ref, "") for ref in fact["evidence_turns"]))
     def normalized(value):
         return " ".join(unicodedata.normalize("NFKC", value).translate(
             str.maketrans("‘’“”", "''\"\"")).casefold().split())
@@ -923,7 +927,8 @@ def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve
     result, catalog, seen = copy.deepcopy(state), sources(context, turns, documents), set()
     result["summary"] = delta["summary"].strip() or state.get("summary", "")
     result["focus"] = delta["focus"].strip() or state.get("focus", "")
-    texts = {"context": " ".join(str(value) for value in context.values())}
+    texts = {"context": " ".join(str(context.get(k, "")) for k in ("process_name", "process_owner", "background")),
+             **gpfs_interview.confirmed_passages(context)}
     texts.update({turn["id"]: turn["text"] for turn in turns if turn["role"] == "user"})
     texts.update({doc["id"]: doc.get("text", "") for doc in documents or [] if doc["id"] in catalog})
     parked = list(dict.fromkeys([*state.get("parking_lot", []), *delta["parking_lot"]]))
@@ -1049,7 +1054,8 @@ def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve
             # Exact duplicate additions do not grow the ledger on retries.
             duplicate = next((fact for fact in result["facts"] if fact["state"] == "active"
                               and fact["topic"] == topic and fact["kind"] == new["kind"]
-                              and _normalized_detail(fact["text"]) == _normalized_detail(new["text"])), None)
+                              and fact["text"] == new["text"] and fact["sources"] == new["sources"]
+                              and fact.get("support", []) == new.get("support", [])), None)
             if duplicate:
                 duplicate["sources"].update(new["sources"])
                 duplicate["evidence_turns"] = list(duplicate["sources"])
@@ -1059,6 +1065,21 @@ def apply_delta(state, delta, context, turns, documents, focus=None, *, preserve
                 result["facts"].append(new)
     # Two things one capture must not say at once: a purpose that is only the interview's
     # objective, and a link to another process that its own Connections note does not know.
+    history = gpfs_interview.issued_amount_history(turns)
+    if history and history["account"] != "correction":
+        related = [fact for fact in result["facts"] if fact["state"] == "active"
+                   and history["later_id"] in fact["evidence_turns"] and history["latest"] in fact["text"]]
+        if related and not any(f["state"] == "active" and history["original"] in f["text"]
+                               and history["earlier_id"] in f["evidence_turns"] for f in result["facts"]):
+            source, wording = history["earlier_id"], history["earlier_quote"]
+            if len(wording) <= MAX_FACT_TEXT:
+                original = _new_fact(related[0]["topic"], "detail", wording, [source], catalog)
+                _source_proof(original, [{"source_id":source, "quote":wording}], texts)
+                result["facts"].insert(result["facts"].index(related[0]),original)
+        if related and history["account"] == "unclear":
+            question = gpfs_interview.amount_review_question(history)
+            if question not in result["parking_lot"]:
+                result["parking_lot"].append(question)
     _settle_objective_as_purpose(result, context)
     _note_structured_connections(result, catalog, texts, records)
     if preserve_on_limit:

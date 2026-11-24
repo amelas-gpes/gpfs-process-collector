@@ -25,7 +25,7 @@ import sqlite3
 import ssl
 import sys
 import threading
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 import time
 import unicodedata
 import uuid
@@ -713,12 +713,12 @@ has not given.
 # participant's context and files: every character here is one fewer for those.
 LIVE_EXPERT_FOLLOW_UP = """
 EXPERT FOLLOW-UP (test every question before you say it)
-Ask as a senior practitioner. Take the most consequential specific
-in the latest answer (a check, threshold, approval, exception, workaround, hand-off, system or figure,
-above all one mentioned in passing or one that worries them) and ask the one thing a reviewer would need
-to know about it: the rule and its source, who decides and on what basis, what is compared with what,
-what evidence is kept, or what happens when it fails or is late. That outranks the last thing said: a
-workaround matters more than a contact name. Once an exception, its fix
+Ask as a senior practitioner. Take the most consequential specific in the answer:
+a check, threshold, approval, exception, workaround, handoff or figure. Ask about the missing rule,
+source, decision, comparison, evidence or failure. That outranks the last thing said.
+If someone gives a different figure and only says "now", ask "Was the earlier figure incorrect,
+or was it revised later?" Wait for their answer before asking what caused a change.
+Once an exception, its fix
 and its reviewer are clear, return to an unresolved decision on the main route. Revisit that example
 only if the new detail changes the rule, handoff or evidence. After two questions on one
 specific, move on. If the question could be put to any process ("What happens next?", "Who is involved?")
@@ -738,6 +738,9 @@ NEXT QUESTION SELECTION (silent):
    unavailable detail is parked. Coverage order never dictates question order.
 4. Check the exact need against the full transcript, documents, explicit unknowns
    and corrections. Ask ONE practical information request, using their vocabulary.
+   Keep amounts with their stated recipient and document. A different figure may
+   correct the first account or be a later revision; clarify before asking why it changed.
+   Check that an exception occurs before asking how. Accept written-procedure-only intake.
 Never ask an answered question merely because a background finding is partial.
 """
 
@@ -1113,8 +1116,8 @@ private coverage framework. Do not read headings, taxonomy labels or slot names.
 There is no duration target. Follow the participant's pace; process deadlines
 they report are facts to capture, not a limit on the interview.
 
-Backchannel policy: Use very few listening sounds. Do not respond to every pause
-or fragment with "mm-hmm", "okay" or praise. Quiet listening is welcome.
+Backchannel policy: Listen quietly through pauses and fragments. Start an ordinary
+reply with the question itself. Omit "mm-hmm", "okay", praise and recaps.
 Interruption policy: The participant keeps the floor through hesitations, pauses
 and your listening cues. Wait for the thought to finish before asking a question.
 When they correct or interrupt you, yield and listen; resume from their latest
@@ -1124,7 +1127,7 @@ question or treat one transcript word as a request to complete their thought.
 If a long pause needs a check, gently ask whether they need a moment; do not
 automatically replay the last question.
 
-Delegation policy: Choose ordinary follow-ups directly from the conversation.
+Delegation policy: Ask the next short question directly as their thought ends.
 Do not wait for background notes or delegate just to select the next question.
 Generate <|SpawnThinking|> only when complex work genuinely needs backend reasoning.
 Background capture-status updates are silent, provisional progress, never a
@@ -1205,7 +1208,8 @@ VOICE_READER_INSTRUCTIONS = ("You are a text-to-speech reader, not an interviewe
 # Asking for amounts in words: in a test of dictated wires, "$4,250,000.17" came back as "$4,250,017" in 6 of 6
 # tries with the shorter instructions and 0 of 6 with these; a longer, number-dense answer improved from 0 to 3 of 6.
 TRANSCRIPTION_INSTRUCTIONS = ("A business-process interview. Spelling hints identify possible names; transcribe only what is spoken. "
-                              "Write money amounts in words, exactly as spoken, and keep every letter, number and code in a name.")
+                              "Write money amounts in words, exactly as spoken, and keep every letter, number and code in a name. "
+                              "Preserve amounts, units, roles, names and negations. Mark inaudible wording as [unclear].")
 
 LIVE_BACKEND_INSTRUCTIONS = BASE_INSTRUCTIONS + QUESTION_SELECTION_POLICY + """
 Help the spoken interviewer understand the current process and identify one useful next question.
@@ -1708,7 +1712,7 @@ If no corrections are necessary, all discard/upsert/memo arrays are empty. Exist
 components remain governed by the participant-correction removal rules. The final merged map must
 remain atomic and source-cited, with documentary findings
 partial and proposed changes separate from current practice.
-""" + ROUTE_SUPPORT_INSTRUCTIONS + REQUIRED_DEPENDENCY_POLICY
+""" + ROUTE_SUPPORT_INSTRUCTIONS
 INTERVIEW_INSTRUCTIONS = BASE_INSTRUCTIONS + """
 Return exactly one useful next question in 'question', based on the most important remaining gap.
 The 'question' field is the spoken/chat response: when the participant asks for a document-sufficiency
@@ -1906,7 +1910,7 @@ Do not shorten a substantive memo answer into 'the account describes/covers' a l
 """ + GRAPH_ROUTING_POLICY + FULL_CIRCLE_POLICY + WORKFLOW_COMPONENT_POLICY
 
 
-_GPFS_OUTPUT_POLICY = gpfs_interview.CONTEXT + gpfs_interview.RELATIONSHIP_POLICY + "\nControlled classification vocabulary: " + json.dumps(gpfs_interview.FACETS) + "\n" + """
+_GPFS_OUTPUT_POLICY = gpfs_interview.RELATIONSHIP_POLICY + "\nControlled classification vocabulary: " + json.dumps(gpfs_interview.FACETS) + "\n" + """
 Write all sixteen memo sections, including scope/entity context, business rules
 and lineage, connected processes, data/systems and volume/effort. Include cited
 taxonomy and external connections separately from internal map edges. Empty
@@ -2593,7 +2597,9 @@ def bare_walkthrough(question):
 
 # A second request joined to the end of a question: "..., and how does it reach you?".
 _SECOND_REQUEST = re.compile(
-    r",\s+and\s+(?=(?:what|who|whom|whose|how|when|where|which|why|does|do|did|is|are|was|were|can|could|would|should|will|has|have)\b)"
+    r"(?:,\s*and\s+(?=(?:what|who|whom|whose|how|when|where|which|why|does|do|did|is|are|was|were|can|could|would|should|will|has|have)\b)"
+    r"|\s+and\s+(?=(?:(?:what|where|when|why|how)\s+(?:does|do|did|is|are|was|were|can|could|would|should|will|has|have)\b"
+    r"|who\s+(?:is|can|will|[a-z]+s)\b)))"
     r"[^?.!]*\?", re.IGNORECASE)
 
 
@@ -2603,16 +2609,8 @@ _QUESTION_OPENING = re.compile(
 
 
 def one_request(question):
-    """The question without a second request joined to its end by ", and".
-
-    "What starts a migration, and how does it reach you?" asks two things; a participant answers
-    one of them and the other is lost or asked again. Nine of 442 questions in the stress run of
-    2026-11-17 had this form, all with a comma before "and" and an interrogative after it. Only
-    that form is cut, only in the last question of the turn, and only when what is left is itself
-    a question ("When the invoice arrives, and has been matched, what do you do next?" is one
-    question and stays whole); wording inside quotation marks is never touched.
-    """
-    if not isinstance(question, str) or question.count("?") != 1 or any(mark in question for mark in "\"“”‘’"):
+    """Keep the first complete request when 'and' introduces a second interrogative clause."""
+    if not isinstance(question, str) or question.count("?") != 1 or any(mark in question for mark in "\"“”‘"):
         return question
     end = question.index("?") + 1
     match = None
@@ -2964,7 +2962,7 @@ def checked_map_key(workflow, context, turns, documents, scope):
             if not step[field]:
                 step[field] = "UNKNOWN / TBD"
         steps.append(step)
-    excerpts = {source["id"]: source["text"] for source in active if source["id"] in cited}
+    excerpts = {source["id"]: [source["text"], source.get("source_revision")] for source in active if source["id"] in cited}
     return _fingerprint([context, scope, steps, workflow["connections"], excerpts])
 
 
@@ -3032,19 +3030,21 @@ FILE_TOPIC_REVIEW_GUIDANCE = (
     "The file_topic_reviews in the context are decisions made by the participant in Workspace. "
     "They are neither replies to the current question nor final confirmation of the account. "
     "For a confirmed review, treat only its exact answer as the participant's account of the named topic. "
-    "Cite context for that participant statement and keep any documentary claims separately sourced. "
+    "Cite its reference for that participant statement and keep any documentary claims separately sourced. "
     "Ask for missing details without asking the participant to repeat approved wording. "
     "A needs_changes review flags the file notes for that topic. Ask about them if material and unresolved. "
     "Newer participant testimony takes precedence. A decision never establishes topic completeness or owner approval."
 )
 
 
-def file_topic_reviews(value):
+def file_topic_reviews(value, documents=()):
     if not isinstance(value, list) or len(value) > len(COVERAGE):
         raise ValueError("Topic reviews must be a bounded list.")
     reviews, seen = [], set()
+    active = {item["id"]: item for item in documents if not item.get("retained_only")
+              and not item.get("archived") and item.get("disposition") != "parked"}
     for row in value:
-        if not isinstance(row, dict) or not {"topic", "decision"} <= set(row) <= {"topic", "decision", "answer"}:
+        if not isinstance(row, dict) or not {"topic", "decision"} <= set(row) <= {"topic", "decision", "answer", "source_ids", "source_revisions", "reference"}:
             raise ValueError("A topic review needs a topic and decision.")
         topic = row["topic"]
         if not isinstance(topic, str) or topic not in COVERAGE or topic in seen or row["decision"] not in ("confirmed", "needs_changes"):
@@ -3055,6 +3055,20 @@ def file_topic_reviews(value):
             review["answer"] = bounded_text(row.get("answer"), "Reviewed topic notes", 12000, True)
         elif "answer" in row:
             bounded_text(row["answer"], "Reviewed topic notes", 12000, True)
+        refs, revisions = row.get("source_ids", []), row.get("source_revisions", {})
+        if not isinstance(refs, list) or len(refs) > 400 or any(not isinstance(ref, str) for ref in refs) or not isinstance(revisions, dict):
+            raise ValueError("A Workspace review needs valid original source references.")
+        if row.get("reference") and not re.fullmatch(r"review_v1_[0-9a-f]{32}", str(row["reference"])):
+            raise ValueError("Invalid Workspace confirmation reference.")
+        if row["decision"] == "confirmed" or refs:
+            if not refs or not all(ref in active and active[ref].get("source_revision")
+                                   and active[ref]["source_revision"] == revisions.get(ref) for ref in refs):
+                continue  # Legacy, changed or unavailable evidence is history only.
+            review.update(source_ids=sorted(set(refs)), source_revisions={ref: revisions[ref] for ref in refs})
+            if row["decision"] == "confirmed":
+                if not row.get("reference"):
+                    continue
+                review["reference"] = row["reference"]
         reviews.append(review)
     return reviews
 
@@ -3067,7 +3081,8 @@ def validate_payload(payload, require_answers=False):
         raise ValueError("Interview context is required.")
     clean = {key: bounded_text(context.get(key, ""), key, 8000 if key == "background" else 500)
              for key in ("process_name", "process_owner", "objective", "background")}
-    reviews = file_topic_reviews(payload.get("file_topic_reviews", context.get("file_topic_reviews", [])))
+    reviews = file_topic_reviews(payload.get("file_topic_reviews", context.get("file_topic_reviews", [])),
+                                [*document_evidence_catalog(payload.get("_supporting_documents", {})), *payload.get("_review_sources", [])])
     if reviews:
         clean["file_topic_reviews"] = reviews
     # Legacy meeting/timer fields are accepted but ignored. They are never sent
@@ -3080,7 +3095,7 @@ def validate_payload(payload, require_answers=False):
         if not isinstance(turn, dict) or turn.get("role") not in ("user", "assistant"):
             raise ValueError("Turns must have a user or assistant role.")
         turn_id = bounded_text(turn.get("id"), "Turn ID", 80, True)
-        if not re.fullmatch(r"[A-Za-z0-9_-]+", turn_id) or turn_id == "context" or turn_id in seen:
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", turn_id) or turn_id == "context" or turn_id.startswith("review_v1_") or turn_id in seen:
             raise ValueError("Turn IDs must be unique letters, numbers, underscores or hyphens.")
         seen.add(turn_id)
         cleaned.append({"id": turn_id, "role": turn["role"],
@@ -3159,6 +3174,8 @@ def document_evidence_catalog(supporting):
     catalog = {}
     for document in supporting.get("documents", []):
         for source in document.get("excerpts", []):
+            if document.get("retained_only") or document.get("disposition") == "parked" or document.get("archived"):
+                continue
             if source.get("requires_vision") or not str(source.get("text", "")).strip():
                 continue
             source_id = source.get("id", "")
@@ -3166,7 +3183,7 @@ def document_evidence_catalog(supporting):
                 continue
             catalog[source_id] = {"id": source_id, "document_id": document["id"], "name": document["name"],
                                   "label": source.get("label", ""), "location": source.get("location", {}),
-                                  "text": source["text"]}
+                                  "text": source["text"], **({"source_revision": document["source_revision"]} if document.get("source_revision") else {})}
     for source in supporting.get("retained_evidence", []):
         source_id = source.get("id", "")
         if (source.get("requires_vision") or not str(source.get("text", "")).strip()
@@ -3179,6 +3196,7 @@ def document_evidence_catalog(supporting):
 
 def evidence_sources(turns, documents=None, context=None):
     return ({turn["id"] for turn in turns if turn["role"] == "user" and turn.get("document_event") is not True}
+            | set(gpfs_interview.confirmed_passages(context))
             | ({"context"} if context is None or interview_coverage.context_has_evidence(context) else set())
             | {source["id"] for source in documents or []})
 
@@ -3189,6 +3207,9 @@ def prior_document_source_ids(payload):
     if not isinstance(supplied, list) or len(supplied) > 500:
         raise ValueError("Choose at most 500 document source references.")
     sources = list(supplied)
+    for review in payload.get("file_topic_reviews") or []:
+        if isinstance(review, dict) and isinstance(review.get("source_ids"), list):
+            sources.extend(review["source_ids"])
     pending = [payload.get("previous_capture", {})]
     while pending:
         value = pending.pop()
@@ -3483,11 +3504,16 @@ def validate_findings(findings, turns, documents=None, carried=(), context=None)
     valid_sources = evidence_sources(turns, documents, context) | set(carried)
     document_ids = {source["id"] for source in documents or []} | set(carried)
     participant_text = {t["id"]: t["text"] for t in turns if t["role"] == "user" and t.get("document_event") is not True}
+    participant_text.update(gpfs_interview.confirmed_passages(context))
+    quoted_text = {**participant_text, **{doc["id"]: doc.get("text", "") for doc in documents or []
+                                         if not doc.get("archived") and not doc.get("retained_only")}}
     flagged = {row["topic"] for row in (context or {}).get("file_topic_reviews", [])
                if row["decision"] == "needs_changes"}
     for finding in findings:
         if not set(finding["evidence_turns"]) <= valid_sources:
             raise ValueError("A memo finding references missing or non-participant evidence without an authorized document source.")
+        finding["answer"] = gpfs_interview.grounded_sequence(
+            finding["answer"], (quoted_text.get(ref, "") for ref in finding["evidence_turns"]))
         if finding["status"] in ("captured", "partial", "not_applicable") and not finding["evidence_turns"]:
             raise ValueError("A reported memo finding must identify its interview evidence.")
         if finding["status"] in ("captured", "partial", "not_applicable") and (
@@ -3737,9 +3763,9 @@ def add_workflow_structure_questions(existing, steps, connections, extra=(), max
 def revised_steps(update, previous):
     """Accepted steps whose action this update restates under the same ID."""
     old_steps = {step["id"]: step for step in previous["workflow"]["steps"]}
+    fields = ("title","type","actor","entity_scope","completion_criteria","handoff","control_type")
     return {step["id"] for step in update["upsert_steps"] if step["id"] in old_steps
-            and (step["title"].strip().casefold(), step["type"]) !=
-            (old_steps[step["id"]]["title"].strip().casefold(), old_steps[step["id"]]["type"])}
+            and any(step.get(k) != old_steps[step["id"]].get(k) for k in fields)}
 
 
 def retained_routes_to_recheck(update, previous):
@@ -3778,13 +3804,14 @@ _QUOTE_TYPOGRAPHY = {
 ROUTE_RECHECK_PROBLEMS = {
     "no_passage": "The first review kept this route but returned no passage for it.",
     "wrong_source": "No returned passage came from a source this route cites, or a passage named something that is not a source.",
+    "unrelated_passage": "The passage does not identify the proposed actions or condition. Recheck the direction, roles, and prerequisites.",
     "quote_not_found": "A returned passage does not occur in the source it names.",
 }
 # Passages that were returned but could not be verified earn one second request. An empty
 # passage list is the reviewer's own decision that nothing supports the route, so it is not
 # asked again; adding "no_passage" here would re-ask those routes too, at one more provider
 # request for each map or draft in which it happens.
-ROUTE_RECHECK_REASONS = frozenset({"wrong_source", "quote_not_found"})
+ROUTE_RECHECK_REASONS = frozenset({"wrong_source", "quote_not_found", "unrelated_passage"})
 
 
 def comparable_quote(text):
@@ -3840,8 +3867,259 @@ class RouteRecheck:
                 pass
 
 
+def route_terms(text):
+    # A veto for clearly unrelated quotes, never positive proof of a handoff. The
+    # source reviewer judges meaning, including paraphrases and conditional branches.
+    stop = {"the", "with", "that", "then", "this", "from", "after", "before", "when",
+            "once", "only", "file", "files", "step", "task", "record", "process", "next"}
+    return {word[:5] for word in re.findall(r"[a-z]{3,}", text.casefold()) if word not in stop}
+
+
+def omitted_gates(workflow, sources):
+    """Surface explicit mandatory prerequisites missing from the release path."""
+    pattern = re.compile(r"(?:^|[.!?]\s+)([^.!?\n]{1,70}?)\s+(?:must|has to|needs to)\s+"
+                         r"([^.!?\n]{3,160}?)\s+before\s+([^.!?\n]{3,180})", re.I)
+    steps = workflow["steps"]
+    incoming = {}
+    for edge in workflow["connections"]:
+        incoming.setdefault(edge["to"], []).append(edge)
+    gaps = {}
+    for source_id, passage in sources.items():
+        for match in pattern.finditer(passage):
+            actor, required, target = match.groups()
+            target_words = route_terms(target) - {"the", "can", "may", "must"}
+            # A shared object does not identify which action is gated. Prefer the
+            # whole action and leave equally plausible destinations unresolved.
+            ranked = [(len(route_terms(step["title"]) & target_words), step) for step in steps]
+            score = max((n for n, _ in ranked), default=0)
+            matches = [step for n, step in ranked if n == score and
+                       (n >= 2 or target_words <= route_terms(step["title"]))]
+            if not score or len(matches) != 1:
+                continue
+            node = matches[0]
+            prior, pending = {node["id"]}, [node["id"]]
+            while pending:
+                for edge in incoming.get(pending.pop(), ()):
+                    if edge["from"] not in prior:
+                        prior.add(edge["from"])
+                        pending.append(edge["from"])
+            represented = [s["actor"]+" "+s["title"] for s in steps if s["id"] in prior and s != node]
+            represented += [e["label"] for e in incoming.get(node["id"], ())]
+            substance = route_terms(required) - {"finis", "compl", "perfo", "condu"}
+            if any(route_terms(actor) & route_terms(item) and (substance or route_terms(required)) & route_terms(item)
+                   for item in represented):
+                continue
+            question = f"Owner review needed before {node['title']}: {actor.strip()} must {required.strip()} ({source_id})."
+            gaps.setdefault(node["id"], []).append(question)
+    return {node: " ".join(dict.fromkeys(reasons)) for node, reasons in gaps.items()}
+
+
+def recover_conditional_handoffs(workflow, audit_log, context, turns, documents, sources, *, repair_detached=False):
+    """Verify an explicitly sequenced handoff that a reviewer omitted or could not quote."""
+    steps, edges = workflow["steps"], workflow["connections"]
+    prefix = "What handoff or prerequisite, if any, connects "
+    proposed = {_question_words(q): q for q in workflow["open_questions"] if q.startswith(prefix)}
+    targets = set()
+    starts = [s["id"] for s in steps if s.get("type") == "start"]
+    if repair_detached and len(starts) == 1:
+        outgoing = {}
+        for edge in edges:
+            outgoing.setdefault(edge["from"], []).append(edge["to"])
+        reached, todo = set(starts), starts.copy()
+        while todo:
+            for node in outgoing.get(todo.pop(), ()):
+                if node not in reached:
+                    reached.add(node)
+                    todo.append(node)
+        targets = {s["id"] for s in steps} - reached
+    if not proposed and not targets:
+        return
+    # Use only adjacent, affirmative reported actions that cite the same passage.
+    # Save filing-time repairs for previously flagged proposals, so a person's
+    # deliberate map edits do not cause an omitted route to reappear.
+    by_source = {}
+    for node in steps:
+        action = re.match(r"[a-z]+", node["title"].casefold())
+        if action:
+            for ref in node.get("evidence_turns", ()):
+                if ref in sources and ref != "context":
+                    by_source.setdefault(ref, []).append((node, action[0][:5]))
+    known = {(e["from"], e["to"]) for e in edges}
+    cleaned, old_structure = set(), None
+    uncertain = re.compile(r"\b(?:never|no longer|instead|not anymore|formerly|might|hypothetical|correction)\b", re.I)
+    restricted = re.compile(r"\b(?:if|unless|except|until|only|not|cannot|provided|subject to)\b", re.I)
+    for ref, nodes in by_source.items():
+        if len(nodes) < 2 or len(edges) >= 150:
+            continue
+        sentences = re.split(r"(?<=[.!?])\s+", sources[ref].strip())
+        for index, (previous, following) in enumerate(zip(sentences, sentences[1:])):
+            passage = previous + " " + following
+            clause = re.match(r"^((?:after|upon|once|when)\s+[^.!?,]{2,120}?)(?:,\s*|\s+(?=(?:I|we|they|he|she)\s))(.+)$", following, re.I)
+            if not clause or len(passage) > 800 or uncertain.search(passage) or restricted.search(passage):
+                continue
+            previous_words, following_words = route_terms(previous), route_terms(following)
+            named_object = previous_words
+            if index and re.search(r"\b(?:it|them|those|this|these)\b", previous, re.I):
+                named_object = previous_words | route_terms(sentences[index - 1])
+            origins = [n for n, verb in nodes if verb in previous_words
+                       and (route_terms(n.get("actor", "")) - {"unkno"}) & previous_words
+                       and (route_terms(n["title"]) - {verb}) <= named_object]
+            if len(origins) != 1:
+                continue
+            left = origins[0]
+            destinations = []
+            for right, verb in nodes:
+                title_words = route_terms(right["title"])
+                if (right is left or (left["id"], right["id"]) in known or not title_words - {verb}
+                        or not title_words <= following_words):
+                    continue
+                if re.match(r"^(?:(?:I|we|he|she|they|the [\w -]{1,40}?)\s+)?"
+                            + re.escape(verb) + r"\w*\b", clause[2], re.I):
+                    condition = clause[1]
+                    gap = f"{prefix}{left['title'][:160]} to {right['title'][:160]} (proposed condition: {condition})?"
+                    named = proposed.get(_question_words(gap))
+                    if named or (right["id"] in targets and left["id"] not in targets):
+                        destinations.append((right, verb, condition, named))
+            if len(destinations) != 1:
+                continue
+            right, verb, condition, named = destinations[0]
+            # A later correction takes precedence over this earlier passage.
+            later_sentences = sentences[index + 2:]
+            position = next((i for i,t in enumerate(turns) if t["id"] == ref), None)
+            if position is not None:
+                for turn in turns[position+1:]:
+                    if turn["role"] == "user" and not turn.get("document_event"):
+                        later_sentences.extend(re.split(r"(?<=[.!?])\s+", turn["text"]))
+            if any((uncertain.search(s) and verb in route_terms(s)) or
+                   re.search(r"\b(?:not|don't|cannot)\s+" + re.escape(verb), s, re.I) for s in later_sentences):
+                continue
+            edge = {"from":left["id"], "to":right["id"], "label":condition, "evidence_turns":[ref]}
+            review = {**edge, "passages":[{"source_id":ref, "quote":passage}]}
+            added, _ = grounded_routes([edge], [review], steps, context, turns, documents, audit_log=audit_log)
+            if added and len(edges) < 150:
+                if old_structure is None:
+                    old_structure = set(workflow_structure_questions(steps, edges))
+                edges.extend(added)
+                known.add((left["id"], right["id"]))
+                if named:
+                    cleaned.add(named)
+    if old_structure is not None:
+        cleaned.update(old_structure - set(workflow_structure_questions(steps, edges)))
+        workflow["open_questions"] = [q for q in workflow["open_questions"] if q not in cleaned]
+        workflow["open_questions"] = add_workflow_structure_questions(workflow["open_questions"], steps, edges, maximum=500)
+
+
+def route_claim_revision(edge, nodes):
+    fields = ("title", "actor", "type", "description", "entity_scope", "completion_criteria",
+              "input", "output", "handoff", "operating_details", "rule_source_ref", "evidence_turns", "system")
+    return _fingerprint([edge, [[nodes[edge[end]].get(field) for field in fields]
+                                for end in ("from", "to")]]).hex()
+
+
+def revalidate_filed_routes(draft, context, turns, documents):
+    """Check saved passages against the current account before filing their review status."""
+    if not draft.get("route_assurance"):
+        return
+    nodes = {step["id"]: step for step in draft["steps"]}
+    rows = draft["route_assurance"]
+    if (not isinstance(rows, list) or len(rows) > 150 or
+            any(not isinstance(row, dict) or not all(isinstance(row.get(k), str) for k in ("from","to","label")) for row in rows)):
+        raise ValueError("Invalid saved route assurance.")
+    previous = {route_key(row): row for row in rows}
+    accepted = {}
+    unread = {p["id"] for p in documents if p.get("retained_only")}
+    for edge in draft["connections"]:
+        row = previous.get(route_key(edge), {})
+        if (row.get("status") == "supported" and row.get("claim_revision") == route_claim_revision(edge, nodes)
+                and row.get("evidence_turns") == edge["evidence_turns"]
+                and set(edge["evidence_turns"]) <= evidence_sources(turns, documents, context) - unread):
+            grounded_routes([edge], [row], draft["steps"], context, turns, documents, audit_log=accepted)
+    checked = route_review_record(draft, accepted, context, turns, documents, carried=unread)
+    for row in checked:
+        prior = previous.get(route_key(row), {})
+        if prior.get("status") in ("unread", "unsupported") and row["status"] != "supported":
+            row["status"] = prior["status"]
+    draft["route_assurance"] = checked
+
+
+def route_review_record(workflow, audit_log, context, turns, documents, carried=(), client=None, scope=None, notes=()):
+    sources = {t["id"]: t["text"] for t in turns if t.get("role") == "user" and not t.get("document_event")}
+    sources.update(gpfs_interview.confirmed_passages(context))
+    sources.update({p["id"]: p["text"] for p in documents or [] if not p.get("retained_only") and not p.get("archived")
+                    and p.get("disposition") != "parked" and p.get("text")})
+    sources["context"] = (context or {}).get("background", "")
+    recover_conditional_handoffs(workflow, audit_log, context, turns, documents, sources, repair_detached=client is not None)
+    gates = omitted_gates(workflow, {k:v for k,v in sources.items() if k != "context"})
+    # The register can be restored from a prior revision. Refresh only the
+    # application's own verbatim mandatory-prerequisite notices with source IDs.
+    workflow["open_questions"] = [q for q in workflow["open_questions"] if not (
+        q.startswith("Owner review needed before ") and re.search(r"\s+must\s+.*\s\([\w.-]+\)\.$", q)
+        and set(re.findall(r"\(([\w.-]+)\)\.", q)) <= sources.keys())]
+    for pair in gpfs_interview.permission_conflicts(notes, documents):
+        question = f"Which scope and condition governs these conflicting statements? {pair[False]} / {pair[True]}"
+        workflow["open_questions"] = add_workflow_questions(workflow["open_questions"], [question], maximum=500)
+        for step in workflow["steps"]:
+            if route_terms(step["title"]) & route_terms(pair[False]):
+                gates.setdefault(step["id"],question)
+        for index, control in enumerate(workflow.get("controls", [])):
+            if control.rstrip(".").casefold() in {text.rstrip(".").casefold() for text in pair.values()}:
+                reviewed = "Owner review needed (conflicting permission): " + control
+                workflow["controls"][index] = reviewed
+                for row in workflow.get("field_evidence", []):
+                    if row["field"] == "controls" and row["index"] == index and row["text"] == control:
+                        row["text"] = reviewed
+    workflow["open_questions"] = add_workflow_questions(workflow["open_questions"], list(gates.values()), maximum=500)
+    history = gpfs_interview.issued_amount_history(turns)
+    if history:
+        titles = [step["title"] for step in workflow["steps"]]
+        issue_rows = [title for title in titles if re.search(r"\bissu(?:e|ed|ance)", title, re.I)]
+        wrong_issuance = (history["account"] == "correction" and any(history["original"] in t for t in issue_rows)
+                          or history["account"] != "correction" and any(history["latest"] in t for t in issue_rows)
+                          and not any(history["original"] in t for t in issue_rows))
+        if wrong_issuance or history["account"] == "unclear":
+            question = gpfs_interview.amount_review_question(history) if history["account"] != "correction" else (
+                "Check the issued amount against the participant's correction to " + history["latest"] + ".")
+            workflow["open_questions"] = add_workflow_questions(workflow["open_questions"], [question], maximum=500)
+            for step in workflow["steps"]:
+                if wrong_issuance and step["title"] in issue_rows and not step["title"].startswith("Owner review needed"):
+                    step["title"] = "Owner review needed: " + step["title"]
+                    step["description"] = question
+        for step in workflow["steps"]:
+            if gpfs_interview.unestablished_reissue(step["title"]+" "+step.get("description",""),history,turns):
+                question = "Did anyone actually send investors a revised notice? Confirm the action and its effect."
+                if not step["title"].startswith("Owner review needed"):
+                    step["title"] = "Owner review needed: " + step["title"]
+                step["description"] = question
+                gates[step["id"]] = question
+                workflow["open_questions"] = add_workflow_questions(workflow["open_questions"],[question],maximum=500)
+    revision = _fingerprint([workflow["steps"], workflow["connections"], context, turns, documents]).hex()
+    result = []
+    nodes = {node["id"]:node for node in workflow["steps"]}
+    for edge in workflow["connections"]:
+        refs = edge["evidence_turns"]
+        passages = [p for p in audit_log.get(route_key(edge), []) if p["source_id"] in refs]
+        key = _fingerprint([scope, _map_account(turns), context, edge, [nodes[edge[k]] for k in ("from","to")],
+                            [[ref, sources.get(ref)] for ref in refs],
+                            [(p["id"], p.get("source_revision")) for p in documents or [] if p["id"] in refs]])
+        if client is not None and hasattr(client,"_route_decisions"):
+            with client._draft_lock:
+                if passages:
+                    if len(client._route_decisions) >= 1024:
+                        client._route_decisions.pop(next(iter(client._route_decisions)))
+                    client._route_decisions[key] = copy.deepcopy(passages)
+                elif not set(refs) & set(carried):
+                    passages = copy.deepcopy(client._route_decisions.get(key, []))
+        status = ("unread" if any(r not in sources or r in carried for r in refs) else
+                  "pending" if edge["to"] in gates or not passages else "supported")
+        result.append({**edge, "status": status, "passages": passages, "revision": revision,
+                       "claim_revision": route_claim_revision(edge, nodes),
+                       "endpoints": [[nodes[e].get(k) for k in ("title", "actor", "type", "entity_scope")] for e in (edge["from"], edge["to"])],
+                       **({"reason": gates[edge["to"]]} if edge["to"] in gates else {})})
+    return result
+
+
 def grounded_routes(edges, reviews, steps, context, turns, documents, baseline=(), recheck=None, removed=(),
-                    withdrawn=(), carried=(), accepted_routes=()):
+                    withdrawn=(), carried=(), accepted_routes=(), audit_log=None):
     """Check the reviewer's cited passages; retain established edges when applying sparse edits.
 
     recheck (a RouteRecheck) is asked once about routes whose passages could not be verified,
@@ -3856,7 +4134,7 @@ def grounded_routes(edges, reviews, steps, context, turns, documents, baseline=(
     quoted, so a route that cites one and needs a fresh review fails it (unread_source)
     and is never put to the second request.
     """
-    sources = {"context": context.get("background", "")}
+    sources = {"context": context.get("background", ""), **gpfs_interview.confirmed_passages(context)}
     sources.update({turn["id"]: turn["text"] for turn in turns
                     if turn["role"] == "user" and not turn.get("document_event")})
     sources.update({doc["id"]: doc["text"] for doc in documents or []
@@ -3870,7 +4148,8 @@ def grounded_routes(edges, reviews, steps, context, turns, documents, baseline=(
     as_accepted = {route_key(edge): edge for edge in accepted_routes}
     unread = set(carried)
     titles = {step["id"]: step["title"][:160] for step in steps}
-    authorized = evidence_sources(turns, documents)
+    nodes = {step["id"]:step for step in steps}
+    authorized = evidence_sources(turns, documents, context) | {"context"}  # An empty intake cannot supply a verified passage.
     distinct = {}
     for edge in edges:
         key = route_key(edge)
@@ -3906,10 +4185,57 @@ def grounded_routes(edges, reviews, steps, context, turns, documents, baseline=(
             quote = comparable_quote(part["quote"])
             if not meaningful_quote(quote, wording[source]):
                 return None, "quote_not_found"
+        cited_passages = [p for p in passages if p["source_id"] in edge["evidence_turns"]]
+        claim = " ".join((titles[edge["from"]], titles[edge["to"]], edge["label"]))
+        quote_text = " ".join(p["quote"] for p in cited_passages)
+        if cited_passages and len(quote_text.split()) >= 5 and not route_terms(claim) & route_terms(quote_text):
+            return None, "unrelated_passage"
+        scoped_claim = " ".join([edge["label"], *(scope for end in ("from","to") for scope in nodes[edge[end]].get("entity_scope", []))])
+        if gpfs_interview.material_mismatch(scoped_claim, quote_text):
+            return None, "unrelated_passage"
+        # A real quotation can contradict the proposed consequence. Keep the sentence
+        # around a clipped quotation so omitting "does not" cannot reverse a rule.
+        outcome_quotes = []
+        for part in cited_passages:
+            quote = comparable_quote(part["quote"])
+            source = wording[part["source_id"]]
+            position = source.index(quote)
+            start = 1 + max(source.rfind(mark, 0, position) for mark in ".!?;")
+            end = position + len(quote)
+            if quote[-1] not in ".!?;":
+                next_mark = re.compile(r"[.!?;]").search(source, end)
+                end = next_mark.start() if next_mark else len(source)
+            outcome_quotes.append(source[start:end])
+        if gpfs_interview.route_outcome_mismatch(titles[edge["from"]], titles[edge["to"]], edge["label"], outcome_quotes):
+            return None, "unrelated_passage"
+        # When the passage explicitly names the actor performing this same action,
+        # a different known role on the graph changes the claim.
+        role_pattern = r"(?:controller|treasurer|reviewer|fund accountant|ap clerk|legal counsel|supervisor)"
+        for end in ("from","to"):
+            role = nodes[edge[end]].get("actor", "").strip().casefold()
+            action = re.match(r"(releas|approv|sign|issu|reconcil)",titles[edge[end]],re.I)
+            if action and re.fullmatch(role_pattern, role):
+                actors = re.findall(r"\b("+role_pattern+r")\s+(?:may\s+|must\s+|can\s+)?"+action[1], quote_text,re.I)
+                if actors and role not in (actor.casefold() for actor in actors):
+                    return None, "unrelated_passage"
+        # In plainly stated two-action sentences, an explicit reverse order vetoes the
+        # proposal. Wording with additional branches remains the source reviewer's job.
+        passage = comparable_quote(quote_text).strip(" .!?;")
+        parts = re.split(r"\s+(then|before|after)\s+", passage)
+        if len(parts) == 3 and not re.search(r"[.!?;]\s+", passage):
+            left, relation, right = parts
+            if relation == "after":
+                left, right = right, left
+            start, end = route_terms(titles[edge["from"]]), route_terms(titles[edge["to"]])
+            if (start & route_terms(right) and end & route_terms(left)
+                    and not start & route_terms(left) and not end & route_terms(right)):
+                return None, "unrelated_passage"
         quoted = {part["source_id"] for part in passages}
         cited = [source for source in edge["evidence_turns"] if source in quoted]
         if not cited:
             return None, "wrong_source"
+        if audit_log is not None:
+            audit_log[route_key(edge)] = [copy.deepcopy(p) for p in passages if p["source_id"] in cited]
         # Publish only the citations the reviewer actually quoted. A verified passage from a
         # source the route does not cite is surplus: it neither supports nor costs the route.
         return (edge if len(cited) == len(edge["evidence_turns"]) else {**edge, "evidence_turns": cited}), ""
@@ -4285,11 +4611,7 @@ def validate_step_rule_sources(steps, authorized):
             raise ValueError("A step rule source must be an authorized source cited by that step.")
 
 
-def validate_draft(draft, turns, documents=None, context=None):
-    # First-pass and historical drafts retain their string fields. The final audit can bind those exact values to evidence.
-    checked = {key: value for key, value in draft.items() if key != "field_evidence"}
-    check_schema(checked, DRAFT_SCHEMA)
-    check_output_limits(draft)
+def review_draft_fields(draft, turns, documents, context):
     if "field_evidence" in draft:
         check_schema(draft["field_evidence"], FIELD_EVIDENCE)
         authorized = evidence_sources(turns, documents, context)
@@ -4302,14 +4624,48 @@ def validate_draft(draft, turns, documents=None, context=None):
             if (field, index) in references:
                 raise ValueError("A draft field has two evidence records for the same value.")
             references[field, index] = row
+        source_texts = gpfs_interview._detail_sources(turns,
+            [d for d in documents or [] if not d.get("retained_only") and not d.get("archived")
+             and d.get("disposition") != "parked"], context)
+        for key, row in list(references.items()):
+            if key[0] not in ("controls", "exceptions", "trigger"):
+                continue
+            refs = row["evidence_turns"]
+            passages = [text for ref in refs for text in source_texts.get(ref, [])]
+            passage = " ".join(passages)
+            if (not passage or not all(ref in source_texts and source_texts[ref] for ref in refs)
+                    or not route_terms(row["text"]) & route_terms(passage)
+                    or gpfs_interview.material_mismatch(row["text"], passage)
+                    or (key[0] == "controls" and gpfs_interview.control_mismatch(row["text"], passages))):
+                del references[key]
+        draft["field_evidence"] = list(references.values())
         missing = []
         for field in DRAFT_FIELDS:
+            if field not in draft:
+                continue
             values = [draft["trigger"]] if field == "trigger" else draft[field]
-            if any(value.strip() and value.strip().upper() not in ("UNKNOWN", "TBD") and (field, n) not in references for n, value in enumerate(values)):
+            for index, value in enumerate(values):
+                if not value.strip() or value.strip().upper() in ("UNKNOWN", "TBD") or (field, index) in references:
+                    continue
                 missing.append(field)
+                if value.startswith("Owner review needed"):
+                    continue
+                question = f"Owner review needed (support unverified): {value}"
+                if field == "trigger":
+                    draft["trigger"] = question
+                else:
+                    draft[field][index] = question
         if missing:
-            draft["validation_notes"] = list(dict.fromkeys([*draft["validation_notes"],
-                "Owner review needed for entries without a source reference in " + ", ".join(missing) + "."]))
+            draft["validation_notes"] = list(dict.fromkeys([*draft.get("validation_notes", []),
+                "Owner review needed for entries without a source reference in " + ", ".join(dict.fromkeys(missing)) + "."]))
+
+
+def validate_draft(draft, turns, documents=None, context=None):
+    # First-pass and historical drafts retain their string fields. The final audit can bind those exact values to evidence.
+    checked = {key: value for key, value in draft.items() if key != "field_evidence"}
+    check_schema(checked, DRAFT_SCHEMA)
+    check_output_limits(draft)
+    review_draft_fields(draft, turns, documents, context)
 
     gpfs_interview.validate_metadata(draft, evidence_sources(turns, documents, context))
     gpfs_interview.validate_corroboration(draft, turns, documents)
@@ -4617,7 +4973,7 @@ def settle_generated_citations(update, previous, turns, documents=None, carried=
     return settled
 
 
-def apply_workflow_audit(candidate, audit, previous, *, context, turns, documents, recheck=None, carried=()):
+def apply_workflow_audit(candidate, audit, previous, *, context, turns, documents, recheck=None, carried=(), audit_log=None):
     """Merge review edits into an unpublished candidate; never mutate the baseline."""
     # A slip in what either model cited is settled before the two are compared (finding 5).
     candidate = settle_generated_citations(candidate, previous, turns, documents, carried, context)
@@ -4669,7 +5025,7 @@ def apply_workflow_audit(candidate, audit, previous, *, context, turns, document
                                          context, turns, documents, unchanged, second_review,
                                          {step["id"] for step in result["remove_steps"]},
                                          {route_key(edge) for edge in result["remove_connections"]},
-                                         carried=carried, accepted_routes=previous["workflow"]["connections"])
+                                         carried=carried, accepted_routes=previous["workflow"]["connections"], audit_log=audit_log)
         return inherited, accepted, gaps, inherited.keys() - {route_key(edge) for edge in accepted}
 
     held = {}
@@ -5029,6 +5385,7 @@ class OpenAIClient:
         self._background_slots = threading.BoundedSemaphore(max(1, self.provider_slots - PROVIDER_FOREGROUND_RESERVE))
         self._draft_lock = threading.Lock()
         self._draft_candidates = {}
+        self._route_decisions = {}
         self._checked_maps = {}  # Bounded fingerprints only. Lost entries use full draft generation.
         # Candidates being written now, by the key of what they are written from (see draft).
         self._draft_pending = {}
@@ -5036,6 +5393,7 @@ class OpenAIClient:
         # Create draft waits only for the source check. DRAFT_PREPARE=off leaves it to the click.
         self.draft_prepare = (settings.get("DRAFT_PREPARE") or "on").strip().lower() not in ("off", "false", "0", "no")
         self._coverage_groups = {}
+        self._draft_coverage_reviews = {}
         self.model = settings.get("INTERVIEW_MODEL") or "gpt-5.4-mini"
         self.workflow_audit_model = settings.get("WORKFLOW_AUDIT_MODEL") or "gpt-5.4"
         self.transcription_model = settings.get("TRANSCRIPTION_MODEL") or "gpt-transcribe"
@@ -5101,6 +5459,7 @@ class OpenAIClient:
             **({"api_problem": self.key_problem} if self.key_problem else {}),
             "provider": {"id": "openai", "label": "OpenAI"},
             "reasoning_mode": self.reasoning_mode,
+            "fast_uploads": self.fast_tier and not self._fast_tier_refused,
             "models": {"interview": self.agent_models["lead_interviewer"], "draft": self.draft_model,
                        "workflow_audit": self.workflow_audit_model, "team_map_audit": self.team_map_audit_model,
                        "draft_audit": self.draft_audit_model, "draft_coverage": self.draft_coverage_model,
@@ -5597,7 +5956,7 @@ class OpenAIClient:
                 and turn.get("role") == "user" and turn.get("document_event") is not True and isinstance(turn.get("id"), str)]
             documents_in_scope = [item["id"] for item in document_evidence_catalog(payload.get("supporting_documents", {}))
                                   if not item.get("retained_only")]
-            sources = list(dict.fromkeys(intake + participant + documents_in_scope))
+            sources = list(dict.fromkeys(intake + participant + list(gpfs_interview.confirmed_passages(context)) + documents_in_scope))
             if name == "process_coverage_assessment":
                 dimensions = {key: interview_coverage.TOPIC_DIMENSIONS[key] for key in payload.get("assess_topics", [])
                               if key in interview_coverage.TOPIC_DIMENSIONS}
@@ -5877,16 +6236,17 @@ class OpenAIClient:
                              "Shorten the background in Settings, or continue by typing.")
         # The first message is decided from what this session actually holds: a digest
         # can end up without any summary, observation or excerpt of the files.
-        has_documents = any(not source.get("retained_only") for source in document_evidence)
-        readable = has_documents and (not condensed_documents or any(
-            document.get("excerpts") or document.get("observations") or document.get("summary")
-            for document in document_context["documents"]))
+        delivered = [row for row in document_context.get("documents", [])
+                     if not row.get("retained_only") and row.get("disposition") != "parked"]
+        has_files = bool(delivered or supporting.get("documents") or supporting.get("pending_documents"))
+        has_excerpt = any(str(p.get("text") or "").strip() for row in delivered for p in row.get("excerpts", [])
+                          if not p.get("requires_vision") and not (p.get("location") or {}).get("requires_vision"))
+        has_summary = any(row.get("summary") or row.get("observations") for row in delivered)
+        file_access = "excerpts" if has_excerpt else "summary" if has_summary else "unread" if has_files else "none"
+        greeting = {"excerpts": LIVE_OPENING_DOCUMENTS,
+                    "summary": "Only file summaries or observations are available. Attribute them as summaries and ask one unresolved question.",
+                    "unread": LIVE_OPENING_UNREAD, "none": live_opening(context)}[file_access]
         if not turns:
-            greeting = live_opening(context)
-            if readable:
-                greeting = LIVE_OPENING_DOCUMENTS
-            elif has_documents:
-                greeting = LIVE_OPENING_UNREAD
             history.append({"type": "message", "role": "developer",
                             "content": [{"type": "input_text", "text": greeting}]})
         result = self.request("live/sessions", {
@@ -5920,7 +6280,8 @@ class OpenAIClient:
                 or len(session_id) > 256 or self.key in answer or self.key == session_id):
             raise APIError("The voice service did not return a valid audio connection. Please try connecting again.")
         # Deliberately discard any provider config or credentials in the response.
-        return {"sdp": answer, "session_id": session_id, "model": LIVE_MODEL,
+        return {"sdp": answer, "session_id": session_id, "model": LIVE_MODEL, "file_access": file_access,
+                **({"opening": greeting} if not turns else {}),
                 **({"document_evidence": document_evidence} if supporting else {}),
                 **({"history": condensed_history} if condensed_history else {}),
                 **({"document_context": condensed_documents} if condensed_documents else {})}
@@ -6029,12 +6390,53 @@ class OpenAIClient:
                              "unconfirmed_topics": [f["key"] for f in findings if f["status"] in ("captured", "not_applicable")],
                              "topics": [], "limitation": "Coverage review could not be completed; full coverage is unconfirmed."}
 
+    def _draft_coverage_review(self, findings, context, turns, supporting, options):
+        """Share a complete independent assessment only for identical reviewed draft inputs."""
+        key = _fingerprint([findings, context, turns, supporting, options, options.get("model_override") or self.model])
+        with self._draft_lock:
+            now = time.monotonic()
+            entries = self._draft_coverage_reviews
+            for previous, (expires, job) in list(entries.items()):
+                if job.done() and expires <= now:
+                    del entries[previous]
+            entry = entries.get(key)
+            if entry is None:
+                pending = Future()
+                entries[key] = (now + 180, pending)
+            else:
+                _, pending = entry
+        if entry is not None:
+            return copy.deepcopy(pending.result())
+        try:
+            result = self.assess_coverage(findings, context, turns, supporting, **options)
+        except BaseException as error:
+            with self._draft_lock:
+                del entries[key]
+                pending.set_exception(error)
+            raise
+        assessment = result[1]
+        with self._draft_lock:
+            if assessment and assessment.get("review_available") is not False:
+                entries[key] = (time.monotonic() + 180, pending)
+                # Never evict an active reader's work. At most 12 completed reviews
+                # are retained in this client's memory, and none are written to disk.
+                completed = [k for k, (_, job) in entries.items() if job.done()]
+                for previous in completed[:-11]:
+                    del entries[previous]
+            else:
+                del entries[key]
+            pending.set_result(copy.deepcopy(result))
+        return result
+
     def apply_coverage_review(self, result, context, turns, supporting, field="memo_findings", model_override=None,
                               allow_capture_repair=False, split=False):
-        findings, assessment = self.assess_coverage(result[field], context, turns, supporting,
-            **({"model_override": model_override} if model_override else {}),
-            **({"allow_capture_repair": True} if allow_capture_repair else {}),
-            **({"split": True} if split else {}))
+        options = {**({"model_override": model_override} if model_override else {}),
+                   **({"allow_capture_repair": True} if allow_capture_repair else {}),
+                   **({"split": True} if split else {})}
+        if field == "memo_summary" and split:
+            findings, assessment = self._draft_coverage_review(result[field], context, turns, supporting, options)
+        else:
+            findings, assessment = self.assess_coverage(result[field], context, turns, supporting, **options)
         result[field] = findings
         if assessment is not None:
             result["coverage_assessment"] = assessment
@@ -6115,7 +6517,8 @@ class OpenAIClient:
             if retried:
                 allowance += WORKFLOW_RETRY_TIMEOUT + (0 if has_document_evidence else DOCUMENT_WORKFLOW_AUDIT_TIMEOUT - 90)
             try:
-                result = apply_workflow_audit(result, audit, previous, context=context, turns=turns,
+                audit_log = {}
+                result = apply_workflow_audit(result, audit, previous, context=context, turns=turns, audit_log=audit_log,
                                               documents=document_evidence, carried=carried,
                                               recheck=RouteRecheck(self, context, turns, supporting, "working_process_map_audit",
                                                                    started + allowance, model_override=self.workflow_audit_model))
@@ -6126,6 +6529,7 @@ class OpenAIClient:
                                          model_override=self.workflow_audit_model),
                     context=context, turns=turns, documents=document_evidence, baseline=previous["workflow"],
                     judged=judged_route_steps([*proposals, *audit["upsert_connections"]], capture["workflow"]["connections"]))
+                capture["route_assurance"] = route_review_record(capture["workflow"], audit_log, context, turns, document_evidence, carried, self, payload.get("document_scope"), previous["memo_findings"])
                 self.remember_checked_map(previous["workflow"], capture["workflow"], context, turns,
                                           document_evidence, payload.get("document_scope"))
             except ValueError as error:
@@ -6213,10 +6617,22 @@ class OpenAIClient:
                           "working_map": prior, **({"working_notes": notes} if notes else {})}
         reuse = self._map_was_checked(checked_map_key(prior, context, turns, active_evidence, payload.get("document_scope")),
                                      _map_account(turns))
-        candidate_key = _fingerprint([source_payload, reuse])
+        # Normalize only informational progress in the actual writer input. Keep summaries,
+        # selected passages, limitations, review failures, and graph assurance in the identity.
+        writer_documents = copy.deepcopy(supporting)
+        for document in writer_documents.get("documents", []):
+            review = document.get("review", {})
+            review.pop("reviewed_chunks", None)
+            if review.get("phase") in ("deep", "complete") and not review.get("review_stopped"):
+                review.pop("phase", None)
+                review.pop("review_complete", None)
+        source_payload["supporting_documents"] = writer_documents
+        instructions = draft_instructions(bool(notes), reuse)
+        candidate_key = _fingerprint([source_payload, reuse, instructions, self.draft_model, output_tokens,
+                                      payload.get("document_scope"), payload.get("map_review_revision"), self.reasoning_mode, getattr(self, "service_tier", None)])
         # One candidate is written per account. A request that finds the same candidate being
         # written (the page starts it when the participant wraps up) waits for that one instead
-        # of writing a second; if the first fails or takes too long, this request writes its own.
+        # of writing a second. A failure or timeout lets the caller retry explicitly.
         prepare_only = payload.get("prepare_only") is True
         waited_until = started + generation_timeout + 15
         while True:
@@ -6226,11 +6642,12 @@ class OpenAIClient:
                 cached = self._draft_candidates.get(candidate_key)
                 pending = None if cached else self._draft_pending.get(candidate_key)
                 writing = None
-                if not cached and (pending is None or now >= waited_until):
+                if not cached and pending is None:
                     writing = self._draft_pending[candidate_key] = threading.Event()
             if cached or writing:
                 break
-            pending.wait(max(0.0, waited_until - time.monotonic()))
+            if not pending.wait(max(0.0, waited_until - time.monotonic())):
+                raise APIError("Draft preparation is still running. Retry Create Draft for this account.")
             failed = getattr(pending, "error", None)
             if failed is not None and getattr(failed, "category", None) != "cancelled":
                 # The request that was writing this candidate has just failed. Writing it again now
@@ -6242,7 +6659,7 @@ class OpenAIClient:
             provider_usage.remember_stages(cached[2])
         else:
             try:
-                result = self.structured(draft_instructions(bool(notes), reuse), source_payload,
+                result = self.structured(instructions, source_payload,
                                          DRAFT_FROM_MAP_SCHEMA if reuse else DRAFT_SCHEMA, "process_draft", output_tokens,
                                          request_timeout=generation_timeout, model_override=self.draft_model)
                 if reuse:
@@ -6280,6 +6697,7 @@ class OpenAIClient:
         audit_timeout = draft_audit_timeout(candidate, proposals)
         result = self.structured(draft_audit_instructions(),
                                  {"context": context, "turns": turns, "candidate_draft": result,
+                                  **({"conflicting_file_claims":[list(pair.values()) for pair in conflicts]} if (conflicts := gpfs_interview.permission_conflicts(notes, active_evidence)) else {}),
                                   "supporting_documents": supporting, "proposed_routes_to_verify": proposals},
                                  route_audit_schema(DRAFT_AUDIT_SCHEMA, proposals), "process_draft_audit",
                                  draft_audit_output_tokens(result, proposals), reasoning_effort="medium",
@@ -6294,8 +6712,9 @@ class OpenAIClient:
             reviews = result.pop("route_support")
             # A draft whose text states a route must not lose it from its map over a quotation
             # that could not be verified: ask once more before leaving the route open.
+            audit_log = {}
             result["connections"], gaps = grounded_routes(
-                result["connections"], reviews, result["steps"], context, turns, active_evidence,
+                result["connections"], reviews, result["steps"], context, turns, active_evidence, audit_log=audit_log,
                 recheck=RouteRecheck(self, context, turns, supporting, "process_draft_audit",
                                      started + generation_timeout + audit_timeout,
                                      model_override=self.draft_audit_model))
@@ -6314,8 +6733,7 @@ class OpenAIClient:
                 raise
             draft["validation_notes"].extend(note for note in draft_audit.removal_notes(candidate, draft, COVERAGE)
                                             if note not in draft["validation_notes"])
-            with self._draft_lock:
-                self._draft_candidates.pop(candidate_key, None)
+            # The checked writer input remains reusable until its normal expiry.
             # The sixteen topics are reviewed as four groups at once, as the interview's own review
             # is: in one request the review was a third wait of 78 s behind the draft and its check.
             self.apply_coverage_review(draft, context, turns, supporting, "memo_summary",
@@ -6324,6 +6742,7 @@ class OpenAIClient:
             # draft, while conservative statuses remain inside the memo itself.
             assessment = draft.pop("coverage_assessment", None)
             hold_unreviewed_repairs(draft, assessment, turns, active_evidence, context)
+            draft["route_assurance"] = route_review_record(draft, audit_log, context, turns, active_evidence, client=self, scope=payload.get("document_scope"), notes=notes)
             return {"draft": draft, **({"coverage_assessment": assessment} if assessment is not None else {}),
                     **({"document_evidence": document_evidence} if supporting else {})}
         except ValueError as error:
@@ -6386,7 +6805,9 @@ class OpenAIClient:
             report('rejected', 'text_limit')
             raise APIError("The transcription exceeds 6,000 characters. Dictate a shorter section or type your answer.", 400) from None
         report('accepted', 'none')
-        return {"text": recognized, **({"terms": glossary, "misheard": caption_check_misheard(glossary)} if glossary is not None else {})}
+        uncertain = bool(re.search(r"\[(?:unclear|inaudible|unintelligible)\]", recognized, re.I))
+        return {"text": recognized, **({"needs_review": True} if uncertain else {}),
+                **({"terms": glossary, "misheard": caption_check_misheard(glossary)} if glossary is not None else {})}
 
 
 def validated_browser_connect_sources(sources):
@@ -6592,6 +7013,9 @@ class InterviewServer(ThreadingHTTPServer):
         # request waits up to api_slot_wait seconds for one of these (live voice uses
         # all four around Wrap up) before it is refused; the page never retries a refusal.
         self.api_slots = threading.BoundedSemaphore(limits.api_slots)
+        # Starting the participant's audio is independent of long-running map and draft work.
+        # Only the SDP handshake occupies this slot. The conversation then runs over WebRTC.
+        self.live_session_slots = threading.BoundedSemaphore(2)
         self.conversation = (concurrent_interview.ConcurrentInterview(
             self.client, sys.modules[__name__], validate_sources=self.validate_conversation_sources)
             if isinstance(self.client, OpenAIClient) else None)
@@ -6837,7 +7261,9 @@ class InterviewServer(ThreadingHTTPServer):
         with document_storage():
             current = self.documents.supporting_context(scope, query, source_ids=source_ids,
                                                         **(selection[0] if selection else {}))
-        return capture_facts.source_binding(context, current) == original_binding
+            reviews = context.get("file_topic_reviews", [])
+            return (self.documents_store.current_topic_reviews(scope, reviews) == reviews and
+                    capture_facts.source_binding(context, current) == original_binding)
 
     source_check_seconds = 5
 
@@ -7292,11 +7718,11 @@ class Handler(BaseHTTPRequestHandler):
             self.server.linger_after(self.connection, unread)
         super().finish()
 
-    def _acquire_api_slot(self):
+    def _acquire_api_slot(self, slots):
         """Take one of the AI request slots, waiting up to api_slot_wait seconds; give up early if the page left."""
         end = time.monotonic() + self.server.api_slot_wait
         while True:
-            if self.server.api_slots.acquire(timeout=max(0.0, min(.25, end - time.monotonic()))):
+            if slots.acquire(timeout=max(0.0, min(.25, end - time.monotonic()))):
                 return True
             if self._page_disconnected() or time.monotonic() >= end:
                 return False
@@ -7430,6 +7856,7 @@ class Handler(BaseHTTPRequestHandler):
             if path != "/api/transcribe":
                 if isinstance(payload, dict):
                     # This field is server-owned; a client cannot forge retrieved file evidence.
+                    payload.pop("_review_sources", None)
                     payload.pop("_supporting_documents", None)
                     payload.pop("_held_wording", None)
                     payload.pop("_carried_document_sources", None)
@@ -7524,6 +7951,36 @@ class Handler(BaseHTTPRequestHandler):
                             # Server-owned like the context itself: lets a Live voice digest
                             # rank excerpts by the query this request was retrieved with.
                             payload["_document_retrieval"] = {"query": query, "source_ids": list(source_ids)}
+                        if payload.get("file_topic_reviews") or (payload.get("context") or {}).get("file_topic_reviews"):
+                            decisions = payload.get("file_topic_reviews", payload["context"].get("file_topic_reviews", []))
+                            if not isinstance(decisions,list) or len(decisions)>len(COVERAGE):
+                                raise ValueError("Invalid Workspace decisions.")
+                            known = {row["id"] for row in document_evidence_catalog(supporting) if not row.get("retained_only")}
+                            versions = {doc["id"]:doc["source_revision"] for doc in supporting.get("source_versions", [])}
+                            missing = {ref for row in decisions if isinstance(row,dict) for ref in row.get("source_ids", [])
+                                       if isinstance(ref,str) and ref not in known}
+                            if len(missing)>500:
+                                raise ValueError("Too many Workspace review sources.")
+                            resolved=[]
+                            for ref in missing:
+                                document_id = ref[:28]
+                                if document_id not in versions or not ref.startswith(document_id+"_"):
+                                    continue
+                                try:
+                                    record = self.server.documents_store.get(scope,document_id)
+                                    if record.get("archived") or (record.get("analysis") or {}).get("disposition") in ("parked","needs_reason"):
+                                        continue
+                                    scoped_source = self.server.documents.source(scope,document_id,ref)
+                                except (PermissionError,ValueError,KeyError):
+                                    continue
+                                resolved.append({"id":scoped_source["id"],"source_revision":versions[document_id]})
+                            payload["_review_sources"]=resolved
+                        context, _ = validate_payload({**payload, "_supporting_documents": supporting})
+                        resolved_reviews = self.server.documents_store.current_topic_reviews(scope, context.get("file_topic_reviews", []),
+                            payload.get("file_review_withdrawals", []))
+                        if "file_topic_reviews" in context or "file_topic_reviews" in payload:
+                            payload["file_topic_reviews"] = resolved_reviews
+                            context, _ = validate_payload({**payload, "_supporting_documents": supporting})
                         document_snapshot = (scope, query, source_ids, context,
                             capture_facts.source_binding(context, supporting),
                             selection)
@@ -7575,7 +8032,8 @@ class Handler(BaseHTTPRequestHandler):
             # A draft head start is optional work that runs for minutes: it takes a free place or none,
             # and never waits for one ahead of a request someone is waiting on.
             head_start = path == "/api/draft" and isinstance(payload, dict) and payload.get("prepare_only") is True
-            if not (self.server.api_slots.acquire(blocking=False) if head_start else self._acquire_api_slot()):
+            slots = self.server.live_session_slots if path == "/api/live-session" else self.server.api_slots
+            if not (slots.acquire(blocking=False) if head_start else self._acquire_api_slot(slots)):
                 return self._json({"error": "Several requests are already processing. Wait for them to finish."}, 429)
             try:
                 client = self.server.client
@@ -7613,7 +8071,7 @@ class Handler(BaseHTTPRequestHandler):
                         result = (client.transcribe(payload, media_type, hints) if hints and isinstance(client, OpenAIClient)
                                   else client.transcribe(payload, media_type))
             finally:
-                self.server.api_slots.release()
+                slots.release()
             if document_snapshot is not None:
                 scope, query, source_ids, context, original_binding, selection = document_snapshot
                 # Providers may run for a minute while another browser action
@@ -7626,7 +8084,9 @@ class Handler(BaseHTTPRequestHandler):
                     # and not as an unexplained 500 after the provider has already answered.
                     with document_storage():
                         current = self.server.documents.supporting_context(scope, query, source_ids=source_ids, **selection)
-                    unchanged = (capture_facts.source_binding(context, current) == original_binding)
+                        reviews = context.get("file_topic_reviews", [])
+                        unchanged = (self.server.documents_store.current_topic_reviews(scope, reviews) == reviews and
+                                     capture_facts.source_binding(context, current) == original_binding)
                 except (PermissionError, documents.DocumentError):
                     unchanged = False
                 if not unchanged:
@@ -7791,7 +8251,7 @@ class Handler(BaseHTTPRequestHandler):
             supplied = payload.get("documents")
             document_scope = None
             document_evidence = []
-            cited_document_sources = set(prior_document_source_ids({"previous_capture": payload}))
+            cited_document_sources = set(prior_document_source_ids({"previous_capture": payload, "file_topic_reviews":payload.get("file_topic_reviews", [])}))
             hydrated_sources = set()
             scope_files = {}
             if supplied is not None:
@@ -7841,7 +8301,8 @@ class Handler(BaseHTTPRequestHandler):
                             excerpts.append(source)
                             if not any(item["source_id"] == source_id for item in sources):
                                 sources.append({"source_id": source_id, "label": source["label"]})
-                        catalog = document_evidence_catalog({"documents": [{"id": document_id, "name": record["name"], "excerpts": excerpts}]})
+                        catalog = document_evidence_catalog({"documents": [{"id": document_id, "name": record["name"], "excerpts": excerpts,
+                            "source_revision": self.server.documents._source_revision(record)}]})
                         document_evidence.extend(catalog)
                         hydrated_sources.update(source["id"] for source in catalog)
                         reference["sources"] = sources
@@ -7853,6 +8314,16 @@ class Handler(BaseHTTPRequestHandler):
                     document_evidence.extend(saved)
                 payload["documents"] = {"documents": references, **({"retained": retained_files} if retained_files else {})}
                 reading_files = False
+            if payload.get("file_topic_reviews"):
+                rows = [{k:v for k,v in row.items() if k != "source_intents"} for row in payload["file_topic_reviews"] if isinstance(row, dict)]
+                resolved_reviews = file_topic_reviews(rows, document_evidence)
+                payload["file_topic_reviews"] = self.server.documents_store.current_topic_reviews(document_scope,resolved_reviews) if document_scope else []
+            filed_draft = payload.get("draft")
+            if isinstance(filed_draft,dict) and filed_draft:
+                filed_draft.setdefault("field_evidence", [])
+                filed_context = {**(payload.get("context") or {}), "file_topic_reviews": payload.get("file_topic_reviews", [])}
+                review_draft_fields(filed_draft, payload.get("turns", []), document_evidence, filed_context)
+                revalidate_filed_routes(filed_draft, filed_context, payload.get("turns", []), document_evidence)
             check_document_citations(payload, document_evidence, scope_files,
                                      (lambda: graph.filed_document_sources(process_id)) if process_id else None)
             payload["filed_with"] = {"app_version": VERSION, "app_build": self.server.release["build"]}
@@ -7966,7 +8437,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _documents(self, path):
         try:
-            if path not in {"/api/documents/session", "/api/documents/upload", "/api/documents/status", "/api/documents/action", "/api/documents/source", "/api/documents/context"}:
+            if path not in {"/api/documents/session", "/api/documents/upload", "/api/documents/status", "/api/documents/action", "/api/documents/source", "/api/documents/context", "/api/documents/withdraw-confirmation"}:
                 return self._json({"error": "Not found."}, 404)
             if self.headers.get("Transfer-Encoding"):
                 raise ValueError("Chunked request bodies are not supported.")
@@ -8018,7 +8489,14 @@ class Handler(BaseHTTPRequestHandler):
                     if hasattr(service, "attribute_scope") and provider_usage.active_interview.get():
                         service.attribute_scope(result.get("scope"), provider_usage.active_interview.get())
                     return self._json(result)
-                return self._json(service.listing(scope, current))
+                result = service.listing(scope, current)
+                if payload.get("confirmation_references"):
+                    result["withdrawn_confirmations"] = self.server.documents_store.withdrawn_topic_reviews(
+                        scope, payload["confirmation_references"])
+                return self._json(result)
+            if path.endswith("/withdraw-confirmation"):
+                self.server.documents_store.current_topic_reviews(scope, [], [payload.get("reference")])
+                return self._json({"withdrawn":True})
             document_id = bounded_text(payload.get("id", ""), "Document ID", 100, True)
             if path.endswith("/action"):
                 result = service.action(scope, document_id, payload.get("action"),

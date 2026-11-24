@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import heapq
 import importlib.util
 import secrets
 import json
@@ -93,6 +94,32 @@ def named_text(value, limit, name):
     if len(value) > limit:
         raise ValueError(f'{name} is longer than {limit:,} characters.')
     return value.strip()
+
+def matching_terms(record):
+    """Search signals from declared boundaries and participant handoffs only."""
+    draft = record.get("draft") or {}
+    flow = record.get("workflow") or draft
+    def terms(values):
+        return {word for value in values if isinstance(value, str)
+                for word in re.findall(r"[a-z]{3,}", value.casefold())
+                if word not in {"the", "and", "for", "our", "with", "from", "this", "that", "process", "unknown", "tbd"}}
+    steps = flow.get("steps", [])
+    name = terms([(record.get("context") or {}).get("process_name"), draft.get("title"), flow.get("title")])
+    inputs = terms([*draft.get("inputs", []), *(row.get("input") for row in steps)])
+    outputs = terms([*draft.get("outputs", []), *(row.get("output") for row in steps)])
+    handoffs = terms([*(row.get("counterpart") for row in record.get("connections_out", [])),
+                      *(row.get("text") for row in record.get("turns", []) if row.get("role") == "user"
+                        and not row.get("document_event") and re.search(r"\b(send|receiv|hand|deliver|suppl|depend|feed)", row.get("text", ""), re.I))])
+    return name, inputs, outputs, handoffs
+
+
+def handoff_score(current, other):
+    name, inputs, outputs, handoffs = current
+    title, consumes, produces, statements = matching_terms(other)
+    return (4 * (len(inputs & produces) + len(outputs & consumes))
+            + 3 * (len(name & statements) + len(title & handoffs))
+            + len(handoffs & statements))
+
 
 def normalized(value):
     return unicodedata.normalize('NFKC', str(value or '')).casefold()
@@ -695,7 +722,7 @@ class KnowledgeGraph:
         if not isinstance(submission_id,str) or type(revision) is not int or revision<1 or not isinstance(status_token,str) or len(status_token)>200:
             raise PermissionError('Submission status unavailable.')
         with self.lock:
-            row=self.db.execute('SELECT c.token_hash,j.id,j.status,j.error,j.attempts FROM status_capabilities c JOIN jobs j ON j.submission_id=c.submission_id AND j.revision=c.revision WHERE c.submission_id=? AND c.revision=?',(submission_id,revision)).fetchone()
+            row=self.db.execute('SELECT c.token_hash,j.id,j.status,j.error,j.attempts,j.detail FROM status_capabilities c JOIN jobs j ON j.submission_id=c.submission_id AND j.revision=c.revision WHERE c.submission_id=? AND c.revision=?',(submission_id,revision)).fetchone()
             candidate=hashlib.sha256(status_token.encode('utf-8')).hexdigest()
             expected=row['token_hash'] if row else '0'*64
             if not hmac.compare_digest(expected,candidate) or not row:
@@ -710,12 +737,15 @@ class KnowledgeGraph:
             if row['status']=='pending' and row['attempts']>=self.AUTO_RESUME_ATTEMPTS:
                 with self.db:
                     self.db.execute(self._FAIL_EXHAUSTED_JOBS+' AND id=?',(self.AUTO_RESUME_ATTEMPTS,row['id']))
-                row=self.db.execute('SELECT id,status,error,attempts FROM jobs WHERE id=?',(row['id'],)).fetchone()
+                row=self.db.execute('SELECT id,status,error,attempts,detail FROM jobs WHERE id=?',(row['id'],)).fetchone()
             stalled=False
             if row['status']=='pending' and not self.closed:
                 if self.analyzer and row['attempts']<self.AUTO_RESUME_ATTEMPTS: self._schedule(row['id'])
                 stalled=row['id'] not in self.queued_jobs
+            detail = json.loads(row['detail'] or '{}') if row['status'] == 'completed' else {}
+            coverage = {key: detail[key] for key in ('eligible_candidates', 'candidates', 'proposals_kept') if key in detail}
             return {'submission_id':submission_id,'revision':revision,'job_id':row['id'],'status':row['status'],'error':row['error'],'attempts':row['attempts'],'stalled':stalled,
+                    **({'matching_coverage':coverage} if coverage else {}),
                     # So a saved copy can say that it is older than the newest revision of its process.
                     'latest_revision':self._latest(submission_id)}
 
@@ -758,7 +788,7 @@ class KnowledgeGraph:
         # name says which field a value came from, for a refusal the submitter can find in Review.
         components={}
         def component(parent,kind,label,relationship,evidence,name):
-            if not isinstance(label,str) or not label.strip() or label.strip().upper() in ('UNKNOWN','N/A','NOT KNOWN','UNKNOWN / TBD','TBD'):
+            if not isinstance(label,str) or not label.strip() or label.startswith('Owner review needed') or label.strip().upper() in ('UNKNOWN','N/A','NOT KNOWN','UNKNOWN / TBD','TBD'):
                 return
             label=named_text(label,6000 if kind=='business_object' else 1000,name); key=(kind,label.casefold()); eid=components.get(key)
             if eid is None:
@@ -784,7 +814,8 @@ class KnowledgeGraph:
                     component(version_entity,kind,value,relation,{'source':source,'field':field,'evidence_turns':list(dict.fromkeys(refs))},f'{name}, line {line},')
         document_ids={item['id'] for item in payload.get('document_evidence',[])}
         participant_ids={turn['id'] for turn in payload.get('turns',[]) if turn.get('role')=='user' and not turn.get('document_event')}
-        valid_evidence=participant_ids | {'context'} | document_ids
+        confirmations = {row['reference'] for row in payload.get('file_topic_reviews', []) if row.get('reference') and row.get('decision')=='confirmed'}
+        valid_evidence=participant_ids | {'context'} | document_ids | confirmations
         def validate_evidence(item):
             refs=item.get('evidence_turns',[])
             if not isinstance(refs,list) or any(not isinstance(ref,str) or ref not in valid_evidence for ref in refs):
@@ -943,6 +974,12 @@ class KnowledgeGraph:
             else: raise ValueError('Unsupported evidence type.')
             sides.add(sid);clean.append(evidence)
         if sides!={a,b}: raise ValueError('Proposal needs participant evidence from both processes.')
+        # Exact quotations that only name the tool each side uses cannot establish a handoff.
+        tool_only = re.compile(r"(?:we|they|the [\w -]+ team|our [\w -]+ team)\s+(?:also\s+)?"
+                               r"(?:use|uses|work in|log in to)\s+(?:the\s+)?[\w -]{1,50}[.!]?", re.I)
+        if all(tool_only.fullmatch(item["quote"].strip()) for item in clean):
+            raise ValueError("Shared system use alone does not establish a process connection.")
+
         result={k:p[k] for k in ('source_submission_id','destination_submission_id','source_revision','destination_revision','relationship_type')}
         for k in ('scope','condition','explanation','inference'):
             result[k]=text(p.get(k,'') or '',6000)
@@ -964,11 +1001,7 @@ class KnowledgeGraph:
             claimed=self.db.execute("UPDATE jobs SET status='processing',attempts=attempts+1,error='',owner_pid=? WHERE id=? AND status='pending'",(os.getpid(),job_id))
             if claimed.rowcount!=1: return
             current=self._revision(job['submission_id'],job['revision'])
-            # Explicitly incompatible scopes can never support a proposal. The scope of each other process's
-            # latest revision is compared in SQL before the bound is applied, so a compatible process is
-            # found however many submissions of other scopes are newer. Only the eight most recent compatible
-            # ones are loaded (the provider adapter's bound), so unneeded files are never read or sent; the
-            # number left out is recorded on the job and given to the adapter.
+            # Scope and interview identity determine eligibility before relevance ranking.
             current_scope=normalized(current.get('scope','').strip())
             compatible=("FROM revisions r JOIN (SELECT submission_id,MAX(revision) AS revision FROM revisions WHERE submission_id!=? GROUP BY submission_id) l"
                         " ON l.submission_id=r.submission_id AND l.revision=r.revision"
@@ -979,10 +1012,13 @@ class KnowledgeGraph:
                 compatible += " AND COALESCE(json_extract(r.payload,'$.interview_id'),'')!=?"
                 scoped += (current['interview_id'],)
             total=self.db.execute('SELECT COUNT(*) '+compatible,scoped).fetchone()[0]
-            rows=self.db.execute('SELECT r.submission_id,r.revision '+compatible+' ORDER BY r.rowid DESC LIMIT ?',scoped+(self.CANDIDATE_LIMIT,)).fetchall()
-            candidates=[self._revision(row['submission_id'],row['revision']) for row in rows]
+            matches=self.db.execute('SELECT r.submission_id,r.revision,r.rowid AS position,r.payload '+compatible,scoped)
+            signals=matching_terms(current)
+            ranked=heapq.nlargest(self.CANDIDATE_LIMIT, matches,
+                                  key=lambda row:(handoff_score(signals,json.loads(row['payload'])),row['position']))
+            candidates=[self._revision(row['submission_id'],row['revision']) for row in ranked]
             token = secrets.token_hex(16)
-            detail={'candidates':len(candidates),'candidates_omitted':total-len(candidates),'claimed_at':time.time(),'claim_token':token}
+            detail={'eligible_candidates':total,'candidates':len(candidates),'candidates_omitted':total-len(candidates),'claimed_at':time.time(),'claim_token':token}
             self.db.execute('UPDATE jobs SET detail=? WHERE id=?',(dumps(detail),job_id))
         try:
             if self.document_resolver:

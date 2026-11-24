@@ -69,7 +69,11 @@ class DocumentStoreTests(unittest.TestCase):
         self.assertFalse(str(original).startswith('\\\\?\\'))
         self.assertTrue(original.is_relative_to(root))
         self.assertEqual(store.original_bytes(scope, record['id']), b'name,value\nalpha,42\n')
+        orphan = documents._long_path(original.parent.parent / ('doc_' + 'f' * 24))
+        orphan.mkdir()
+        (orphan / 'original.csv').write_bytes(b'unfiled')
         self.assertEqual(documents.DocumentStore(root).get(scope, record['id'])['status'], 'ready')
+        self.assertFalse(orphan.exists(), 'Startup must enumerate the scope and clean its unfiled original')
 
     def test_original_and_atomic_metadata_survive_reload_with_private_permissions(self):
         with patch.object(documents.os, 'chmod', wraps=documents.os.chmod) as change:

@@ -187,7 +187,7 @@ class RouteQuotationTests(unittest.TestCase):
             'doubled space': DECISIVE.replace(' outside ', '  outside '),
             'line break': DECISIVE.replace(', the claim', ',\n the claim'),
             'no-break space': DECISIVE.replace('warranty period', 'warranty' + NO_BREAK_SPACE + 'period'),
-            'typographic apostrophe': CURLY_APOSTROPHE_QUOTE,
+            'typographic apostrophe': CURLY_APOSTROPHE_QUOTE + '. ' + DECISIVE,
         }
         for name, text in variants.items():
             with self.subTest(variant=name):
@@ -323,7 +323,7 @@ class RouteRecheckGateTests(unittest.TestCase):
         self.assertEqual(accepted, [{**ROUTE, 'evidence_turns': ['t012']}])
         self.assertIn('no passage', recheck.asked[0][0]['problem'])
         self.assertEqual(recheck.records, [('no_passage', 'recheck_verified')])
-        self.assertEqual(server.ROUTE_RECHECK_REASONS, {'wrong_source', 'quote_not_found'})
+        self.assertEqual(server.ROUTE_RECHECK_REASONS, {'wrong_source', 'quote_not_found', 'unrelated_passage'})
 
     def test_a_route_to_a_step_leaving_the_map_is_not_asked_about_again(self):
         recheck = StubRecheck([review([quote('t012', DECISIVE)])])

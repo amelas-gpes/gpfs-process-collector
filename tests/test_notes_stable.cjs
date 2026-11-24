@@ -9,7 +9,7 @@ const assert=require("node:assert/strict");
 const {open}=require("./fixtures/app_page.cjs");
 const EXPOSE="renderTranscript,renderCoverage,receiveLiveCaption,showFoundationTopic,closeFoundationTopic,tab,selectConversationView,rememberCoverageCheckpoint,normalizedFacts,snapshot,sessionObject,applySavedSession,ensureConversation,applyProcessTitle";
 const topic=(page,key)=>page.document.querySelector(`[data-foundation-topic="${key}"]`);
-const fileEvidence={id:"doc_sample_page1",document_id:"doc_sample",name:"Procedure.csv",label:"Procedure.csv · row 2",text:"A weekly count starts an order. The buyer checks stock afterwards."};
+const fileEvidence={source_revision:"1".repeat(64),id:"doc_sample_page1",document_id:"doc_sample",name:"Procedure.csv",label:"Procedure.csv · row 2",text:"A weekly count starts an order. The buyer checks stock afterwards."};
 function fileNotes(page){
   page.state.documentEvidence=[fileEvidence];
   page.state.memo_findings=[

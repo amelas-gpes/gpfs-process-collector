@@ -31,7 +31,7 @@ const {chromium}=require(process.env.COLLECTOR_PLAYWRIGHT||"playwright");
   const drawn="Updated through the latest answer · check pending",checked="Updated through the latest answer";
   assert.deepEqual(first.slice(-2),[drawn,checked],"The first map is shown as drawn, then as checked: "+JSON.stringify(first));
   assert(second.includes(drawn),"The second map is on screen before its check has finished: "+JSON.stringify(second));
-  assert.equal(third.at(-1),checked,JSON.stringify(third));
+  assert.equal(third.at(-1),checked+" (1 route needs source review)",JSON.stringify(third));
   await page.getByText("Workflow",{exact:true}).first().click();await page.waitForSelector("[data-step-id]");await page.waitForTimeout(800);
   const diagram=await page.evaluate(()=>({steps:document.querySelectorAll("[data-step-id]").length,
    markers:[...document.querySelectorAll("[data-implied]")].map(node=>node.getAttribute("data-implied")).sort().join(",")}));

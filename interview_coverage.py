@@ -1086,10 +1086,7 @@ def context_has_evidence(context):
     """An interview objective can be prefilled before the participant supplies any facts."""
     return isinstance(context, dict) and (
         any(isinstance(context.get(key), str) and context[key].strip()
-            for key in ("process_name", "process_owner", "background"))
-        or any(isinstance(review, dict) and review.get("decision") == "confirmed" and
-               isinstance(review.get("answer"), str) and review["answer"].strip()
-               for review in (context.get("file_topic_reviews") or [])))
+            for key in ("process_name", "process_owner", "background")))
 
 
 _CONTEXT_DIMENSIONS = {
@@ -1196,6 +1193,7 @@ def apply_assessment(findings, assessment, turns, documents=None, required_keys=
     participant = {t["id"]: t.get("text", "") for t in turns
                    if t.get("role") == "user" and t.get("document_event") is not True}
     document_ids = {source["id"] for source in documents or []}
+    participant.update(gpfs_interview.confirmed_passages(context))
     valid_context = context is None or context_has_evidence(context)
     valid_ids = set(participant) | document_ids | ({"context"} if valid_context else set())
 
@@ -1422,6 +1420,10 @@ def apply_repair_assessment(findings, assessment, turns, documents=None, context
                         valid = False
                         break
                     position = section.index(old) if old else len(section)
+                    if replacement:
+                        replacement = gpfs_interview.grounded_sequence(replacement,
+                            (turn["text"] for turn in turns if turn["id"] in claim and turn.get("role") == "user"
+                             and not turn.get("document_event")))
                     section[position:position + int(bool(old))] = [replacement] if replacement else []
                     if old:
                         used.add(old)

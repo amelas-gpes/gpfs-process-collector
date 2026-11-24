@@ -100,6 +100,9 @@ class PlanAndJoinTests(unittest.TestCase):
 
     def test_the_same_fact_from_two_neighbouring_parts_is_kept_once(self):
         first, second = self.rows[0]["id"], self.rows[1]["id"]
+        for row in self.rows[:2]:
+            row["text"] = "Approvals need two signatures before release.\n" + row["text"]
+        self.reading = file_parts.plan(supporting(self.rows), {DOC: self.rows})
         replies = [{"fact_operations": [{"topic": "rules", "kind": "detail", "text": "Approvals need two signatures before release.",
                                          "support": [{"source_id": first, "first_line": 1, "last_line": 1}]}]},
                    {"fact_operations": [{"topic": "rules", "kind": "detail", "text": "Approvals need two signatures before release",
@@ -153,7 +156,7 @@ class ParallelReadingThroughTheLedgerTests(unittest.TestCase):
         evidence = server.document_evidence_catalog(reading["supporting"])
         state = capture_facts.empty_state()
         schema = capture_facts.schema_for(state, capture_facts.sources({}, [], evidence), None, with_question=False)
-        calls, lock, together = [], threading.Lock(), threading.Barrier(len(reading["parts"]) + 3, timeout=10)
+        calls, lock, together = [], threading.Lock(), threading.Barrier(len(reading["parts"]) + 2, timeout=10)
 
         def structured(instructions, payload, schema, name, tokens, **options):
             with lock:
@@ -181,7 +184,7 @@ class ParallelReadingThroughTheLedgerTests(unittest.TestCase):
         transaction = client.coordinator._read_in_parts(Run(), reading, {"context": {}, "turns": [], "action": "start"},
                                                         "Capture.", schema, "model", False)
         self.assertIsNotNone(transaction)
-        self.assertEqual(len(calls), len(reading["parts"]) + 3, "Parts, two account-wide requests and the sweep")
+        self.assertEqual(len(calls), len(reading["parts"]) + 2, "Parts and two account-wide requests; no missing topic needs a sweep")
         server.check_schema(transaction, schema)
         delta = copy.deepcopy(transaction)
         capture_facts.normalize_operations(delta, state, capture_facts.sources({}, [], evidence))

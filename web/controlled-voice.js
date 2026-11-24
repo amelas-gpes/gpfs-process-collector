@@ -17,7 +17,7 @@
   const KINDS=new Set(["question","final_check","complete","pause","review_pending"]);
   const REVIEW_ACK="Let me check that I have everything before we finish.";
   const PARTIAL_REVIEW_ACK="Let me check what we have and keep the unanswered parts open.";
-  const sourceSignature=value=>JSON.stringify([value?.context||{},value?.turns||[],value?.document_revision||""]);
+  const sourceSignature=value=>JSON.stringify([value?.context||{},value?.turns||[],value?.document_revision||"",value?.file_topic_reviews||[]]);
   // Prepare an empty reader connection while the answer is transcribed. No
   // transcript or generated text is sent until the speech authorization passes.
   class CollectorSpeechPreparation {
@@ -422,7 +422,7 @@
       const text=typeof transcript?.text==="string"?transcript.text.trim():"";
       if(text){
         op.emptyTranscripts=0;
-        if(this.options.reviewBeforeSending?.()){
+        if(transcript.needs_review===true||this.options.reviewBeforeSending?.()){
           this.notify("onEditableAnswer",text);await this.stop({immediate:true});return;
         }
         this.options.onAnswer(text,{continuation});

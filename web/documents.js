@@ -422,6 +422,7 @@
           const result=await this.options.requestJSON("/api/documents/status",{scope,...this.context()},{signal:this.controller.signal,timeout:30000});
           if(!this.current(generation)||scope!==this.scope||revision!==this.revision)return;
           this.pollFailures=0;this.setLimit(result.limit);this.setRemoved(result.removed);
+          if(result.withdrawn_confirmations?.length)this.options.onWithdrawnConfirmations?.(result.withdrawn_confirmations);
           this.setDocuments(result.documents,emit);
         }catch(error){
           if(this.current(generation)&&scope===this.scope&&revision===this.revision&&error.name!=="AbortError"){

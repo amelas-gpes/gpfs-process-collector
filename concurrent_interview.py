@@ -35,7 +35,8 @@ QUESTION_REPLY_SCHEMA = {"type": "object", "properties": {
 _SPEAKER_LIMIT = re.compile(
     r"\b(?:can(?:'|’)?t|cannot|(?:am|are|is) (?:not able|unable) to|don(?:'|’)?t|do not|doesn(?:'|’)?t|does not|didn(?:'|’)?t|did not)"
     r" (?:give|provide|name|say|tell|confirm|know|have|specify|identify|recall|remember)\b"
-    r"|\bleave (?:that|this|it|them)(?: (?:item|point|one))? open\b|\b(?:unspecified|undocumented|undefined)\b"
+    r"|\bleave (?:that|this|it|them)(?: (?:item|point|one))? open\b|\b(?:unspecified|undocumented|undefined|unconfirmed)\b"
+    r"|\b(?:does not|doesn['’]t) establish (?:the |who |which )"
     r"|\b(?:is|are|isn(?:'|’)?t|aren(?:'|’)?t|was|were) not (?:yet )?(?:documented|defined|specified)\b"
     r"|\bno (?:documented|confirmed|defined|written|formal|fixed|agreed|official|standard) \w+"
     r"|\b(?:each|every) (?:preparer|person|analyst|accountant|one of us|team) (?:decides|does it (?:their|his|her) own way)\b"
@@ -178,10 +179,16 @@ whole file has been reviewed. Always return request_review=false for this action
 """
 
 
-def question_policy(api, file_followup=False):
+def question_policy(api, file_followup=False, *, rebuild=False):
     """Share the actual capture rubric/curiosity rules, without its large output contract."""
+    if file_followup or rebuild:
+        # These requests already have a specific assignment: read the supplied file
+        # or replace a generic question. Keep the full conversation/source payload
+        # and interviewer safeguards, but omit the background worker's topic rubric.
+        return "\n".join((QUESTION_POLICY, FILE_QUESTION_POLICY if file_followup else "",
+                          getattr(api, "CORRECTION_SCOPE_POLICY", ""), getattr(api, "EXPERT_FOLLOW_UP_POLICY", "")))
     coverage = getattr(api, "interview_coverage", None)
-    return QUESTION_POLICY + (FILE_QUESTION_POLICY if file_followup else "") + "\n" + "\n".join(
+    return QUESTION_POLICY + "\n" + "\n".join(
         getattr(api, name, "") for name in
         ("QUESTIONING_POLICY", "CURIOSITY_POLICY", "CORRECTION_SCOPE_POLICY")) + "\n" + (
         getattr(coverage, "TOPIC_RUBRIC", "")) + "\n" + (
@@ -192,6 +199,67 @@ Only the short response and request_review flag are returned; keep this selectio
 
 # Asked when nothing better can be: every file can be compared with the actual work.
 FILE_QUESTION_FALLBACK = "How does the supplied document compare with what you actually do?"
+
+
+def grounded_interview_question(question, context, turns, supporting=None):
+    """Do not presuppose unreported exceptions or reconfirm explicit documentary provenance."""
+    if not isinstance(question, str) or not question:
+        return question
+    answers = [t["text"] for t in turns if t.get("role") == "user" and not t.get("document_event")]
+    comparative = re.search(r"\b(?:reflect|match|compare|describe|only (?:its |the )?written)\b", question, re.I)
+    actual = re.search(r"\b(?:actually do|current practice|currently (?:carried out|handled)|handled today|works? in practice|actual (?:practice|work))\b", question, re.I)
+    if comparative and actual:
+        # A procedure supplied by an actual operator is a legitimate occasion
+        # for this comparison. Only an explicit documentary role-play rules it out.
+        documentary = False
+        for text in [context.get("background", ""), *answers]:
+            if re.search(r"\bdocumentary (?:role[ -]?play|simulation)|\bdocument[ -]only\b|\b(?:only report|only speak to|reporting only)\b.{0,35}\b(?:written|procedure|document)\b|\bwritten requirements.{0,40}\b(?:rather than|not) firsthand\b", text, re.I):
+                documentary = True
+            if re.search(r"\bI (?:also |actually |personally )?(?:perform|carry out|run) (?:this|the) (?:work|process) myself\b|\bI can (?:now )?confirm (?:our |the )?(?:actual|current) practice\b|\bnot a documentary (?:simulation|role[ -]?play)\b", text, re.I):
+                documentary = False
+        if documentary:
+            latest = answers[-1] if answers else ""
+            history = " ".join(t["text"] for t in turns if not t.get("document_event"))
+            if (re.search(r"\b(?:review(?:er|s|ed)?|checks?|proof)\b", latest, re.I)
+                    and not re.search(r"\b(?:keep|retain|sav\w*)\b[^.!?]{0,45}\b(?:proof|evidence|record of (?:the )?review)\b|\bevidence\b[^.!?]{0,45}\b(?:keep|retain)\b", history, re.I)):
+                return "What evidence does the procedure say to keep for that review?"
+            return "Which written requirement should we cover next?"
+
+    branch = re.search(r"\bwhen\s+(?P<condition>[^,.?!]{4,180})(?=,\s*(?:what|who|how|where|which|does|do|can|is)\b|\?$)", question, re.I)
+    if not branch or (branch.start() == 0 and question[branch.end():].startswith("?")):
+        return question
+    if question[branch.end():].startswith("?") and not re.search(
+            r"\b(?:what happens|what do you do|how (?:do|does|is|are)|who (?:handles|takes))\b",
+            question[:branch.start()], re.I):
+        return question  # An ordinary choice, e.g. how to round uneven amounts, is already answerable.
+    condition = branch["condition"]
+    adverse = re.compile(r"\b(?:does not|do not|doesn't|don't|cannot|can't|fails? to|declin\w*|reject\w*|refus\w*|unavailable|missing|mismatch\w*)\b", re.I)
+    if not adverse.search(condition):
+        return question
+
+    def anchors(text):
+        text = re.sub(r"\b(?:(?:does not|doesn't|fails? to) accept|declin\w*|reject\w*|refus\w*)\b", "reject", text, flags=re.I)
+        return {w[:5] for w in re.findall(r"[a-z]{3,}", text.casefold())
+                if w not in {"when","does","not","the","are","any","then","this","that","with","what","into"}}
+
+    keys = anchors(condition)
+    identity = re.compile(r"\b[a-z]{2,}[-–]\d+[a-z]?\b", re.I)
+    names = set(identity.findall(condition.casefold()))
+    docs = (supporting or {}).get("documents") or []
+    evidence = list(reversed(answers)) + [chunk.get("text","") for doc in docs if not doc.get("retained_only")
+                          and not doc.get("archived") and doc.get("disposition")!="parked"
+                          for chunk in doc.get("excerpts",[]) if isinstance(chunk,dict)]
+    for text in evidence:
+        for sentence in re.split(r"(?<=[.!?])\s+|\n+", text):
+            if not (adverse.search(sentence) and keys <= anchors(sentence) and names <= set(identity.findall(sentence.casefold()))):
+                continue
+            if re.search(r"\b(?:never|cannot|can't|may not|does not|doesn't)\s+(?:reject|refuse|decline)\b", sentence, re.I):
+                return ("What confirms that this handoff is complete?" if "handoff" in condition.casefold()
+                        else "What confirms the normal outcome at that step?")
+            if not re.search(r"\b(?:never|unconfirmed|unknown|don't know|not sure|whether)\b", sentence, re.I):
+                return question
+    start = branch.start()
+    return question[:start] + ("If " if question[start].isupper() else "if ") + question[branch.start("condition"):]
 
 
 class _Pool:
@@ -1379,20 +1447,63 @@ class ConcurrentInterview:
         return again.strip()[:1200] if usable else question
 
     @staticmethod
-    def _asked_before(question, turns):
-        """Has the participant already been asked this, word for word, and answered something?
+    def _actor_subject(text):
+        """Compare the action and its object without the phrasing used to ask for its owner."""
+        text = re.sub(r"\bsign(?:s|ed)?[ -]off\b", "signoff", text.casefold())
+        text = re.sub(r"\b(?:auditor|auditing)\b", "audit", text)
+        text = re.sub(r"\b(?:authoriz\w*|approv\w*)\b", "approval", text)
+        text = re.sub(r"\b(?:closure|clos(?:e[ds]?|ing))\b", "close", text)
+        text = re.sub(r"\b(?:entire|overall)\b", "overall", text)
+        text = re.sub(r"\b(?:funds|cash) (?:are|is) insufficient\b", "insufficient cash", text)
+        # Preserve short identifiers such as Fund A and Fund B before dropping articles.
+        text = re.sub(r"\b(fund|class|schedule|method) ([a-z]|\d+)\b", r"\1_\2", text)
+        filler = {"a", "an", "and", "are", "can", "could", "did", "does", "for", "gives",
+                  "give", "how", "if", "in", "is", "of", "on", "or", "the", "to", "us", "was",
+                  "what", "when", "where", "which", "who", "whom", "whose", "will", "with",
+                  "person", "people", "role", "owner", "owns", "allows", "allow", "confirmation",
+                  "required", "responsible", "accountable", "performs", "would", "should", "that"}
+        return {w for w in re.findall(r"[\w-]+", text) if w not in filler}
 
-        Only a question that was followed by a participant's answer counts, among the last twelve
-        such questions. One that a file notice displaced or that was skipped never had its answer:
-        it may be asked again (skipped ones are kept away by skipped_questions).
-        """
-        words = lambda text: " ".join(re.findall(r"[^\W_]+", text.casefold())) if isinstance(text, str) else ""
+    @classmethod
+    def _asked_before(cls, question, turns):
+        """Also catch a paraphrased owner question and an assumption about a parked owner."""
+        words = lambda s: " ".join(re.findall(r"[^\W_]+", s.casefold()))
         wanted = words(question)
+        owner = re.compile(r"^(?:who(?:se|m)?\b|which (?:person|role|team|individual)\b|what role\b)", re.I)
+        assumed = re.match(r"^(?:how|when|where|why) (?:does|did|will) (?:the |a |an )?(.+?)\s+"
+                           r"(sign[ -]off|approv\w*|authoriz\w*|releas\w*|clos\w*|review\w*)\b", question, re.I)
+        subject = cls._actor_subject(question)
+        if assumed:
+            subject -= cls._actor_subject(assumed[1])
         lines = [turn for turn in turns if isinstance(turn, dict)]
-        answered = [turn.get("text") for turn, following in zip(lines, lines[1:])
+        answered = [(index, turn.get("text", ""), following.get("text", "")) for index, (turn, following) in enumerate(zip(lines, lines[1:]))
                     if turn.get("role") == "assistant" and not turn.get("document_event")
                     and following.get("role") == "user" and not following.get("document_event")][-12:]
-        return bool(wanted) and any(words(text) == wanted for text in answered)
+        for index, previous, answer in reversed(answered):
+            if wanted and words(previous) == wanted:
+                return True
+            if not owner.match(previous) or not (owner.match(question) or assumed and _SPEAKER_LIMIT.search(answer)):
+                continue
+            if assumed:
+                actor = re.escape(assumed[1].strip())
+                # A participant can resolve a parked owner. An affirmative statement about
+                # this actor signing/approving is evidence; the interviewer merely naming them is not.
+                stem = assumed[2].lower()[:4]
+                evidence = rf"\b{actor}\s+(?:is (?:the (?:one|person) who )?)?{stem}\w*\b"
+                later_clauses = (clause for t in lines[index + 2:] if t.get("role") == "user" and not t.get("document_event")
+                                 for clause in re.split(r"[.!?;]", t.get("text", "")))
+                if any(re.search(evidence, clause, re.I) and not _SPEAKER_LIMIT.search(clause)
+                       and subject - {"overall"} <= cls._actor_subject(clause) for clause in later_clauses):
+                    continue
+            earlier = cls._actor_subject(previous)
+            # Asking how an unconfirmed person signs off also presumes authority when
+            # the earlier question called the same sign-off "final".
+            qualifiers = {"overall", "audit"} if "cycle" in earlier & subject else set()
+            if assumed and "signoff" in earlier & subject:
+                qualifiers.add("final")
+            if len(earlier & subject) >= 2 and not (earlier ^ subject) - qualifiers:
+                return True
+        return False
 
     def _fallback_question(self, session, payload, context, turns, reason):
         """A deterministic question when the model's reply cannot be spoken; no second paid call.
@@ -1415,6 +1526,12 @@ class ConcurrentInterview:
                 unavailable = {topic.get("key") for topic in (capture.get("coverage_assessment") or {}).get("topics", [])
                                if topic.get("participant_unavailable") or topic.get("ready_for_owner_review") is True}
                 findings = capture["memo_findings"]
+                # The participant may have named the process at intake, even when the
+                # background reviewer left its name unknown. This copy only selects a question.
+                if context.get("process_name"):
+                    for finding in findings:
+                        if finding["key"] == "name":
+                            finding["status"] = "captured"
                 if any(finding["status"] not in ("captured", "not_applicable") and finding["key"] not in unavailable
                        for finding in findings):
                     candidates.append(self.api.next_uncovered_question(capture))
@@ -1430,7 +1547,8 @@ class ConcurrentInterview:
         else:
             neutral = ["What work would you like to walk through?", "Which part of your work should we go through first?"]
         asked = [turn.get("text") for turn in turns if turn.get("role") == "assistant"]
-        usable = [item for item in candidates + neutral if not self.api.question_rejection(item, 1200)] or neutral
+        usable = [item for item in candidates + neutral if not self.api.question_rejection(item, 1200)
+                  and not self._asked_before(item, turns)] or neutral
         # Never the question just asked: an unused wording first, then the one asked longest ago.
         unused = [item for item in usable if item not in asked]
         return unused[0] if unused else min(usable, key=lambda item: len(asked) - asked[::-1].index(item))
@@ -1679,7 +1797,7 @@ class ConcurrentInterview:
             cut_off = getattr(self.api, "OutputTruncated", None)
 
             def ask(allowance, extra=""):
-                return self.client.structured(question_policy(self.api, file_followup) + self._breadth_directive(model_input)
+                return self.client.structured(question_policy(self.api, file_followup, rebuild=bool(extra)) + self._breadth_directive(model_input)
                     + self._skip_directive(model_input) + extra, model_input,
                     QUESTION_SCHEMA, "conversation_question", allowance, reasoning_effort="low",
                     model_override=self.client.agent_models["lead_interviewer"],
@@ -1720,12 +1838,21 @@ class ConcurrentInterview:
             else:
                 sync_required = response["request_review"] and not file_followup
                 question = response["question"].strip()
+                history = gpfs_interview.issued_amount_history(turns) if not file_followup and not sync_required else None
+                if history and history["later_id"] == turns[-1]["id"] and history["account"] != "correction":
+                    testimony = " ".join(t["text"] for t in turns if t["id"] in {history["earlier_id"], history["later_id"]})
+                    objects = (r"\binvestors?\b", r"\bportfolio compan(?:y|ies)\b", r"\binvoices?\b", r"\bnotices?\b")
+                    if (any(re.search(term, question, re.I) and not re.search(term, testimony, re.I) for term in objects)
+                            or re.search(r"\b(?:misread|always correct|originally meant)\b", question, re.I)):
+                        question = gpfs_interview.amount_review_question(history)
                 trimmer = getattr(self.api, "one_request", None)
                 if not sync_required and not file_followup:
                     question = self._rebuilt(question, ask, revision, cut_off)
                 if callable(trimmer) and not sync_required:
                     # One request a turn: a second one joined on with ", and" is left for a later turn.
                     question = trimmer(question)
+                if not sync_required:
+                    question = grounded_interview_question(question, context, turns, payload.get("_supporting_documents"))
                 reason = "" if sync_required else self.api.question_rejection(question, 1200, single=True)
                 if not reason and not sync_required and self._asked_before(
                         question, payload.get("turns") if isinstance(payload.get("turns"), list) else turns):

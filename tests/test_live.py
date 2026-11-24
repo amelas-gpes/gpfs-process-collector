@@ -53,7 +53,7 @@ class LiveContractTests(unittest.TestCase):
 
     def test_gpt_live_uses_json_webrtc_and_only_returns_connection_fields(self):
         result = self.client.live_session(live_payload())
-        self.assertEqual(result, {'sdp': SDP, 'session_id': 'live_synthetic', 'model': 'gpt-live-1'})
+        self.assertEqual(result, {'sdp': SDP, 'session_id': 'live_synthetic', 'model': 'gpt-live-1', 'file_access':'none'})
         path, body = self.client.request.call_args.args
         self.assertEqual(path, 'live/sessions')
         self.assertEqual(body['session']['model'], 'gpt-live-1')
@@ -136,7 +136,7 @@ class LiveContractTests(unittest.TestCase):
         payload['workflow'] = {'steps': [{'id': 'old-step'}]}
         result = self.client.workflow(payload)
         self.assertEqual(set(result['workflow']), {'title', 'steps', 'connections', 'open_questions'})
-        self.assertEqual(set(result), {'workflow', 'memo_findings', 'coverage', 'summary', 'focus', 'parking_lot', 'ready_for_draft'})
+        self.assertEqual(set(result), {'workflow', 'memo_findings', 'coverage', 'summary', 'focus', 'parking_lot', 'ready_for_draft', 'route_assurance'})
         self.assertEqual(len(result['memo_findings']), 16)
         self.assertEqual([call.args[3] for call in self.client.structured.call_args_list],
                          ['working_process_map', 'working_process_map_audit'])
@@ -480,6 +480,22 @@ class LiveHTTPTests(unittest.TestCase):
     def reviewed(self):
         self.client.voice_mode = 'reviewed'
         self.addCleanup(setattr, self.client, 'voice_mode', 'live')
+
+    def test_live_handshake_can_start_while_normal_request_slots_are_full(self):
+        while self.httpd.api_slots.acquire(blocking=False):
+            self.addCleanup(self.httpd.api_slots.release)
+        status, raw = self.request('/api/live-session', live_payload())
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(raw)['model'], 'gpt-live-1')
+        with patch.object(self.httpd, 'api_slot_wait', .1):
+            self.assertEqual(self.request('/api/workflow', interview_payload())[0], 429)
+
+    def test_concurrent_live_handshakes_are_still_bounded(self):
+        while self.httpd.live_session_slots.acquire(blocking=False):
+            self.addCleanup(self.httpd.live_session_slots.release)
+        with patch.object(self.httpd, 'api_slot_wait', .1):
+            self.assertEqual(self.request('/api/live-session', live_payload())[0], 429)
+        self.client.request.assert_not_called()
 
     def test_reviewed_mode_keeps_the_live_endpoint_disabled(self):
         self.reviewed()

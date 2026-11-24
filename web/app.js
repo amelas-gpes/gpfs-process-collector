@@ -65,7 +65,7 @@
     evidenceVersion: 0, draftEvidence: null,
     draftEdited: false, example: false, dirty: false,
     config: null, utterance: null, voice: null, speechVersion: 0, captureToken:null, coverageVerified:false,
-    provisionalQuestion:null, advisory:{}, liveSuggestedQuestion:"", fileTopicReviews:{},
+    provisionalQuestion:null, advisory:{}, liveSuggestedQuestion:"", fileTopicReviews:{}, fileTopicHistory:[],
     captureRepairs:{memo:{},draft:{}}, draftCoverage:null, savedOwnerFollowups:[],
     localVoices: [], voiceChoice: null, voiceChoiceUser: false, speechOperation: null,
     recording: null, requestingMic: false, transcribing: false,
@@ -108,9 +108,16 @@
     if(state.closure?.asked&&!state.closure?.confirmed)return;
     draftAhead.generation=state.generation;draftAhead.turns=state.turns.length;prepareDraftAhead();
   }
+  function draftRequest(){
+    const map=conversationUI.workflow;
+    return {...snapshot(),previous_capture:captureForFollowup(),map_review_revision:conversationUI.workflowCheckPending?
+      "pending":JSON.stringify((map?.route_assurance||[]).map(row=>[row.revision,row.status]))};
+  }
   function draftPreparationKey(body){
     // A source check may finish without changing a single step in the request body.
-    return (conversationUI.workflowCheckPending?"pending:":"settled:")+body;
+    const data=JSON.parse(body);
+    delete data.capture_token; // Retrieval capability only. The server compares the resolved evidence.
+    return JSON.stringify(data);
   }
   function prepareDraftAhead(){
     try{
@@ -119,7 +126,7 @@
       // It does not wait for the map to catch up: after a spoken interview that takes a minute or
       // more, and Create draft is usually clicked sooner. A map that arrives later is another
       // account, and gets a head start of its own once this one has ended.
-      const body=JSON.stringify({...snapshot(),previous_capture:captureForFollowup(),prepare_only:true});
+      const body=JSON.stringify({...draftRequest(),prepare_only:true});
       const key=draftPreparationKey(body);
       if(key===draftAhead.body)return;
       // The head start can be cancelled like any interview request (Start over, another interview,
@@ -140,7 +147,7 @@
   function draftAheadReady(){
     try{
       return Boolean(draftAhead.ready)&&draftAhead.generation===state.generation&&Date.now()-draftAhead.readyAt<DRAFT_AHEAD_KEPT_MS&&
-        draftAhead.ready===draftPreparationKey(JSON.stringify({...snapshot(),previous_capture:captureForFollowup(),prepare_only:true}));
+        draftAhead.ready===draftPreparationKey(JSON.stringify({...draftRequest(),prepare_only:true}));
     }catch{return false;}
   }
   const INTERVIEW_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -329,7 +336,8 @@
   // answers exactly as they stand marks them as captured (liveSourceMatches).
   function liveSourceUsable(captured){
     if(!captured||captured.generation!==state.generation||captured.liveSession!==liveSession||captured.live!==conversationUI.live||
-      captured.document_revision!==activeDocumentSignature()||JSON.stringify(captured.context)!==JSON.stringify(state.context))return false;
+      captured.document_revision!==activeDocumentSignature()||JSON.stringify(captured.context)!==JSON.stringify(state.context)||
+      JSON.stringify(captured.file_topic_reviews||[])!==JSON.stringify(fileTopicReviewContext()))return false;
     return answersStand(participantCoverageBasis(captured.turns),participantCoverageBasis(),liveCaptionAnswers());
   }
   // Every answer read is still in the transcript, unchanged and in the same
@@ -1501,20 +1509,34 @@
   function fileTopicSourceIds(finding) {
     return [...new Set((finding?.evidence_turns || []).filter(id => id.startsWith("doc_")))].sort();
   }
+  const importedReviews=new WeakMap();
+  function currentFileReview(record) {
+    const files=currentDocumentState()?.documents;
+    return record?.source_ids?.length && record.source_ids.every(id=>{
+      const source=state.documentEvidence.find(row=>row.id===id);
+      return source && !source.archived && !source.retained_only && !source.workspace_unavailable &&
+        source.source_revision && source.source_revision===record.source_revisions?.[id] &&
+        (!files || files.some(file=>file.id===source.document_id&&!file.archived&&file.analysis?.disposition!=="parked"&&
+          (file.analysis?.intent_version||0)===(record.source_intents?.[id]||0)));
+    });
+  }
   function matchingFileTopicReview(finding) {
     const review = state.fileTopicReviews[finding?.key];
-    if (!review || review.answer !== finding.answer) return null;
+    if (!review || review.answer !== finding.answer || !currentFileReview(review)) return null;
     const ids = fileTopicSourceIds(finding);
     if (JSON.stringify(ids) === JSON.stringify(review.source_ids)) return review;
-    // A later capture may cite the participant's confirmation as context.
-    return review.decision === "confirmed" && !ids.length && finding.evidence_turns.includes("context") ? review : null;
+    return review.decision === "confirmed" && finding.evidence_turns.includes(review.reference) ? review : null;
   }
   function fileTopicReviewContext() {
-    return TOPICS.flatMap(([key]) => {
-      const record = state.fileTopicReviews[key];
-      if (!record) return [];
-      return [{topic:key, decision:record.decision, ...(record.decision==="confirmed" ? {answer:record.answer} : {})}];
+    return TOPICS.flatMap(([topic]) => {
+      const row=state.fileTopicReviews[topic];
+      if(!currentFileReview(row))return [];
+      return [{topic,decision:row.decision,source_ids:row.source_ids,source_revisions:row.source_revisions,
+        ...(row.decision==="confirmed"?{answer:row.answer,reference:row.reference}:{})}];
     });
+  }
+  function reviewReferences(documents) {
+    return importedReviews.get(documents) || [...Object.values(state.fileTopicReviews),...state.fileTopicHistory];
   }
   function savedFileTopicReviews(rows = []) {
     const invalid = () => { throw new Error("The saved topic reviews are invalid. The current interview has not been replaced."); };
@@ -1525,7 +1547,7 @@
         typeof row.answer !== "string" || !row.answer.trim() || exceeds(row.answer,12000) ||
         !Array.isArray(row.source_ids) || !row.source_ids.length || row.source_ids.length > 400 ||
         row.source_ids.some(id=>typeof id !== "string" || !/^doc_[A-Za-z0-9_-]{1,196}$/.test(id))) invalid();
-      reviews[row.topic] = {decision:row.decision, answer:row.answer, source_ids:[...new Set(row.source_ids)].sort()};
+      reviews[row.topic] = {decision:row.decision, answer:row.answer, source_ids:[...new Set(row.source_ids)].sort(), source_revisions:row.source_revisions||{}, source_intents:row.source_intents||{}, ...(typeof row.reference==="string"&&/^review_v1_[0-9a-f]{32}$/.test(row.reference)?{reference:row.reference}:{})};
     }
     return reviews;
   }
@@ -1739,7 +1761,7 @@
   //   capture: the marker stored with every saved or submitted interview
   function submissionCaptureState(){
     const basis=participantCoverageBasis(),count=basis.length,current=JSON.stringify(basis),answers=`${count} answer${count===1?"":"s"}`;
-    const position=progress=>!count?"current":!progress||progress.basis!==current?"behind":progress.assumed?"unknown":"current";
+    const position=progress=>!count&&!Object.keys(state.fileTopicReviews).length&&!state.fileTopicHistory.length?"current":!progress||progress.basis!==current?"behind":progress.assumed?"unknown":"current";
     const notes=position(notesProgress),map=position(mapProgress);
     // A reopened file without a capture record has only an assumed position (savedCaptureProgress). Once the
     // transcript has moved on, the later answers are certainly missing, but how far the earlier ones were
@@ -2144,6 +2166,35 @@
       `Earlier wording was ${previousDecision}.`);
     syncFileTopicReviewControls();
   }
+  function withdrawServerConfirmation(row){
+    const scope=currentDocumentState()?.scope;
+    if(scope&&row?.reference)void request("/api/documents/withdraw-confirmation",{scope,reference:row.reference}).catch(()=>{
+      notice("Confirmation withdrawn here. The next interview request will synchronize the decision.",false,"files");
+    });
+  }
+  function retireFileReviews(documentId,withdrawn=null){
+    for(const [key,row] of Object.entries(state.fileTopicReviews)){
+      if(documentId&&!row.source_ids.some(id=>id.startsWith(documentId+"_")))continue;
+      if(withdrawn&&!withdrawn.includes(row.reference))continue;
+      if(!withdrawn)withdrawServerConfirmation(row);
+      state.fileTopicHistory.push({topic:key,...row,ended_at:new Date().toISOString()});
+      delete state.fileTopicReviews[key];
+      state.captureToken=null;notesProgress=null;mapProgress=null;
+      state.memo_findings=state.memo_findings.map(finding=>{
+        if(!row.reference||!finding.evidence_turns.includes(row.reference))return finding;
+        const refs=finding.evidence_turns.filter(ref=>ref!==row.reference);
+        return {...finding,status:refs.some(id=>state.turns.some(t=>t.id===id&&t.role==="user"))?finding.status:"partial",
+          evidence_turns:[...new Set([...refs,...row.source_ids])]};
+      });
+      if(row.reference)for(const receipt of conversationUI.workflow?.route_assurance||[]){
+        if(receipt.evidence_turns?.includes(row.reference))receipt.status="unread";
+      }
+      participantEvidenceChanged();
+      conversationUI.revision++;state.dirty=true;state.coverageVerified=false;state.coverageNeedsReview=true;
+      invalidateCompletionReview();suppressWorkflowReadiness();
+    }
+    if(withdrawn){renderCoverage();renderWorkingMap();updateControls();}
+  }
   function recordFileTopicReview(decision) {
     const key = foundationTopic;
     if (!key || fileTopicReviewLocked()) return;
@@ -2151,21 +2202,35 @@
     const previous = state.fileTopicReviews[key];
     if (decision) {
       if (!fileTopicNeedsConfirmation(finding)) return;
-      state.fileTopicReviews[key] = {decision, answer:finding.answer, source_ids:fileTopicSourceIds(finding)};
+      const ids=fileTopicSourceIds(finding),revisions={},intents={};
+      for(const id of ids){
+        const source=state.documentEvidence.find(row=>row.id===id);
+        if(!source?.source_revision){notice("Refresh the file notes before confirming this saved excerpt.",true);return;}
+        revisions[id]=source.source_revision;
+        intents[id]=currentDocumentState()?.documents?.find(file=>file.id===source.document_id)?.analysis?.intent_version||0;
+      }
+      state.fileTopicReviews[key] = {decision,answer:finding.answer,source_ids:ids,source_revisions:revisions,source_intents:intents,
+        ...(decision==="confirmed"?{reference:"review_v1_"+crypto.randomUUID().replaceAll("-","")}:{})};
     } else {
       if (!previous) return;
       delete state.fileTopicReviews[key];
+      for(const receipt of conversationUI.workflow?.route_assurance||[])if(receipt.evidence_turns?.includes(previous.reference))receipt.status="unread";
       // A capture may have cited the exact confirmed wording as interview context.
       // When that context is withdrawn, restore its original file citations.
-      if (previous.decision === "confirmed" && finding?.answer === previous.answer &&
-          finding.evidence_turns.includes("context") &&
-          finding.evidence_turns.every(id=>id==="context" || id.startsWith("doc_"))) {
-        const available = new Set(state.documentEvidence.map(source=>source.id));
-        const sources = previous.source_ids.filter(id=>available.has(id));
-        const restored = {...finding, status:sources.length ? "partial" : "unknown", evidence_turns:sources};
-        state.memo_findings = state.memo_findings.map(row=>row.key===key ? restored : row);
+      if(previous.decision==="confirmed"){
+        state.memo_findings=state.memo_findings.map(row=>{
+          if(!row.evidence_turns.includes(previous.reference)&&!(row.key===key&&row.answer===previous.answer&&row.evidence_turns.includes("context")))return row;
+          const refs=row.evidence_turns.filter(ref=>ref!==previous.reference&&ref!=="context");
+          const independent=refs.some(ref=>state.turns.some(t=>t.role==="user"&&!t.document_event&&t.id===ref));
+          const available=previous.source_ids.filter(id=>state.documentEvidence.some(source=>source.id===id));
+          return {...row,status:independent?row.status:available.length?"partial":"unknown",evidence_turns:[...new Set([...refs,...available])]};
+        });
       }
     }
+    if(decision==="confirmed"){const row=state.fileTopicReviews[key];state.memo_findings=state.memo_findings.map(item=>item.key===key?{...item,evidence_turns:[...new Set([...item.evidence_turns,row.reference])]}:item);}
+    if(previous)withdrawServerConfirmation(previous);
+    if(previous)state.fileTopicHistory.push({topic:key,...previous,ended_at:new Date().toISOString()});
+    notesProgress=null;mapProgress=null;conversationUI.revision++;suppressWorkflowReadiness();
     // A workspace decision supplements the account without sending an interview reply.
     const hadFinalCheck = state.coverageVerified || state.closure.asked || state.closure.confirmed || state.closure.partial || Boolean(pendingCompletionReview);
     state.captureToken = null;
@@ -2669,7 +2734,9 @@
     recordInput();updateControls();return true;
   }
   function documentContext() {
+    const references=Object.values(state.fileTopicReviews).map(row=>row.reference).filter(Boolean);
     return {context:clone(state.context||readContext()),turns:clone(state.turns.slice(-8)),focus:state.focus,
+      ...(references.length?{confirmation_references:references}:{}),
       current_question:[...state.turns].reverse().find(turn=>turn.role==="assistant"&&!turn.document_event)?.text||""};
   }
   function rememberTurn(turn,channel,kind,source){
@@ -2959,7 +3026,7 @@
       const file=event.document;
       if(documentIntake?.active&&!documentIntake.ids.has(file.id))documentIntake.originalIds?.add(file.id);
       const ids=new Set(owedFiles?.ids||[]);
-      if(["removed","parked"].includes(event.action))ids.delete(file.id);
+      if(["removed","parked"].includes(event.action)){ids.delete(file.id);retireFileReviews(file.id);}
       else ids.add(file.id);
       owedFiles=ids.size?{ids:[...ids],remote:true}:null;renderOwedFiles();
       notice(file.name+" was "+event.action+" in another window.",false,"files",true);
@@ -2968,10 +3035,11 @@
     if(event.type==="upload_started"){
       documentIntake?.observe(intakeSnapshot());documentIntake?.begin(event);return;
     }
-    if(event.type==="workspace_replaced"){retirePreviousWorkspace();return;}
+    if(event.type==="workspace_replaced"){retireFileReviews(null);retirePreviousWorkspace();return;}
     if(event.type==="disposition"){
       const file=event.document,removed=["remove","purge","discard_failed"].includes(event.action);
       const retained=removed||event.action==="park"||file?.analysis?.disposition==="parked";
+      if(retained)retireFileReviews(file?.id);
       if(retained&&conversationUI.live?.active){
         void conversationUI.live.appendContext(withdrawnFileNote(file.name||"a reference file"),
           {id:`withdrawn_${file.id}_${Date.now()}`,kind:"document_withdrawn",plain:true});
@@ -4439,13 +4507,14 @@
     return false;
   }
   function workflowEvidenceStillValid(captured) {
-    if(captured.document_revision!==activeDocumentSignature())return false;
+    if(captured.document_revision!==activeDocumentSignature()||
+       JSON.stringify(captured.file_topic_reviews||[])!==JSON.stringify(fileTopicReviewContext()))return false;
     const current=new Map(state.turns.filter(turn=>turn.role==="user"&&!turn.document_event).map(turn=>[turn.id,turn]));
     // New answers and append-only live caption growth leave this checkpoint's
     // evidence intact. A rewritten/removed source cannot publish an old capture.
     return captured.turns.filter(turn=>turn.role==="user"&&!turn.document_event).every(turn=>{
       const present=current.get(turn.id);
-      return present&&present.text.startsWith(turn.text);
+      return present&&present.text===turn.text;
     });
   }
   async function refreshWorkflow(options={}) {
@@ -4583,6 +4652,7 @@
     conversationUI.applied=-1;
   }
   function publishWorkingMap(graph,response,turns,check=""){
+    graph.route_assurance=check?[]:clone(response?.route_assurance||[]);
     conversationUI.workflowCheckPending=Boolean(check);
     const retry=$("retry-workflow");if(retry?.dataset.mapOnly){delete retry.dataset.mapOnly;retry.hidden=true;}
     const previous=conversationUI.workflow;
@@ -5254,7 +5324,7 @@
     // Excerpts of a file workspace this computer does not have are never named to the server.
     for(const id of unavailableSources())cited.delete(id);
     const topicReviews = fileTopicReviewContext();
-    return withRequiredDocuments({context:clone(state.context),turns:clone(state.turns),session:{closure_requested:action === "close"},document_revision:activeDocumentSignature(),document_source_ids:[...cited],...(topicReviews.length ? {file_topic_reviews:topicReviews} : {}),...(state.captureToken?{capture_token:state.captureToken}:{}),...(currentDocumentState()?.scope?{document_scope:currentDocumentState().scope}:{})},
+    return withRequiredDocuments({context:clone(state.context),turns:clone(state.turns),session:{closure_requested:action === "close"},document_revision:activeDocumentSignature(),document_source_ids:[...cited],...(state.fileTopicHistory.length?{file_review_withdrawals:state.fileTopicHistory.map(row=>row.reference).filter(Boolean).slice(-400)}:{}),...(topicReviews.length ? {file_topic_reviews:topicReviews} : {}),...(state.captureToken?{capture_token:state.captureToken}:{}),...(currentDocumentState()?.scope?{document_scope:currentDocumentState().scope}:{})},
       readableDocuments().filter(file=>!documentWasRead(file.id)).map(file=>file.id));
   }
   function getConcurrentInterview(){
@@ -5334,6 +5404,11 @@
     }
     $("workflow-status").textContent=current?"Updated through the latest answer"+(check==="working"?" · check pending":""):
       "Map through answer "+mapProgress.count+" · later answers pending";
+    const graph=conversationUI.workflow, reviews=graph?.route_assurance||[];
+    if(current&&!check&&reviews.length){
+      const toReview=reviews.filter(row=>row.status!=="supported").length;
+      if(toReview)$("workflow-status").textContent+=" ("+toReview+" route"+(toReview===1?" needs":"s need")+" source review)";
+    }
   }
   function applyLateWorkflow(capture,captured,check=""){
     if(intakeActive()||!workflowEvidenceStillValid(captured))return;
@@ -6060,7 +6135,7 @@
       const transcribed=source.origin===AI_TRANSCRIPTION||source.location?.origin===AI_TRANSCRIPTION||source.verified===false||source.location?.verified===false;
       // workspace_unavailable: saved from a file workspace this computer does not have (retirePreviousWorkspace).
       const unavailable=source.workspace_unavailable===true;
-      return {id,document_id,name:text(source.name,500),label:text(source.label,500),text:content,
+      return {id,document_id,...(source.source_revision?{source_revision:text(source.source_revision,64)}:{}),name:text(source.name,500),label:text(source.label,500),text:content,
         retained_only:unavailable||source.retained_only===true,archived:source.archived===true,disposition:text(source.disposition,80),
         ...(unavailable?{workspace_unavailable:true}:{}),...(transcribed?{origin:AI_TRANSCRIPTION,verified:false}:{})};
     });
@@ -6074,7 +6149,9 @@
   // the interview, and left out of every request (snapshot, sendableCapture) and of submissions
   // (knowledge-ui.js). An excerpt the server sends again under the same ID replaces the reference.
   function unavailableSources() {
-    return new Set(state.documentEvidence.filter(source=>source.workspace_unavailable||documentController?.scopeUnavailable).map(source=>source.id));
+    const active=new Set(fileTopicReviewContext().map(row=>row.reference));
+    const retired=reviewReferences(state.documentEvidence).map(row=>row.reference).filter(id=>id&&!active.has(id));
+    return new Set([...retired,...state.documentEvidence.filter(source=>source.workspace_unavailable||documentController?.scopeUnavailable).map(source=>source.id)]);
   }
   // The accepted capture as a request may carry it. A citation of an unavailable excerpt is left out.
   // A step, route or note that rests on such excerpts alone is held back, because the server accepts
@@ -6084,7 +6161,13 @@
     if(!gone.size)return capture;
     const alone=item=>item.evidence_turns.length>0&&item.evidence_turns.every(id=>gone.has(id));
     const rest=item=>({...item,evidence_turns:item.evidence_turns.filter(id=>!gone.has(id))});
-    const steps=capture.workflow.steps.filter(step=>!alone(step)).map(rest),dropped=new Set(capture.workflow.steps.filter(alone).map(step=>step.id));
+    const withCurrentDetails=step=>{
+      const cleaned=rest(step);
+      if(gone.has(cleaned.rule_source_ref))cleaned.rule_source_ref="";
+      if(Array.isArray(step.operating_details))cleaned.operating_details=step.operating_details.filter(detail=>!alone(detail)).map(rest);
+      return cleaned;
+    };
+    const steps=capture.workflow.steps.filter(step=>!alone(step)).map(withCurrentDetails),dropped=new Set(capture.workflow.steps.filter(alone).map(step=>step.id));
     const connections=capture.workflow.connections.filter(edge=>!alone(edge)&&!dropped.has(edge.from)&&!dropped.has(edge.to)).map(rest);
     const memo_findings=capture.memo_findings.map(finding=>alone(finding)
       ?{key:finding.key,status:"unknown",answer:"UNKNOWN / TBD — not established in the interview.",evidence_turns:[]}:rest(finding));
@@ -6105,7 +6188,7 @@
       (parts?` ${parts} ${steps+notes===1?"rests":"rest"} only on ${saved===1?"it":"them"} and will not be carried into the next update.`:""));
   }
   function documentOnlyFinding(finding) {
-    return Boolean(finding?.evidence_turns?.some(id=>state.documentEvidence.some(source=>source.id===id))&&finding.evidence_turns.every(id=>id==="context"||state.documentEvidence.some(source=>source.id===id)));
+    return Boolean(finding?.evidence_turns?.some(id=>state.documentEvidence.some(source=>source.id===id))&&finding.evidence_turns.every(id=>id==="context"||id.startsWith("review_v1_")||state.documentEvidence.some(source=>source.id===id)));
   }
   function mergeDocumentEvidence(value=[]) {
     if(!Array.isArray(value))throw new Error("The saved document evidence is invalid or too large.");
@@ -6129,6 +6212,7 @@
     if(!Array.isArray(value))throw new Error("Source references must be a list of answers, context or document excerpts.");
     const valid = new Set(sourceTurns.filter(t => t.role === "user"&&!t.document_event).map(t => t.id));
     valid.add("context");
+    for(const review of reviewReferences(documentEvidence))if(review.reference)valid.add(review.reference);
     for(const source of documentEvidence)valid.add(source.id);
     const ids = strings(value,400).map(id => text(id,200));
     if (ids.some(id => !valid.has(id))) throw new Error("A finding cites an unavailable answer, context or document excerpt.");
@@ -6275,6 +6359,7 @@
     const norm=value=>String(value||"").normalize("NFKC").toLowerCase().replace(/\s+/g," ").trim();
     const excerpts=new Map(turns.filter(t=>t.role==="user"&&!t.document_event).map(t=>[t.id,[norm(t.text)]]));
     for(const doc of documents)excerpts.set(doc.id,[norm(doc.text)]);
+    for(const row of reviewReferences(documents))if(row.reference)excerpts.set(row.reference,[norm(row.answer)]);
     excerpts.set("context",["process_name","process_owner","background"].map(key=>norm(context?.[key])));
     return rows.map(row=>{
       if(!row||!["duration","deadline","frequency","responsible","accountable","consulted","informed","system","control","exception"].includes(row.field)||
@@ -6322,6 +6407,7 @@
       }
     }
     return {
+      ...(Array.isArray(value.route_assurance)?{route_assurance:clone(value.route_assurance.slice(0,150))}:{}),
       ...(value.question_limit_notice?{question_limit_notice:text(value.question_limit_notice,800)}:{}),...(value.step_id_high_water?{step_id_high_water:stepHighWater(value)}:{}),...(generated_by.length?{generated_by}:{}),...(field_evidence.length?{field_evidence}:{}),
       ...(value.owner_followups?.length?{owner_followups:savedFollowups(value.owner_followups,sourceTurns)}:{}),
       title: text(value.title, 300), overview: text(value.overview, 12000), trigger: text(value.trigger, 6000),
@@ -6353,9 +6439,10 @@
     try {
       // The server may take up to 300 s for the draft of a long interview, up to 540 s for its
       // source audit and 120 s for the coverage review; the rest is transport overhead.
-      const result = await request("/api/draft", {...snapshot(),previous_capture:captureForFollowup()}, {timeout:requestTimeout("draft",1170000)});
+      const requestBody=draftRequest(),evidenceMark=JSON.stringify(draftEvidenceMark());
+      const result = await request("/api/draft", requestBody, {timeout:requestTimeout("draft",1170000)});
       if(generation!==state.generation)return;
-      if(version!==state.version){notice("The interview changed while the draft was being prepared. Create the draft again to include the latest details.",false,"draft",true);return;}
+      if(version!==state.version||evidenceMark!==JSON.stringify(draftEvidenceMark())||requestBody.map_review_revision!==draftRequest().map_review_revision){notice("The interview changed while the draft was being prepared. Create the draft again to include the latest details.",false,"draft",true);return;}
       const documentEvidence=mergeDocumentEvidence(result.document_evidence);
       const draft=normalizeDraft({...result.draft,generated_by:result.generated_by||result.draft?.generated_by},state.turns,documentEvidence);
       const followups=assessmentFollowups(currentCoverageAssessment()||result.coverage_assessment);
@@ -6512,14 +6599,14 @@
       if(!steps.has(route.from)||!steps.has(route.to))continue;
       add(out,route.from,route);add(into,route.to,route);
     }
-    return {steps,out,into};
+    return {steps,out,into,graph:d};
   }
   // A step's next handoff is what the map routes to. Its free-text handoff field is kept
   // beside it as the participant's wording; nothing else reconciles the two.
   function routedHandoff(routes,step){
     const next=routes.out.get(step.id)||[];
     if(!next.length)return step.type==="end"?"None: the map ends here.":"No route from this step is recorded on the map.";
-    return next.map(route=>`${route.to} ${routes.steps.get(route.to).title}${route.label?` (${route.label})`:""}`).join("; ");
+    return next.map(route=>`${route.to} ${routes.steps.get(route.to).title}${route.label?` (${route.label})`:""}`).map((line,index)=>line+" ["+(window.CollectorWorkflowExports?.routeReview?.(routes.graph,next[index])?.label||"Source check unknown")+"]").join("; ");
   }
   // The note names a step by its ID as a whole token, or by its whole title when the title
   // has at least two words (a one-word title such as "Review" is ordinary prose).
@@ -6823,6 +6910,8 @@
     return wrap;
   }
   function jumpToTurn(id,remember=true) {
+    const review=reviewReferences(state.documentEvidence).find(row=>row.reference===id);
+    if(review){notice(sourceCaption(id)+" — "+review.answer+" ("+review.source_ids.map(sourceCaption).join(", ")+")");return;}
     const documentSource=state.documentEvidence.find(source=>source.id===id);
     if(documentSource){showDocumentEvidence(documentSource);return;}
     if(id!=="context"&&!document.getElementById("turn-"+id)){notice("Source "+id+" is not present in this session. Validate this step with the process owner.",true);return;}
@@ -6907,6 +6996,7 @@
     selectReviewSection(reviewUI.section);
   }
   function sourceCaption(id) {
+    if(id.startsWith("review_v1_"))return fileTopicReviewContext().some(row=>row.reference===id)?"Participant confirmation":"Historical confirmation";
     if (id === "context") return Object.values(state.fileTopicReviews).some(row=>row.decision==="confirmed") ? "Interview context" : "Starting context";
     const source=state.documentEvidence.find(item=>item.id===id);
     if(source)return `${source.label?.includes(source.name)?source.label:source.name+(source.label?" · "+source.label:"")}${source.workspace_unavailable?" · saved reference, file not on this computer":source.retained_only?" · saved excerpt":""}${aiTranscribed(source)?" · AI transcription, unverified":""}`;
@@ -7215,6 +7305,7 @@
     if(!Array.isArray(value)||value.length>TOPICS.length)throw new Error("The review's record of rewritten sections was invalid.");
     const valid=new Set(sourceTurns.filter(turn=>turn.role==="user"&&!turn.document_event).map(turn=>turn.id));
     valid.add("context");
+    for(const review of reviewReferences(documentEvidence))if(review.reference)valid.add(review.reference);
     for(const source of documentEvidence)valid.add(source.id);
     for(const item of value){
       const finding=findings.find(entry=>entry.key===item?.key);
@@ -7585,8 +7676,10 @@
           showWorkflowStep(target,containerId,true);
           $("workflow-step-title").focus({preventScroll:true});
         });
-        item.append(button);
+        const receipt=window.CollectorWorkflowExports?.routeReview?.(graph,edge);
+        item.append(button,el("p","",receipt?.label||"Source check unknown"));
         if(edge.evidence_turns?.length)item.append(compactSources(edge.evidence_turns,leaveForTranscript));
+        for(const passage of receipt?.passages||[])item.append(el("blockquote","",passage.quote));
         list.append(item);
       }
       routeSection.append(list);body.append(routeSection);
@@ -7847,6 +7940,7 @@
     const provenance=state.captureProvenance===null?null:savedCaptureProvenance(state.captureProvenance);
     const presentation=includePresentation&&draftComponentDesigns.size?{presentation:{component_designs:Object.fromEntries(draftComponentDesigns)}}:{};
     if (topicReviews.length) presentation.file_topic_reviews = topicReviews;
+    if (state.fileTopicHistory.length) presentation.file_topic_history = clone(state.fileTopicHistory);
     const followups=interviewFollowups();
     if(followups.length)presentation.owner_followups=followups;
     const unfinished=intakeActive()?{ids:[...documentIntake.ids]}:owedFiles;
@@ -8134,7 +8228,7 @@
     rawTrace("interview.clearing", {turn_count:state.turns.length, generation:state.generation});
     state.historicalDraft=false;owedFiles=null;renderOwedFiles();state.draftUndo=[];state.draftRedo=[];
     state.savedClosure=null;state.resumedReviewAck=null;state.resumeFileIntake=null;state.previousMap=null;state.mapCorrections=[];state.dictatedAnswer=null;
-    state.savedOwnerFollowups=[];state.fileTopicReviews={};
+    state.savedOwnerFollowups=[];state.fileTopicReviews={};state.fileTopicHistory=[];
     deferredDiagrams.clear();
     draftComponentDesigns.clear();
     concurrentInterview?.reset();
@@ -8274,7 +8368,7 @@
       if(captureProvenance&&saved.closure&&typeof saved.closure==="object"&&Object.hasOwn(saved.closure,"confirmed")&&saved.closure.confirmed!==false)throw new Error("A document-derived simulation cannot claim participant confirmation. The current interview has not been replaced.");
       const ids = new Set();
       const turns = saved.turns.map((turn,i) => {
-        if (!turn || !["user","assistant"].includes(turn.role) || typeof turn.text !== "string" || typeof turn.id !== "string" || turn.id === "context" || !/^[a-zA-Z0-9_-]{1,40}$/.test(turn.id) || ids.has(turn.id)) throw new Error(`The session has an invalid, reserved, or duplicate turn ID at position ${i+1}.`);
+        if (!turn || !["user","assistant"].includes(turn.role) || typeof turn.text !== "string" || typeof turn.id !== "string" || turn.id === "context" || turn.id.startsWith("review_v1_") || !/^[a-zA-Z0-9_-]{1,40}$/.test(turn.id) || ids.has(turn.id)) throw new Error(`The session has an invalid, reserved, or duplicate turn ID at position ${i+1}.`);
         if(!turn.text.trim())throw new Error("A saved conversation turn was empty. Open a complete interview file.");
         if (exceeds(turn.text,6000)) throw new Error(`Turn ${turn.id} exceeds the 6,000-character limit.`);
         ids.add(turn.id);
@@ -8286,6 +8380,8 @@
       if (turns.reduce((n,t) => n+charCount(t.text),0) > 400000) throw new Error("This interview is too long to open.");
       const documentEvidence=normalizeDocumentEvidence(saved.document_evidence);
       const fileTopicReviews = savedFileTopicReviews(saved.file_topic_reviews);
+      const history=(saved.file_topic_history||[]).map(row=>({topic:row.topic,...savedFileTopicReviews([row])[row.topic],ended_at:text(row.ended_at,60)}));
+      importedReviews.set(documentEvidence,[...Object.values(fileTopicReviews),...history]);
       const ownerFollowups=savedFollowups(saved.owner_followups,turns);
       const draft = saved.draft ? normalizeDraft(saved.draft,turns,documentEvidence,saved.context) : null;
       const workflow=saved.workflow?normalizeWorkingMap(saved.workflow,turns,documentEvidence,saved.context):null;
@@ -8320,7 +8416,7 @@
       generation=state.generation;
       Object.assign(state,{...discovery,documentEvidence,turns,coverage,summary,draft,started:turns.length>0,busy:true,importing:true,example:saved.synthetic_example===true,draftEdited:saved.draft_edited===true,memo_findings:findings,focus,parking_lot:parked,captureProvenance,coverageNeedsReview:turns.some(turn=>turn.role==="user"&&!turn.document_event)||documentEvidence.length>0,closure:{asked:saved.closure?.asked===true,confirmed:false}});
       state.captureRepairs=captureRepairs;
-      state.fileTopicReviews=fileTopicReviews;
+      state.fileTopicReviews=fileTopicReviews;state.fileTopicHistory=history;importedReviews.delete(documentEvidence);
       state.consolidation=TOPICS.map(([key])=>key).filter(key=>Array.isArray(saved.consolidation_required)&&saved.consolidation_required.includes(key));
       state.factHistory=retiredFacts(saved.fact_history);
       state.savedOwnerFollowups=ownerFollowups;
@@ -8788,7 +8884,7 @@
     documentIntake=createDocumentIntake();
     if(window.GPFSPresence)gpfsPresence=window.GPFSPresence.create($("gpfs-presence"));
     initEvents(); renderCoverage(); updateControls();
-    if(window.CollectorDocuments)documentController=window.CollectorDocuments.create({requestJSON:request,getContext:documentContext,config:()=>state.config,renewToken:renewRequestToken,usageHeaders,voiceActive:()=>Boolean(conversationUI.live?.active),
+    if(window.CollectorDocuments)documentController=window.CollectorDocuments.create({requestJSON:request,getContext:documentContext,onWithdrawnConfirmations:refs=>retireFileReviews(null,refs),config:()=>state.config,renewToken:renewRequestToken,usageHeaders,voiceActive:()=>Boolean(conversationUI.live?.active),
       canUpload:()=>Boolean(state.config?.api_configured)&&!state.example&&!state.importing&&!draftInFlight,
       uploadBlockedReason:()=>state.example?"Choose Start your own before adding a real file.":draftInFlight?"Wait for the draft to finish, then add the file.":state.importing?"Wait for the interview to finish opening.":!state.config?.api_configured?"File review needs a configured AI service.":"File uploads are temporarily unavailable.",
       canDiscuss:()=>conversationUI.live?.active&&!liveFrontActive()?"Stop talking to discuss this file question. It is still available in Assets.":!intakeActive()&&!state.busy&&!state.recording&&!state.transcribing&&!state.requestingMic,

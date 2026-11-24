@@ -19,8 +19,55 @@ draft_audit = server.draft_audit
 
 
 class OneRequestTests(unittest.TestCase):
+    def test_fee_changes_keep_the_document_and_recipient_supplied_at_issuance(self):
+        from test_concurrent_interview import FakeClient
+        for document, recipient in (("invoice", "portfolio company"), ("notice", "investors")):
+            original = f"We issued the fee {document} for $250,000 to the {recipient}."
+            question = f"How does the change affect the {document} sent to the {recipient}?"
+            for candidate in (question, "What changed for investors who received the original notice?"):
+                client = FakeClient()
+                client.question = candidate
+                service = concurrent_interview.ConcurrentInterview(client, server)
+                try:
+                    turns = [{"role":"user","id":"t1","text":"Investors received a separate annual notice."},
+                             {"role":"user","id":"t2","text":original},
+                             {"role":"assistant","id":"t3","text":"What is the fee now?"},
+                             {"role":"user","id":"t4","text":"The fee is now $225,000."}]
+                    result = service.turn({"context":{"process_name":"Fee review"}, "turns":turns,
+                                           "_supporting_documents":{}, "action":"answer"})
+                finally:
+                    service.close()
+                if document == "invoice" and candidate != question:
+                    self.assertIn("invoice", result["question"])
+                    self.assertNotRegex(result["question"], r"investors|notice")
+                else:
+                    self.assertEqual(result["question"], candidate)
+
+    def test_owner_paraphrases_and_a_parked_authority_keep_the_original_scope(self):
+        asked = concurrent_interview.ConcurrentInterview._asked_before
+        def exchange(question, answer):
+            return [{"role":"assistant","text":question},{"role":"user","text":answer}]
+        audit = exchange("Who can close an auditor request?", "The auditor confirms closure.")
+        self.assertTrue(asked("Whose confirmation allows us to close the audit request?", audit))
+        self.assertFalse(asked("How do you reconcile that closed request against the final auditor list?", audit))
+        parked = exchange("Who owns final sign-off for the overall cycle?", "The final approver is unconfirmed.")
+        self.assertTrue(asked("Which person gives the final sign-off for the overall audit cycle?", parked))
+        assumed = "How does the Controller sign off the entire audit cycle?"
+        self.assertTrue(asked(assumed, parked))
+        later = exchange("What did you learn from the owner?", "The Controller signs off the audit cycle.")
+        self.assertFalse(asked(assumed, parked + later))
+        cash = exchange("Who authorizes the funding decision when funds are insufficient?", "The procedure does not establish the precise authorizer.")
+        self.assertTrue(asked("Whose approval is required for the funding decision if cash is insufficient?", cash))
+        for first, second in (("Fund A", "Fund B"), ("the new schedule", "the prior schedule")):
+            history = exchange(f"Who signs off on {first}?", "The Controller does.")
+            self.assertFalse(asked(f"Who signs off on {second}?", history))
+
     def test_a_second_request_joined_with_and_is_left_for_a_later_turn(self):
         cases = {
+            "Who records the closure and where do you retain the final list?":
+                "Who records the closure?",
+            "Who saves the reviewer’s decision and who files the log?":
+                "Who saves the reviewer’s decision?",
             "What event prompts you to open the investment purchase, and how do you receive it?":
                 "What event prompts you to open the investment purchase?",
             "After approval, how is the cash entry posted, and what tells the preparer it has posted successfully?":
@@ -37,6 +84,7 @@ class OneRequestTests(unittest.TestCase):
 
     def test_a_single_question_is_never_cut(self):
         for question in ("Who approves the invoice?",
+                         "What do you do if the reviewer is away and has already signed?",
                          "Do you post it yourself, or does someone else post it?",
                          "What is the difference between a hold and what you call a soft reject?",
                          "Is it, and how?",                                      # too little would be left
@@ -352,7 +400,7 @@ class DraftHeadStartTests(unittest.TestCase):
         seen.clear()
         client.draft({**interview_payload(), "prepare_only": True})
         client.draft({**interview_payload(), "prepare_only": True})
-        self.assertEqual(seen, ["process_draft"])
+        self.assertEqual(seen, [], "The compatible writer result is still cached after Create Draft")
 
     def test_a_draft_requested_while_the_first_half_is_being_written_waits_for_it(self):
         seen = []

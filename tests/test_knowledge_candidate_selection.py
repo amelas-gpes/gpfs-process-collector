@@ -47,6 +47,19 @@ class CandidateSelectionTests(unittest.TestCase):
     def scopes(self):
         return [item['scope'] for item in self.seen[-1]] if self.seen else None
 
+    def test_an_older_named_handoff_precedes_eight_recent_but_unrelated_processes(self):
+        old = self.file("Approved distribution register", "Fund A")
+        for index in range(8):
+            self.file(f"Tax procedure {index}", "Fund A")
+        self.graph.analyzer = lambda current, candidates: self.seen.append(candidates) or []
+        current = self.graph.submit(payload("Payout preparation", "We receive the approved distribution register.", "Fund A"))
+        status = wait(self.graph, current["job_id"])
+        self.assertEqual(status["detail"]["eligible_candidates"], 9)
+        self.assertEqual(status["detail"]["candidates"], 8)
+        self.assertEqual(self.seen[-1][0]["submission_id"], old["submission_id"])
+        coverage = self.graph.status(current["submission_id"],current["revision"],current["status_token"])["matching_coverage"]
+        self.assertEqual((coverage["candidates"],coverage["eligible_candidates"],coverage["proposals_kept"]), (8,9,0))
+
     def test_same_scope_process_older_than_thirty_other_scope_submissions_is_compared(self):
         old = self.file('Fund A valuation', 'Fund A')
         for index in range(35):

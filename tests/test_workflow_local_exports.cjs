@@ -26,7 +26,7 @@ const fullLayout={edges:[12,30,48].map((x,i)=>({id:'edge-'+i,sections:[{startPoi
 const fullXml=bpmn({...draft,connections:routes},fullLayout);
 assert.deepEqual([...fullXml.matchAll(/<bpmndi:BPMNEdge [^>]*><di:waypoint x="(\d+)"/g)].map(match=>match[1]),['12','30','48']);
 const table=csv(draft);assert.ok(table.includes("\uFEFF"));assert.ok(table.includes('"\'=HYPERLINK(1)"'));assert.ok(table.includes("S3 — Yes"));assert.ok(table.includes('"Uncited","title"'));
-const graph=mermaid(draft);assert.match(graph,/^flowchart TD/);assert.match(graph,/n2 -->\|"Yes"\| n3/);assert.ok(!graph.includes("<draft>"));
+const graph=mermaid(draft);assert.match(graph,/^flowchart TD/);assert.match(graph,/n2 -->\|"Yes - Source check unknown"\| n3/);assert.ok(!graph.includes("<draft>"));
 assert.ok(structureQuestions(draft).some(q=>q.includes("other outcomes")));
 draft.connections.push({from:"S2",to:"S1",label:"No",evidence_turns:[]});
 assert.ok(!structureQuestions(draft).some(q=>q.includes("other outcomes")));

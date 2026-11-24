@@ -207,7 +207,7 @@ class LiveDocumentBudgetTests(unittest.TestCase):
                 payload['turns'] = []
                 self.assertTrue(self.client.live_session(payload)['document_context']['condensed'])
                 greeting = self.client.request.call_args.args[1]['session']['input'][-1]['content'][0]['text']
-                self.assertIn('read the supplied document context', greeting)
+                self.assertIn('summaries' if 'summary' in change else 'read the supplied document context', greeting)
 
     def test_a_first_start_without_files_keeps_the_plain_greeting(self):
         payload = live_payload()

@@ -18,7 +18,9 @@ class TranscriptionContextTests(unittest.TestCase):
         self.assertEqual(path, 'audio/transcriptions')
         self.assertIn(b'name="keywords[]"\r\n\r\nEntrilia\r\n', body)
         self.assertIn(b'name="prompt"', body)
-        self.assertIn(b'transcribe only what is spoken', body)
+        self.assertIn(b'transcribe only what is spoken', body.lower())
+        self.assertIn(b'amounts, units, roles, names and negations', body)
+        self.assertIn(b'[unclear]', body)
         self.assertIn(b'synthetic-audio', body)
 
     def test_empty_configuration_disables_hints_but_keeps_the_instructions(self):

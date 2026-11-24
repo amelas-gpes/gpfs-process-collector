@@ -121,7 +121,8 @@ def merge(candidate, audit):
         values = [merged.get("trigger")] if field == "trigger" else list(merged.get(field) or [])
         index = row.get("index")
         if not (isinstance(index, int) and 0 <= index < len(values) and values[index] == text and (field, index) not in bound):
-            index = next((n for n, value in enumerate(values) if value == text and (field, n) not in bound), None)
+            matches = [n for n, value in enumerate(values) if value == text and (field, n) not in bound]
+            index = matches[0] if len(matches) == 1 else None
         if index is None:
             continue
         bound.add((field, index))

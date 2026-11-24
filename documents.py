@@ -82,7 +82,9 @@ EXTRACTION_VERSION = 5
 # before it was recorded). Raise the second number with any change an older build would
 # misread. Keep this line a plain literal: desktop/manage.py reads it from an unpacked build
 # without running it, so that the window never gives newer data to an older build.
-STORE_FORMATS = (0, 3)
+STORE_FORMATS = (0, 4)
+# Format 4 keeps confirmation decisions in the scope. Earlier writers revoke a
+# scope without removing those decisions, so they must not open a format-4 store.
 # Format 2: the full-text table indexes `scope`, so a search matches inside one interview
 # instead of matching every interview's text and discarding most of it; and chunk_map, an
 # ordinary table kept in step with it, finds sections by scope, file and section ID. FTS5
@@ -770,8 +772,16 @@ class DocumentStore:
             stored = store_format(db, STORE_FORMATS, 'documents')
             for statement in ('CREATE TABLE IF NOT EXISTS scopes (scope TEXT PRIMARY KEY, created REAL NOT NULL)',
                               'CREATE TABLE IF NOT EXISTS documents (id TEXT PRIMARY KEY, scope TEXT NOT NULL, record TEXT NOT NULL)',
-                              'CREATE INDEX IF NOT EXISTS document_scope ON documents(scope)'):
+                              'CREATE INDEX IF NOT EXISTS document_scope ON documents(scope)',
+                              'CREATE TABLE IF NOT EXISTS topic_decisions (scope TEXT NOT NULL, reference TEXT NOT NULL, binding TEXT NOT NULL, withdrawn INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(scope,reference))',
+                              'CREATE TRIGGER IF NOT EXISTS revoke_topic_decisions AFTER DELETE ON scopes '
+                              'BEGIN DELETE FROM topic_decisions WHERE scope=OLD.scope; END'):
                 db.execute(statement)
+            if stored < 4:
+                # An earlier writer may already have revoked a scope in a format-3
+                # store that was first used by the local confirmation feature.
+                db.execute('DELETE FROM topic_decisions WHERE NOT EXISTS '
+                           '(SELECT 1 FROM scopes WHERE scopes.scope=topic_decisions.scope)')
             earlier = bool(db.execute("SELECT 1 FROM sqlite_master WHERE name='chunks'").fetchone()) and stored < 2
             if earlier:
                 # Formats 0 and 1 kept `scope` unindexed. Rebuild the full-text table once, row for
@@ -811,15 +821,18 @@ class DocumentStore:
         # add() holds this writer lock from before creating its folder through the INSERT.
         with self._db() as db:
             db.execute('BEGIN IMMEDIATE')
-            for directory in self.root.iterdir():
+            for scope_path in _long_path(self.root).iterdir():
+                directory = _long_path(scope_path)
                 if not re.fullmatch(r'[0-9a-f]{64}',directory.name) or directory.is_symlink() or directory.is_junction() or not directory.is_dir(): continue
-                for child in directory.iterdir():
+                for document_path in directory.iterdir():
+                    child = _long_path(document_path)
                     if not re.fullmatch(r'doc_[0-9a-f]{24}',child.name) or child.is_symlink() or child.is_junction() or not child.is_dir(): continue
                     if db.execute('SELECT 1 FROM documents WHERE scope=? AND id=?',(directory.name,child.name)).fetchone(): continue
                     self._remove_original_files(child)
 
     @staticmethod
     def _remove_original_files(directory):
+        directory = _long_path(directory)
         for file in directory.iterdir():
             if (file.name in {'original'+suffix for suffix in SUPPORTED_TYPES} or re.fullmatch(r'\.pending-[0-9a-f]{24}',file.name)) and not file.is_symlink():
                 file.unlink(missing_ok=True)
@@ -911,6 +924,46 @@ class DocumentStore:
         with self._db() as db:
             digest = self._authorize(db, scope)
             db.execute('DELETE FROM scopes WHERE scope=?',(digest,))
+
+    def withdrawn_topic_reviews(self, scope, references):
+        if not isinstance(references, list) or len(references) > 32 or any(
+                not isinstance(ref, str) or not re.fullmatch(r"review_v1_[0-9a-f]{32}", ref) for ref in references):
+            raise ValueError("Invalid saved confirmation references.")
+        if not references:
+            return []
+        with self._db() as db:
+            digest = self._authorize(db, scope)
+            marks = ", ".join("?" for _ in references)
+            rows = db.execute(f"SELECT reference FROM topic_decisions WHERE scope=? AND withdrawn=1 AND reference IN ({marks})",
+                              [digest, *references])
+            return [row["reference"] for row in rows]
+
+    def current_topic_reviews(self, scope, reviews, withdraw=()):
+        """Bind a confirmation once. A tombstone wins even when Undo arrives first."""
+        if not reviews and not withdraw:
+            return []
+        if not isinstance(withdraw, (list, tuple)) or len(withdraw) > 400 or any(not isinstance(ref,str) or not re.fullmatch(r"review_v1_[0-9a-f]{32}",ref) for ref in withdraw):
+            raise ValueError("Invalid withdrawn confirmation reference.")
+        current = []
+        with self._db() as db:
+            digest = self._authorize(db,scope)
+            for ref in withdraw:
+                db.execute("INSERT INTO topic_decisions(scope,reference,binding,withdrawn) VALUES(?,?,?,1) "
+                           "ON CONFLICT(scope,reference) DO UPDATE SET withdrawn=1 WHERE withdrawn=0",(digest,ref,""))
+            for row in reviews:
+                ref = row.get("reference")
+                if not ref:
+                    current.append(row)
+                    continue
+                binding=hashlib.sha256(json.dumps(row,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+                key=(digest,ref)
+                existing=db.execute("SELECT binding,withdrawn FROM topic_decisions WHERE scope=? AND reference=?",key).fetchone()
+                if existing is None:
+                    db.execute("INSERT OR IGNORE INTO topic_decisions(scope,reference,binding) VALUES(?,?,?)",(*key,binding))
+                    existing=db.execute("SELECT binding,withdrawn FROM topic_decisions WHERE scope=? AND reference=?",key).fetchone()
+                if not existing["withdrawn"] and existing["binding"]==binding:
+                    current.append(row)
+        return current
 
     def create_scope(self):
         token = secrets.token_urlsafe(32)

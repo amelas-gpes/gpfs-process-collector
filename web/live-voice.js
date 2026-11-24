@@ -53,7 +53,6 @@
     return SPOKEN_NAME.test(name) ? name : "";
   };
   const namedOpeningGreeting = name => `Greet the participant now in English. Say: "Hi, I'm here to help you capture how this work gets done: ${name}. What usually sets it in motion?" Then pause and listen. Ask only this one question.`;
-  const DOCUMENT_OPENING_GREETING = "Greet briefly, read the supplied document context, and continue from its identified process. If the participant requested a documentation assessment, state what it already covers and ask only one material unresolved question. Do not restart process-name or walkthrough questions answered by the file.";
   const encoder = new TextEncoder();
   // Listening cues and brief acknowledgements: the interviewer saying only these
   // has not taken the turn, so the participant's answer continues across them.
@@ -190,8 +189,7 @@
   class CollectorLiveVoice {
     static promptTemplates() {
       return [
-        {id:"live-connected-opening", label:"Speak the opening greeting", when:"After a new voice connection opens, the browser sends this greeting when it received no active document source.", text:OPENING_GREETING},
-        {id:"live-connected-file-opening", label:"Speak the greeting with file references", when:"After a new voice connection opens, the browser uses this greeting if it received an active document source. The server separately chooses its opening instructions based on the file text that fit at startup.", text:DOCUMENT_OPENING_GREETING},
+        {id:"live-connected-opening", label:"Speak the opening greeting", when:"The browser sends the server-selected opening once when the connection is ready. This is the fallback for an older server.", text:OPENING_GREETING},
         {id:"live-authorized-line", label:"Speak an approved line", when:"The app has approved a follow-up or final check. It supplies the quoted line at runtime.", text:authorizedLine("{quoted line}")},
         {id:"live-reference-update", label:"Receive reference material", when:"A source update arrives while Live voice is connected. Each part carries its source and position.", text:referenceUpdate("{source update as JSON}")}
       ];
@@ -260,6 +258,7 @@
         timers:new Set(), finalized:false, stopResolve:null, commentary:new Map(), said:null, lines:[], held:null,
         recalled:new Set(),lookupRequests:new Map(),lookupResponses:new Map(),
         gate:null, speech:[], metered:[], inputClockLead:0, withheld:[], withheldFragments:0, tap:null, userCaptions:new Map(), tapLeads:[],
+        floor:{lastWord:-Infinity,voiceSince:null,lastVoice:-Infinity,lastRemote:-Infinity,leading:null,hold:null,replay:null},
         greeting:Array.isArray(turns) && turns.length === 0 ? {status:"queued",event_id:null,name:spokenProcessName(context)} : null,
         context:{records:new Map(),history:new Map(),pending:new Map(),bytes:0,events:0}};
       this.operation = op;
@@ -289,6 +288,10 @@
           const remote = event.streams?.[0] || new window.MediaStream([event.track]);
           op.remoteTrack = event.track || remote.getAudioTracks?.()[0];
           Object.assign(op.sound,{output:0,outputActive:false,playbackActive:false,playing:false,buffering:false,lastOutput:-Infinity});
+          this.releaseFloor(op);
+          this.releaseLeading(op);
+          op.floor.replay = null;
+          op.remoteStream = remote;
           op.audio.srcObject = remote;
           const track = op.remoteTrack;
           for (const type of ["mute","unmute","ended"]) this.listenAudio(op,track,type,() => {
@@ -336,9 +339,10 @@
         const offer = await peer.createOffer();
         if (!current()) return false;
         await peer.setLocalDescription(offer);
-        await this.gatherIce(op);
         if (!current()) return false;
-        const sdp = peer.localDescription?.sdp;
+        // The Live endpoint accepts the initial offer. ICE connectivity checks continue
+        // as the service creates its answer, including on hosts with slow network adapters.
+        const sdp = offer.sdp;
         if (!sdp) throw new Error("The browser could not prepare a voice connection. Please try again.");
         // notes: the current capture summary and open topics. The server uses them only
         // when the transcript exceeds the Live history limit and it must seed a condensed history.
@@ -349,7 +353,7 @@
           {signal:op.controller.signal,timeout:this.options.requestTimeout?.("live_session",55000)||55000});
         if (!current()) return false;
         if (typeof result?.sdp !== "string" || result.model !== "gpt-live-1") throw new Error("The server did not establish a live voice connection. You can continue by typing.");
-        if(op.greeting)op.greeting.documentContext=Array.isArray(result.document_evidence)&&result.document_evidence.some(source=>!source.retained_only);
+        if(op.greeting)op.greeting.opening=result.opening;
         await peer.setRemoteDescription({type:"answer",sdp:result.sdp});
         // HTTP starts GPT-Live; never send session.start or legacy Realtime response.create.
         await this.wait(op, ready, 15000, "Live voice did not finish connecting. Your transcript is retained; please try again.");
@@ -390,16 +394,6 @@
         promise.then(value=>finish(null,value),error=>finish(error));
         if (op.controller.signal.aborted) abort();
       });
-    }
-    async gatherIce(op) {
-      if (op.peer.iceGatheringState === "complete") return;
-      let listener;
-      const gathered = new Promise(resolve => {
-        listener = () => {if (op.peer?.iceGatheringState === "complete") resolve();};
-        op.peer.addEventListener("icegatheringstatechange",listener);listener();
-      });
-      try {await this.wait(op,gathered,10000,"Voice could not establish a network route. Please try again.");}
-      finally {op.peer?.removeEventListener("icegatheringstatechange",listener);}
     }
     receive(op, data) {
       if (this.operation !== op) return;
@@ -538,16 +532,36 @@
         if (/[\p{L}\p{N}]/u.test(event.delta) && !this.heardSpeech(op,start,end)) {this.withhold(op,event.delta,start,end);return;}
         // Interviewer words still held back (see interviewer) were spoken
         // before these: they are settled first and keep their place.
+        if (hasWords(event.delta)) op.floor.lastWord = window.performance?.now?.() ?? Date.now();
         this.settleHeld(op);
         if (this.operation === op) this.append(op,role,event.delta,start,end);
         return;
       }
+      const floor = op.floor, now = window.performance?.now?.() ?? Date.now();
+      if (!floor.hold && !floor.leading && op.lastCaptionRole === "user" && op.sound.playing &&
+          !op.audio?.muted && !op.muted && !window.document?.hidden && op.audioContext?.state === "running" &&
+          now-floor.lastRemote > 450 && now-floor.lastVoice < 1350 && now-floor.lastWord < 1350 && this.prepareFloorBuffer(op)) {
+        // A caption can precede both the audible question and the resumption
+        // of a paused answer. Only played sound establishes the speaker here.
+        floor.leading = {parts:[],captionAt:now};
+      }
+      const waiting = floor.hold || floor.leading;
+      if (waiting) {
+        if (!waiting.parts.length) waiting.captionAt = now;
+        waiting.parts.push({delta:event.delta,start,end});
+        // Bound pending text even when the service never produces audio.
+        if (waiting.parts.length >= 128) {this.releaseFloor(op);this.releaseLeading(op);}
+        return;
+      }
+      this.showInterviewer(op,event.delta,start,end);
+    }
+    showInterviewer(op,delta,start,end) {
       // While an application line is waiting to be read, or is being read, the
       // interviewer's text is judged a sentence at a time, so the end of its own
       // sentence, the line, and what it says next are told apart even when one
       // delta carries more than one of them.
       const watching = op.lines.length || op.held || op.captions.assistant?.line && !op.captions.assistant.done;
-      for (const part of watching ? sentences(event.delta) : [event.delta]) {
+      for (const part of watching ? sentences(delta) : [delta]) {
         if (this.operation !== op) return;
         this.interviewer(op,part,start,end);
       }
@@ -780,7 +794,7 @@
         // Official Live opening flow: one commentary append after startup. Keep
         // the input audio track active; do not create a synthetic transcript.
         sendEvent(op,{type:"session.commentary.append",event_id:op.greeting.event_id,
-          delegation_id:null,content:op.greeting.documentContext?DOCUMENT_OPENING_GREETING:op.greeting.name?namedOpeningGreeting(op.greeting.name):OPENING_GREETING});
+          delegation_id:null,content:op.greeting.opening || (op.greeting.name?namedOpeningGreeting(op.greeting.name):OPENING_GREETING)});
         if (op.greeting.status === "sent") this.notify("onGreeting",{...op.greeting});
       } catch {
         this.finishGreeting(op,"rejected","send_failed");
@@ -1054,17 +1068,108 @@
         outputActive:sound.outputActive,playbackActive:sound.playbackActive,muted:op.muted,connected};
       this.notify("onAudioFrame",frame);
     }
+    prepareFloorBuffer(op) {
+      // Keep the original sound available if a real question starts just as
+      // the participant finishes. Ordinary playback stays on the WebRTC track.
+      const output = op.meters.find(meter => meter.role === "output");
+      if (!output) return null;
+      if (output.floorBuffer !== undefined) return output.floorBuffer;
+      output.floorBuffer = null;
+      try {
+        const delay = op.audioContext.createDelay(12);
+        const sink = op.audioContext.createMediaStreamDestination();
+        const analyser = op.audioContext.createAnalyser();
+        analyser.fftSize = output.analyser.fftSize;
+        delay.delayTime.value = 12;
+        output.source.connect(delay);delay.connect(analyser);analyser.connect(sink);
+        output.floorBuffer = {delay,analyser,stream:sink.stream};
+      } catch { /* If the browser cannot preserve the beginning, leave the floor open. */ }
+      return output.floorBuffer;
+    }
+    releaseLeading(op) {
+      const leading = op.floor.leading;
+      if (!leading) return;
+      op.floor.leading = null;
+      for (const part of leading.parts) this.showInterviewer(op,part.delta,part.start,part.end);
+    }
+    releaseFloor(op,replay = false) {
+      const floor = op.floor, hold = floor.hold;
+      if (!hold) return;
+      floor.hold = null;
+      if (replay) {
+        const now = window.performance?.now?.() ?? Date.now();
+        // The analyser samples just after sound starts. Include its leading
+        // edge and leave a short preroll for the element to switch streams.
+        const lag = Math.min(12000,now-hold.first+100);
+        hold.buffer.delay.delayTime.value = lag/1000;
+        floor.replay = {buffer:hold.buffer,lag};
+        op.audio.srcObject = hold.buffer.stream;
+      }
+      op.audio.muted = false;
+      for (const part of hold.parts) this.showInterviewer(op,part.delta,part.start,part.end);
+    }
+    measureFloor(op,now,input,remote,playing) {
+      const floor = op.floor;
+      const canMeasure = playing && !op.muted && !window.document?.hidden &&
+        op.audioContext?.state === "running" && op.meters.some(meter => meter.role === "input");
+      if (remote >= .004) floor.lastRemote = now;
+      if (floor.leading && (remote >= .004 || !canMeasure || now-floor.leading.captionAt >= 600)) this.releaseLeading(op);
+      if (canMeasure && input >= .008) {
+        if (now-floor.lastVoice > 85) floor.voiceSince = now;
+        floor.lastVoice = now;
+      }
+      const grace = floor.hold?.parts.length || floor.hold?.first != null ? 200 : 90;
+      const fresh = canMeasure && now-floor.lastVoice < grace && now-floor.lastWord < 1600;
+      if (floor.replay) {
+        // Switch back only in silence on both timelines, so the rest of the
+        // original question is heard once even if the participant barges in.
+        if (now-floor.lastRemote > floor.replay.lag+400 || op.audioContext?.state !== "running") {
+          floor.replay = null;op.audio.srcObject = op.remoteStream;
+        }
+        return;
+      }
+      const hold = floor.hold;
+      if (!hold) {
+        // Arm before the first sound, only for recent transcribed words AND
+        // sustained microphone energy. A speaker already heard keeps the floor.
+        if (!fresh || input < .008 || op.audio.muted || floor.voiceSince === null || now-floor.voiceSince < 150 ||
+            now-floor.lastRemote < 450 || op.lastCaptionRole !== "user") return;
+        const buffer = this.prepareFloorBuffer(op);
+        if (!buffer) return;
+        floor.hold = {buffer,parts:floor.leading?.parts || [],captionAt:floor.leading?.captionAt,first:null};
+        floor.leading = null;
+        op.audio.muted = true;
+        return;
+      }
+      if (remote >= .004 && hold.first === null) hold.first = now;
+      // An unfinished burst followed by continued real participant speech was
+      // never heard. Keep it out of the transcript and keep listening. Complete
+      // questions and issued lines remain available for delayed playback.
+      if (hold.first !== null && now-floor.lastRemote > 350 && floor.lastVoice-floor.lastRemote > 300 &&
+          !op.lines.length && !hold.parts.some(part => /[?!.]\s*$/.test(part.delta))) {
+        hold.first = null;hold.parts = [];
+      }
+      if (hold.first === null && hold.parts.length && now-hold.captionAt > 900) {
+        // Captions can be the only accessible output on a silent track.
+        this.releaseFloor(op);
+      } else if (!fresh) {
+        const playable = playing && op.audioContext?.state === "running";
+        if (playable && hold.first !== null && now-hold.first >= 11800 && now-floor.lastRemote < 350) return;
+        this.releaseFloor(op,playable && hold.first !== null && now-hold.first < 11800);
+      }
+    }
     measureAudio(op) {
       if (this.operation !== op || op.closing) return;
       const sound = op.sound, now = window.performance?.now?.() ?? Date.now();
       const elapsed = sound.lastSample === null ? 16 : Math.min(250,Math.max(1,now-sound.lastSample));
       sound.lastSample = now;
-      const audible = sound.playing && !sound.buffering && !op.audio?.paused && !op.audio?.ended &&
-        !op.audio?.muted && op.audio?.volume !== 0 && !op.remoteTrack?.muted && op.remoteTrack?.readyState !== "ended";
+      const playing = sound.playing && !sound.buffering && !op.audio?.paused && !op.audio?.ended &&
+        op.audio?.volume !== 0 && !op.remoteTrack?.muted && op.remoteTrack?.readyState !== "ended";
       const raw = {input:0,output:0};
+      let delayed = 0;
       if (!op.audioContext?.state || op.audioContext.state === "running") {
         for (const meter of op.meters) {
-          if ((meter.role === "input" && op.muted) || (meter.role === "output" && !audible)) continue;
+          if ((meter.role === "input" && op.muted) || (meter.role === "output" && !playing)) continue;
           let sum = 0;
           if (meter.float) {
             meter.analyser.getFloatTimeDomainData(meter.buffer);
@@ -1075,9 +1180,21 @@
           }
           const gain = meter.role === "output" && Number.isFinite(op.audio?.volume) ? Math.max(0,Math.min(1,op.audio.volume)) : 1;
           raw[meter.role] = Math.max(raw[meter.role],Math.sqrt(sum/meter.buffer.length)*gain);
+          if (meter.role === "output" && op.floor.replay) {
+            const analyser = op.floor.replay.buffer.analyser;
+            if (meter.float) analyser.getFloatTimeDomainData(meter.buffer);
+            else analyser.getByteTimeDomainData(meter.buffer);
+            let energy = 0;
+            for (const sample of meter.buffer) energy += (meter.float ? sample : (sample-128)/128)**2;
+            delayed = Math.sqrt(energy/meter.buffer.length)*gain;
+          }
         }
       }
       this.sampleGate(op,now);
+      this.measureFloor(op,now,raw.input,raw.output,playing);
+      if (this.operation !== op || op.closing) return;
+      if (op.floor.replay) raw.output = delayed;
+      const audible = playing && !op.audio?.muted;
       for (const role of ["input","output"]) {
         const input = role === "input", allowed = input ? !op.muted : audible;
         const floor = input ? .004 : .002, onset = input ? .008 : .006;
@@ -1170,7 +1287,10 @@
           this.listenAudio(op,op.audioContext,"statechange",()=>this.measureAudio(op));
         }
         // A replacement remote track must never leave a stale output meter active.
-        op.meters = op.meters.filter(meter=>{if (meter.role !== role) return true;meter.source.disconnect();return false;});
+        op.meters = op.meters.filter(meter=>{
+          if (meter.role !== role) return true;
+          meter.source.disconnect();meter.floorBuffer?.stream.getTracks().forEach(track=>track.stop());return false;
+        });
         const source = op.audioContext.createMediaStreamSource(stream), analyser = op.audioContext.createAnalyser();
         analyser.fftSize = 512;source.connect(analyser);
         const float = typeof analyser.getFloatTimeDomainData === "function";
@@ -1387,6 +1507,8 @@
     }
     cleanup(op) {
       if (this.operation !== op) return;
+      this.releaseLeading(op);
+      if (op.floor.hold?.first === null) this.releaseFloor(op);
       // Interviewer words still held back are handed on before the final captions.
       this.settleHeld(op);
       if (this.operation !== op) return;
@@ -1407,7 +1529,9 @@
       op.stream?.getTracks().forEach(track=>track.stop());
       op.channel?.close();op.peer?.close();
       op.audio?.pause();if (op.audio) op.audio.srcObject=null;
-      op.meters.forEach(meter=>meter.source.disconnect());
+      op.meters.forEach(meter=>{
+        meter.source.disconnect();meter.floorBuffer?.stream.getTracks().forEach(track=>track.stop());
+      });
       op.audioContext?.close().catch(()=>{});
       Object.assign(op.sound,{input:0,output:0,inputActive:false,outputActive:false,playbackActive:false,playing:false,buffering:false});
       this.publishAudio(op,true);this.setStatus("idle");

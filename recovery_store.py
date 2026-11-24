@@ -63,7 +63,7 @@ def recovery_session(value):
             raise ValueError("Turns must have a user or assistant role.")
         turn_id, text = turn.get("id"), turn.get("text")
         if (not isinstance(turn_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", turn_id)
-                or turn_id == "context" or turn_id in seen):
+                or turn_id == "context" or turn_id.startswith("review_v1_") or turn_id in seen):
             raise ValueError("Turn IDs must be unique letters, numbers, underscores or hyphens.")
         seen.add(turn_id)
         if not isinstance(text, str) or length(text) > 6000:

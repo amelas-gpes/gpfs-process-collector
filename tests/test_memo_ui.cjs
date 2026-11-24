@@ -14,6 +14,7 @@ assert(start >= 0 && end > start, 'Memo normalization must exist');
 const scope = {TOPICS: [['accountable', 'Accountable owner']], state: {documentEvidence: []},
   strings: (value, limit) => Array.isArray(value) ? value.slice(0, limit).filter(v => typeof v === 'string') : [],
   text: (value, limit) => typeof value === 'string' ? value.trim().slice(0, limit) : ''};
+scope.reviewReferences=()=>[];
 vm.createContext(scope);
 vm.runInContext(source.slice(start, end) + '\nthis.normalizeFindings = normalizeFindings;', scope);
 // Semantic source review belongs to the server; the UI retains its partial

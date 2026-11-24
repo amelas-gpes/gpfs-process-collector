@@ -5,6 +5,16 @@
     .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");
   const fallback="UNKNOWN / TBD";
   const sources=item=>(item.evidence_turns||[]).join(", ")||"Uncited";
+  function routeReview(graph,edge){
+    const title=id=>{const node=graph.steps.find(s=>s.id===id);return [node?.title,node?.actor,node?.type,node?.entity_scope||[]];};
+    const row=(graph.route_assurance||[]).find(r=>r.from===edge.from&&r.to===edge.to&&r.label===edge.label&&
+      JSON.stringify(r.evidence_turns)===JSON.stringify(edge.evidence_turns)&&
+      JSON.stringify(r.endpoints)===JSON.stringify([title(edge.from),title(edge.to)]));
+    const changed=[edge.from,edge.to].some(id=>graph.steps.find(node=>node.id===id)?.reviewed_fields?.length);
+    const labels={supported:"Source-checked",pending:"Awaiting source check",unread:"Source unread",unsupported:"Unsupported"};
+    if(changed&&row?.status==="supported")return {label:"Awaiting source check",passages:[]};
+    return {label:(labels[row?.status]||"Source check unknown")+(row?.reason?" - "+row.reason:""),passages:row?.passages||[]};
+  }
   function csv(draft){
     const cell=value=>{
       let text=String(value??"");
@@ -13,7 +23,8 @@
     };
     const rows=[["Step ID","Step title","Type","Owner","System","Input","Output","Next steps and conditions","Sources","Review edits"]];
     for(const step of draft.steps){
-      const outgoing=draft.connections.filter(edge=>edge.from===step.id).map(edge=>edge.to+(edge.label?" — "+edge.label:""));
+      const outgoing=draft.connections.filter(edge=>edge.from===step.id).map(edge=>
+        edge.to+(edge.label?" — "+edge.label:"")+" ["+routeReview(draft,edge).label+"]");
       rows.push([step.id,step.title,step.type,step.actor,step.system,step.input,step.output,outgoing.join(" | "),sources(step),(step.reviewed_fields||[]).join(", ")]);
     }
     return "\uFEFF"+rows.map(row=>row.map(cell).join(",")).join("\r\n")+"\r\n";
@@ -25,7 +36,7 @@
       const caption=label(step.id+" · "+(step.title||fallback)),decision=step.type==="decision";
       lines.push("  "+ids.get(step.id)+(decision?'{"'+caption+'"}':'["'+caption+'"]'));
     }
-    for(const edge of draft.connections)if(ids.has(edge.from)&&ids.has(edge.to))lines.push("  "+ids.get(edge.from)+" -->"+(edge.label?'|"'+label(edge.label)+'"|':"")+" "+ids.get(edge.to));
+    for(const edge of draft.connections)if(ids.has(edge.from)&&ids.has(edge.to))lines.push("  "+ids.get(edge.from)+" -->"+('|"' + label([edge.label,routeReview(draft,edge).label].filter(Boolean).join(" - ")) + '"|')+" "+ids.get(edge.to));
     return lines.join("\n");
   }
   function bpmn(draft,layout,drawnGraph){
@@ -58,7 +69,7 @@
       rows.push('</'+kind+'>');
       if(!positions.has(step.id))positions.set(step.id,{x:40+(i%4)*200,y:40+Math.floor(i/4)*115,width:140,height:64});
     }
-    for(const [i,edge] of draft.connections.entries())rows.push('<sequenceFlow id="'+routeIds[i]+'" sourceRef="'+ids.get(edge.from)+'" targetRef="'+ids.get(edge.to)+'" name="'+xml(edge.label)+'"><documentation>'+xml("Sources: "+sources(edge))+'</documentation></sequenceFlow>');
+    for(const [i,edge] of draft.connections.entries())rows.push('<sequenceFlow id="'+routeIds[i]+'" sourceRef="'+ids.get(edge.from)+'" targetRef="'+ids.get(edge.to)+'" name="'+xml(edge.label)+'"><documentation>'+xml("Sources: "+sources(edge)+". "+routeReview(draft,edge).label+" "+routeReview(draft,edge).passages.map(p=>p.source_id+": "+p.quote).join(" "))+'</documentation></sequenceFlow>');
     rows.push('</process><bpmndi:BPMNDiagram id="Diagram_1"><bpmndi:BPMNPlane id="Plane_1" bpmnElement="Process_1">');
     for(const step of draft.steps){
       const id=ids.get(step.id),box=positions.get(step.id);
@@ -134,6 +145,6 @@
     for(const [step] of chains.slice(1))questions.push("Is there a reported handoff between the routes containing "+name(chains[0][0])+" and "+name(step)+"?");
     const unique=[...new Set(questions)];checkedGraphs.set(draft,{signature,questions:unique});return unique;
   }
-  const api={bpmn,csv,mermaid,png,structureQuestions};scope.CollectorWorkflowExports=api;
+  const api={bpmn,csv,mermaid,png,structureQuestions,routeReview};scope.CollectorWorkflowExports=api;
   if(typeof module!=="undefined"&&module.exports)module.exports=api;
 })(typeof window==="undefined"?globalThis:window);

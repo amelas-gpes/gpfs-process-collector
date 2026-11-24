@@ -57,7 +57,7 @@ class ProposalValidationTests(unittest.TestCase):
         row = self.run_job(analyzer)
         self.assertEqual((row['status'], row['error'], row['attempts']), ('completed', '', 1))
         metrics = {key: value for key, value in row['detail'].items() if key not in ('claim_token', 'claimed_at')}
-        self.assertEqual(metrics, {'candidates': 3, 'candidates_omitted': 0, 'proposals_returned': 3, 'proposals_kept': 2,
+        self.assertEqual(metrics, {'eligible_candidates': 3, 'candidates': 3, 'candidates_omitted': 0, 'proposals_returned': 3, 'proposals_kept': 2,
                                          'proposals_dropped': 1, 'dropped_reasons': {QUOTE_REASON: 1}})
         self.assertEqual(len(self.stored()), 2)
         self.assertTrue(all('…' not in evidence['quote'] for item in self.stored() for evidence in item['evidence']), 'The refused proposal is not stored')
@@ -95,7 +95,7 @@ class ProposalValidationTests(unittest.TestCase):
     def test_a_clean_response_records_no_reasons(self):
         row = self.run_job(self.one_per_candidate)
         metrics = {key: value for key, value in row['detail'].items() if key not in ('claim_token', 'claimed_at')}
-        self.assertEqual(metrics, {'candidates': 3, 'candidates_omitted': 0, 'proposals_returned': 3, 'proposals_kept': 3, 'proposals_dropped': 0})
+        self.assertEqual(metrics, {'eligible_candidates': 3, 'candidates': 3, 'candidates_omitted': 0, 'proposals_returned': 3, 'proposals_kept': 3, 'proposals_dropped': 0})
 
     def test_a_provider_error_is_named_as_such_with_its_own_sentence(self):
         def analyzer(current, candidates):

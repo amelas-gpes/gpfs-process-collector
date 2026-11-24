@@ -229,7 +229,7 @@ Check actual described sequence and dependencies; every material branch's condit
 who does the work; how responsibility changes hands; inputs, outputs and observable completion;
 failed checks, exception recovery and where the work returns. Identify contradictions, missing
 transitions, unclear handoffs, ambiguous outputs, missing exception returns and unsupported claims.
-Compare EVERY proposed actor, step, edge and operational assertion with its exact cited participant
+Compare EVERY actor, step, reported handoff and operational assertion in the supplied narrative with its exact cited participant
 statement, not merely with the process's general plausibility. Flag an unsupported substitution
 even when the correct actor or action is mentioned elsewhere: replacing a reported event lead with
 an unreported duty manager is a material unsupported claim, not an alternative wording. A valid

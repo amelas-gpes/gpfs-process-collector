@@ -31,9 +31,9 @@ const route = (from,to,label="") => ({from,to,label,evidence_turns:["u1"]});
     step("S4","Return to supplier"),step("S5","Close case","end"),step("S6","Archive file")],
     connections:[route("S1","S2"),route("S2","S3","Approved"),route("S2","S4","Rejected"),route("S3","S5"),route("S9","S1"),route("S1","S9")]};
   const routes=app.draftRoutes(draft),by=id=>draft.steps.find(item=>item.id===id);
-  assert.equal(app.routedHandoff(routes,by("S1")),"S2 Approve or reject invoice");
-  assert.equal(app.routedHandoff(routes,by("S2")),"S3 Pay invoice (Approved); S4 Return to supplier (Rejected)");
-  assert.equal(app.routedHandoff(routes,by("S3")),"S5 Close case");
+  assert.equal(app.routedHandoff(routes,by("S1")),"S2 Approve or reject invoice [Source check unknown]");
+  assert.equal(app.routedHandoff(routes,by("S2")),"S3 Pay invoice (Approved) [Source check unknown]; S4 Return to supplier (Rejected) [Source check unknown]");
+  assert.equal(app.routedHandoff(routes,by("S3")),"S5 Close case [Source check unknown]");
   assert.match(app.routedHandoff(routes,by("S5")),/ends here/,"An end step with no route is an ending, not a gap");
   assert.match(app.routedHandoff(routes,by("S6")),/No route from this step is recorded/);
   assert.doesNotMatch(app.routedHandoff(routes,by("S1")),/S9/,"A route to a step that does not exist is not a handoff");

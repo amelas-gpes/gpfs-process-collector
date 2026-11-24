@@ -285,7 +285,7 @@ class Coordinator:
         reported = {key: capture[key] for key in ("memo_findings", "fact_provenance", "summary", "parking_lot", "taxonomy", "connections_out")
                     if key in capture}
         return run.run_role("process_reviewer", lambda: self.client.structured(
-            agent_team.PROCESS_REVIEW_INSTRUCTIONS,
+            agent_team.PROCESS_REVIEW_INSTRUCTIONS + "\nReview the narrative and material gaps in the supplied account. Graph assurance and owner approval are separate.",
             {"context": context, "turns": turns, "candidate_capture": reported,
              "supporting_documents": supporting}, agent_team.PROCESS_REVIEW_SCHEMA,
             "process_specialist_review", 8000, reasoning_effort="medium", request_timeout=90,
@@ -1646,11 +1646,9 @@ class Coordinator:
 
         parts = file_parts.part_requests(reading, base_payload)
         wholes = file_parts.whole_requests(reading, base_payload, request_schema)
-        sweep = file_parts.sweep_request(reading, base_payload)
         raw_trace.emit("coordinator.interview.file_parts", file_parts.describe(reading))
         pool = ThreadPoolExecutor(max_workers=len(parts) + len(wholes) + 1, thread_name_prefix="file-parts")
         try:
-            swept = pool.submit(contextvars.copy_context().run, ask, *sweep, 3000) if sweep else None
             account = [pool.submit(contextvars.copy_context().run, ask, payload, suffix, schema, 4000,
                                    watch_whole if "topic_states" in schema["properties"] else None)
                        for payload, suffix, schema in wholes]
@@ -1661,9 +1659,12 @@ class Coordinator:
             account = [future.result() for future in account]
             # The sweep is waited for only when a topic the account covers has no fact from any part.
             topics = None
-            if swept and file_parts.uncovered(replies, account):
+            missing = file_parts.uncovered(replies, account)
+            sweep = file_parts.sweep_request(reading, base_payload) if missing else None
+            if sweep:
                 try:
-                    topics = swept.result()
+                    payload, policy, schema = sweep
+                    topics = ask(payload, policy + "\nReturn only missing topics: " + ", ".join(missing), schema, 3000)
                 except agent_team.TeamBlockedError:
                     raise
                 except Exception:
@@ -2153,7 +2154,8 @@ class _MapJob:
             # or replaced run cannot publish, so it does not pay for that request.
             recheck = api.RouteRecheck(self.client, self.context, self.turns, self.supporting, "team_working_map_source_audit",
                                        self.deadline, model_override=reviewer, **fast) if self.live() else None
-            audited = api.apply_workflow_audit(update, audit, previous, context=self.context, turns=self.turns,
+            audit_log = {}
+            audited = api.apply_workflow_audit(update, audit, previous, context=self.context, turns=self.turns, audit_log=audit_log,
                                                documents=self.evidence, recheck=recheck, carried=self.carried)
             reviewed = api.apply_workflow_update(audited, previous, self.turns, self.evidence, self.carried, context=self.context)
             # Before it is published, the reviewed map is checked for parts its route passes by
@@ -2162,9 +2164,11 @@ class _MapJob:
             # a cancelled or replaced run cannot publish, so it does not pay for that request.
             repair = api.RouteRepair(self.client, self.context, self.turns, self.supporting, "team_working_map_source_audit",
                                      self.deadline, model_override=reviewer, **fast) if self.live() else None
-            return api.connect_detached_routes(
+            reviewed = api.connect_detached_routes(
                 reviewed, repair, context=self.context, turns=self.turns, documents=self.evidence, baseline=previous["workflow"],
                 judged=api.judged_route_steps([*proposals, *audit["upsert_connections"]], reviewed["workflow"]["connections"]))
+            reviewed["route_assurance"] = api.route_review_record(reviewed["workflow"], audit_log, self.context, self.turns, self.evidence, self.carried, self.client, self.scope, previous.get("memo_findings", []))
+            return reviewed
         # Transcript-only maps need the same source check as documentary maps.
         # This stays in the bounded background worker, never the question path.
         # The lead's existing two-call budget covers generation plus source audit.

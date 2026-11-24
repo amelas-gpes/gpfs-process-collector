@@ -8,7 +8,7 @@
     // The spoken question is appended after turn() returns. It changes no
     // participant evidence and must not hide the analysis of that answer.
     while(turns.at(-1)?.role==="assistant")turns.pop();
-    return JSON.stringify([snapshot?.context||{},turns,snapshot?.document_revision||"",snapshot?.document_scope||""]);
+    return JSON.stringify([snapshot?.context||{},turns,snapshot?.document_revision||"",snapshot?.document_scope||"",snapshot?.file_topic_reviews||[]]);
   }
   const newId=()=>crypto.randomUUID().replaceAll("-","");
   const stale=()=>new DOMException("The conversation changed while this response was being prepared","AbortError");

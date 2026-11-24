@@ -74,7 +74,7 @@
   }
   function edgeMetrics(value){const width=clamp(measureText(value,11,500)+24,44,200),lines=wrapText(value,width-24,11,500);return {width,height:lines.length*15+14,lines};}
   const stepTooltip=step=>`${step.id}: ${step.title}\n${step.description||""}\nOwner: ${step.actor||"Not established"}\nSystem: ${step.system||"Not established"}\nSources: ${(step.evidence_turns||[]).join(", ")||"No cited source"}`;
-  const edgeTooltip=edge=>`${edge.from} → ${edge.to}${edge.label?": "+edge.label:""}. Sources: ${(edge.evidence_turns||[]).join(", ")||"No source references in this view; open details to review evidence"}`;
+  const edgeTooltip=edge=>`${edge.from} → ${edge.to}${edge.label?": "+edge.label:""}. ${edge.reviewLabel||"Source check unknown"}. Sources: ${(edge.evidence_turns||[]).join(", ")||"No source references in this view; open details to review evidence"}`;
   function cinematicNodeMetrics(step) {
     const width=150;
     const titleLines=wrapText(step.title||step.id,width-12,15,600);
@@ -104,7 +104,7 @@
     });
     const connections=graph.connections.map((edge,index)=>{
       if(!edge||!seen.has(edge.from)||!seen.has(edge.to))throw new Error("A workflow connection points to a missing step.");
-      return {...edge,label:string(edge.label).trim(),id:`edge-${index}`};
+      return {...edge,reviewLabel:globalThis.CollectorWorkflowExports?.routeReview?.(graph,edge)?.label||"Source check unknown",label:string(edge.label).trim(),id:`edge-${index}`};
     });
     const incoming=new Map(steps.map(step=>[step.id,[]])),outgoing=new Map(steps.map(step=>[step.id,[]]));
     connections.forEach(edge=>{incoming.get(edge.to).push(edge);outgoing.get(edge.from).push(edge);});
@@ -1149,7 +1149,8 @@
       const svg=svgNode(this.doc,"svg",{xmlns:NS,viewBox:`0 0 ${this.layout.width} ${this.layout.height}`,width:this.layout.width,height:this.layout.height,role:"img"});
       svg.append(this.title.cloneNode(true),this.description.cloneNode(true),svgNode(this.doc,"rect",{width:this.layout.width,height:this.layout.height,fill:"#ffffff"}),this.world.cloneNode(true));
       if(metadata){
-        const heading=64,width=Math.max(620,this.layout.width),height=heading+this.layout.height,world=svg.lastElementChild;
+        const reviews=this.graph.connections.map(edge=>edge.from+" to "+edge.to+(edge.label?" ("+edge.label+")":"")+" - "+(edge.reviewLabel||"Source check unknown").split(" - ")[0]);
+        const heading=64+reviews.length*14,width=Math.max(620,this.layout.width),height=heading+this.layout.height,world=svg.lastElementChild;
         svg.setAttribute("viewBox","0 0 "+width+" "+height);svg.setAttribute("width",width);svg.setAttribute("height",height);
         world?.setAttribute("transform","translate(0 "+heading+")");
         svg.append(svgNode(this.doc,"rect",{width,height:heading,fill:"#ffffff"}));
@@ -1157,6 +1158,7 @@
         line(metadata.title||"Process workflow",19,16);
         line([metadata.state,metadata.example?"Fictional example":"",metadata.stale?"Out of date":""].filter(Boolean).join(" · "),38,12);
         line("Exported "+metadata.date+" · Evidence details are included in step and route descriptions.",54,10);
+        reviews.forEach((review,index)=>line(review,69+index*14,11));
         for(const group of svg.querySelectorAll?.("[data-step-id]")||[]){
           const step=this.graph.steps.find(row=>row.id===group.getAttribute("data-step-id"));
           if(!step)continue;

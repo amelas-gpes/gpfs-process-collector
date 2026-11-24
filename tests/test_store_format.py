@@ -2,6 +2,7 @@
 (the checkout's server, the desktop window's approved build and its fallback), so a build must
 refuse data written by a newer one, and must not report a newer index as out of date."""
 import hashlib
+from contextlib import closing
 import importlib.util
 import json
 from pathlib import Path
@@ -79,6 +80,29 @@ class DocumentStoreFormat(unittest.TestCase):
         store = documents.DocumentStore(self.root)
         self.assertEqual(stored_format(self.path), newest)
         self.assertEqual(store.get(scope, record["id"])["filename"], "legacy.csv")
+
+    def test_format_four_preserves_active_decisions_and_cleans_revoked_scopes(self):
+        store = documents.DocumentStore(self.root)
+        active, abandoned = store.create_scope(), store.create_scope()
+        reference = 'review_v1_' + 'a' * 32
+        for scope in (active, abandoned):
+            store.current_topic_reviews(scope, [], withdraw=[reference])
+        with closing(sqlite3.connect(self.path)) as db, db:
+            db.execute('DROP TRIGGER revoke_topic_decisions')
+            db.execute('PRAGMA user_version=3')
+        store.revoke_scope(abandoned)  # The older writer removed only the scope.
+        with closing(sqlite3.connect(self.path)) as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM topic_decisions').fetchone()[0], 2)
+
+        upgraded = documents.DocumentStore(self.root)
+        self.assertEqual(upgraded.withdrawn_topic_reviews(active, [reference]), [reference])
+        with closing(sqlite3.connect(self.path)) as db, db:
+            self.assertEqual(db.execute('SELECT count(*) FROM topic_decisions').fetchone()[0], 1)
+            with self.assertRaises(documents.StoreFormatError):
+                documents.store_format(db, (0, 3), 'documents')
+            # A writer that was already open can still issue the old delete.
+            db.execute('DELETE FROM scopes')
+            self.assertEqual(db.execute('SELECT count(*) FROM topic_decisions').fetchone()[0], 0)
 
     def test_store_written_by_a_newer_build_is_refused_and_left_as_it_was(self):
         documents.DocumentStore(self.root)
@@ -195,9 +219,10 @@ class StoreLayoutChanges(unittest.TestCase):
     # (an expression index over json_extract, like proposals_source_idx); it only lacks the lookup that uses it.
     # Format 3 gives each document section a stable reading order with room after it for visual continuations.
     # Knowledge format 2 migrates stored document capabilities to revocable digests.
+    # Document format 4 tracks and revokes confirmation decisions with their scope.
     # Knowledge format 3 enforces append-only filing history. Older writers do not
     # enable the recursive triggers needed for SQLite's replace operation.
-    RECORDED = {"documents": (3, "79d8cfc60a730de2"), "knowledge": (3, "7797542cbf8bc6fb")}
+    RECORDED = {"documents": (4, "6bafacedba9bfea9"), "knowledge": (3, "7797542cbf8bc6fb")}
 
     def test_changed_layout_comes_with_a_decision_about_its_format_number(self):
         with tempfile.TemporaryDirectory() as scratch:

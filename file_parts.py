@@ -20,7 +20,6 @@ This module only plans the requests and joins the replies; interview_orchestrato
 from __future__ import annotations
 
 import copy
-import difflib
 import re
 
 # Characters of file text in one part, and at most this many parts in one reading.
@@ -46,7 +45,7 @@ PART_INSTRUCTIONS = """
 PARALLEL READING ASSIGNMENT
 This file is being read by several requests at the same moment, each given one consecutive part of it.
 This request has part {number} of {count}: {first} to {last}. Record the material facts that these sections
-support, each under the one topic where it belongs most. Do not write a fact that these sections do not
+support, each under the one topic where it belongs most. Include the applicable heading, table row, sheet, fund, actor and condition in the claim when they change its meaning. Keep conflicting or provisional claims separate. Do not write a fact that these sections do not
 state, and do not summarise parts you were not given: a table of contents or an overview that only lists
 later sections is not itself evidence of their content.
 FACT BUDGET: the whole file is recorded at the level of detail of one account of about {total} facts, and
@@ -108,10 +107,6 @@ STATES_NOTE = (" For topic_states, judge each topic by what the files as a whole
 WHOLE_GROUPS = (("topic_states", "summary", "focus", "parking_lot"),
                 ("tag_operations", "connections_out", "active_modules", "recap_due"))
 WHOLE_FIELDS = WHOLE_GROUPS[0] + WHOLE_GROUPS[1]
-
-
-def _plain(text):
-    return " ".join(re.findall(r"[a-z0-9]+", text.lower()))
 
 
 def eligible(supporting):
@@ -351,7 +346,7 @@ def join(reading, base_revision, part_replies, whole_replies, sweep_reply=None):
                                "text": row["text"].strip(), "support": support,
                                "evidence_turns": list(dict.fromkeys(item["source_id"] for item in support)),
                                "reason": "new_evidence"})
-    operations = _without_repeats(operations)
+    operations = _without_repeats(operations, reading)
     whole = {}
     for reply in whole_replies:
         whole.update({key: value for key, value in (reply or {}).items() if key in WHOLE_FIELDS})
@@ -379,27 +374,34 @@ def join(reading, base_revision, part_replies, whole_replies, sweep_reply=None):
     return transaction
 
 
-def _without_repeats(operations, alike=0.92):
-    """Join facts that two neighbouring parts both recorded: under the same topic, nearly the same wording.
+def _without_repeats(operations, reading):
+    """Only combine equivalent wording with matching documentary scope and passages."""
+    sections = {row["id"]: (document["id"], row) for document, rows in reading["files"] for row in rows}
+    def identity(operation):
+        evidence = []
+        for item in operation["support"]:
+            document, section = sections[item["source_id"]]
+            before, _, _ = section["text"].partition(item["quote"])
+            location = section.get("location") or {}
+            # Page/row numbers are locators. Keep the file, sheet, heading and surrounding
+            # qualifiers. When context differs the safe result is two independent facts.
+            label = re.sub(r"(?i)\bpage\s+\d+\b", "page", section.get("label", ""))
+            scope = tuple(sorted((k, str(v)) for k, v in location.items() if k not in ("page", "chunk")))
+            evidence.append((document, label, scope, before.strip(), item["quote"].strip()))
+        return (operation["topic"], operation["kind"], operation["text"].rstrip("."), tuple(sorted(set(evidence))))
 
-    Only near-identical wording with the same figures is joined: step 3 and step 4 are two facts.
-    """
-    kept = []
+    kept, index = [], {}
     for row in operations:
-        plain = _plain(row["text"])
-        figures = {token for token in plain.split() if any(character.isdigit() for character in token)}
-        twin = next((other for other in kept if other["topic"] == row["topic"]
-                     and figures == {token for token in _plain(other["text"]).split() if any(c.isdigit() for c in token)}
-                     and difflib.SequenceMatcher(None, plain, _plain(other["text"])).ratio() >= alike), None)
-        if twin is None:
+        key = identity(row)
+        other = index.get(key)
+        if other is None or len(other["support"] + row["support"]) > 8:
             kept.append(row)
+            index[key] = row
             continue
-        if len(row["text"]) > len(twin["text"]):
-            twin["text"] = row["text"]
         for item in row["support"]:
-            if item not in twin["support"] and len(twin["support"]) < 8:
-                twin["support"].append(item)
-        twin["evidence_turns"] = list(dict.fromkeys(item["source_id"] for item in twin["support"]))
+            if item not in other["support"]:
+                other["support"].append(item)
+        other["evidence_turns"] = list(dict.fromkeys(item["source_id"] for item in other["support"]))
     return kept
 
 

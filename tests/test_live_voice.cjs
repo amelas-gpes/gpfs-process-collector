@@ -10,12 +10,12 @@ class Events {
  removeEventListener(type,fn){this.listeners[type]=(this.listeners[type]||[]).filter(x=>x!==fn);}
  emit(type,event={}){for(const fn of [...(this.listeners[type]||[])])fn(event);}
 }
-function setup({permission,request,autoStarted=true,metering=false,floatMeter=true,playbackReject=false}={}){
+function setup({permission,request,autoStarted=true,metering=false,floatMeter=true,floorBuffer=false,playbackReject=false,iceGatheringState="complete"}={}){
  const peers=[],channels=[],tracks=[],statuses=[],captions=[],errors=[],payloads=[],contexts=[],greetings=[],audioFrames=[],audios=[],streams=[],analysers=[];
  const raf=new Map(),audioTimers=new Map();let now=0,nextFrame=0,nextTimer=0;
  function stream(){const track=Object.assign(new Events(),{enabled:true,muted:false,readyState:"live",stopped:false,stop(){this.stopped=true;this.readyState="ended";this.emit("ended");}});tracks.push(track);const s={level:0,getTracks:()=>[track],getAudioTracks:()=>[track]};streams.push(s);return s;}
  class Peer extends Events{
-  constructor(){super();this.iceGatheringState="complete";this.connectionState="new";this.closed=false;this.added=[];peers.push(this);}
+  constructor(){super();this.iceGatheringState=iceGatheringState;this.connectionState="new";this.closed=false;this.added=[];peers.push(this);}
   addTrack(track,s){this.added.push([track,s]);}
   createDataChannel(label){const channel=new Events();channel.label=label;channel.readyState="open";channel.sent=[];channel.send=x=>channel.sent.push(JSON.parse(x));channel.close=()=>{channel.readyState="closed";channel.emit("close");};channels.push(channel);return channel;}
   async createOffer(){return {type:"offer",sdp:"v=0\r\no=local"};}
@@ -29,12 +29,15 @@ function setup({permission,request,autoStarted=true,metering=false,floatMeter=tr
   pause(){this.playing=false;this.paused=true;this.emit("pause");}
  }
  class AudioContext extends Events {
-  constructor(){super();this.state="running";}
+  constructor(){super();this.state="running";if(floorBuffer){
+   this.createDelay=()=>({delayTime:{value:0},connect(node){node.stream=this.stream;}});
+   this.createMediaStreamDestination=()=>({stream:stream()});
+  }}
   resume(){this.state="running";return Promise.resolve();}
   close(){this.state="closed";return Promise.resolve();}
   createMediaStreamSource(s){return {connect(node){node.stream=s;},disconnected:false,disconnect(){this.disconnected=true;}};}
   createAnalyser(){
-   const a={fftSize:512,getByteTimeDomainData(buffer){for(let i=0;i<buffer.length;i++)buffer[i]=128+Math.round((i%2?1:-1)*(this.stream.level||0)*128);}};
+   const a={fftSize:512,connect(){},getByteTimeDomainData(buffer){for(let i=0;i<buffer.length;i++)buffer[i]=128+Math.round((i%2?1:-1)*(this.stream.level||0)*128);}};
    if(floatMeter)a.getFloatTimeDomainData=function(buffer){for(let i=0;i<buffer.length;i++)buffer[i]=(i%2?1:-1)*(this.stream.level||0);};
    analysers.push(a);return a;
   }
@@ -144,8 +147,11 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
  }
 
  {
-  const h=setup();assert.equal(h.tracks.length,0,"Construction must not request microphone permission");
-  assert.equal(await h.api.start({context:{process_name:"Invoices"},turns:[{id:"t1",role:"user",text:"Receive invoice"}]}),true);
+  const h=setup({iceGatheringState:"gathering"});assert.equal(h.tracks.length,0,"Construction must not request microphone permission");
+  const connecting=h.api.start({context:{process_name:"Invoices"},turns:[{id:"t1",role:"user",text:"Receive invoice"}]});
+  await tick();
+  assert.equal(h.payloads.length,1,"The SDP offer goes to Live while local ICE candidates are still gathering");
+  assert.equal(await connecting,true);
   assert.equal(h.channels[0].label,"oai-events");assert.equal(h.payloads[0][0],"/api/live-session");
   assert.equal(h.payloads[0][1].sdp,"v=0\r\no=local");assert.equal(h.payloads[0][1].turns[0].id,"t1");
   assert.equal(h.peers[0].remoteDescription.sdp,"v=0\r\no=remote");assert.equal(h.api.connected,true);
@@ -457,7 +463,7 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   await h.api.stop({immediate:true});passes++;
  }
  {
-  const h=setup({request:async()=>({sdp:"v=0\r\no=remote",model:"gpt-live-1",document_evidence:[{id:"doc_source",text:"The documented process is payment execution."}]})});
+  const h=setup({request:async()=>({sdp:"v=0\r\no=remote",model:"gpt-live-1",file_access:"excerpts",opening:"Please read the supplied document context and ask one question.",document_evidence:[{id:"doc_source",text:"The documented process is payment execution."}]})});
   await h.api.start({turns:[]});
   const greeting=h.channels[0].sent.find(e=>e.type==="session.commentary.append");
   assert.ok(greeting);assert.match(greeting.content,/read the supplied document context/);
@@ -594,6 +600,84 @@ function acknowledge(h,events=h.channels.at(-1).sent.filter(e=>e.type==="session
   const op=h.api.operation;op.audioContext.state="suspended";op.audioContext.emit("statechange");h.step(400);assert.equal(h.statuses.at(-1),"listening");assert.equal(h.audioFrames.at(-1).outputActive,false);
   op.audioContext.state="running";op.audioContext.emit("statechange");h.step(35);assert.equal(h.statuses.at(-1),"speaking");
   await h.api.stop({immediate:true});passes++;
+ }
+ async function floorCase(buffer=true){
+  const h=setup({metering:true,floorBuffer:buffer});await h.api.start();
+  const out=h.remote();await tick();
+  const mic=h.streams[0],audio=h.audios[0];
+  const advance=ms=>{for(let t=0;t<ms;t+=16)h.step(16);};
+  const user=delta=>h.event({type:"session.input_transcript.delta",delta});
+  const ask=delta=>h.event({type:"session.output_transcript.delta",delta});
+  return {h,out,mic,audio,advance,user,ask,stop:()=>h.api.stop({immediate:true})};
+ }
+ for (const [first,rest,fragment,next] of [
+  ["We send the invoice to the portfolio company."," We use the current schedule.","What kicks off","What kicks off the invoice?"],
+  ["We reconcile them against the open items log."," Reviewed FA-15A binder records must be available.","What gets","What's actually checked when you reconcile them?"]
+ ]) {
+  const {h,out,mic,audio,advance,user,ask,stop}=await floorCase();
+  mic.level=.045;user(first);advance(240);
+  assert.equal(audio.muted,true,"A confirmed speaking participant has the floor before remote audio begins");
+  ask(fragment);advance(240);out.level=.06;advance(300);
+  assert.equal(h.api.assistantSpeaking,false);assert.equal(audio.muted,true);
+  out.level=0;advance(180);user(rest);advance(440);mic.level=0;advance(240);
+  assert.equal(audio.muted,false);
+  assert.equal(h.captions.filter(c=>c.role==="assistant").length,0,"The unheard abandoned fragment never reaches the transcript");
+  ask(next);out.level=.06;advance(16);
+  assert.equal(h.api.assistantSpeaking,true);assert.equal(audio.srcObject,out,"Natural next question uses the direct stream at onset");
+  assert.equal(h.captions.filter(c=>c.role==="assistant").at(-1).text,next);
+  assert.equal(new Set(h.captions.filter(c=>c.role==="user").map(c=>c.id)).size,1,"A cancelled fragment does not split the answer");
+  await stop();passes++;
+ }
+ {
+  const {h,out,mic,audio,advance,user,ask,stop}=await floorCase();
+  mic.level=.05;user("We invoice the portfolio");advance(400);mic.level=0;advance(850);user(" company");
+  ask("What");advance(80);mic.level=.04;advance(210);ask(" sets");advance(90);ask(" that");
+  assert.equal(h.captions.some(c=>c.role==="assistant"),false,"Ahead-of-audio text cannot claim the floor during a natural pause");
+  out.level=.055;advance(720);
+  assert.equal(audio.muted,true,"The resumed participant had spoken for 300ms before the model produced sound");
+  out.level=0;user(" We use the current schedule.");advance(450);mic.level=0;advance(230);
+  assert.equal(h.captions.some(c=>c.role==="assistant"),false);assert.equal(audio.muted,false);
+  await stop();passes++;
+ }
+ {
+  const {h,out,mic,audio,advance,user,ask,stop}=await floorCase();
+  mic.level=.05;user("The portfolio company receives it.");advance(400);mic.level=0;advance(480);ask("Who signs?");
+  assert.equal(h.captions.some(c=>c.role==="assistant"),false);
+  out.level=.055;advance(16);assert.equal(audio.muted,false);assert.equal(audio.srcObject,out);
+  assert.equal(h.captions.some(c=>c.text==="Who signs?"),true,"Normal onset releases the leading caption on the original track");
+  await stop();passes++;
+ }
+ {
+  const {h,out,mic,audio,advance,user,ask,stop}=await floorCase();
+  mic.level=.04;user("We check the log.");advance(200);ask("Who checks the log?");out.level=.055;advance(80);
+  mic.level=0;advance(240);
+  assert.equal(audio.muted,false);assert.notEqual(audio.srcObject,out,"A true overlapping question replays the beginning from buffered audio");
+  assert.equal(h.captions.filter(c=>c.role==="assistant").at(-1).text,"Who checks the log?");
+  const replay=h.api.operation.floor.replay;assert.ok(replay.lag>=300);
+  out.level=0;advance(1300);assert.equal(audio.srcObject,out);await stop();passes++;
+ }
+ {
+  const {h,out,mic,audio,advance,user,ask,stop}=await floorCase();
+  mic.level=.06;advance(400);assert.equal(audio.muted,false,"Unidentified noise is insufficient");
+  mic.level=0;user("I finished.");advance(1700);mic.level=.05;advance(500);
+  assert.equal(audio.muted,false,"Old words and fresh noise do not take the floor");
+  user("One more thing.");mic.level=0;advance(300);mic.level=.05;advance(32);mic.level=0;advance(80);
+  assert.equal(audio.muted,false,"A brief single noise does not take the floor");
+  out.level=.055;ask("Who reviews it");advance(25);mic.level=.04;user("I do.");advance(400);
+  assert.equal(audio.muted,false,"A deliberate interruption preserves the already audible interviewer");
+  assert.ok(h.captions.some(c=>c.text==="Who reviews it"));await stop();passes++;
+ }
+ {
+  const {h,mic,audio,advance,user,ask,stop}=await floorCase();
+  mic.level=.06;user("We check it.");advance(250);ask("What happens next?");advance(940);
+  assert.ok(h.captions.some(c=>c.text==="What happens next?"),"Caption-only output is eventually released on a silent track");
+  assert.equal(audio.muted,false);await stop();passes++;
+ }
+ {
+  const {h,mic,audio,advance,user,ask,stop}=await floorCase(false);
+  mic.level=.05;user("The manager checks it.");advance(350);ask("What next?");
+  assert.equal(audio.muted,false,"Keep the original behavior when the playback buffer is unavailable");
+  assert.ok(h.captions.some(c=>c.text==="What next?"));await stop();passes++;
  }
  console.log(JSON.stringify({tests_passed:passes,network_calls:0,provider_calls:0,physical_audio:false}));
 })().catch(error=>{console.error(error);process.exitCode=1;});
